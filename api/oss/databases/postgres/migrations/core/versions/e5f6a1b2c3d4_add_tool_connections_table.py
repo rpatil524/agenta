@@ -1,6 +1,6 @@
 """add tool_connections table
 
-Revision ID: a1b2c3d4e5f6
+Revision ID: e5f6a1b2c3d4
 Revises: fd77265d65dc
 Create Date: 2026-02-09 12:00:00.000000
 
@@ -10,16 +10,20 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 
 # revision identifiers, used by Alembic.
-revision: str = "a1b2c3d4e5f6"
-down_revision: Union[str, None] = "c9d0e1f2a3b4"
+revision: str = "e5f6a1b2c3d4"
+down_revision: Union[str, None] = "c2d3e4f5a6b7"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    # -- TOOL PROVIDER KIND ENUM ------------------------------------------------
+    op.execute("CREATE TYPE tool_provider_kind_enum AS ENUM ('composio')")
+
     # -- TOOL CONNECTIONS -------------------------------------------------------
     op.create_table(
         "tool_connections",
@@ -29,19 +33,19 @@ def upgrade() -> None:
         sa.Column("name", sa.String(), nullable=True),
         sa.Column("description", sa.String(), nullable=True),
         #
+        sa.Column(
+            "kind",
+            sa.Enum("composio", name="tool_provider_kind_enum", create_type=False),
+            nullable=False,
+        ),
         sa.Column("provider_key", sa.String(), nullable=False),
         sa.Column("integration_key", sa.String(), nullable=False),
         #
-        sa.Column("provider_connection_id", sa.String(), nullable=True),
-        sa.Column("auth_config_id", sa.String(), nullable=True),
-        #
-        sa.Column(
-            "is_active", sa.Boolean(), nullable=False, server_default=sa.text("true")
-        ),
-        sa.Column(
-            "is_valid", sa.Boolean(), nullable=False, server_default=sa.text("false")
-        ),
-        sa.Column("status", sa.String(), nullable=True),
+        sa.Column("tags", postgresql.JSONB(none_as_null=True), nullable=True),
+        sa.Column("flags", postgresql.JSONB(none_as_null=True), nullable=True),
+        sa.Column("data", postgresql.JSON(none_as_null=True), nullable=True),
+        sa.Column("status", postgresql.JSONB(none_as_null=True), nullable=True),
+        sa.Column("meta", postgresql.JSON(none_as_null=True), nullable=True),
         #
         sa.Column(
             "created_at",
@@ -50,7 +54,10 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("updated_at", sa.TIMESTAMP(timezone=True), nullable=True),
+        sa.Column("deleted_at", sa.TIMESTAMP(timezone=True), nullable=True),
         sa.Column("created_by_id", sa.UUID(), nullable=False),
+        sa.Column("updated_by_id", sa.UUID(), nullable=True),
+        sa.Column("deleted_by_id", sa.UUID(), nullable=True),
         #
         sa.PrimaryKeyConstraint("project_id", "id"),
         sa.UniqueConstraint(
@@ -76,3 +83,4 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.drop_table("tool_connections")
+    op.execute("DROP TYPE tool_provider_kind_enum")

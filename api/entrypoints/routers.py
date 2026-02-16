@@ -104,7 +104,7 @@ from oss.src.apis.fastapi.evaluations.router import EvaluationsRouter
 from oss.src.apis.fastapi.evaluations.router import SimpleEvaluationsRouter
 
 from oss.src.dbs.postgres.tools.dao import ToolsDAO
-from oss.src.core.tools.adapters.composio import ComposioAdapter
+from oss.src.core.tools.providers.composio import ComposioAdapter
 from oss.src.core.tools.adapters.registry import GatewayAdapterRegistry
 from oss.src.core.tools.service import ToolsService
 from oss.src.apis.fastapi.tools.router import ToolsRouter
@@ -347,7 +347,7 @@ _composio_adapters = {}
 if env.composio.enabled:
     _composio_adapters["composio"] = ComposioAdapter(
         api_key=env.composio.api_key,
-        base_url=env.composio.base_url,
+        api_url=env.composio.api_url,
     )
 
 tools_adapter_registry = GatewayAdapterRegistry(

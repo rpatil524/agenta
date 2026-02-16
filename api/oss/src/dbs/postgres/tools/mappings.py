@@ -1,7 +1,14 @@
 from uuid import UUID
 
-from oss.src.core.tools.dtos import Connection, ConnectionCreate
-from oss.src.dbs.postgres.tools.dbes import ConnectionDBE
+from pydantic import BaseModel
+
+from oss.src.core.tools.dtos import (
+    ToolConnection,
+    ToolConnectionCreate,
+    ToolConnectionStatus,
+)
+from oss.src.core.shared.dtos import Lifecycle
+from oss.src.dbs.postgres.tools.dbes import ToolConnectionDBE
 
 
 def map_connection_create_to_dbe(
@@ -9,28 +16,35 @@ def map_connection_create_to_dbe(
     project_id: UUID,
     user_id: UUID,
     #
-    provider_key: str,
-    integration_key: str,
-    #
-    dto: ConnectionCreate,
-    #
-    provider_connection_id: str | None = None,
-    auth_config_id: str | None = None,
-) -> ConnectionDBE:
-    return ConnectionDBE(
+    dto: ToolConnectionCreate,
+) -> ToolConnectionDBE:
+    # Serialize provider-specific data to dict if present
+    data = None
+    if dto.data:
+        if isinstance(dto.data, BaseModel):
+            data = dto.data.model_dump()
+        else:
+            data = dto.data
+
+    # Merge provided flags with defaults
+    flags = dto.flags or {}
+    flags.setdefault("is_active", True)
+    flags.setdefault("is_valid", False)
+
+    return ToolConnectionDBE(
         project_id=project_id,
         slug=dto.slug,
         name=dto.name,
         description=dto.description,
         #
-        provider_key=provider_key,
-        integration_key=integration_key,
+        kind=dto.kind,
+        provider_key=dto.provider_key,
+        integration_key=dto.integration_key,
         #
-        provider_connection_id=provider_connection_id,
-        auth_config_id=auth_config_id,
-        #
-        is_active=True,
-        is_valid=False,
+        tags=dto.tags,
+        flags=flags,
+        data=data,
+        meta=dto.meta,
         #
         created_by_id=user_id,
     )
@@ -38,25 +52,42 @@ def map_connection_create_to_dbe(
 
 def map_connection_dbe_to_dto(
     *,
-    dbe: ConnectionDBE,
-) -> Connection:
-    return Connection(
+    dbe: ToolConnectionDBE,
+) -> ToolConnection:
+    # Keep provider data generic in core DTOs.
+    data = dbe.data or None
+
+    # Parse status
+    status = None
+    if dbe.status:
+        status = ToolConnectionStatus(**dbe.status)
+
+    # Build lifecycle DTO
+    lifecycle = Lifecycle(
+        created_at=dbe.created_at,
+        updated_at=dbe.updated_at,
+        deleted_at=dbe.deleted_at,
+        created_by_id=dbe.created_by_id,
+        updated_by_id=dbe.updated_by_id,
+        deleted_by_id=dbe.deleted_by_id,
+    )
+
+    return ToolConnection(
         id=dbe.id,
         slug=dbe.slug,
         name=dbe.name,
         description=dbe.description,
         #
+        kind=dbe.kind,
         provider_key=dbe.provider_key,
         integration_key=dbe.integration_key,
         #
-        provider_connection_id=dbe.provider_connection_id,
-        auth_config_id=dbe.auth_config_id,
+        tags=dbe.tags,
+        flags=dbe.flags,
+        data=data,
+        status=status,
+        meta=dbe.meta,
         #
-        is_active=dbe.is_active,
-        is_valid=dbe.is_valid,
-        status=dbe.status,
         #
-        created_at=dbe.created_at,
-        updated_at=dbe.updated_at,
-        created_by_id=dbe.created_by_id,
+        lifecycle=lifecycle,
     )

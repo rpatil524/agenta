@@ -1,0 +1,123 @@
+@host = http://localhost
+@token = replace-me
+@base_url = {{host}}/api/preview/tools
+
+###
+# @name create_account
+POST {{host}}/api/admin/account
+Content-Type: application/json
+Authorization: Access {{token}}
+
+{
+  "user": {
+    "name": "test_user",
+    "email": "test@agenta.ai"
+  },
+  "scope": {
+    "name": "Agenta (test)"
+  }
+}
+
+###
+@authorization = {{create_account.response.body.scopes[0].credentials}}
+
+# =====================================================================
+# CATALOG BROWSE
+# =====================================================================
+
+###
+# @name list_providers
+# List all tool providers (e.g. composio)
+GET {{base_url}}/catalog/providers
+Authorization: {{authorization}}
+
+###
+# @name get_provider
+# Get a specific provider
+GET {{base_url}}/catalog/providers/composio
+Authorization: {{authorization}}
+
+###
+# @name list_integrations
+# List integrations for a provider (with optional search)
+GET {{base_url}}/catalog/providers/composio/integrations?search=gmail&limit=10
+Authorization: {{authorization}}
+
+###
+# @name list_integrations_all
+# List all integrations
+GET {{base_url}}/catalog/providers/composio/integrations?limit=20
+Authorization: {{authorization}}
+
+###
+# @name get_integration
+# Get a specific integration detail (includes connection count)
+GET {{base_url}}/catalog/providers/composio/integrations/gmail
+Authorization: {{authorization}}
+
+###
+# @name list_actions
+# List actions for an integration
+GET {{base_url}}/catalog/providers/composio/integrations/gmail/actions?limit=20
+Authorization: {{authorization}}
+
+###
+# @name list_actions_important
+# List only important actions
+GET {{base_url}}/catalog/providers/composio/integrations/gmail/actions?important=true&limit=20
+Authorization: {{authorization}}
+
+###
+# @name get_action
+# Get full schema for a specific action
+GET {{base_url}}/catalog/providers/composio/integrations/gmail/actions/SEND_EMAIL
+Authorization: {{authorization}}
+
+###
+# @name get_action_github
+# Get full schema for a GitHub action
+GET {{base_url}}/catalog/providers/composio/integrations/github/actions/CREATE_ISSUE
+Authorization: {{authorization}}
+
+
+# =====================================================================
+# CATALOG QUERY (POST)
+# =====================================================================
+
+###
+# @name query_catalog_gmail
+# Query catalog actions with filters
+POST {{base_url}}/catalog/query
+Content-Type: application/json
+Authorization: {{authorization}}
+
+{
+  "provider_key": "composio",
+  "integration_key": "gmail",
+  "important": true,
+  "limit": 10
+}
+
+###
+# @name query_catalog_all
+# Query all catalog actions across providers
+POST {{base_url}}/catalog/query
+Content-Type: application/json
+Authorization: {{authorization}}
+
+{
+  "limit": 20
+}
+
+###
+# @name query_catalog_github
+# Query GitHub actions
+POST {{base_url}}/catalog/query
+Content-Type: application/json
+Authorization: {{authorization}}
+
+{
+  "provider_key": "composio",
+  "integration_key": "github",
+  "important": true
+}

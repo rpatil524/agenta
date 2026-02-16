@@ -10,10 +10,14 @@ from oss.src.utils.exceptions import suppress_exceptions
 
 from oss.src.core.shared.exceptions import EntityCreationConflict
 from oss.src.core.tools.interfaces import ToolsDAOInterface
-from oss.src.core.tools.dtos import Connection, ConnectionCreate
+from oss.src.core.tools.dtos import (
+    ToolConnection,
+    ToolConnectionCreate,
+    ToolConnectionStatus,
+)
 
 from oss.src.dbs.postgres.shared.engine import engine
-from oss.src.dbs.postgres.tools.dbes import ConnectionDBE
+from oss.src.dbs.postgres.tools.dbes import ToolConnectionDBE
 from oss.src.dbs.postgres.tools.mappings import (
     map_connection_create_to_dbe,
     map_connection_dbe_to_dto,
@@ -24,8 +28,8 @@ log = get_module_logger(__name__)
 
 
 class ToolsDAO(ToolsDAOInterface):
-    def __init__(self, *, ConnectionDBE: type = ConnectionDBE):
-        self.ConnectionDBE = ConnectionDBE
+    def __init__(self, *, ToolConnectionDBE: type = ToolConnectionDBE):
+        self.ToolConnectionDBE = ToolConnectionDBE
 
     @suppress_exceptions(exclude=[EntityCreationConflict])
     async def create_connection(
@@ -34,25 +38,13 @@ class ToolsDAO(ToolsDAOInterface):
         project_id: UUID,
         user_id: UUID,
         #
-        provider_key: str,
-        integration_key: str,
-        #
-        connection_create: ConnectionCreate,
-        #
-        provider_connection_id: Optional[str] = None,
-        auth_config_id: Optional[str] = None,
-    ) -> Optional[Connection]:
+        connection_create: ToolConnectionCreate,
+    ) -> Optional[ToolConnection]:
         dbe = map_connection_create_to_dbe(
             project_id=project_id,
             user_id=user_id,
             #
-            provider_key=provider_key,
-            integration_key=integration_key,
-            #
             dto=connection_create,
-            #
-            provider_connection_id=provider_connection_id,
-            auth_config_id=auth_config_id,
         )
 
         try:
@@ -67,13 +59,13 @@ class ToolsDAO(ToolsDAOInterface):
             error_str = str(e.orig) if e.orig else str(e)
             if "uq_tool_connections_project_provider_integration_slug" in error_str:
                 raise EntityCreationConflict(
-                    entity="Connection",
-                    message="Connection with slug '{{slug}}' already exists for this integration.".replace(
+                    entity="ToolConnection",
+                    message="ToolConnection with slug '{{slug}}' already exists for this integration.".replace(
                         "{{slug}}", connection_create.slug
                     ),
                     conflict={
-                        "provider_key": provider_key,
-                        "integration_key": integration_key,
+                        "provider_key": connection_create.provider_key,
+                        "integration_key": connection_create.integration_key,
                         "slug": connection_create.slug,
                     },
                 ) from e
@@ -84,18 +76,13 @@ class ToolsDAO(ToolsDAOInterface):
         self,
         *,
         project_id: UUID,
-        #
-        provider_key: str,
-        integration_key: str,
-        connection_slug: str,
-    ) -> Optional[Connection]:
+        connection_id: UUID,
+    ) -> Optional[ToolConnection]:
         async with engine.core_session() as session:
             stmt = (
-                select(self.ConnectionDBE)
-                .filter(self.ConnectionDBE.project_id == project_id)
-                .filter(self.ConnectionDBE.provider_key == provider_key)
-                .filter(self.ConnectionDBE.integration_key == integration_key)
-                .filter(self.ConnectionDBE.slug == connection_slug)
+                select(self.ToolConnectionDBE)
+                .filter(self.ToolConnectionDBE.project_id == project_id)
+                .filter(self.ToolConnectionDBE.id == connection_id)
                 .limit(1)
             )
 
@@ -112,23 +99,18 @@ class ToolsDAO(ToolsDAOInterface):
         self,
         *,
         project_id: UUID,
-        #
-        provider_key: str,
-        integration_key: str,
-        connection_slug: str,
+        connection_id: UUID,
         #
         is_valid: Optional[bool] = None,
         is_active: Optional[bool] = None,
-        status: Optional[str] = None,
+        status: Optional[ToolConnectionStatus] = None,
         provider_connection_id: Optional[str] = None,
-    ) -> Optional[Connection]:
+    ) -> Optional[ToolConnection]:
         async with engine.core_session() as session:
             stmt = (
-                select(self.ConnectionDBE)
-                .filter(self.ConnectionDBE.project_id == project_id)
-                .filter(self.ConnectionDBE.provider_key == provider_key)
-                .filter(self.ConnectionDBE.integration_key == integration_key)
-                .filter(self.ConnectionDBE.slug == connection_slug)
+                select(self.ToolConnectionDBE)
+                .filter(self.ToolConnectionDBE.project_id == project_id)
+                .filter(self.ToolConnectionDBE.id == connection_id)
                 .limit(1)
             )
 
@@ -138,14 +120,23 @@ class ToolsDAO(ToolsDAOInterface):
             if not dbe:
                 return None
 
-            if is_valid is not None:
-                dbe.is_valid = is_valid
-            if is_active is not None:
-                dbe.is_active = is_active
-            if status is not None:
-                dbe.status = status
+            # Update flags
+            if is_valid is not None or is_active is not None:
+                flags = dbe.flags or {}
+                if is_valid is not None:
+                    flags["is_valid"] = is_valid
+                if is_active is not None:
+                    flags["is_active"] = is_active
+                dbe.flags = flags
+
+            # Update provider-specific data
             if provider_connection_id is not None:
-                dbe.provider_connection_id = provider_connection_id
+                data = dbe.data or {}
+                data["connected_account_id"] = provider_connection_id
+                dbe.data = data
+
+            if status is not None:
+                dbe.status = status.model_dump()
 
             dbe.updated_at = datetime.now(timezone.utc)
 
@@ -159,18 +150,13 @@ class ToolsDAO(ToolsDAOInterface):
         self,
         *,
         project_id: UUID,
-        #
-        provider_key: str,
-        integration_key: str,
-        connection_slug: str,
+        connection_id: UUID,
     ) -> bool:
         async with engine.core_session() as session:
             stmt = (
-                delete(self.ConnectionDBE)
-                .where(self.ConnectionDBE.project_id == project_id)
-                .where(self.ConnectionDBE.provider_key == provider_key)
-                .where(self.ConnectionDBE.integration_key == integration_key)
-                .where(self.ConnectionDBE.slug == connection_slug)
+                delete(self.ToolConnectionDBE)
+                .where(self.ToolConnectionDBE.project_id == project_id)
+                .where(self.ToolConnectionDBE.id == connection_id)
             )
 
             result = await session.execute(stmt)
@@ -186,21 +172,21 @@ class ToolsDAO(ToolsDAOInterface):
         #
         provider_key: Optional[str] = None,
         integration_key: Optional[str] = None,
-    ) -> List[Connection]:
+    ) -> List[ToolConnection]:
         async with engine.core_session() as session:
-            stmt = select(self.ConnectionDBE).filter(
-                self.ConnectionDBE.project_id == project_id,
+            stmt = select(self.ToolConnectionDBE).filter(
+                self.ToolConnectionDBE.project_id == project_id,
             )
 
             if provider_key:
-                stmt = stmt.filter(self.ConnectionDBE.provider_key == provider_key)
+                stmt = stmt.filter(self.ToolConnectionDBE.provider_key == provider_key)
 
             if integration_key:
                 stmt = stmt.filter(
-                    self.ConnectionDBE.integration_key == integration_key
+                    self.ToolConnectionDBE.integration_key == integration_key
                 )
 
-            stmt = stmt.order_by(self.ConnectionDBE.created_at.desc())
+            stmt = stmt.order_by(self.ToolConnectionDBE.created_at.desc())
 
             result = await session.execute(stmt)
             dbes = result.scalars().all()

@@ -562,9 +562,7 @@ class ComposioConfig(BaseModel):
     """Composio integration configuration"""
 
     api_key: str = os.getenv("COMPOSIO_API_KEY", "")
-    base_url: str = os.getenv(
-        "COMPOSIO_BASE_URL", "https://backend.composio.dev/api/v3"
-    )
+    api_url: str = os.getenv("COMPOSIO_API_URL", "https://backend.composio.dev/api/v3")
 
     @property
     def enabled(self) -> bool:

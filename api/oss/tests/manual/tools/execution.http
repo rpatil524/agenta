@@ -1,0 +1,281 @@
+@host = http://localhost
+@token = replace-me
+@base_url = {{host}}/api/preview/tools
+
+###
+# @name create_account
+POST {{host}}/api/admin/account
+Content-Type: application/json
+Authorization: Access {{token}}
+
+{
+  "user": {
+    "name": "test_user",
+    "email": "test@agenta.ai"
+  },
+  "scope": {
+    "name": "Agenta (test)"
+  }
+}
+
+###
+@authorization = {{create_account.response.body.scopes[0].credentials}}
+
+# =====================================================================
+# TOOL EXECUTION FLOW
+# =====================================================================
+# This demonstrates the complete flow:
+# 1. Browse catalog to find actions
+# 2. Create a connection (OAuth flow)
+# 3. Poll connection until active
+# 4. Execute tool actions
+
+# =====================================================================
+# Step 1: Browse available actions
+# =====================================================================
+
+###
+# @name list_gmail_actions
+# List all Gmail actions
+GET {{base_url}}/catalog/providers/composio/integrations/gmail/actions?important=true
+Authorization: {{authorization}}
+
+###
+# @name get_send_email_action
+# Get full schema for Gmail SEND_EMAIL action
+GET {{base_url}}/catalog/providers/composio/integrations/gmail/actions/SEND_EMAIL
+Authorization: {{authorization}}
+
+# =====================================================================
+# Step 2: Create connection (initiates OAuth)
+# =====================================================================
+
+###
+# @name create_gmail_connection
+POST {{base_url}}/connections/
+Content-Type: application/json
+Authorization: {{authorization}}
+
+{
+  "connection": {
+    "slug": "my-gmail",
+    "name": "My Gmail Account",
+    "description": "Personal Gmail for testing",
+    "provider_key": "composio",
+    "integration_key": "gmail",
+    "data": {
+      "callback_url": "{{host}}/api/preview/tools/connections/callback"
+    }
+  }
+}
+
+###
+@connection_id = {{create_gmail_connection.response.body.connection.id}}
+@redirect_url = {{create_gmail_connection.response.body.connection.status.redirect_url}}
+
+###
+# MANUAL STEP: Open the redirect_url in your browser to complete OAuth
+# After OAuth: The provider will redirect to the callback_url
+# Then poll the connection status below
+
+# =====================================================================
+# Step 3: Poll connection status
+# =====================================================================
+
+###
+# @name get_connection_status
+# Keep calling this until is_valid=true and is_active=true
+GET {{base_url}}/connections/{{connection_id}}
+Authorization: {{authorization}}
+
+###
+# @name refresh_connection
+# If connection expires, refresh it
+POST {{base_url}}/connections/{{connection_id}}/refresh
+Content-Type: application/json
+Authorization: {{authorization}}
+
+{}
+
+# =====================================================================
+# Step 4: Execute tool action
+# =====================================================================
+
+###
+# @name execute_send_email
+# Tool slug format: tools.{provider}.{integration}.{action}.{connection}
+POST {{base_url}}/call
+Content-Type: application/json
+Authorization: {{authorization}}
+
+{
+  "id": "call-001",
+  "name": "tools.composio.gmail.SEND_EMAIL.my-gmail",
+  "arguments": {
+    "to": "recipient@example.com",
+    "subject": "Test Email from Agenta Tools",
+    "body": "This is a test email sent via Composio integration!",
+    "from": "your-email@gmail.com"
+  }
+}
+
+###
+# @name execute_gmail_search
+# Example: Search for emails
+POST {{base_url}}/call
+Content-Type: application/json
+Authorization: {{authorization}}
+
+{
+  "id": "call-002",
+  "name": "tools.composio.gmail.SEARCH_EMAIL.my-gmail",
+  "arguments": {
+    "query": "from:noreply@github.com",
+    "max_results": 5
+  }
+}
+
+# =====================================================================
+# GitHub Integration Example
+# =====================================================================
+
+###
+# @name list_github_actions
+GET {{base_url}}/catalog/providers/composio/integrations/github/actions?important=true
+Authorization: {{authorization}}
+
+###
+# @name create_github_connection
+POST {{base_url}}/connections/
+Content-Type: application/json
+Authorization: {{authorization}}
+
+{
+  "connection": {
+    "slug": "my-github",
+    "name": "My GitHub Account",
+    "provider_key": "composio",
+    "integration_key": "github",
+    "data": {
+      "callback_url": "{{host}}/api/preview/tools/connections/callback"
+    }
+  }
+}
+
+###
+@github_connection_id = {{create_github_connection.response.body.connection.id}}
+
+###
+# @name execute_create_issue
+POST {{base_url}}/call
+Content-Type: application/json
+Authorization: {{authorization}}
+
+{
+  "id": "call-003",
+  "name": "tools.composio.github.CREATE_ISSUE.my-github",
+  "arguments": {
+    "owner": "your-username",
+    "repo": "your-repo",
+    "title": "Test Issue from Agenta",
+    "body": "This issue was created via Composio integration",
+    "labels": ["test"]
+  }
+}
+
+###
+# @name execute_list_repos
+POST {{base_url}}/call
+Content-Type: application/json
+Authorization: {{authorization}}
+
+{
+  "id": "call-004",
+  "name": "tools.composio.github.LIST_REPOS.my-github",
+  "arguments": {
+    "type": "owner",
+    "sort": "updated"
+  }
+}
+
+# =====================================================================
+# Slack Integration Example
+# =====================================================================
+
+###
+# @name list_slack_actions
+GET {{base_url}}/catalog/providers/composio/integrations/slack/actions?important=true
+Authorization: {{authorization}}
+
+###
+# @name create_slack_connection
+POST {{base_url}}/connections/
+Content-Type: application/json
+Authorization: {{authorization}}
+
+{
+  "connection": {
+    "slug": "my-slack",
+    "name": "My Slack Workspace",
+    "provider_key": "composio",
+    "integration_key": "slack",
+    "data": {
+      "callback_url": "{{host}}/api/preview/tools/connections/callback"
+    }
+  }
+}
+
+###
+@slack_connection_id = {{create_slack_connection.response.body.connection.id}}
+
+###
+# @name execute_send_message
+POST {{base_url}}/call
+Content-Type: application/json
+Authorization: {{authorization}}
+
+{
+  "id": "call-005",
+  "name": "tools.composio.slack.SEND_MESSAGE.my-slack",
+  "arguments": {
+    "channel": "#general",
+    "text": "Hello from Agenta Tools! 👋",
+    "thread_ts": null
+  }
+}
+
+# =====================================================================
+# Query Tools (Browse available tools)
+# =====================================================================
+
+###
+# @name query_all_tools
+# Query all available tools (actions × connections)
+POST {{base_url}}/query
+Content-Type: application/json
+Authorization: {{authorization}}
+
+{
+  "tool": {
+    "flags": {
+      "is_connected": true
+    }
+  }
+}
+
+###
+# @name query_gmail_tools
+# Query only Gmail tools that are connected
+POST {{base_url}}/query
+Content-Type: application/json
+Authorization: {{authorization}}
+
+{
+  "tool": {
+    "provider_key": "composio",
+    "integration_key": "gmail",
+    "flags": {
+      "is_connected": true
+    }
+  }
+}

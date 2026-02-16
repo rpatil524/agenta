@@ -3,11 +3,12 @@ from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from oss.src.core.tools.dtos import (
-    CatalogAction,
-    CatalogIntegration,
-    CatalogProvider,
-    Connection,
-    ConnectionCreate,
+    ToolCatalogAction,
+    ToolCatalogActionDetails,
+    ToolCatalogIntegration,
+    ToolCatalogProvider,
+    ToolConnection,
+    ToolConnectionCreate,
     ExecutionResult,
     Tags,
 )
@@ -23,51 +24,36 @@ class ToolsDAOInterface(ABC):
         project_id: UUID,
         user_id: UUID,
         #
-        provider_key: str,
-        integration_key: str,
-        #
-        connection_create: ConnectionCreate,
-        #
-        provider_connection_id: Optional[str] = None,
-        auth_config_id: Optional[str] = None,
-    ) -> Optional[Connection]: ...
+        connection_create: ToolConnectionCreate,
+    ) -> Optional[ToolConnection]: ...
 
     @abstractmethod
     async def get_connection(
         self,
         *,
         project_id: UUID,
-        #
-        provider_key: str,
-        integration_key: str,
-        connection_slug: str,
-    ) -> Optional[Connection]: ...
+        connection_id: UUID,
+    ) -> Optional[ToolConnection]: ...
 
     @abstractmethod
     async def update_connection(
         self,
         *,
         project_id: UUID,
-        #
-        provider_key: str,
-        integration_key: str,
-        connection_slug: str,
+        connection_id: UUID,
         #
         is_valid: Optional[bool] = None,
         is_active: Optional[bool] = None,
         status: Optional[str] = None,
         provider_connection_id: Optional[str] = None,
-    ) -> Optional[Connection]: ...
+    ) -> Optional[ToolConnection]: ...
 
     @abstractmethod
     async def delete_connection(
         self,
         *,
         project_id: UUID,
-        #
-        provider_key: str,
-        integration_key: str,
-        connection_slug: str,
+        connection_id: UUID,
     ) -> bool: ...
 
     @abstractmethod
@@ -78,14 +64,14 @@ class ToolsDAOInterface(ABC):
         #
         provider_key: Optional[str] = None,
         integration_key: Optional[str] = None,
-    ) -> List[Connection]: ...
+    ) -> List[ToolConnection]: ...
 
 
 class GatewayAdapterInterface(ABC):
     """Port for external tool providers (Composio, Agenta, etc.)."""
 
     @abstractmethod
-    async def list_providers(self) -> List[CatalogProvider]: ...
+    async def list_providers(self) -> List[ToolCatalogProvider]: ...
 
     @abstractmethod
     async def list_integrations(
@@ -93,7 +79,7 @@ class GatewayAdapterInterface(ABC):
         *,
         search: Optional[str] = None,
         limit: Optional[int] = None,
-    ) -> List[CatalogIntegration]: ...
+    ) -> List[ToolCatalogIntegration]: ...
 
     @abstractmethod
     async def list_actions(
@@ -104,7 +90,7 @@ class GatewayAdapterInterface(ABC):
         tags: Optional[Tags] = None,
         important: Optional[bool] = None,
         limit: Optional[int] = None,
-    ) -> List[CatalogAction]: ...
+    ) -> List[ToolCatalogAction]: ...
 
     @abstractmethod
     async def get_action(
@@ -112,7 +98,7 @@ class GatewayAdapterInterface(ABC):
         *,
         integration_key: str,
         action_key: str,
-    ) -> Optional[CatalogAction]: ...
+    ) -> Optional[ToolCatalogActionDetails]: ...
 
     @abstractmethod
     async def initiate_connection(

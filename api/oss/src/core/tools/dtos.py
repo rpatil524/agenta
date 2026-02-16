@@ -1,166 +1,216 @@
-from typing import Any, Dict, List, Literal, Optional
-from datetime import datetime
-from uuid import UUID
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
+from agenta.sdk.models.workflows import JsonSchemas
 from pydantic import BaseModel
 
 from oss.src.core.shared.dtos import (
-    Tags,
-    Windowing,
+    Header,
+    Identifier,
+    Lifecycle,
+    Metadata,
+    Slug,
+    Status,
+    Json,
 )
 
-
 # ---------------------------------------------------------------------------
-# Catalog query DTOs
-# ---------------------------------------------------------------------------
-
-
-class ActionQuery(BaseModel):
-    """Filter criteria for catalog actions (POST /tools/catalog/query)."""
-
-    name: Optional[str] = None  # ilike %name%
-    description: Optional[str] = None  # ilike %description%
-    provider_key: Optional[str] = None  # exact match
-    integration_key: Optional[str] = None  # exact match
-    tags: Optional[Tags] = None  # jsonb contains
-
-
-class ActionQueryRequest(BaseModel):
-    """POST /tools/catalog/query request body."""
-
-    action: Optional[ActionQuery] = None
-    #
-    windowing: Optional[Windowing] = None
-
-
-# ---------------------------------------------------------------------------
-# Tool query DTOs
+# Tool Enums
 # ---------------------------------------------------------------------------
 
 
-class ToolQueryFlags(BaseModel):
-    """Boolean flags for tool filtering."""
-
-    is_connected: Optional[bool] = (
-        None  # true=connected only, false=unconnected, None=all
-    )
+class ToolProviderKind(str, Enum):
+    COMPOSIO = "composio"
+    AGENTA = "agenta"
 
 
-class ToolQuery(BaseModel):
-    """Filter criteria for tools (POST /tools/query)."""
-
-    name: Optional[str] = None  # ilike %name%
-    description: Optional[str] = None  # ilike %description%
-    provider_key: Optional[str] = None  # exact match
-    integration_key: Optional[str] = None  # exact match
-    tags: Optional[Tags] = None  # jsonb contains
-    flags: Optional[ToolQueryFlags] = None
-
-
-class ToolQueryRequest(BaseModel):
-    """POST /tools/query request body."""
-
-    tool: Optional[ToolQuery] = None
-    #
-    include_connections: Optional[bool] = True
-    #
-    windowing: Optional[Windowing] = None
+class ToolAuthScheme(str, Enum):
+    OAUTH = "oauth"
+    API_KEY = "api_key"
 
 
 # ---------------------------------------------------------------------------
-# Connection DTOs
+# Tool Catalog
 # ---------------------------------------------------------------------------
 
-
-class ConnectionCreate(BaseModel):
-    """Payload for creating a new connection."""
-
-    slug: str
-    name: Optional[str] = None
-    description: Optional[str] = None
-    mode: Literal["oauth", "api_key"]
-    callback_url: Optional[str] = None
-    credentials: Optional[Dict[str, str]] = None
+# Tags type for filtering actions
+Tags = Optional[Dict[str, bool]]
 
 
-class Connection(BaseModel):
-    """Persisted connection entity."""
-
-    id: UUID
-    slug: str
-    name: Optional[str] = None
-    description: Optional[str] = None
-    #
-    provider_key: str
-    integration_key: str
-    #
-    provider_connection_id: Optional[str] = None
-    auth_config_id: Optional[str] = None
-    #
-    is_active: bool = True
-    is_valid: bool = False
-    status: Optional[str] = None
-    #
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-    created_by_id: Optional[UUID] = None
-
-
-class ConnectResult(BaseModel):
-    """Result of a connect operation."""
-
-    connection: Connection
-    redirect_url: Optional[str] = None
-
-
-# ---------------------------------------------------------------------------
-# Adapter DTOs — what adapters return
-# ---------------------------------------------------------------------------
-
-
-class CatalogProvider(BaseModel):
-    """Provider summary (e.g. Composio, Agenta)."""
-
+class ToolCatalogAction(BaseModel):
     key: str
+    #
     name: str
     description: Optional[str] = None
+    #
+    categories: List[str] = []
+    logo: Optional[str] = None
+    #
+    tags: Tags = None
+
+
+class ToolCatalogActionDetails(ToolCatalogAction):
+    schemas: Optional[JsonSchemas] = None
+    #
+    input_schema: Optional[Json] = None
+    output_schema: Optional[Json] = None
+
+
+class ToolCatalogIntegration(BaseModel):
+    key: str
+    #
+    name: str
+    description: Optional[str] = None
+    #
+    categories: List[str] = []
+    logo: Optional[str] = None
+    #
+    auth_schemes: Optional[List[ToolAuthScheme]] = None
+    #
+    actions_count: int = 0
+    connections_count: int = 0
+    #
+    no_auth: bool = False
+
+
+class ToolCatalogIntegrationDetails(ToolCatalogIntegration):
+    actions: Optional[List[ToolCatalogAction]] = None
+
+
+class ToolCatalogProvider(BaseModel):
+    key: ToolProviderKind
+    #
+    name: str
+    description: Optional[str] = None
+    #
     integrations_count: int = 0
     enabled: bool = True
 
 
-class CatalogIntegration(BaseModel):
-    """Integration summary (e.g. Gmail, GitHub)."""
-
-    key: str
-    name: str
-    description: Optional[str] = None
-    logo: Optional[str] = None
-    auth_schemes: List[str] = []
-    actions_count: int = 0
-    categories: List[str] = []
-    no_auth: bool = False
-    connections_count: int = 0
-
-
-class CatalogAction(BaseModel):
-    """Action from the catalog (leaf entity)."""
-
-    key: str
-    name: str
-    description: Optional[str] = None
-    tags: Optional[Tags] = None
-    input_schema: Optional[Dict[str, Any]] = None
-    output_schema: Optional[Dict[str, Any]] = None
+class ToolCatalogProviderDetails(ToolCatalogProvider):
+    integrations: Optional[List[ToolCatalogIntegration]] = None
 
 
 # ---------------------------------------------------------------------------
-# Execution DTOs
+# Tool Connections
+# ---------------------------------------------------------------------------
+
+
+class ToolConnectionStatus(Status):
+    redirect_url: Optional[str] = None
+
+
+class ToolConnectionCreateData(BaseModel):
+    callback_url: Optional[str] = None
+    #
+    auth_scheme: Optional[ToolAuthScheme] = None
+    credentials: Optional[Dict[str, str]] = None
+
+
+class ToolConnection(
+    Identifier,
+    Slug,
+    Header,
+    Lifecycle,
+    Metadata,
+):
+    provider_key: ToolProviderKind
+    integration_key: str
+    #
+    data: Optional[Json] = None
+    #
+    status: Optional[ToolConnectionStatus] = None
+
+    @property
+    def provider_connection_id(self) -> Optional[str]:
+        """Get provider-specific connection ID from data."""
+        if self.data and isinstance(self.data, dict):
+            # For Composio, it's stored as "connected_account_id"
+            return self.data.get("connected_account_id") or self.data.get("provider_connection_id")
+        return None
+
+    @property
+    def is_active(self) -> bool:
+        """Check if connection is active (not deleted)."""
+        if self.flags and isinstance(self.flags, dict):
+            return self.flags.get("is_active", False)
+        return False
+
+    @property
+    def is_valid(self) -> bool:
+        """Check if connection is valid (authenticated)."""
+        if self.flags and isinstance(self.flags, dict):
+            return self.flags.get("is_valid", False)
+        return False
+
+
+class ToolConnectionCreate(
+    Slug,
+    Header,
+    Metadata,
+):
+    provider_key: ToolProviderKind
+    integration_key: str
+    #
+    data: Optional[Json] = None
+
+
+# ---------------------------------------------------------------------------
+# Tools
+# ---------------------------------------------------------------------------
+
+
+class Tool(
+    Identifier,
+    Slug,
+    Header,
+    Lifecycle,
+    Metadata,
+):
+    # slug = tools.{provider}.{integration}.{action}[.{connection}]
+    #
+    provider_key: ToolProviderKind
+    integration_key: str
+    action_key: str
+    connection_slug: Optional[str] = None
+    #
+    schemas: Optional[JsonSchemas] = None
+
+
+class ToolQuery(
+    Slug,
+    Header,
+    Metadata,
+):
+    provider_key: Optional[ToolProviderKind] = None  # exact match
+    integration_key: Optional[str] = None  # exact match
+    action_key: Optional[str] = None  # exact match
+    connection_slug: Optional[str] = None  # exact match
+
+
+# ---------------------------------------------------------------------------
+# Tool Calls
+# ---------------------------------------------------------------------------
+
+
+class ToolCall(Identifier):
+    name: str  # ~ tool.slug
+    arguments: Dict[str, Any]
+
+
+class ToolResult(Identifier):
+    data: Optional[Json] = None
+    status: Optional[Status] = None
+
+
+# ---------------------------------------------------------------------------
+# Tool Execution
 # ---------------------------------------------------------------------------
 
 
 class ExecutionResult(BaseModel):
-    """Result from adapter.execute()."""
+    """Result from executing a tool action via a provider adapter."""
 
-    data: Optional[Dict[str, Any]] = None
+    data: Optional[Json] = None
     error: Optional[str] = None
-    successful: bool = True
+    successful: bool = False

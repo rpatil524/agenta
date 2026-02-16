@@ -23,16 +23,21 @@ class ConnectionNotFoundError(ToolsError):
     def __init__(
         self,
         *,
-        provider_key: str,
-        integration_key: str,
-        connection_slug: str,
+        provider_key: Optional[str] = None,
+        integration_key: Optional[str] = None,
+        connection_slug: Optional[str] = None,
+        connection_id: Optional[str] = None,
     ):
         self.provider_key = provider_key
         self.integration_key = integration_key
         self.connection_slug = connection_slug
-        super().__init__(
-            f"Connection not found: {provider_key}/{integration_key}/{connection_slug}"
-        )
+        self.connection_id = connection_id
+
+        if connection_id:
+            msg = f"Connection not found: {connection_id}"
+        else:
+            msg = f"Connection not found: {provider_key}/{integration_key}/{connection_slug}"
+        super().__init__(msg)
 
 
 class ConnectionSlugConflictError(ToolsError):
@@ -51,6 +56,23 @@ class ConnectionSlugConflictError(ToolsError):
         super().__init__(
             f"Connection slug already exists: {provider_key}/{integration_key}/{connection_slug}"
         )
+
+
+class ConnectionInactiveError(ToolsError):
+    """Raised when trying to use an inactive or revoked connection."""
+
+    def __init__(
+        self,
+        *,
+        connection_id: str,
+        detail: Optional[str] = None,
+    ):
+        self.connection_id = connection_id
+        self.detail = detail
+        msg = f"Connection is inactive or revoked: {connection_id}"
+        if detail:
+            msg += f" - {detail}"
+        super().__init__(msg)
 
 
 class ToolNotConnectedError(ToolsError):

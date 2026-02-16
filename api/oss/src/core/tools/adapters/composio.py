@@ -5,9 +5,10 @@ import httpx
 from oss.src.utils.logging import get_module_logger
 
 from oss.src.core.tools.dtos import (
-    CatalogAction,
-    CatalogIntegration,
-    CatalogProvider,
+    ToolToolCatalogAction,
+    ToolToolCatalogActionDetails,
+    ToolToolCatalogIntegration,
+    ToolToolCatalogProvider,
     ExecutionResult,
     Tags,
 )
@@ -17,7 +18,7 @@ from oss.src.core.tools.exceptions import AdapterError
 
 log = get_module_logger(__name__)
 
-COMPOSIO_DEFAULT_BASE_URL = "https://backend.composio.dev/api/v3"
+COMPOSIO_DEFAULT_API_URL = "https://backend.composio.dev/api/v3"
 
 
 class ComposioAdapter(GatewayAdapterInterface):
@@ -27,10 +28,10 @@ class ComposioAdapter(GatewayAdapterInterface):
         self,
         *,
         api_key: str,
-        base_url: str = COMPOSIO_DEFAULT_BASE_URL,
+        api_url: str = COMPOSIO_DEFAULT_API_URL,
     ):
         self.api_key = api_key
-        self.base_url = base_url.rstrip("/")
+        self.api_url = api_url.rstrip("/")
 
     def _headers(self) -> Dict[str, str]:
         return {
@@ -46,7 +47,7 @@ class ComposioAdapter(GatewayAdapterInterface):
     ) -> Any:
         async with httpx.AsyncClient() as client:
             resp = await client.get(
-                f"{self.base_url}{path}",
+                f"{self.api_url}{path}",
                 headers=self._headers(),
                 params=params,
                 timeout=30.0,
@@ -62,7 +63,7 @@ class ComposioAdapter(GatewayAdapterInterface):
     ) -> Any:
         async with httpx.AsyncClient() as client:
             resp = await client.post(
-                f"{self.base_url}{path}",
+                f"{self.api_url}{path}",
                 headers=self._headers(),
                 json=json or {},
                 timeout=30.0,
@@ -73,7 +74,7 @@ class ComposioAdapter(GatewayAdapterInterface):
     async def _delete(self, path: str) -> bool:
         async with httpx.AsyncClient() as client:
             resp = await client.delete(
-                f"{self.base_url}{path}",
+                f"{self.api_url}{path}",
                 headers=self._headers(),
                 timeout=30.0,
             )
@@ -84,9 +85,9 @@ class ComposioAdapter(GatewayAdapterInterface):
     # Catalog
     # -----------------------------------------------------------------------
 
-    async def list_providers(self) -> List[CatalogProvider]:
+    async def list_providers(self) -> List[ToolCatalogProvider]:
         return [
-            CatalogProvider(
+            ToolCatalogProvider(
                 key="composio",
                 name="Composio",
                 description="Third-party tool integrations via Composio",
@@ -99,7 +100,7 @@ class ComposioAdapter(GatewayAdapterInterface):
         *,
         search: Optional[str] = None,
         limit: Optional[int] = None,
-    ) -> List[CatalogIntegration]:
+    ) -> List[ToolCatalogIntegration]:
         params: Dict[str, Any] = {}
         if search:
             params["search"] = search
@@ -118,7 +119,7 @@ class ComposioAdapter(GatewayAdapterInterface):
         items = data if isinstance(data, list) else data.get("items", [])
 
         return [
-            CatalogIntegration(
+            ToolCatalogIntegration(
                 key=item.get("slug", ""),
                 name=item.get("name", ""),
                 description=item.get("description"),
@@ -147,7 +148,7 @@ class ComposioAdapter(GatewayAdapterInterface):
         tags: Optional[Tags] = None,
         important: Optional[bool] = None,
         limit: Optional[int] = None,
-    ) -> List[CatalogAction]:
+    ) -> List[ToolCatalogAction]:
         params: Dict[str, Any] = {"toolkit_slug": integration_key}
         if limit:
             params["limit"] = limit
@@ -178,7 +179,7 @@ class ComposioAdapter(GatewayAdapterInterface):
             )
 
             actions.append(
-                CatalogAction(
+                ToolCatalogAction(
                     key=action_key,
                     name=item.get("name", ""),
                     description=item.get("description"),
@@ -193,7 +194,7 @@ class ComposioAdapter(GatewayAdapterInterface):
         *,
         integration_key: str,
         action_key: str,
-    ) -> Optional[CatalogAction]:
+    ) -> Optional[ToolCatalogActionDetails]:
         composio_slug = self._to_composio_slug(
             integration_key=integration_key,
             action_key=action_key,
@@ -221,7 +222,7 @@ class ComposioAdapter(GatewayAdapterInterface):
             if isinstance(t, str):
                 action_tags[t] = True
 
-        return CatalogAction(
+        return ToolCatalogActionDetails(
             key=action_key,
             name=item.get("name", ""),
             description=item.get("description"),

@@ -6,13 +6,13 @@ from oss.src.utils.logging import get_module_logger
 from oss.src.core.shared.dtos import Windowing
 
 from oss.src.core.tools.dtos import (
-    ActionQuery,
-    CatalogAction,
-    CatalogIntegration,
-    CatalogProvider,
-    ConnectResult,
-    Connection,
-    ConnectionCreate,
+    ToolCatalogAction,
+    ToolCatalogActionDetails,
+    ToolCatalogIntegration,
+    ToolCatalogProvider,
+    ToolConnection,
+    ToolConnectionCreate,
+    ToolConnectionStatus,
     Tags,
     ToolQuery,
 )
@@ -21,6 +21,7 @@ from oss.src.core.tools.interfaces import (
 )
 from oss.src.core.tools.adapters.registry import GatewayAdapterRegistry
 from oss.src.core.tools.exceptions import (
+    ConnectionInactiveError,
     ConnectionNotFoundError,
 )
 
@@ -42,8 +43,8 @@ class ToolsService:
     # Catalog browse
     # -----------------------------------------------------------------------
 
-    async def list_providers(self) -> List[CatalogProvider]:
-        results: List[CatalogProvider] = []
+    async def list_providers(self) -> List[ToolCatalogProvider]:
+        results: List[ToolCatalogProvider] = []
         for _key, adapter in self.adapter_registry.items():
             providers = await adapter.list_providers()
             results.extend(providers)
@@ -53,7 +54,7 @@ class ToolsService:
         self,
         *,
         provider_key: str,
-    ) -> Optional[CatalogProvider]:
+    ) -> Optional[ToolCatalogProvider]:
         adapter = self.adapter_registry.get(provider_key)
         providers = await adapter.list_providers()
         for p in providers:
@@ -69,7 +70,7 @@ class ToolsService:
         #
         search: Optional[str] = None,
         limit: Optional[int] = None,
-    ) -> List[CatalogIntegration]:
+    ) -> List[ToolCatalogIntegration]:
         adapter = self.adapter_registry.get(provider_key)
         integrations = await adapter.list_integrations(
             search=search,
@@ -93,7 +94,7 @@ class ToolsService:
         project_id: UUID,
         provider_key: str,
         integration_key: str,
-    ) -> Optional[CatalogIntegration]:
+    ) -> Optional[ToolCatalogIntegration]:
         adapter = self.adapter_registry.get(provider_key)
         integrations = await adapter.list_integrations()
         target = None
@@ -125,7 +126,7 @@ class ToolsService:
         tags: Optional[Tags] = None,
         important: Optional[bool] = None,
         limit: Optional[int] = None,
-    ) -> List[CatalogAction]:
+    ) -> List[ToolCatalogAction]:
         adapter = self.adapter_registry.get(provider_key)
         return await adapter.list_actions(
             integration_key=integration_key,
@@ -141,58 +142,12 @@ class ToolsService:
         provider_key: str,
         integration_key: str,
         action_key: str,
-    ) -> Optional[CatalogAction]:
+    ) -> Optional[ToolCatalogActionDetails]:
         adapter = self.adapter_registry.get(provider_key)
         return await adapter.get_action(
             integration_key=integration_key,
             action_key=action_key,
         )
-
-    # -----------------------------------------------------------------------
-    # Catalog query
-    # -----------------------------------------------------------------------
-
-    async def query_catalog(
-        self,
-        *,
-        action_query: Optional[ActionQuery] = None,
-        #
-        windowing: Optional[Windowing] = None,
-    ) -> List[CatalogAction]:
-        query = action_query or ActionQuery()
-
-        # Determine which providers to query
-        provider_keys = (
-            [query.provider_key] if query.provider_key else self.adapter_registry.keys()
-        )
-
-        all_actions: List[CatalogAction] = []
-        for pk in provider_keys:
-            adapter = self.adapter_registry.get(pk)
-
-            if query.integration_key:
-                actions = await adapter.list_actions(
-                    integration_key=query.integration_key,
-                    search=query.name,
-                    tags=query.tags,
-                )
-                all_actions.extend(actions)
-            else:
-                # No integration filter — fetch all integrations first
-                integrations = await adapter.list_integrations()
-                for integ in integrations:
-                    actions = await adapter.list_actions(
-                        integration_key=integ.key,
-                        search=query.name,
-                        tags=query.tags,
-                    )
-                    all_actions.extend(actions)
-
-        # Apply windowing (in-memory for now)
-        if windowing and windowing.limit:
-            all_actions = all_actions[: windowing.limit]
-
-        return all_actions
 
     # -----------------------------------------------------------------------
     # Tool query (action × connection join)
@@ -205,7 +160,6 @@ class ToolsService:
         #
         tool_query: Optional[ToolQuery] = None,
         #
-        include_connections: Optional[bool] = True,
         #
         windowing: Optional[Windowing] = None,
     ) -> Tuple[List[Dict[str, Any]], int]:
@@ -218,7 +172,7 @@ class ToolsService:
         )
 
         # 1. Fetch actions from adapters
-        all_actions: List[Tuple[str, CatalogAction, CatalogIntegration]] = []
+        all_actions: List[Tuple[str, ToolCatalogAction, ToolCatalogIntegration]] = []
         for pk in provider_keys:
             adapter = self.adapter_registry.get(pk)
 
@@ -228,7 +182,7 @@ class ToolsService:
                 integrations = await adapter.list_integrations()
                 integration_keys = [i.key for i in integrations]
 
-            integrations_map: Dict[str, CatalogIntegration] = {}
+            integrations_map: Dict[str, ToolCatalogIntegration] = {}
             for ik in integration_keys:
                 integ_list = await adapter.list_integrations()
                 for i in integ_list:
@@ -267,7 +221,7 @@ class ToolsService:
                             provider_key=provider_key,
                             action=action,
                             integration=integ,
-                            connection=conn if include_connections else None,
+                            connection=conn,
                             connection_slug=conn.slug,
                         )
                     )
@@ -299,13 +253,29 @@ class ToolsService:
     # Connection management
     # -----------------------------------------------------------------------
 
+    async def query_connections(
+        self,
+        *,
+        project_id: UUID,
+        #
+        provider_key: Optional[str] = None,
+        integration_key: Optional[str] = None,
+    ) -> List[ToolConnection]:
+        """Query connections with optional filtering."""
+        return await self.tools_dao.query_connections(
+            project_id=project_id,
+            provider_key=provider_key,
+            integration_key=integration_key,
+        )
+
     async def list_connections(
         self,
         *,
         project_id: UUID,
         provider_key: str,
         integration_key: str,
-    ) -> List[Connection]:
+    ) -> List[ToolConnection]:
+        """List connections for a specific integration (catalog enrichment)."""
         return await self.tools_dao.query_connections(
             project_id=project_id,
             provider_key=provider_key,
@@ -316,15 +286,11 @@ class ToolsService:
         self,
         *,
         project_id: UUID,
-        provider_key: str,
-        integration_key: str,
-        connection_slug: str,
-    ) -> Optional[Connection]:
+        connection_id: UUID,
+    ) -> Optional[ToolConnection]:
         conn = await self.tools_dao.get_connection(
             project_id=project_id,
-            provider_key=provider_key,
-            integration_key=integration_key,
-            connection_slug=connection_slug,
+            connection_id=connection_id,
         )
 
         if not conn:
@@ -332,7 +298,7 @@ class ToolsService:
 
         # If not yet valid, poll the adapter for updated status
         if not conn.is_valid and conn.provider_connection_id:
-            adapter = self.adapter_registry.get(provider_key)
+            adapter = self.adapter_registry.get(conn.provider_key)
             status_info = await adapter.get_connection_status(
                 provider_connection_id=conn.provider_connection_id,
             )
@@ -340,9 +306,7 @@ class ToolsService:
             if status_info.get("is_valid") and not conn.is_valid:
                 conn = await self.tools_dao.update_connection(
                     project_id=project_id,
-                    provider_key=provider_key,
-                    integration_key=integration_key,
-                    connection_slug=connection_slug,
+                    connection_id=connection_id,
                     is_valid=True,
                     status=status_info.get("status"),
                 )
@@ -358,66 +322,72 @@ class ToolsService:
         provider_key: str,
         integration_key: str,
         #
-        connection_create: ConnectionCreate,
-    ) -> ConnectResult:
+        connection_create: ToolConnectionCreate,
+    ) -> ToolConnection:
         adapter = self.adapter_registry.get(provider_key)
+
+        # Extract callback_url from data
+        callback_url = None
+        if connection_create.data:
+            callback_url = connection_create.data.get("callback_url")
 
         # Initiate with provider
         provider_result = await adapter.initiate_connection(
             entity_id=f"project_{project_id}",
             integration_key=integration_key,
-            callback_url=connection_create.callback_url,
+            callback_url=callback_url,
         )
 
         provider_connection_id = provider_result.get("id")
         auth_config_id = provider_result.get("auth_config_id")
         redirect_url = provider_result.get("redirect_url")
 
+        # Update data with adapter response
+        if provider_key == "composio":
+            data = connection_create.data or {}
+            data["connected_account_id"] = provider_connection_id
+            data["auth_config_id"] = auth_config_id
+            connection_create.data = data
+
+        # Set provider/integration keys in connection_create
+        connection_create.provider_key = provider_key
+        connection_create.integration_key = integration_key
+
         # Persist locally
         connection = await self.tools_dao.create_connection(
             project_id=project_id,
             user_id=user_id,
             #
-            provider_key=provider_key,
-            integration_key=integration_key,
-            #
             connection_create=connection_create,
-            #
-            provider_connection_id=provider_connection_id,
-            auth_config_id=auth_config_id,
         )
 
-        return ConnectResult(
-            connection=connection,
-            redirect_url=redirect_url,
-        )
+        # Set ephemeral redirect_url in status if present
+        if redirect_url and connection:
+            connection.status = connection.status or ToolConnectionStatus()
+            connection.status.redirect_url = redirect_url
+
+        return connection
 
     async def delete_connection(
         self,
         *,
         project_id: UUID,
-        provider_key: str,
-        integration_key: str,
-        connection_slug: str,
+        connection_id: UUID,
     ) -> bool:
-        # Look up provider_connection_id
+        # Look up connection
         conn = await self.tools_dao.get_connection(
             project_id=project_id,
-            provider_key=provider_key,
-            integration_key=integration_key,
-            connection_slug=connection_slug,
+            connection_id=connection_id,
         )
 
         if not conn:
             raise ConnectionNotFoundError(
-                provider_key=provider_key,
-                integration_key=integration_key,
-                connection_slug=connection_slug,
+                connection_id=str(connection_id),
             )
 
         # Revoke provider-side
         if conn.provider_connection_id:
-            adapter = self.adapter_registry.get(provider_key)
+            adapter = self.adapter_registry.get(conn.provider_key)
             try:
                 await adapter.revoke_connection(
                     provider_connection_id=conn.provider_connection_id,
@@ -431,43 +401,39 @@ class ToolsService:
         # Delete locally
         return await self.tools_dao.delete_connection(
             project_id=project_id,
-            provider_key=provider_key,
-            integration_key=integration_key,
-            connection_slug=connection_slug,
+            connection_id=connection_id,
         )
 
     async def refresh_connection(
         self,
         *,
         project_id: UUID,
-        provider_key: str,
-        integration_key: str,
-        connection_slug: str,
+        connection_id: UUID,
         #
         force: bool = False,
-    ) -> ConnectResult:
+    ) -> ToolConnection:
         conn = await self.tools_dao.get_connection(
             project_id=project_id,
-            provider_key=provider_key,
-            integration_key=integration_key,
-            connection_slug=connection_slug,
+            connection_id=connection_id,
         )
 
         if not conn:
             raise ConnectionNotFoundError(
-                provider_key=provider_key,
-                integration_key=integration_key,
-                connection_slug=connection_slug,
+                connection_id=str(connection_id),
             )
 
         if not conn.provider_connection_id:
             raise ConnectionNotFoundError(
-                provider_key=provider_key,
-                integration_key=integration_key,
-                connection_slug=connection_slug,
+                connection_id=str(connection_id),
             )
 
-        adapter = self.adapter_registry.get(provider_key)
+        if not conn.is_active:
+            raise ConnectionInactiveError(
+                connection_id=str(connection_id),
+                detail="Cannot refresh an inactive connection. Create a new connection to re-establish authorization.",
+            )
+
+        adapter = self.adapter_registry.get(conn.provider_key)
         result = await adapter.refresh_connection(
             provider_connection_id=conn.provider_connection_id,
             force=force,
@@ -475,17 +441,50 @@ class ToolsService:
 
         updated = await self.tools_dao.update_connection(
             project_id=project_id,
-            provider_key=provider_key,
-            integration_key=integration_key,
-            connection_slug=connection_slug,
+            connection_id=connection_id,
             is_valid=result.get("is_valid", conn.is_valid),
             status=result.get("status"),
         )
 
-        return ConnectResult(
-            connection=updated or conn,
-            redirect_url=result.get("redirect_url"),
+        connection = updated or conn
+
+        # Set ephemeral redirect_url in status if present
+        redirect_url = result.get("redirect_url")
+        if redirect_url:
+            connection.status = connection.status or ToolConnectionStatus()
+            connection.status.redirect_url = redirect_url
+
+        return connection
+
+    # -----------------------------------------------------------------------
+    # Tool execution
+    # -----------------------------------------------------------------------
+
+    async def execute_tool(
+        self,
+        *,
+        provider_key: str,
+        integration_key: str,
+        action_key: str,
+        provider_connection_id: str,
+        arguments: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Execute a tool action using the provider adapter."""
+        adapter = self.adapter_registry.get(provider_key)
+
+        result = await adapter.execute(
+            integration_key=integration_key,
+            action_key=action_key,
+            provider_connection_id=provider_connection_id,
+            arguments=arguments,
         )
+
+        # Convert ExecutionResult to dict
+        return {
+            "data": result.data,
+            "error": result.error,
+            "successful": result.successful,
+        }
 
 
 # ---------------------------------------------------------------------------
@@ -493,7 +492,7 @@ class ToolsService:
 # ---------------------------------------------------------------------------
 
 
-def _count_by_integration(connections: List[Connection]) -> Dict[str, int]:
+def _count_by_integration(connections: List[ToolConnection]) -> Dict[str, int]:
     counts: Dict[str, int] = defaultdict(int)
     for conn in connections:
         counts[conn.integration_key] += 1
@@ -501,9 +500,9 @@ def _count_by_integration(connections: List[Connection]) -> Dict[str, int]:
 
 
 def _group_by_provider_integration(
-    connections: List[Connection],
-) -> Dict[Tuple[str, str], List[Connection]]:
-    groups: Dict[Tuple[str, str], List[Connection]] = defaultdict(list)
+    connections: List[ToolConnection],
+) -> Dict[Tuple[str, str], List[ToolConnection]]:
+    groups: Dict[Tuple[str, str], List[ToolConnection]] = defaultdict(list)
     for conn in connections:
         groups[(conn.provider_key, conn.integration_key)].append(conn)
     return dict(groups)
@@ -512,9 +511,9 @@ def _group_by_provider_integration(
 def _make_tool(
     *,
     provider_key: str,
-    action: CatalogAction,
-    integration: CatalogIntegration,
-    connection: Optional[Connection],
+    action: ToolCatalogAction,
+    integration: ToolCatalogIntegration,
+    connection: Optional[ToolConnection],
     connection_slug: Optional[str],
 ) -> Dict[str, Any]:
     slug_parts = ["tools", provider_key, integration.key, action.key]
