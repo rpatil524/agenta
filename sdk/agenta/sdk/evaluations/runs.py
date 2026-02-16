@@ -20,13 +20,13 @@ async def afetch(
 
     try:
         response.raise_for_status()
-    except:
+    except Exception:
         print(response.text)
         raise
 
     response = response.json()
 
-    if (not "count" in response) or (response["count"] == 0) or (not "run" in response):
+    if ("count" not in response) or (response["count"] == 0) or ("run" not in response):
         return None
 
     run = EvaluationRun(**response["run"])
@@ -74,19 +74,19 @@ async def acreate(
 
     response = authed_api()(
         method="POST",
-        endpoint=f"/preview/simple/evaluations/",
+        endpoint="/preview/simple/evaluations/",
         json=payload,
     )
 
     try:
         response.raise_for_status()
-    except:
+    except Exception:
         print(response.text)
         raise
 
     response = response.json()
 
-    if (not "evaluation" in response) or (not "id" in response["evaluation"]):
+    if ("evaluation" not in response) or ("id" not in response["evaluation"]):
         return None
 
     run_id = UUID(response["evaluation"]["id"])
@@ -107,13 +107,13 @@ async def aclose(
 
     try:
         response.raise_for_status()
-    except:
+    except Exception:
         print(response.text)
         raise
 
     response = response.json()
 
-    if (not "run" in response) or (not "id" in response["run"]):
+    if ("run" not in response) or ("id" not in response["run"]):
         return None
 
     run_id = UUID(response["run"]["id"])
@@ -127,12 +127,12 @@ async def aurl(
 ) -> Optional[str]:
     response = authed_api()(
         method="GET",
-        endpoint=f"/projects/current",
+        endpoint="/projects/current",
     )
 
     try:
         response.raise_for_status()
-    except:
+    except Exception:
         print(response.text)
         raise
 
