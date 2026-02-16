@@ -7,15 +7,15 @@ from fastapi.responses import JSONResponse
 from oss.src.utils.exceptions import intercept_exceptions
 from oss.src.utils.logging import get_module_logger
 from oss.src.utils.caching import get_cache, set_cache
-from oss.src.utils.env import is_ee
+from oss.src.utils.common import is_ee
 
 from oss.src.apis.fastapi.tools.models import (
-    ToolToolCatalogActionResponse,
-    ToolToolCatalogActionsResponse,
-    ToolToolCatalogIntegrationResponse,
-    ToolToolCatalogIntegrationsResponse,
-    ToolToolCatalogProviderResponse,
-    ToolToolCatalogProvidersResponse,
+    ToolCatalogActionResponse,
+    ToolCatalogActionsResponse,
+    ToolCatalogIntegrationResponse,
+    ToolCatalogIntegrationsResponse,
+    ToolCatalogProviderResponse,
+    ToolCatalogProvidersResponse,
     #
     ToolConnectionCreateRequest,
     ToolConnectionResponse,
@@ -35,8 +35,8 @@ from oss.src.apis.fastapi.tools.utils import (
 
 from oss.src.core.tools.dtos import (
     ToolCatalogActionDetails,  # noqa: F401
-    ToolToolCatalogProviderDetails,  # noqa: F401
-    ToolToolCatalogIntegrationDetails,  # noqa: F401
+    ToolCatalogProviderDetails,  # noqa: F401
+    ToolCatalogIntegrationDetails,  # noqa: F401
     #
     ToolCall,
     ToolResult,
@@ -68,7 +68,7 @@ class ToolsRouter:
             self.list_providers,
             methods=["GET"],
             operation_id="list_tool_providers",
-            response_model=ToolToolCatalogProvidersResponse,
+            response_model=ToolCatalogProvidersResponse,
             response_model_exclude_none=True,
         )
         self.router.add_api_route(
@@ -76,7 +76,7 @@ class ToolsRouter:
             self.get_provider,
             methods=["GET"],
             operation_id="get_tool_provider",
-            response_model=ToolToolCatalogProviderResponse,
+            response_model=ToolCatalogProviderResponse,
             response_model_exclude_none=True,
         )
         self.router.add_api_route(
@@ -84,7 +84,7 @@ class ToolsRouter:
             self.list_integrations,
             methods=["GET"],
             operation_id="list_tool_integrations",
-            response_model=ToolToolCatalogIntegrationsResponse,
+            response_model=ToolCatalogIntegrationsResponse,
             response_model_exclude_none=True,
         )
         self.router.add_api_route(
@@ -92,7 +92,7 @@ class ToolsRouter:
             self.get_integration,
             methods=["GET"],
             operation_id="get_tool_integration",
-            response_model=ToolToolCatalogIntegrationResponse,
+            response_model=ToolCatalogIntegrationResponse,
             response_model_exclude_none=True,
         )
         self.router.add_api_route(
@@ -100,7 +100,7 @@ class ToolsRouter:
             self.list_actions,
             methods=["GET"],
             operation_id="list_tool_actions",
-            response_model=ToolToolCatalogActionsResponse,
+            response_model=ToolCatalogActionsResponse,
             response_model_exclude_none=True,
         )
         self.router.add_api_route(
@@ -108,7 +108,7 @@ class ToolsRouter:
             self.get_action,
             methods=["GET"],
             operation_id="get_tool_action",
-            response_model=ToolToolCatalogActionResponse,
+            response_model=ToolCatalogActionResponse,
             response_model_exclude_none=True,
         )
 
@@ -190,7 +190,7 @@ class ToolsRouter:
         *,
         full_details: bool = Query(default=False),
         full_catalog: bool = Query(default=True),
-    ) -> ToolToolCatalogProvidersResponse:
+    ) -> ToolCatalogProvidersResponse:
         if is_ee():
             has_permission = await check_action_access(
                 project_id=request.state.project_id,
@@ -208,7 +208,7 @@ class ToolsRouter:
             project_id=request.state.project_id,
             namespace="tools:catalog:providers",
             key=cache_key,
-            model=ToolToolCatalogProvidersResponse,
+            model=ToolCatalogProvidersResponse,
         )
         if cached:
             return cached
@@ -257,7 +257,7 @@ class ToolsRouter:
         *,
         full_details: bool = Query(default=True),
         full_catalog: bool = Query(default=False),
-    ) -> ToolToolCatalogProviderResponse:
+    ) -> ToolCatalogProviderResponse:
         if is_ee():
             has_permission = await check_action_access(
                 user_uid=request.state.user_id,
@@ -276,7 +276,7 @@ class ToolsRouter:
             project_id=request.state.project_id,
             namespace="tools:catalog:provider",
             key=cache_key,
-            model=ToolToolCatalogProviderResponse,
+            model=ToolCatalogProviderResponse,
         )
         if cached:
             return cached
@@ -329,7 +329,7 @@ class ToolsRouter:
         *,
         full_details: bool = Query(default=False),
         full_catalog: bool = Query(default=True),
-    ) -> ToolToolCatalogIntegrationsResponse:
+    ) -> ToolCatalogIntegrationsResponse:
         if is_ee():
             has_permission = await check_action_access(
                 user_uid=request.state.user_id,
@@ -348,7 +348,7 @@ class ToolsRouter:
             project_id=request.state.project_id,
             namespace="tools:catalog:integrations",
             key=cache_key,
-            model=ToolToolCatalogIntegrationsResponse,
+            model=ToolCatalogIntegrationsResponse,
         )
         if cached:
             return cached
@@ -402,7 +402,7 @@ class ToolsRouter:
         *,
         full_details: bool = Query(default=True),
         full_catalog: bool = Query(default=False),
-    ) -> ToolToolCatalogIntegrationResponse:
+    ) -> ToolCatalogIntegrationResponse:
         if is_ee():
             has_permission = await check_action_access(
                 user_uid=request.state.user_id,
@@ -422,7 +422,7 @@ class ToolsRouter:
             project_id=request.state.project_id,
             namespace="tools:catalog:integration",
             key=cache_key,
-            model=ToolToolCatalogIntegrationResponse,
+            model=ToolCatalogIntegrationResponse,
         )
         if cached:
             return cached
@@ -480,7 +480,7 @@ class ToolsRouter:
         *,
         full_details: bool = Query(default=False),
         full_catalog: bool = Query(default=True),
-    ) -> ToolToolCatalogActionsResponse:
+    ) -> ToolCatalogActionsResponse:
         if is_ee():
             has_permission = await check_action_access(
                 user_uid=request.state.user_id,
@@ -500,7 +500,7 @@ class ToolsRouter:
             project_id=request.state.project_id,
             namespace="tools:catalog:actions",
             key=cache_key,
-            model=ToolToolCatalogActionsResponse,
+            model=ToolCatalogActionsResponse,
         )
         if cached:
             return cached
@@ -553,7 +553,7 @@ class ToolsRouter:
         *,
         full_details: bool = Query(default=True),
         full_catalog: bool = Query(default=False),
-    ) -> ToolToolCatalogActionResponse:
+    ) -> ToolCatalogActionResponse:
         if is_ee():
             has_permission = await check_action_access(
                 user_uid=request.state.user_id,
@@ -574,7 +574,7 @@ class ToolsRouter:
             project_id=request.state.project_id,
             namespace="tools:catalog:action",
             key=cache_key,
-            model=ToolToolCatalogActionResponse,
+            model=ToolCatalogActionResponse,
         )
         if cached:
             return cached
@@ -778,13 +778,15 @@ class ToolsRouter:
 
         # Note: In Composio's flow, they handle the OAuth exchange server-side
         # We just need to acknowledge the callback and poll for status updates
-        log.info(f"OAuth callback received - state: {state}, code present: {bool(code)}")
+        log.info(
+            f"OAuth callback received - state: {state}, code present: {bool(code)}"
+        )
 
         return JSONResponse(
             status_code=200,
             content={
                 "message": "OAuth callback received successfully. Poll your connection status to check if it's active.",
-                "state": state
+                "state": state,
             },
         )
 
@@ -869,7 +871,9 @@ class ToolsRouter:
         if len(slug_parts) < 4 or slug_parts[0] != "tools":
             return JSONResponse(
                 status_code=400,
-                content={"detail": f"Invalid tool slug format: {body.name}. Expected: tools.{{provider}}.{{integration}}.{{action}}[.{{connection}}]"},
+                content={
+                    "detail": f"Invalid tool slug format: {body.name}. Expected: tools.{{provider}}.{{integration}}.{{action}}[.{{connection}}]"
+                },
             )
 
         provider_key = slug_parts[1]
@@ -881,7 +885,9 @@ class ToolsRouter:
         if not connection_slug:
             return JSONResponse(
                 status_code=400,
-                content={"detail": "Connection slug is required for tool execution. Use a tool slug with connection: tools.{provider}.{integration}.{action}.{connection}"},
+                content={
+                    "detail": "Connection slug is required for tool execution. Use a tool slug with connection: tools.{provider}.{integration}.{action}.{connection}"
+                },
             )
 
         connections = await self.tools_service.query_connections(
@@ -911,13 +917,17 @@ class ToolsRouter:
         if not connection.is_valid:
             return JSONResponse(
                 status_code=400,
-                content={"detail": f"Connection is not valid: {connection_slug}. Please refresh the connection."},
+                content={
+                    "detail": f"Connection is not valid: {connection_slug}. Please refresh the connection."
+                },
             )
 
         if not connection.provider_connection_id:
             return JSONResponse(
                 status_code=500,
-                content={"detail": f"Connection has no provider connection ID: {connection_slug}"},
+                content={
+                    "detail": f"Connection has no provider connection ID: {connection_slug}"
+                },
             )
 
         # Execute the tool via the adapter
@@ -933,7 +943,9 @@ class ToolsRouter:
             result = ToolResult(
                 id=body.id,
                 data=execution_result.get("data"),
-                status={"message": "success"} if execution_result.get("successful") else {"message": "failed", "error": execution_result.get("error")},
+                status={"message": "success"}
+                if execution_result.get("successful")
+                else {"message": "failed", "error": execution_result.get("error")},
             )
 
             return ToolCallResponse(result=result)

@@ -5,10 +5,10 @@ import httpx
 from oss.src.utils.logging import get_module_logger
 
 from oss.src.core.tools.dtos import (
-    ToolToolCatalogAction,
-    ToolToolCatalogActionDetails,
-    ToolToolCatalogIntegration,
-    ToolToolCatalogProvider,
+    ToolCatalogAction,
+    ToolCatalogActionDetails,
+    ToolCatalogIntegration,
+    ToolCatalogProvider,
     ExecutionResult,
     Tags,
 )

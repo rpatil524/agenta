@@ -40,12 +40,16 @@ class ToolCatalogProvidersResponse(BaseModel):
 
 class ToolCatalogIntegrationResponse(BaseModel):
     count: int = 0
-    integration: Optional[Union[ToolCatalogIntegration, ToolCatalogIntegrationDetails]] = None
+    integration: Optional[
+        Union[ToolCatalogIntegration, ToolCatalogIntegrationDetails]
+    ] = None
 
 
 class ToolCatalogIntegrationsResponse(BaseModel):
     count: int = 0
-    integrations: List[Union[ToolCatalogIntegration, ToolCatalogIntegrationDetails]] = []
+    integrations: List[
+        Union[ToolCatalogIntegration, ToolCatalogIntegrationDetails]
+    ] = []
 
 
 class ToolCatalogActionResponse(BaseModel):

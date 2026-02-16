@@ -126,7 +126,9 @@ class ToolConnection(
         """Get provider-specific connection ID from data."""
         if self.data and isinstance(self.data, dict):
             # For Composio, it's stored as "connected_account_id"
-            return self.data.get("connected_account_id") or self.data.get("provider_connection_id")
+            return self.data.get("connected_account_id") or self.data.get(
+                "provider_connection_id"
+            )
         return None
 
     @property
