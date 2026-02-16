@@ -86,8 +86,7 @@ export const fetchEvaluation = async (evaluationId: string) => {
     // Transform preview run to legacy evaluation format
     return {
         id: run.id,
-        appId:
-            run.references?.find((r: any) => r.application)?.application?.id || run.meta?.app_id,
+        appId: run.references?.find((r: any) => r.application)?.application?.id || run.meta?.app_id,
         created_at: run.created_at_timestamp,
         updated_at: run.updated_at_timestamp,
         duration: calcEvalDuration({
