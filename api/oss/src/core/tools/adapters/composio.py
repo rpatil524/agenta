@@ -91,7 +91,6 @@ class ComposioAdapter(GatewayAdapterInterface):
                 key="composio",
                 name="Composio",
                 description="Third-party tool integrations via Composio",
-                enabled=True,
             )
         ]
 

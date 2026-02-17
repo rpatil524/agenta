@@ -87,6 +87,8 @@ RUN apt-get update && \
 # Copy stable cron files first (change less frequently)
 COPY --chmod=755 ./oss/src/crons/queries.sh /queries.sh
 COPY --chmod=644 ./oss/src/crons/queries.txt /etc/cron.d/queries-cron
+COPY --chmod=755 ./oss/src/crons/tools.sh /tools.sh
+COPY --chmod=644 ./oss/src/crons/tools.txt /etc/cron.d/tools-cron
 COPY --chmod=755 ./ee/src/crons/meters.sh /meters.sh
 COPY --chmod=644 ./ee/src/crons/meters.txt /etc/cron.d/meters-cron
 COPY --chmod=755 ./ee/src/crons/spans.sh /spans.sh
@@ -102,7 +104,7 @@ COPY --from=builder /app/entrypoints /app/entrypoints
 COPY --from=builder /app/sdk /app/sdk
 
 RUN set -eux; \
-    for cron_file in /etc/cron.d/queries-cron /etc/cron.d/meters-cron /etc/cron.d/spans-cron; do \
+    for cron_file in /etc/cron.d/queries-cron /etc/cron.d/tools-cron /etc/cron.d/meters-cron /etc/cron.d/spans-cron; do \
         sed -i -e '$a\' "${cron_file}"; \
     done
 

@@ -1,3 +1,4 @@
+import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -10,6 +11,7 @@ from supertokens_python.framework.fastapi import (
 from oss.src.utils.common import is_ee
 from oss.src.utils.logging import get_module_logger
 from oss.src.utils.helpers import warn_deprecated_env_vars, validate_required_env_vars
+from oss.src.utils.caching import acquire_lock, release_lock
 
 from oss.src.open_api import open_api_tags_metadata
 
@@ -152,6 +154,48 @@ if is_ee():
 log = get_module_logger(__name__)
 
 init_supertokens()
+
+
+async def warm_tools_catalog_cache(tools_router):
+    """Background task to warm the tools catalog cache on startup.
+
+    Uses a distributed lock to ensure only one instance warms the cache.
+    Runs asynchronously without blocking server startup.
+
+    Args:
+        tools_router: ToolsRouter instance to call internal cache warming method
+    """
+    # Only run if Composio is enabled
+    if not env.composio.enabled:
+        log.info("[tools] Skipping catalog cache warmup - Composio not configured")
+        return
+
+    # Wait a bit for the server to be fully ready
+    await asyncio.sleep(2)
+
+    # Try to acquire lock - only one instance should warm the cache
+    lock_acquired = await acquire_lock(
+        namespace="tools-catalog-warmup",
+        key="startup",
+        ttl=300,  # 5 minutes timeout
+    )
+
+    if not lock_acquired:
+        log.info("[tools] Another instance is warming the catalog cache")
+        return
+
+    try:
+        # Call internal cache warming method (no HTTP request, no auth needed)
+        await tools_router._warm_catalog_cache_internal()
+
+    except Exception as e:
+        log.warning(f"[tools] Cache warmup failed: {e}")
+    finally:
+        # Release lock
+        await release_lock(
+            namespace="tools-catalog-warmup",
+            key="startup",
+        )
 
 
 @asynccontextmanager
@@ -441,6 +485,9 @@ simple_evaluations = SimpleEvaluationsRouter(
 tools = ToolsRouter(
     tools_service=tools_service,
 )
+
+# Spawn background task to warm tools catalog cache on startup
+asyncio.create_task(warm_tools_catalog_cache(tools))
 
 invocations_service = InvocationsService(
     tracing_router=tracing,

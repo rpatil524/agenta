@@ -51,9 +51,6 @@ class ToolCatalogAction(BaseModel):
 
 class ToolCatalogActionDetails(ToolCatalogAction):
     schemas: Optional[JsonSchemas] = None
-    #
-    input_schema: Optional[Json] = None
-    output_schema: Optional[Json] = None
 
 
 class ToolCatalogIntegration(BaseModel):
@@ -84,7 +81,6 @@ class ToolCatalogProvider(BaseModel):
     description: Optional[str] = None
     #
     integrations_count: int = 0
-    enabled: bool = True
 
 
 class ToolCatalogProviderDetails(ToolCatalogProvider):
