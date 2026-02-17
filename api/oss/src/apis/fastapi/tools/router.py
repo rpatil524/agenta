@@ -949,7 +949,7 @@ class ToolsRouter:
             log.error(f"Tool execution failed: {e}")
             result = ToolResult(
                 id=str(uuid4()),
-                data=None,
+                result=None,
                 status={"error": str(e)},
             )
             return ToolCallResponse(call=result)
