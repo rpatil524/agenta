@@ -4,6 +4,7 @@ from uuid import UUID
 
 from sqlalchemy import select, delete
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.attributes import flag_modified
 
 from oss.src.utils.logging import get_module_logger
 from oss.src.utils.exceptions import suppress_exceptions
@@ -13,7 +14,6 @@ from oss.src.core.tools.interfaces import ToolsDAOInterface
 from oss.src.core.tools.dtos import (
     ToolConnection,
     ToolConnectionCreate,
-    ToolConnectionStatus,
 )
 
 from oss.src.dbs.postgres.shared.engine import engine
@@ -103,8 +103,8 @@ class ToolsDAO(ToolsDAOInterface):
         #
         is_valid: Optional[bool] = None,
         is_active: Optional[bool] = None,
-        status: Optional[ToolConnectionStatus] = None,
         provider_connection_id: Optional[str] = None,
+        data_update: Optional[dict] = None,
     ) -> Optional[ToolConnection]:
         async with engine.core_session() as session:
             stmt = (
@@ -122,21 +122,23 @@ class ToolsDAO(ToolsDAOInterface):
 
             # Update flags
             if is_valid is not None or is_active is not None:
-                flags = dbe.flags or {}
+                flags = {**(dbe.flags or {})}
                 if is_valid is not None:
                     flags["is_valid"] = is_valid
                 if is_active is not None:
                     flags["is_active"] = is_active
                 dbe.flags = flags
+                flag_modified(dbe, "flags")
 
-            # Update provider-specific data
+            # Update data fields
+            data_patch: dict = {}
             if provider_connection_id is not None:
-                data = dbe.data or {}
-                data["connected_account_id"] = provider_connection_id
-                dbe.data = data
-
-            if status is not None:
-                dbe.status = status.model_dump()
+                data_patch["connected_account_id"] = provider_connection_id
+            if data_update:
+                data_patch.update(data_update)
+            if data_patch:
+                dbe.data = {**(dbe.data or {}), **data_patch}
+                flag_modified(dbe, "data")
 
             dbe.updated_at = datetime.now(timezone.utc)
 
@@ -192,3 +194,62 @@ class ToolsDAO(ToolsDAOInterface):
             dbes = result.scalars().all()
 
             return [map_connection_dbe_to_dto(dbe=dbe) for dbe in dbes]
+
+    @suppress_exceptions(default=None)
+    async def activate_connection_by_provider_id(
+        self,
+        *,
+        provider_connection_id: str,
+    ) -> Optional[ToolConnection]:
+        async with engine.core_session() as session:
+            stmt = (
+                select(self.ToolConnectionDBE)
+                .filter(
+                    self.ToolConnectionDBE.data["connected_account_id"].astext
+                    == provider_connection_id
+                )
+                .limit(1)
+            )
+
+            result = await session.execute(stmt)
+            dbe = result.scalars().first()
+
+            if not dbe:
+                return None
+
+            flags = {**(dbe.flags or {})}
+            flags["is_valid"] = True
+            flags["is_active"] = True
+            dbe.flags = flags
+            flag_modified(dbe, "flags")
+
+            dbe.updated_at = datetime.now(timezone.utc)
+
+            await session.commit()
+            await session.refresh(dbe)
+
+            return map_connection_dbe_to_dto(dbe=dbe)
+
+    @suppress_exceptions(default=None)
+    async def find_connection_by_provider_id(
+        self,
+        *,
+        provider_connection_id: str,
+    ) -> Optional[ToolConnection]:
+        async with engine.core_session() as session:
+            stmt = (
+                select(self.ToolConnectionDBE)
+                .filter(
+                    self.ToolConnectionDBE.data["connected_account_id"].astext
+                    == provider_connection_id
+                )
+                .limit(1)
+            )
+
+            result = await session.execute(stmt)
+            dbe = result.scalars().first()
+
+            if not dbe:
+                return None
+
+            return map_connection_dbe_to_dto(dbe=dbe)

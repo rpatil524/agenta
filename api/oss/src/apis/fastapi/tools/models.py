@@ -2,7 +2,6 @@ from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
-from oss.src.core.shared.dtos import Windowing
 from oss.src.core.tools.dtos import (
     # Tool Catalog
     ToolCatalogAction,
@@ -14,9 +13,6 @@ from oss.src.core.tools.dtos import (
     # Tool Connections
     ToolConnection,
     ToolConnectionCreate,
-    # Tools
-    Tool,
-    ToolQuery,
     # Tool Calls
     ToolCall,
     ToolResult,
@@ -82,34 +78,9 @@ class ToolConnectionsResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Tools
-# ---------------------------------------------------------------------------
-
-
-class ToolQueryRequest(BaseModel):
-    tool: Optional[ToolQuery] = None
-    #
-    windowing: Optional[Windowing] = None
-
-
-class ToolResponse(BaseModel):
-    count: int = 0
-    tool: Optional[Tool] = None
-
-
-class ToolsResponse(BaseModel):
-    count: int = 0
-    tools: List[Tool] = []
-
-
-# ---------------------------------------------------------------------------
 # Tool Calls
 # ---------------------------------------------------------------------------
 
 
-class ToolCallRequest(BaseModel):
-    call: ToolCall
-
-
 class ToolCallResponse(BaseModel):
-    result: ToolResult
+    call: ToolResult

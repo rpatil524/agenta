@@ -7,7 +7,6 @@ from oss.src.core.tools.dtos import (
     ToolConnectionCreate,
     ToolConnectionStatus,
 )
-from oss.src.core.shared.dtos import Lifecycle
 from oss.src.dbs.postgres.tools.dbes import ToolConnectionDBE
 
 
@@ -37,7 +36,7 @@ def map_connection_create_to_dbe(
         name=dto.name,
         description=dto.description,
         #
-        kind=dto.kind,
+        kind=dto.provider_key,  # kind mirrors provider_key as an enum
         provider_key=dto.provider_key,
         integration_key=dto.integration_key,
         #
@@ -62,23 +61,12 @@ def map_connection_dbe_to_dto(
     if dbe.status:
         status = ToolConnectionStatus(**dbe.status)
 
-    # Build lifecycle DTO
-    lifecycle = Lifecycle(
-        created_at=dbe.created_at,
-        updated_at=dbe.updated_at,
-        deleted_at=dbe.deleted_at,
-        created_by_id=dbe.created_by_id,
-        updated_by_id=dbe.updated_by_id,
-        deleted_by_id=dbe.deleted_by_id,
-    )
-
     return ToolConnection(
         id=dbe.id,
         slug=dbe.slug,
         name=dbe.name,
         description=dbe.description,
         #
-        kind=dbe.kind,
         provider_key=dbe.provider_key,
         integration_key=dbe.integration_key,
         #
@@ -88,6 +76,10 @@ def map_connection_dbe_to_dto(
         status=status,
         meta=dbe.meta,
         #
-        #
-        lifecycle=lifecycle,
+        created_at=dbe.created_at,
+        updated_at=dbe.updated_at,
+        deleted_at=dbe.deleted_at,
+        created_by_id=dbe.created_by_id,
+        updated_by_id=dbe.updated_by_id,
+        deleted_by_id=dbe.deleted_by_id,
     )

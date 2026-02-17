@@ -33,7 +33,7 @@ def upgrade() -> None:
         #
         sa.Column(
             "kind",
-            sa.Enum("composio", name="tool_provider_kind_enum"),
+            sa.Enum("COMPOSIO", "AGENTA", name="tool_provider_kind_enum"),
             nullable=False,
         ),
         sa.Column("provider_key", sa.String(), nullable=False),

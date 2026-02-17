@@ -1,8 +1,10 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import httpx
 
 from oss.src.utils.logging import get_module_logger
+
+from agenta.sdk.models.workflows import JsonSchemas
 
 from oss.src.core.tools.dtos import (
     ToolCatalogAction,
@@ -14,6 +16,7 @@ from oss.src.core.tools.dtos import (
 )
 from oss.src.core.tools.interfaces import GatewayAdapterInterface
 from oss.src.core.tools.exceptions import AdapterError
+from oss.src.core.tools.providers.composio import catalog
 
 
 log = get_module_logger(__name__)
@@ -68,6 +71,13 @@ class ComposioAdapter(GatewayAdapterInterface):
                 json=json or {},
                 timeout=30.0,
             )
+            if not resp.is_success:
+                log.error(
+                    "Composio POST %s → %s: %s",
+                    path,
+                    resp.status_code,
+                    resp.text,
+                )
             resp.raise_for_status()
             return resp.json()
 
@@ -86,12 +96,16 @@ class ComposioAdapter(GatewayAdapterInterface):
     # -----------------------------------------------------------------------
 
     async def list_providers(self) -> List[ToolCatalogProvider]:
+        integrations_count = await catalog.count_integrations(
+            api_key=self.api_key,
+            api_url=self.api_url,
+        )
         return [
             ToolCatalogProvider(
                 key="composio",
                 name="Composio",
                 description="Third-party tool integrations via Composio",
-                enabled=True,
+                integrations_count=integrations_count,
             )
         ]
 
@@ -100,45 +114,15 @@ class ComposioAdapter(GatewayAdapterInterface):
         *,
         search: Optional[str] = None,
         limit: Optional[int] = None,
-    ) -> List[ToolCatalogIntegration]:
-        params: Dict[str, Any] = {}
-        if search:
-            params["search"] = search
-        if limit:
-            params["limit"] = limit
-
-        try:
-            data = await self._get("/toolkits", params=params)
-        except httpx.HTTPError as e:
-            raise AdapterError(
-                provider_key="composio",
-                operation="list_integrations",
-                detail=str(e),
-            ) from e
-
-        items = data if isinstance(data, list) else data.get("items", [])
-
-        return [
-            ToolCatalogIntegration(
-                key=item.get("slug", ""),
-                name=item.get("name", ""),
-                description=item.get("description"),
-                logo=item.get("logo"),
-                auth_schemes=[
-                    s.get("auth_mode", "")
-                    for s in item.get("auth_schemes", [])
-                    if isinstance(s, dict)
-                ],
-                actions_count=item.get("total_actions", 0),
-                categories=[
-                    c.strip()
-                    for c in (item.get("category") or "").split(",")
-                    if c.strip()
-                ],
-                no_auth=item.get("no_auth", False),
-            )
-            for item in items
-        ]
+        cursor: Optional[str] = None,
+    ) -> Tuple[List[ToolCatalogIntegration], Optional[str], int]:
+        return await catalog.list_integrations(
+            api_key=self.api_key,
+            api_url=self.api_url,
+            search=search,
+            limit=limit,
+            cursor=cursor,
+        )
 
     async def list_actions(
         self,
@@ -148,46 +132,16 @@ class ComposioAdapter(GatewayAdapterInterface):
         tags: Optional[Tags] = None,
         important: Optional[bool] = None,
         limit: Optional[int] = None,
-    ) -> List[ToolCatalogAction]:
-        params: Dict[str, Any] = {"toolkit_slug": integration_key}
-        if limit:
-            params["limit"] = limit
-        if important is not None:
-            params["important"] = str(important).lower()
-
-        try:
-            data = await self._get("/tools", params=params)
-        except httpx.HTTPError as e:
-            raise AdapterError(
-                provider_key="composio",
-                operation="list_actions",
-                detail=str(e),
-            ) from e
-
-        items = data if isinstance(data, list) else data.get("items", [])
-
-        actions = []
-        for item in items:
-            action_tags = {}
-            for t in item.get("tags", []):
-                if isinstance(t, str):
-                    action_tags[t] = True
-
-            action_key = self._extract_action_key(
-                composio_slug=item.get("slug", ""),
-                integration_key=integration_key,
-            )
-
-            actions.append(
-                ToolCatalogAction(
-                    key=action_key,
-                    name=item.get("name", ""),
-                    description=item.get("description"),
-                    tags=action_tags if action_tags else None,
-                )
-            )
-
-        return actions
+        cursor: Optional[str] = None,
+    ) -> Tuple[List[ToolCatalogAction], Optional[str], int]:
+        return await catalog.list_actions(
+            integration_key=integration_key,
+            api_key=self.api_key,
+            api_url=self.api_url,
+            search=search,
+            limit=limit,
+            cursor=cursor,
+        )
 
     async def get_action(
         self,
@@ -217,18 +171,20 @@ class ComposioAdapter(GatewayAdapterInterface):
                 detail=str(e),
             ) from e
 
-        action_tags = {}
-        for t in item.get("tags", []):
-            if isinstance(t, str):
-                action_tags[t] = True
+        input_params = item.get("input_parameters")
+        output_params = item.get("output_parameters")
 
         return ToolCatalogActionDetails(
             key=action_key,
             name=item.get("name", ""),
             description=item.get("description"),
-            tags=action_tags if action_tags else None,
-            input_schema=item.get("input_parameters"),
-            output_schema=item.get("output_parameters"),
+            schemas=JsonSchemas(
+                inputs=input_params,
+                outputs=output_params,
+            )
+            if input_params or output_params
+            else None,
+            scopes=item.get("scopes") or None,
         )
 
     # -----------------------------------------------------------------------
@@ -267,7 +223,16 @@ class ComposioAdapter(GatewayAdapterInterface):
                 detail=f"No auth config found for integration '{integration_key}'",
             )
 
-        auth_config_id = items[0].get("id")
+        # Prefer the auth_config whose toolkit slug matches the requested integration.
+        # The API-side filter (toolkit_slugs param) may not be reliable, so we
+        # also filter client-side to avoid picking the wrong integration's config.
+        matched = [
+            item
+            for item in items
+            if item.get("toolkit", {}).get("slug") == integration_key
+        ]
+        target = matched[0] if matched else items[0]
+        auth_config_id = target.get("id")
 
         # Step 2: initiate connected account link
         payload: Dict[str, Any] = {
@@ -287,7 +252,7 @@ class ComposioAdapter(GatewayAdapterInterface):
             ) from e
 
         return {
-            "id": result.get("id"),
+            "id": result.get("connected_account_id"),
             "redirect_url": result.get("redirect_url"),
             "auth_config_id": auth_config_id,
         }
@@ -359,6 +324,7 @@ class ComposioAdapter(GatewayAdapterInterface):
         integration_key: str,
         action_key: str,
         provider_connection_id: str,
+        entity_id: Optional[str] = None,
         arguments: Dict[str, Any],
     ) -> ExecutionResult:
         composio_slug = self._to_composio_slug(
@@ -366,14 +332,25 @@ class ComposioAdapter(GatewayAdapterInterface):
             action_key=action_key,
         )
 
+        payload: Dict[str, Any] = {
+            "arguments": arguments,
+            "connected_account_id": provider_connection_id,
+        }
+        if entity_id:
+            payload["user_id"] = entity_id  # Composio V3: entity_id is deprecated, use user_id
+
         try:
             result = await self._post(
                 f"/tools/execute/{composio_slug}",
-                json={
-                    "arguments": arguments,
-                    "connected_account_id": provider_connection_id,
-                },
+                json=payload,
             )
+        except httpx.HTTPStatusError as e:
+            body = e.response.text if e.response is not None else ""
+            raise AdapterError(
+                provider_key="composio",
+                operation="execute",
+                detail=f"{e} — response: {body}",
+            ) from e
         except httpx.HTTPError as e:
             raise AdapterError(
                 provider_key="composio",

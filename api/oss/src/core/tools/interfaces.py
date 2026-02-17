@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
 
 from oss.src.core.tools.dtos import (
@@ -44,8 +44,8 @@ class ToolsDAOInterface(ABC):
         #
         is_valid: Optional[bool] = None,
         is_active: Optional[bool] = None,
-        status: Optional[str] = None,
         provider_connection_id: Optional[str] = None,
+        data_update: Optional[Dict[str, Any]] = None,
     ) -> Optional[ToolConnection]: ...
 
     @abstractmethod
@@ -66,6 +66,20 @@ class ToolsDAOInterface(ABC):
         integration_key: Optional[str] = None,
     ) -> List[ToolConnection]: ...
 
+    @abstractmethod
+    async def find_connection_by_provider_id(
+        self,
+        *,
+        provider_connection_id: str,
+    ) -> Optional[ToolConnection]: ...
+
+    @abstractmethod
+    async def activate_connection_by_provider_id(
+        self,
+        *,
+        provider_connection_id: str,
+    ) -> Optional[ToolConnection]: ...
+
 
 class GatewayAdapterInterface(ABC):
     """Port for external tool providers (Composio, Agenta, etc.)."""
@@ -79,7 +93,10 @@ class GatewayAdapterInterface(ABC):
         *,
         search: Optional[str] = None,
         limit: Optional[int] = None,
-    ) -> List[ToolCatalogIntegration]: ...
+        cursor: Optional[str] = None,
+    ) -> Tuple[List[ToolCatalogIntegration], Optional[str], int]:
+        """Returns (items, next_cursor, total_items)."""
+        ...
 
     @abstractmethod
     async def list_actions(
@@ -90,7 +107,10 @@ class GatewayAdapterInterface(ABC):
         tags: Optional[Tags] = None,
         important: Optional[bool] = None,
         limit: Optional[int] = None,
-    ) -> List[ToolCatalogAction]: ...
+        cursor: Optional[str] = None,
+    ) -> Tuple[List[ToolCatalogAction], Optional[str], int]:
+        """Returns (items, next_cursor, total_items)."""
+        ...
 
     @abstractmethod
     async def get_action(
@@ -142,6 +162,7 @@ class GatewayAdapterInterface(ABC):
         integration_key: str,
         action_key: str,
         provider_connection_id: str,
+        entity_id: Optional[str] = None,
         arguments: Dict[str, Any],
     ) -> ExecutionResult:
         """Execute a tool action."""

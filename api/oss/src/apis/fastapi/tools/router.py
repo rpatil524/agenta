@@ -1,8 +1,8 @@
 from typing import Optional
-from uuid import UUID
+from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, Query, Request, status
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Query, Request, status
+from fastapi.responses import HTMLResponse, JSONResponse
 
 from oss.src.utils.exceptions import intercept_exceptions
 from oss.src.utils.logging import get_module_logger
@@ -21,16 +21,7 @@ from oss.src.apis.fastapi.tools.models import (
     ToolConnectionResponse,
     ToolConnectionsResponse,
     #
-    ToolQueryRequest,
-    ToolResponse,  # noqa: F401
-    ToolsResponse,
-    #
-    ToolCallRequest,  # noqa: F401
     ToolCallResponse,
-)
-from oss.src.apis.fastapi.tools.utils import (
-    merge_tool_query_requests,
-    parse_tool_query_request_from_params,
 )
 
 from oss.src.core.tools.dtos import (
@@ -44,6 +35,7 @@ from oss.src.core.tools.dtos import (
 from oss.src.core.tools.service import (
     ToolsService,
 )
+from oss.src.utils.env import env
 
 if is_ee():
     from ee.src.models.shared_models import Permission
@@ -130,6 +122,12 @@ class ToolsRouter:
             response_model_exclude_none=True,
         )
         self.router.add_api_route(
+            "/connections/callback",
+            self.callback_connection,
+            methods=["GET"],
+            operation_id="callback_tool_connection",
+        )
+        self.router.add_api_route(
             "/connections/{connection_id}",
             self.get_connection,
             methods=["GET"],
@@ -153,23 +151,15 @@ class ToolsRouter:
             response_model_exclude_none=True,
         )
         self.router.add_api_route(
-            "/connections/callback",
-            self.callback_connection,
-            methods=["GET"],
-            operation_id="callback_tool_connection",
+            "/connections/{connection_id}/revoke",
+            self.revoke_connection,
+            methods=["POST"],
+            operation_id="revoke_tool_connection",
             response_model=ToolConnectionResponse,
             response_model_exclude_none=True,
         )
 
         # --- Tool operations ---
-        self.router.add_api_route(
-            "/query",
-            self.query_tools,
-            methods=["POST"],
-            operation_id="query_tools",
-            response_model=ToolsResponse,
-            response_model_exclude_none=True,
-        )
         self.router.add_api_route(
             "/call",
             self.call_tool,
@@ -353,8 +343,7 @@ class ToolsRouter:
         if cached:
             return cached
 
-        integrations = await self.tools_service.list_integrations(
-            project_id=UUID(request.state.project_id),
+        integrations, _, _ = await self.tools_service.list_integrations(
             provider_key=provider_key,
         )
         items = []
@@ -428,7 +417,6 @@ class ToolsRouter:
             return cached
 
         integration = await self.tools_service.get_integration(
-            project_id=UUID(request.state.project_id),
             provider_key=provider_key,
             integration_key=integration_key,
         )
@@ -505,7 +493,7 @@ class ToolsRouter:
         if cached:
             return cached
 
-        actions = await self.tools_service.list_actions(
+        actions, _, _ = await self.tools_service.list_actions(
             provider_key=provider_key,
             integration_key=integration_key,
         )
@@ -748,100 +736,94 @@ class ToolsRouter:
         )
 
     @intercept_exceptions()
-    async def callback_connection(
+    async def revoke_connection(
         self,
         request: Request,
-        *,
-        state: Optional[str] = Query(default=None),
-        code: Optional[str] = Query(default=None),
-        error: Optional[str] = Query(default=None),
+        connection_id: UUID,
     ) -> ToolConnectionResponse:
-        """Handle OAuth callback and return the updated connection."""
-        if error:
-            # Parse state to extract connection_id
-            # State format from Composio: typically includes connection/account ID
-            log.error(f"OAuth callback error: {error}, state: {state}")
-            return JSONResponse(
-                status_code=400,
-                content={"detail": f"OAuth error: {error}"},
-            )
-
-        if not state or not code:
-            return JSONResponse(
-                status_code=400,
-                content={"detail": "Missing state or code parameter"},
-            )
-
-        # For Composio, the OAuth flow is handled server-side
-        # The callback indicates success, but we need to poll the connection status
-        # State parameter should contain the connected_account_id
-
-        # Note: In Composio's flow, they handle the OAuth exchange server-side
-        # We just need to acknowledge the callback and poll for status updates
-        log.info(
-            f"OAuth callback received - state: {state}, code present: {bool(code)}"
-        )
-
-        return JSONResponse(
-            status_code=200,
-            content={
-                "message": "OAuth callback received successfully. Poll your connection status to check if it's active.",
-                "state": state,
-            },
-        )
-
-    # -----------------------------------------------------------------------
-    # Tools
-    # -----------------------------------------------------------------------
-
-    @intercept_exceptions()
-    async def query_tools(
-        self,
-        request: Request,
-        *,
-        query_request_params: Optional[ToolQueryRequest] = Depends(
-            parse_tool_query_request_from_params
-        ),
-    ) -> ToolsResponse:
+        """Mark a connection invalid locally (does not revoke at the provider)."""
         if is_ee():
             has_permission = await check_action_access(
                 user_uid=request.state.user_id,
                 project_id=request.state.project_id,
-                permission=Permission.VIEW_TOOLS,
+                permission=Permission.EDIT_TOOLS,
             )
             if not has_permission:
                 raise FORBIDDEN_EXCEPTION
 
-        body_json = None
-        query_request_body = None
+        connection = await self.tools_service.revoke_connection(
+            project_id=UUID(request.state.project_id),
+            connection_id=connection_id,
+        )
 
+        return ToolConnectionResponse(
+            count=1,
+            connection=connection,
+        )
+
+    async def callback_connection(
+        self,
+        request: Request,
+        *,
+        connected_account_id: Optional[str] = Query(default=None),
+        status: Optional[str] = Query(default=None),
+        error_message: Optional[str] = Query(default=None),
+    ) -> HTMLResponse:
+        """Handle OAuth callback from Composio."""
+        if error_message or status == "failed":
+            log.error("OAuth callback error: %s, status: %s", error_message, status)
+            return HTMLResponse(
+                status_code=400,
+                content=_oauth_card(
+                    success=False,
+                    error=error_message or "Authorization failed. Please try again.",
+                ),
+            )
+
+        if not connected_account_id:
+            return HTMLResponse(
+                status_code=400,
+                content=_oauth_card(
+                    success=False,
+                    error="Missing connection identifier. Please try again.",
+                ),
+            )
+
+        log.info(
+            "OAuth callback received - connected_account_id: %s, status: %s",
+            connected_account_id,
+            status,
+        )
+
+        # Activate the connection and fetch integration details for the card
+        integration_label = None
+        integration_logo = None
+        integration_url = None
         try:
-            body_json = await request.json()
-            if body_json:
-                query_request_body = ToolQueryRequest(**body_json)
+            conn = await self.tools_service.activate_connection_by_provider_connection_id(
+                provider_connection_id=connected_account_id,
+            )
+            if conn:
+                integration_label = conn.integration_key.replace("_", " ").title()
+                integration = await self.tools_service.get_integration(
+                    provider_key=conn.provider_key.value,
+                    integration_key=conn.integration_key,
+                )
+                if integration:
+                    integration_logo = integration.logo
+                    integration_url = integration.url
         except Exception:
             pass
 
-        merged = merge_tool_query_requests(
-            query_request_params,
-            query_request_body,
-        )
-
-        tool_query = None
-        if merged and merged.tool:
-            tool_query = merged.tool
-
-        tools, count = await self.tools_service.query_tools(
-            project_id=UUID(request.state.project_id),
-            #
-            tool_query=tool_query,
-            #
-            windowing=merged.windowing if merged else None,
-        )
-
-        return ToolsResponse(
-            count=count,
-            tools=tools,
+        return HTMLResponse(
+            status_code=200,
+            content=_oauth_card(
+                success=True,
+                integration_label=integration_label,
+                integration_logo=integration_logo,
+                integration_url=integration_url,
+                agenta_url=env.agenta.web_url,
+            ),
         )
 
     # -----------------------------------------------------------------------
@@ -930,6 +912,11 @@ class ToolsRouter:
                 },
             )
 
+        # Use stored project_id as Composio user_id (matches entity_id used during initiation)
+        entity_id = (
+            connection.data.get("project_id") if isinstance(connection.data, dict) else None
+        )
+
         # Execute the tool via the adapter
         try:
             execution_result = await self.tools_service.execute_tool(
@@ -937,24 +924,216 @@ class ToolsRouter:
                 integration_key=integration_key,
                 action_key=action_key,
                 provider_connection_id=connection.provider_connection_id,
+                entity_id=entity_id,
                 arguments=body.arguments,
             )
 
-            result = ToolResult(
-                id=body.id,
-                data=execution_result.get("data"),
-                status={"message": "success"}
-                if execution_result.get("successful")
-                else {"message": "failed", "error": execution_result.get("error")},
-            )
+            call_id = str(uuid4())
 
-            return ToolCallResponse(result=result)
+            if execution_result.get("successful"):
+                result = ToolResult(
+                    id=call_id,
+                    result=execution_result.get("data"),
+                    status={},
+                )
+            else:
+                result = ToolResult(
+                    id=call_id,
+                    result=None,
+                    status={"error": execution_result.get("error")},
+                )
+
+            return ToolCallResponse(call=result)
 
         except Exception as e:
             log.error(f"Tool execution failed: {e}")
             result = ToolResult(
-                id=body.id,
+                id=str(uuid4()),
                 data=None,
-                status={"message": "failed", "error": str(e)},
+                status={"error": str(e)},
             )
-            return ToolCallResponse(result=result)
+            return ToolCallResponse(call=result)
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+
+def _oauth_card(
+    *,
+    success: bool,
+    integration_label: Optional[str] = None,
+    integration_logo: Optional[str] = None,
+    integration_url: Optional[str] = None,
+    agenta_url: Optional[str] = None,
+    error: Optional[str] = None,
+) -> str:
+    accent = "#16a34a" if success else "#dc2626"
+    agenta_favicon = f"{agenta_url}/assets/favicon.ico" if agenta_url else None
+
+    # Logo row: Agenta <> Integration (or single checkmark/cross on error)
+    if success and (agenta_favicon or integration_logo):
+        onerror_js = "this.style.display='none'"
+        agenta_img = (
+            f'<img src="{agenta_favicon}" alt="Agenta" class="logo logo-sm" onerror="{onerror_js}" />'
+            if agenta_favicon
+            else '<div class="logo-placeholder">A</div>'
+        )
+        int_alt = integration_label or ""
+        int_initial = (integration_label or "?")[0]
+        integration_img = (
+            f'<img src="{integration_logo}" alt="{int_alt}" class="logo" />'
+            if integration_logo
+            else f'<div class="logo-placeholder">{int_initial}</div>'
+        )
+        logos_html = f"""
+    <div class="logos">
+      {agenta_img}
+      <span class="connector">&#8596;</span>
+      {integration_img}
+    </div>"""
+    else:
+        icon = "✓" if success else "✕"
+        logos_html = f'<div class="status-icon">{icon}</div>'
+
+    # Single-line heading or error message
+    if success:
+        name = integration_label or "the integration"
+        heading_html = f'<p class="h-line"><strong>Agenta</strong> successfully connected to <strong>{name}</strong></p>'
+    else:
+        heading_html = f'<p class="h-error">{error or "Something went wrong"}</p>'
+
+    agenta_btn = (
+        f'<a href="{agenta_url}" class="btn btn-primary">Return to Agenta</a>'
+        if agenta_url
+        else ""
+    )
+    go_to_label = (
+        f"Go to {integration_label}" if integration_label else "Go to Integration"
+    )
+    integration_btn = (
+        f'<a href="{integration_url}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">{go_to_label}</a>'
+        if integration_url
+        else ""
+    )
+    button_html = (
+        f'<div class="buttons">{agenta_btn}{integration_btn}</div>'
+        if agenta_btn or integration_btn
+        else ""
+    )
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agenta ↔ {integration_label or "Integration"}</title>
+  <style>
+    *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
+    body {{
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f4f4f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }}
+    .card {{
+      background: #fff;
+      border-radius: 16px;
+      padding: 48px 40px 40px;
+      max-width: 480px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }}
+    .logos {{
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 32px;
+    }}
+    .logo {{
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+      border-radius: 10px;
+    }}
+    .logo-sm {{
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+    }}
+    .logo-placeholder {{
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      border: 1px solid #e4e4e7;
+      background: #f4f4f5;
+      color: #71717a;
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 48px;
+    }}
+    .connector {{
+      font-size: 18px;
+      color: #a1a1aa;
+    }}
+    .status-icon {{
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: {accent}18;
+      color: {accent};
+      font-size: 26px;
+      line-height: 56px;
+      margin: 0 auto 32px;
+    }}
+    .h-line {{
+      font-size: 15px;
+      font-weight: 400;
+      color: #71717a;
+      line-height: 1.7;
+    }}
+    .h-error {{
+      font-size: 15px;
+      color: {accent};
+      line-height: 1.6;
+    }}
+    .buttons {{
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 28px;
+    }}
+    .btn {{
+      display: block;
+      padding: 10px 24px;
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: 8px;
+      text-decoration: none;
+      text-align: center;
+    }}
+    .btn-primary {{
+      background: #18181b;
+      color: #fff;
+    }}
+    .btn-primary:hover {{ background: #3f3f46; }}
+    .btn-secondary {{
+      background: #f4f4f5;
+      color: #3f3f46;
+    }}
+    .btn-secondary:hover {{ background: #e4e4e7; }}
+  </style>
+</head>
+<body>
+  <div class="card">
+    {logos_html}
+    {heading_html}
+    {button_html}
+  </div>
+</body>
+</html>"""

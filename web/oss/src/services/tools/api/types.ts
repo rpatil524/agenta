@@ -8,7 +8,7 @@ export interface ProviderItem {
     key: string
     name: string
     description?: string
-    integrations_count: number
+    integrations_count?: number
     enabled: boolean
 }
 
@@ -22,11 +22,10 @@ export interface IntegrationItem {
     name: string
     description?: string
     logo?: string
-    auth_schemes: string[]
-    actions_count: number
+    url?: string
+    actions_count?: number
     categories: string[]
-    no_auth: boolean
-    connections_count: number
+    auth_schemes?: string[]
 }
 
 export interface IntegrationsResponse {

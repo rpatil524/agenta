@@ -10,7 +10,6 @@ from oss.src.core.shared.dtos import (
     Lifecycle,
     Metadata,
     Slug,
-    Status,
     Json,
 )
 
@@ -33,7 +32,7 @@ class ToolAuthScheme(str, Enum):
 # Tool Catalog
 # ---------------------------------------------------------------------------
 
-# Tags type for filtering actions
+# Tags type for filtering tools by tag flags (e.g. {"important": true})
 Tags = Optional[Dict[str, bool]]
 
 
@@ -45,12 +44,11 @@ class ToolCatalogAction(BaseModel):
     #
     categories: List[str] = []
     logo: Optional[str] = None
-    #
-    tags: Tags = None
 
 
 class ToolCatalogActionDetails(ToolCatalogAction):
     schemas: Optional[JsonSchemas] = None
+    scopes: Optional[List[str]] = None
 
 
 class ToolCatalogIntegration(BaseModel):
@@ -61,13 +59,11 @@ class ToolCatalogIntegration(BaseModel):
     #
     categories: List[str] = []
     logo: Optional[str] = None
+    url: Optional[str] = None
+    #
+    actions_count: Optional[int] = None
     #
     auth_schemes: Optional[List[ToolAuthScheme]] = None
-    #
-    actions_count: int = 0
-    connections_count: int = 0
-    #
-    no_auth: bool = False
 
 
 class ToolCatalogIntegrationDetails(ToolCatalogIntegration):
@@ -80,7 +76,8 @@ class ToolCatalogProvider(BaseModel):
     name: str
     description: Optional[str] = None
     #
-    integrations_count: int = 0
+    integrations_count: Optional[int] = None
+    #
 
 
 class ToolCatalogProviderDetails(ToolCatalogProvider):
@@ -92,7 +89,7 @@ class ToolCatalogProviderDetails(ToolCatalogProvider):
 # ---------------------------------------------------------------------------
 
 
-class ToolConnectionStatus(Status):
+class ToolConnectionStatus(BaseModel):
     redirect_url: Optional[str] = None
 
 
@@ -154,39 +151,6 @@ class ToolConnectionCreate(
 
 
 # ---------------------------------------------------------------------------
-# Tools
-# ---------------------------------------------------------------------------
-
-
-class Tool(
-    Identifier,
-    Slug,
-    Header,
-    Lifecycle,
-    Metadata,
-):
-    # slug = tools.{provider}.{integration}.{action}[.{connection}]
-    #
-    provider_key: ToolProviderKind
-    integration_key: str
-    action_key: str
-    connection_slug: Optional[str] = None
-    #
-    schemas: Optional[JsonSchemas] = None
-
-
-class ToolQuery(
-    Slug,
-    Header,
-    Metadata,
-):
-    provider_key: Optional[ToolProviderKind] = None  # exact match
-    integration_key: Optional[str] = None  # exact match
-    action_key: Optional[str] = None  # exact match
-    connection_slug: Optional[str] = None  # exact match
-
-
-# ---------------------------------------------------------------------------
 # Tool Calls
 # ---------------------------------------------------------------------------
 
@@ -197,8 +161,8 @@ class ToolCall(Identifier):
 
 
 class ToolResult(Identifier):
-    data: Optional[Json] = None
-    status: Optional[Status] = None
+    result: Optional[Json] = None
+    status: Optional[Json] = None  # {"message": "success"} or {"message": "failed", "error": "..."}
 
 
 # ---------------------------------------------------------------------------
