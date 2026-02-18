@@ -16,6 +16,7 @@ import {
 } from "@/oss/features/gateway-tools"
 import CatalogDrawer from "@/oss/features/gateway-tools/drawers/CatalogDrawer"
 import ToolExecutionDrawer from "@/oss/features/gateway-tools/drawers/ToolExecutionDrawer"
+import {fetchActionDetail} from "@/oss/services/tools/api"
 import type {ConnectionItem} from "@/oss/services/tools/api/types"
 
 import AddButton from "../../../assets/AddButton"
@@ -35,6 +36,15 @@ interface Props {
     viewOnly?: boolean
 }
 
+interface ComposioActionSelectParams {
+    integrationKey: string
+    integrationName: string
+    connectionSlug: string
+    actionKey: string
+    actionName: string
+    payload: Record<string, any>
+}
+
 const formatToolLabel = (toolCode: string) =>
     toolCode
         .split("_")
@@ -42,16 +52,48 @@ const formatToolLabel = (toolCode: string) =>
         .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
         .join(" ")
 
-// Right panel: actions for a Composio integration (lazy-fetched)
+// Right panel: actions for a Composio connection (lazy-fetched)
 function ComposioActionsList({
     integrationKey,
+    connectionSlug,
     onSelectAction,
 }: {
     integrationKey: string
-    connections: ConnectionItem[]
-    onSelectAction: (actionKey: string, actionName: string) => void
+    connectionSlug: string
+    onSelectAction: (params: ComposioActionSelectParams) => void
 }) {
     const {actions, isLoading} = useCatalogActions(integrationKey)
+    const {integration} = useIntegrationDetail(integrationKey)
+
+    const handleActionClick = async (actionKey: string, actionName: string) => {
+        const integrationName = integration?.name || integrationKey
+
+        let inputSchema: Record<string, unknown> = {type: "object", properties: {}}
+        try {
+            const detail = await fetchActionDetail("composio", integrationKey, actionKey)
+            if (detail?.action?.schemas?.inputs) {
+                inputSchema = detail.action.schemas.inputs as Record<string, unknown>
+            }
+        } catch {
+            // fall back to empty schema
+        }
+
+        onSelectAction({
+            integrationKey,
+            integrationName,
+            connectionSlug,
+            actionKey,
+            actionName,
+            payload: {
+                type: "function",
+                function: {
+                    name: actionKey,
+                    description: actionName,
+                    parameters: inputSchema,
+                },
+            },
+        })
+    }
 
     if (isLoading) {
         return (
@@ -73,7 +115,7 @@ function ComposioActionsList({
                     type="text"
                     block
                     className="!flex !h-[28px] !items-center !justify-start !text-left !py-[5px] !px-2 hover:!bg-[#F8FAFC]"
-                    onClick={() => onSelectAction(action.key, action.name)}
+                    onClick={() => handleActionClick(action.key, action.name)}
                 >
                     <span className="text-[#0F172A] text-xs truncate">{action.name}</span>
                 </Button>
@@ -82,19 +124,17 @@ function ComposioActionsList({
     )
 }
 
-// Left panel row for a Composio integration — fetches its own logo
-function IntegrationRow({
-    integrationKey,
-    count,
+// Left panel row — one per connection, shows integration_key / connection_slug
+function ConnectionRow({
+    connection,
     isHovered,
     onHover,
 }: {
-    integrationKey: string
-    count: number
+    connection: ConnectionItem
     isHovered: boolean
     onHover: () => void
 }) {
-    const {integration} = useIntegrationDetail(integrationKey)
+    const {integration} = useIntegrationDetail(connection.integration_key)
 
     return (
         <Button
@@ -109,16 +149,17 @@ function IntegrationRow({
             {integration?.logo ? (
                 <img
                     src={integration.logo}
-                    alt={integrationKey}
+                    alt={connection.integration_key}
                     className="h-4 w-4 rounded object-contain shrink-0"
                 />
             ) : (
                 <span className="h-4 w-4 rounded bg-[#F1F5F9] shrink-0" />
             )}
-            <Typography.Text className="flex-1 text-[#0F172A] text-xs capitalize truncate">
-                {integrationKey.replace(/_/g, " ")}
+            <Typography.Text className="flex-1 text-[#0F172A] text-xs truncate">
+                <span className="capitalize">{connection.integration_key.replace(/_/g, " ")}</span>
+                <span className="text-[#CBD5E1] mx-1">/</span>
+                <span className="text-[#64748B]">{connection.slug}</span>
             </Typography.Text>
-            <span className="text-[#94A3B8] text-[10px] shrink-0">{count}</span>
             <CaretRight size={10} className="text-[#CBD5E1] shrink-0" />
         </Button>
     )
@@ -139,6 +180,7 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
         }
         setHoveredKey(key)
     }, [])
+
     // promptId may contain colons (e.g. "prompt:prompt1"), so split only on the first ":"
     const promptId = compoundKey.substring(compoundKey.indexOf(":") + 1)
     const prompts = usePromptsSource(variantId)
@@ -199,28 +241,19 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
         }, [])
     }, [searchTerm])
 
-    // Group connections by integration, filtered by search term
-    const groupedConnections = useMemo(() => {
+    // Filter connections by search term
+    const filteredConnections = useMemo(() => {
         const normalizedTerm = searchTerm.trim().toLowerCase()
-        const map: Record<string, ConnectionItem[]> = {}
-        for (const conn of connections) {
-            const key = conn.integration_key
-            if (
-                normalizedTerm &&
-                !key.toLowerCase().includes(normalizedTerm) &&
-                !(conn.name || conn.slug).toLowerCase().includes(normalizedTerm)
-            ) {
-                continue
-            }
-            if (!map[key]) map[key] = []
-            map[key].push(conn)
-        }
-        return map
+        if (!normalizedTerm) return connections
+        return connections.filter(
+            (conn) =>
+                conn.integration_key.toLowerCase().includes(normalizedTerm) ||
+                (conn.name || conn.slug).toLowerCase().includes(normalizedTerm),
+        )
     }, [connections, searchTerm])
 
-    const integrationKeys = Object.keys(groupedConnections)
     const hasBuiltin = filteredToolGroups.length > 0
-    const hasComposio = connectionsLoading || integrationKeys.length > 0
+    const hasComposio = connectionsLoading || filteredConnections.length > 0
 
     const closeDropdown = useCallback(() => {
         setIsDropdownOpen(false)
@@ -244,13 +277,21 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
     )
 
     const handleComposioActionAdd = useCallback(
-        (integrationKey: string, actionKey: string, actionName: string) => {
+        ({
+            integrationKey,
+            integrationName,
+            connectionSlug,
+            actionKey,
+            actionName,
+            payload,
+        }: ComposioActionSelectParams) => {
             addNewTool({
                 source: "builtin",
-                providerKey: `composio.${integrationKey}`,
-                providerLabel: "Composio",
-                toolCode: actionKey,
+                providerKey: integrationKey,
+                providerLabel: integrationName,
+                toolCode: `${connectionSlug}/${actionKey}`,
                 toolLabel: actionName,
+                payload,
             })
             closeDropdown()
         },
@@ -261,10 +302,10 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
     const hoveredBuiltinGroup = hoveredKey?.startsWith("builtin:")
         ? filteredToolGroups.find((g) => g.key === hoveredKey.slice("builtin:".length))
         : null
-    const hoveredIntegrationKey = hoveredKey?.startsWith("composio:")
-        ? hoveredKey.slice("composio:".length)
+    const hoveredConnection = hoveredKey?.startsWith("composio:")
+        ? connections.find((c) => c.id === hoveredKey.slice("composio:".length))
         : null
-    const showRightPanel = !!(hoveredBuiltinGroup || hoveredIntegrationKey)
+    const showRightPanel = !!(hoveredBuiltinGroup || hoveredConnection)
 
     const dropdownContent = (
         <div
@@ -362,13 +403,12 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
                                     <Spin size="small" />
                                 </div>
                             ) : (
-                                integrationKeys.map((key) => (
-                                    <IntegrationRow
-                                        key={key}
-                                        integrationKey={key}
-                                        count={groupedConnections[key].length}
-                                        isHovered={hoveredKey === `composio:${key}`}
-                                        onHover={() => handleRowHover(`composio:${key}`)}
+                                filteredConnections.map((conn) => (
+                                    <ConnectionRow
+                                        key={conn.id}
+                                        connection={conn}
+                                        isHovered={hoveredKey === `composio:${conn.id}`}
+                                        onHover={() => handleRowHover(`composio:${conn.id}`)}
                                     />
                                 ))
                             )}
@@ -412,17 +452,11 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
                             </Button>
                         ))}
 
-                    {hoveredIntegrationKey && (
+                    {hoveredConnection && (
                         <ComposioActionsList
-                            integrationKey={hoveredIntegrationKey}
-                            connections={groupedConnections[hoveredIntegrationKey] || []}
-                            onSelectAction={(actionKey, actionName) =>
-                                handleComposioActionAdd(
-                                    hoveredIntegrationKey,
-                                    actionKey,
-                                    actionName,
-                                )
-                            }
+                            integrationKey={hoveredConnection.integration_key}
+                            connectionSlug={hoveredConnection.slug}
+                            onSelectAction={handleComposioActionAdd}
                         />
                     )}
                 </div>
