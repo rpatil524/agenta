@@ -122,5 +122,5 @@ The `adapters/` directory still exists for the registry pattern, but individual 
 ## Documentation
 
 - [CONNECTION_FLOWS.md](./CONNECTION_FLOWS.md) - Detailed flow documentation
-- [specs.md](../../../../docs/designs/gateway-tools/specs.md) - API specification
-- [implementation-spec.md](../../../../docs/designs/gateway-tools/implementation-spec.md) - Implementation details
+- [specs.md](./specs.md) - API specification
+- [implementation-spec.md](./implementation-spec.md) - Implementation details
