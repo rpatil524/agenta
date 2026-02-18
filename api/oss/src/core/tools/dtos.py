@@ -162,7 +162,9 @@ class ToolCall(Identifier):
 
 class ToolResult(Identifier):
     result: Optional[Json] = None
-    status: Optional[Json] = None  # {"message": "success"} or {"message": "failed", "error": "..."}
+    status: Optional[Json] = (
+        None  # {"message": "success"} or {"message": "failed", "error": "..."}
+    )
 
 
 # ---------------------------------------------------------------------------

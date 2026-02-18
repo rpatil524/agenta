@@ -14,7 +14,6 @@ from oss.src.core.tools.dtos import (
     ToolConnection,
     ToolConnectionCreate,
     # Tool Calls
-    ToolCall,
     ToolResult,
 )
 
@@ -43,6 +42,8 @@ class ToolCatalogIntegrationResponse(BaseModel):
 
 class ToolCatalogIntegrationsResponse(BaseModel):
     count: int = 0
+    total: int = 0
+    cursor: Optional[str] = None
     integrations: List[
         Union[ToolCatalogIntegration, ToolCatalogIntegrationDetails]
     ] = []
@@ -55,6 +56,8 @@ class ToolCatalogActionResponse(BaseModel):
 
 class ToolCatalogActionsResponse(BaseModel):
     count: int = 0
+    total: int = 0
+    cursor: Optional[str] = None
     actions: List[Union[ToolCatalogAction, ToolCatalogActionDetails]] = []
 
 

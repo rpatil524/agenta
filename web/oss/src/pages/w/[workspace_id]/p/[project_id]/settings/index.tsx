@@ -95,7 +95,7 @@ const Settings: React.FC = () => {
                         case "projects":
                             return "Projects"
                         case "secrets":
-                            return "Providers & Models"
+                            return "Models"
                         case "tools":
                             return "Tools"
                         case "apiKeys":
@@ -139,7 +139,7 @@ const Settings: React.FC = () => {
                     ),
                 }
             case "secrets":
-                return {content: <Secrets />, title: "Providers & Models"}
+                return {content: <Secrets />, title: "Models"}
             case "tools":
                 return {content: <Tools />, title: "Tools"}
             case "apiKeys":

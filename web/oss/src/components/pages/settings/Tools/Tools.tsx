@@ -1,19 +1,9 @@
-import {useState} from "react"
-
-import IntegrationDetail from "./components/IntegrationDetail"
-import IntegrationGrid from "./components/IntegrationGrid"
+import GatewayToolsSection from "./components/GatewayToolsSection"
 
 export default function Tools() {
-    const [selectedIntegration, setSelectedIntegration] = useState<string | null>(null)
-
-    if (selectedIntegration) {
-        return (
-            <IntegrationDetail
-                integrationKey={selectedIntegration}
-                onBack={() => setSelectedIntegration(null)}
-            />
-        )
-    }
-
-    return <IntegrationGrid onSelect={setSelectedIntegration} />
+    return (
+        <div className="flex flex-col gap-6">
+            <GatewayToolsSection />
+        </div>
+    )
 }

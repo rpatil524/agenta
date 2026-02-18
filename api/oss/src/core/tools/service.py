@@ -11,7 +11,6 @@ from oss.src.core.tools.dtos import (
     ToolCatalogProvider,
     ToolConnection,
     ToolConnectionCreate,
-    Tags,
 )
 from oss.src.core.tools.interfaces import (
     ToolsDAOInterface,
@@ -65,12 +64,14 @@ class ToolsService:
         provider_key: str,
         #
         search: Optional[str] = None,
+        sort_by: Optional[str] = None,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
     ) -> Tuple[List[ToolCatalogIntegration], Optional[str], int]:
         adapter = self.adapter_registry.get(provider_key)
         integrations, next_cursor, total = await adapter.list_integrations(
             search=search,
+            sort_by=sort_by,
             limit=limit,
             cursor=cursor,
         )
@@ -99,8 +100,8 @@ class ToolsService:
         provider_key: str,
         integration_key: str,
         #
-        search: Optional[str] = None,
-        tags: Optional[Tags] = None,
+        query: Optional[str] = None,
+        categories: Optional[List[str]] = None,
         important: Optional[bool] = None,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
@@ -108,8 +109,8 @@ class ToolsService:
         adapter = self.adapter_registry.get(provider_key)
         return await adapter.list_actions(
             integration_key=integration_key,
-            search=search,
-            tags=tags,
+            query=query,
+            categories=categories,
             important=important,
             limit=limit,
             cursor=cursor,
@@ -187,29 +188,11 @@ class ToolsService:
         project_id: UUID,
         connection_id: UUID,
     ) -> Optional[ToolConnection]:
-        conn = await self.tools_dao.get_connection(
+        # Read-only by design: do not mutate local state during GET.
+        return await self.tools_dao.get_connection(
             project_id=project_id,
             connection_id=connection_id,
         )
-
-        if not conn:
-            return None
-
-        # If not yet valid, poll the adapter for updated status
-        if not conn.is_valid and conn.provider_connection_id:
-            adapter = self.adapter_registry.get(conn.provider_key.value)
-            status_info = await adapter.get_connection_status(
-                provider_connection_id=conn.provider_connection_id,
-            )
-
-            if status_info.get("is_valid") and not conn.is_valid:
-                conn = await self.tools_dao.update_connection(
-                    project_id=project_id,
-                    connection_id=connection_id,
-                    is_valid=True,
-                )
-
-        return conn
 
     async def create_connection(
         self,
@@ -224,15 +207,12 @@ class ToolsService:
 
         adapter = self.adapter_registry.get(provider_key)
 
-        # Use explicit COMPOSIO_CALLBACK_URL when set (required for external/prod access).
-        # Falls back to AGENTA_API_URL for local dev where the proxy handles routing.
-        callback_url = env.composio.callback_url or (
-            f"{env.agenta.api_url}/preview/tools/connections/callback"
-        )
+        # Callback URL is server-owned. Do not trust/require client-provided values.
+        callback_url = f"{env.agenta.api_url}/preview/tools/connections/callback"
 
         # Initiate with provider
         provider_result = await adapter.initiate_connection(
-            entity_id=str(project_id),
+            user_id=str(project_id),
             integration_key=integration_key,
             callback_url=callback_url,
         )
@@ -243,7 +223,15 @@ class ToolsService:
 
         # Update data with adapter response
         if provider_key == "composio":
-            data = connection_create.data or {}
+            incoming_data = (
+                connection_create.data
+                if isinstance(connection_create.data, dict)
+                else {}
+            )
+            data = {}
+            # Keep credentials if provided (API-key style flows).
+            if isinstance(incoming_data.get("credentials"), dict):
+                data["credentials"] = incoming_data["credentials"]
             data["connected_account_id"] = provider_connection_id
             data["auth_config_id"] = auth_config_id
             data["project_id"] = str(project_id)
@@ -349,19 +337,44 @@ class ToolsService:
                 detail="Cannot refresh an inactive connection. Create a new connection to re-establish authorization.",
             )
 
+        # Callback URL is server-owned. Refresh must use the same canonical callback.
+        callback_url = f"{env.agenta.api_url}/preview/tools/connections/callback"
+
         adapter = self.adapter_registry.get(conn.provider_key.value)
-        result = await adapter.refresh_connection(
-            provider_connection_id=conn.provider_connection_id,
-            force=force,
-        )
+
+        # Re-initiate a link (same behavior as create) because provider refresh
+        # links can be non-deterministic for callback redirects.
+        provider_connection_id = conn.provider_connection_id
+        auth_config_id = None
+        if conn.provider_key.value == "composio":
+            result = await adapter.initiate_connection(
+                user_id=str(project_id),
+                integration_key=conn.integration_key,
+                callback_url=callback_url,
+            )
+            provider_connection_id = result.get("id") or provider_connection_id
+            auth_config_id = result.get("auth_config_id")
+            # Re-auth flow is pending until callback marks it active.
+            is_valid = False
+        else:
+            result = await adapter.refresh_connection(
+                provider_connection_id=conn.provider_connection_id,
+                force=force,
+                callback_url=callback_url,
+            )
+            is_valid = result.get("is_valid", conn.is_valid)
 
         redirect_url = result.get("redirect_url")
-        data_update = {"redirect_url": redirect_url} if redirect_url else None
+        # Always overwrite redirect_url so FE doesn't reuse stale links from prior flows.
+        data_update = {"redirect_url": redirect_url}
+        if auth_config_id:
+            data_update["auth_config_id"] = auth_config_id
 
         updated = await self.tools_dao.update_connection(
             project_id=project_id,
             connection_id=connection_id,
-            is_valid=result.get("is_valid", conn.is_valid),
+            is_valid=is_valid,
+            provider_connection_id=provider_connection_id,
             data_update=data_update,
         )
 
@@ -378,7 +391,7 @@ class ToolsService:
         integration_key: str,
         action_key: str,
         provider_connection_id: str,
-        entity_id: Optional[str] = None,
+        user_id: Optional[str] = None,
         arguments: Dict[str, Any],
     ) -> Dict[str, Any]:
         """Execute a tool action using the provider adapter."""
@@ -388,7 +401,7 @@ class ToolsService:
             integration_key=integration_key,
             action_key=action_key,
             provider_connection_id=provider_connection_id,
-            entity_id=entity_id,
+            user_id=user_id,
             arguments=arguments,
         )
 
@@ -398,5 +411,3 @@ class ToolsService:
             "error": result.error,
             "successful": result.successful,
         }
-
-

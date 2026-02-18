@@ -10,7 +10,6 @@ from oss.src.core.tools.dtos import (
     ToolConnection,
     ToolConnectionCreate,
     ExecutionResult,
-    Tags,
 )
 
 
@@ -92,6 +91,7 @@ class GatewayAdapterInterface(ABC):
         self,
         *,
         search: Optional[str] = None,
+        sort_by: Optional[str] = None,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
     ) -> Tuple[List[ToolCatalogIntegration], Optional[str], int]:
@@ -103,8 +103,8 @@ class GatewayAdapterInterface(ABC):
         self,
         *,
         integration_key: str,
-        search: Optional[str] = None,
-        tags: Optional[Tags] = None,
+        query: Optional[str] = None,
+        categories: Optional[List[str]] = None,
         important: Optional[bool] = None,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
@@ -124,7 +124,7 @@ class GatewayAdapterInterface(ABC):
     async def initiate_connection(
         self,
         *,
-        entity_id: str,
+        user_id: str,
         integration_key: str,
         callback_url: Optional[str] = None,
     ) -> Dict[str, Any]:
@@ -146,6 +146,7 @@ class GatewayAdapterInterface(ABC):
         *,
         provider_connection_id: str,
         force: bool = False,
+        callback_url: Optional[str] = None,
     ) -> Dict[str, Any]: ...
 
     @abstractmethod
@@ -162,7 +163,7 @@ class GatewayAdapterInterface(ABC):
         integration_key: str,
         action_key: str,
         provider_connection_id: str,
-        entity_id: Optional[str] = None,
+        user_id: Optional[str] = None,
         arguments: Dict[str, Any],
     ) -> ExecutionResult:
         """Execute a tool action."""

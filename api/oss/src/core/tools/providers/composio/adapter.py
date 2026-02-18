@@ -12,7 +12,6 @@ from oss.src.core.tools.dtos import (
     ToolCatalogIntegration,
     ToolCatalogProvider,
     ExecutionResult,
-    Tags,
 )
 from oss.src.core.tools.interfaces import GatewayAdapterInterface
 from oss.src.core.tools.exceptions import AdapterError
@@ -113,6 +112,7 @@ class ComposioAdapter(GatewayAdapterInterface):
         self,
         *,
         search: Optional[str] = None,
+        sort_by: Optional[str] = None,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
     ) -> Tuple[List[ToolCatalogIntegration], Optional[str], int]:
@@ -120,6 +120,7 @@ class ComposioAdapter(GatewayAdapterInterface):
             api_key=self.api_key,
             api_url=self.api_url,
             search=search,
+            sort_by=sort_by,
             limit=limit,
             cursor=cursor,
         )
@@ -128,8 +129,8 @@ class ComposioAdapter(GatewayAdapterInterface):
         self,
         *,
         integration_key: str,
-        search: Optional[str] = None,
-        tags: Optional[Tags] = None,
+        query: Optional[str] = None,
+        categories: Optional[List[str]] = None,
         important: Optional[bool] = None,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
@@ -138,7 +139,8 @@ class ComposioAdapter(GatewayAdapterInterface):
             integration_key=integration_key,
             api_key=self.api_key,
             api_url=self.api_url,
-            search=search,
+            query=query,
+            tags=categories,  # Our "categories" maps to Composio's "tags" param
             limit=limit,
             cursor=cursor,
         )
@@ -194,7 +196,7 @@ class ComposioAdapter(GatewayAdapterInterface):
     async def initiate_connection(
         self,
         *,
-        entity_id: str,
+        user_id: str,
         integration_key: str,
         callback_url: Optional[str] = None,
     ) -> Dict[str, Any]:
@@ -236,7 +238,7 @@ class ComposioAdapter(GatewayAdapterInterface):
 
         # Step 2: initiate connected account link
         payload: Dict[str, Any] = {
-            "user_id": entity_id,
+            "user_id": user_id,
             "auth_config_id": auth_config_id,
         }
         if callback_url:
@@ -281,11 +283,16 @@ class ComposioAdapter(GatewayAdapterInterface):
         *,
         provider_connection_id: str,
         force: bool = False,
+        callback_url: Optional[str] = None,
     ) -> Dict[str, Any]:
+        payload: Dict[str, Any] = {}
+        if callback_url:
+            payload["callback_url"] = callback_url
+
         try:
             result = await self._post(
                 f"/connected_accounts/{provider_connection_id}/refresh",
-                json={},
+                json=payload,
             )
         except httpx.HTTPError as e:
             raise AdapterError(
@@ -324,7 +331,7 @@ class ComposioAdapter(GatewayAdapterInterface):
         integration_key: str,
         action_key: str,
         provider_connection_id: str,
-        entity_id: Optional[str] = None,
+        user_id: Optional[str] = None,
         arguments: Dict[str, Any],
     ) -> ExecutionResult:
         composio_slug = self._to_composio_slug(
@@ -336,8 +343,8 @@ class ComposioAdapter(GatewayAdapterInterface):
             "arguments": arguments,
             "connected_account_id": provider_connection_id,
         }
-        if entity_id:
-            payload["user_id"] = entity_id  # Composio V3: entity_id is deprecated, use user_id
+        if user_id:
+            payload["user_id"] = user_id
 
         try:
             result = await self._post(

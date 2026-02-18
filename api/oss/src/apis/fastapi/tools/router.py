@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Query, Request, status
@@ -317,8 +317,12 @@ class ToolsRouter:
         request: Request,
         provider_key: str,
         *,
+        search: Optional[str] = Query(default=None),
+        sort_by: Optional[str] = Query(default=None),
+        limit: Optional[int] = Query(default=None),
+        cursor: Optional[str] = Query(default=None),
         full_details: bool = Query(default=False),
-        full_catalog: bool = Query(default=True),
+        full_catalog: bool = Query(default=False),
     ) -> ToolCatalogIntegrationsResponse:
         if is_ee():
             has_permission = await check_action_access(
@@ -331,6 +335,10 @@ class ToolsRouter:
 
         cache_key = {
             "provider_key": provider_key,
+            "search": search,
+            "sort_by": sort_by,
+            "limit": limit,
+            "cursor": cursor,
             "full_details": full_details,
             "full_catalog": full_catalog,
         }
@@ -343,8 +351,12 @@ class ToolsRouter:
         if cached:
             return cached
 
-        integrations, _, _ = await self.tools_service.list_integrations(
+        integrations, next_cursor, total = await self.tools_service.list_integrations(
             provider_key=provider_key,
+            search=search,
+            sort_by=sort_by,
+            limit=limit,
+            cursor=cursor,
         )
         items = []
 
@@ -369,6 +381,8 @@ class ToolsRouter:
 
         response = ToolCatalogIntegrationsResponse(
             count=len(items),
+            total=total,
+            cursor=next_cursor,
             integrations=items,
         )
 
@@ -466,8 +480,12 @@ class ToolsRouter:
         provider_key: str,
         integration_key: str,
         *,
+        query: Optional[str] = Query(default=None),
+        categories: Optional[List[str]] = Query(default=None),
+        limit: Optional[int] = Query(default=None),
+        cursor: Optional[str] = Query(default=None),
         full_details: bool = Query(default=False),
-        full_catalog: bool = Query(default=True),
+        full_catalog: bool = Query(default=False),
     ) -> ToolCatalogActionsResponse:
         if is_ee():
             has_permission = await check_action_access(
@@ -481,6 +499,10 @@ class ToolsRouter:
         cache_key = {
             "provider_key": provider_key,
             "integration_key": integration_key,
+            "query": query,
+            "categories": categories,
+            "limit": limit,
+            "cursor": cursor,
             "full_details": full_details,
             "full_catalog": full_catalog,
         }
@@ -493,9 +515,13 @@ class ToolsRouter:
         if cached:
             return cached
 
-        actions, _, _ = await self.tools_service.list_actions(
+        actions, next_cursor, total = await self.tools_service.list_actions(
             provider_key=provider_key,
             integration_key=integration_key,
+            query=query,
+            categories=categories,
+            limit=limit,
+            cursor=cursor,
         )
         items = []
 
@@ -518,6 +544,8 @@ class ToolsRouter:
 
         response = ToolCatalogActionsResponse(
             count=len(items),
+            total=total,
+            cursor=next_cursor,
             actions=items,
         )
 
@@ -641,6 +669,13 @@ class ToolsRouter:
             )
             if not has_permission:
                 raise FORBIDDEN_EXCEPTION
+
+        if isinstance(body.connection.data, dict):
+            body.connection.data = {
+                k: v
+                for k, v in body.connection.data.items()
+                if k not in {"callback_url", "auth_scheme"}
+            } or None
 
         connection = await self.tools_service.create_connection(
             project_id=UUID(request.state.project_id),
@@ -800,8 +835,10 @@ class ToolsRouter:
         integration_logo = None
         integration_url = None
         try:
-            conn = await self.tools_service.activate_connection_by_provider_connection_id(
-                provider_connection_id=connected_account_id,
+            conn = (
+                await self.tools_service.activate_connection_by_provider_connection_id(
+                    provider_connection_id=connected_account_id,
+                )
             )
             if conn:
                 integration_label = conn.integration_key.replace("_", " ").title()
@@ -912,9 +949,11 @@ class ToolsRouter:
                 },
             )
 
-        # Use stored project_id as Composio user_id (matches entity_id used during initiation)
-        entity_id = (
-            connection.data.get("project_id") if isinstance(connection.data, dict) else None
+        # Use stored project_id as Composio user_id (matches user_id used during initiation)
+        user_id = (
+            connection.data.get("project_id")
+            if isinstance(connection.data, dict)
+            else None
         )
 
         # Execute the tool via the adapter
@@ -924,31 +963,28 @@ class ToolsRouter:
                 integration_key=integration_key,
                 action_key=action_key,
                 provider_connection_id=connection.provider_connection_id,
-                entity_id=entity_id,
+                user_id=user_id,
                 arguments=body.arguments,
             )
 
-            call_id = str(uuid4())
+            call_id = str(body.id) if body.id else str(uuid4())
 
-            if execution_result.get("successful"):
-                result = ToolResult(
-                    id=call_id,
-                    result=execution_result.get("data"),
-                    status={},
-                )
-            else:
-                result = ToolResult(
-                    id=call_id,
-                    result=None,
-                    status={"error": execution_result.get("error")},
-                )
+            # Pass the full execution envelope (data/error/successful) as
+            # result so that schemas.outputs can be applied directly in the FE.
+            result = ToolResult(
+                id=call_id,
+                result=execution_result,
+                status={"error": execution_result.get("error")}
+                if not execution_result.get("successful")
+                else {},
+            )
 
             return ToolCallResponse(call=result)
 
         except Exception as e:
             log.error(f"Tool execution failed: {e}")
             result = ToolResult(
-                id=str(uuid4()),
+                id=str(body.id) if body.id else str(uuid4()),
                 result=None,
                 status={"error": str(e)},
             )
@@ -1005,7 +1041,7 @@ def _oauth_card(
         heading_html = f'<p class="h-error">{error or "Something went wrong"}</p>'
 
     agenta_btn = (
-        f'<a href="{agenta_url}" class="btn btn-primary">Return to Agenta</a>'
+        f'<a id="agenta-return-btn" href="{agenta_url}" class="btn btn-primary" onclick="returnToAgenta(event);">Return to Agenta</a>'
         if agenta_url
         else ""
     )
@@ -1017,10 +1053,15 @@ def _oauth_card(
         if integration_url
         else ""
     )
-    button_html = (
-        f'<div class="buttons">{agenta_btn}{integration_btn}</div>'
-        if agenta_btn or integration_btn
+    auto_return_html = (
+        '<p id="auto-return-text" class="auto-return">This tab will close automatically in 5 seconds...</p>'
+        if success and agenta_url
         else ""
+    )
+    button_html = (
+        f'<div class="buttons">{agenta_btn}{integration_btn}</div>{auto_return_html}'
+        if agenta_btn or integration_btn
+        else auto_return_html
     )
 
     return f"""<!DOCTYPE html>
@@ -1127,6 +1168,11 @@ def _oauth_card(
       color: #3f3f46;
     }}
     .btn-secondary:hover {{ background: #e4e4e7; }}
+    .auto-return {{
+      margin-top: 10px;
+      font-size: 12px;
+      color: #a1a1aa;
+    }}
   </style>
 </head>
 <body>
@@ -1135,5 +1181,62 @@ def _oauth_card(
     {heading_html}
     {button_html}
   </div>
+  <script>
+    function returnToAgenta(event) {{
+      if (event) {{
+        event.preventDefault();
+      }}
+
+      const btn = document.getElementById("agenta-return-btn");
+      const target = btn ? btn.getAttribute("href") : null;
+      if (!target) {{
+        return false;
+      }}
+
+      try {{
+        if (window.opener && !window.opener.closed) {{
+          window.opener.location.href = target;
+          window.opener.focus();
+          window.close();
+          return false;
+        }}
+      }} catch (_e) {{
+        // Fallback to same-tab redirect below.
+      }}
+
+      window.location.href = target;
+      return false;
+    }}
+
+    if (window.opener) {{
+      window.opener.postMessage({{type: "tools:oauth:complete"}}, "*");
+    }}
+
+    const countdownEl = document.getElementById("auto-return-text");
+    if (countdownEl) {{
+      let remaining = 5;
+
+      const render = () => {{
+        const suffix = remaining === 1 ? "" : "s";
+        countdownEl.textContent =
+          "This tab will close automatically in " +
+          remaining +
+          " second" +
+          suffix +
+          "...";
+      }};
+
+      render();
+      const intervalId = setInterval(() => {{
+        remaining -= 1;
+        if (remaining <= 0) {{
+          clearInterval(intervalId);
+          returnToAgenta();
+          return;
+        }}
+        render();
+      }}, 1000);
+    }}
+  </script>
 </body>
 </html>"""

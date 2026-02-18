@@ -17,16 +17,47 @@ interface Props {
     connections: ConnectionItem[]
 }
 
-export default function ConnectionsList({integrationKey, connections}: Props) {
-    const {handleDelete, handleRefresh} = useToolsConnections(integrationKey)
+const getRedirectUrl = (connection: ConnectionItem | null | undefined): string | undefined => {
+    if (!connection) return undefined
+    const dataRedirect = connection.data?.redirect_url
+    return typeof dataRedirect === "string" && dataRedirect ? dataRedirect : undefined
+}
 
-    const confirmDelete = (slug: string) => {
+export default function ConnectionsList({integrationKey, connections}: Props) {
+    const {handleDelete, handleRefresh, invalidate} = useToolsConnections(integrationKey)
+
+    const confirmDelete = (connection: ConnectionItem) => {
+        if (!connection.id) return
         AlertPopup({
             title: "Delete Connection",
             message:
                 "Are you sure you want to delete this connection? This action is irreversible.",
-            onOk: () => handleDelete(slug),
+            onOk: () => handleDelete(connection.id as string),
         })
+    }
+
+    const onRefresh = async (connection: ConnectionItem) => {
+        if (!connection.id) return
+
+        const result = await handleRefresh(connection.id)
+        const redirectUrl = getRedirectUrl(result.connection)
+
+        if (!redirectUrl) return
+
+        const popup = window.open(
+            redirectUrl,
+            "tools_oauth_refresh",
+            "width=600,height=700,popup=yes",
+        )
+
+        if (!popup) return
+
+        const pollTimer = setInterval(() => {
+            if (popup.closed) {
+                clearInterval(pollTimer)
+                invalidate()
+            }
+        }, 1000)
     }
 
     const columns: ColumnsType<ConnectionItem> = useMemo(
@@ -64,7 +95,8 @@ export default function ConnectionsList({integrationKey, connections}: Props) {
                                 type="text"
                                 size="small"
                                 icon={<ArrowsClockwise size={14} />}
-                                onClick={() => handleRefresh(record.slug)}
+                                onClick={() => void onRefresh(record)}
+                                disabled={!record.id}
                             />
                         </Tooltip>
                         <Tooltip title="Delete">
@@ -74,7 +106,8 @@ export default function ConnectionsList({integrationKey, connections}: Props) {
                                 color="danger"
                                 variant="text"
                                 icon={<Trash size={14} />}
-                                onClick={() => confirmDelete(record.slug)}
+                                onClick={() => confirmDelete(record)}
+                                disabled={!record.id}
                             />
                         </Tooltip>
                     </div>

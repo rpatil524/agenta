@@ -14,7 +14,7 @@ export interface ProviderItem {
 
 export interface ProvidersResponse {
     count: number
-    items: ProviderItem[]
+    providers: ProviderItem[]
 }
 
 export interface IntegrationItem {
@@ -30,69 +30,102 @@ export interface IntegrationItem {
 
 export interface IntegrationsResponse {
     count: number
-    items: IntegrationItem[]
-}
-
-export interface ConnectionItem {
-    slug: string
-    name?: string
-    description?: string
-    is_active: boolean
-    is_valid: boolean
-    status?: string
-    created_at?: string
-    updated_at?: string
+    total: number
+    cursor?: string | null
+    integrations: IntegrationItem[]
 }
 
 export interface IntegrationDetailResponse {
-    key: string
-    name: string
-    description?: string
-    logo?: string
-    auth_schemes: string[]
-    actions_count: number
-    categories: string[]
-    no_auth: boolean
-    connections: ConnectionItem[]
+    count: number
+    integration: IntegrationItem | null
 }
 
 export interface ActionItem {
     key: string
-    slug: string
     name: string
     description?: string
-    tags?: Record<string, unknown>
+    categories?: string[]
+    logo?: string
+}
+
+export interface ActionDetailItem extends ActionItem {
+    schemas?: {
+        inputs?: Record<string, unknown>
+        outputs?: Record<string, unknown>
+    }
+    scopes?: string[]
 }
 
 export interface ActionsListResponse {
     count: number
-    items: ActionItem[]
+    total: number
+    cursor?: string | null
+    actions: ActionItem[]
+}
+
+export interface ActionDetailResponse {
+    count: number
+    action: ActionDetailItem | null
 }
 
 // ---------------------------------------------------------------------------
-// Connection CRUD
+// Connections
 // ---------------------------------------------------------------------------
 
-export interface ConnectionCreateRequest {
+export interface ConnectionItem {
+    id: string
     slug: string
     name?: string
     description?: string
-    mode: "oauth" | "api_key"
-    callback_url?: string
-    credentials?: Record<string, string>
+    provider_key: string
+    integration_key: string
+    flags?: {is_active?: boolean; is_valid?: boolean}
+    status?: Record<string, unknown>
+    data?: Record<string, unknown>
+    created_at?: string
+    updated_at?: string
+}
+
+export interface ConnectionCreateRequest {
+    connection: {
+        slug: string
+        name?: string
+        description?: string
+        provider_key: string
+        integration_key: string
+        data?: {
+            auth_scheme?: "oauth" | "api_key"
+            credentials?: Record<string, string>
+        }
+    }
 }
 
 export interface ConnectionResponse {
-    connection: ConnectionItem
-    redirect_url?: string
+    count: number
+    connection: ConnectionItem | null
 }
 
-export interface ConnectionsListResponse {
+export interface ConnectionsQueryResponse {
     count: number
     connections: ConnectionItem[]
 }
 
-export interface RefreshResponse {
-    connection: ConnectionItem
-    redirect_url?: string
+// ---------------------------------------------------------------------------
+// Tool execution
+// ---------------------------------------------------------------------------
+
+export interface ToolCallRequest {
+    id: string
+    name: string // slug: tools.{provider}.{integration}.{action}.{connection}
+    arguments: Record<string, unknown>
+}
+
+export interface ToolCallResult {
+    id: string
+    result?: Record<string, unknown>
+    status?: Record<string, unknown>
+}
+
+export interface ToolCallResponse {
+    call: ToolCallResult
 }

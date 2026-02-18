@@ -1,0 +1,188 @@
+import {useMemo} from "react"
+
+import {Editor} from "@agenta/ui/editor"
+import {CopySimple} from "@phosphor-icons/react"
+import {Alert, Button, Form, Input, InputNumber, message, Typography} from "antd"
+
+import type {ToolCallResult} from "@/oss/services/tools/api/types"
+
+import {
+    buildFormFieldsFromData,
+    buildFormFieldsFromSchema,
+    type FormFieldDescriptor,
+} from "../utils/schema"
+
+interface Props {
+    result: ToolCallResult | null
+    error?: string | null
+    outputSchema?: Record<string, unknown> | null
+    jsonMode?: boolean
+}
+
+export default function ResultViewer({result, error, outputSchema, jsonMode}: Props) {
+    if (error) {
+        return <Alert type="error" message="Execution Failed" description={error} showIcon />
+    }
+
+    if (!result) return null
+
+    const statusError = result.status?.error as string | undefined
+    if (statusError) {
+        return (
+            <Alert
+                type="error"
+                message="Tool returned an error"
+                description={statusError}
+                showIcon
+            />
+        )
+    }
+
+    // result.result contains the actual tool output data
+    // If result.result is missing, fall back to the result object itself
+    const data = (result.result ?? {}) as Record<string, unknown>
+
+    return <ResultDisplay data={data} outputSchema={outputSchema} jsonMode={jsonMode} />
+}
+
+// ---------------------------------------------------------------------------
+// ResultDisplay
+// ---------------------------------------------------------------------------
+
+function ResultDisplay({
+    data,
+    outputSchema,
+    jsonMode,
+}: {
+    data: Record<string, unknown>
+    outputSchema?: Record<string, unknown> | null
+    jsonMode?: boolean
+}) {
+    const jsonString = useMemo(() => JSON.stringify(data, null, 2), [data])
+    const dataKeys = useMemo(() => new Set(Object.keys(data)), [data])
+
+    const fields = useMemo(() => {
+        // Try schema-based fields first
+        const schemaFields = buildFormFieldsFromSchema(outputSchema)
+
+        if (schemaFields.length > 0) {
+            // Check if any schema field actually exists in the data.
+            // The backend unwraps the Composio execution envelope, so
+            // schemas.outputs (which describes data/error/successful) may
+            // not match the actual result keys.
+            const hasOverlap = schemaFields.some((f) => dataKeys.has(f.name))
+            if (hasOverlap) return schemaFields
+        }
+
+        // Fall back to auto-generating fields from actual data keys
+        if (dataKeys.size > 0) return buildFormFieldsFromData(data)
+        return schemaFields
+    }, [outputSchema, data, dataKeys])
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(jsonString)
+        message.success("Copied to clipboard")
+    }
+
+    if (jsonMode || fields.length === 0) {
+        return (
+            <div className="flex flex-col gap-1">
+                <div className="rounded-lg border border-solid border-[#d9d9d9] overflow-hidden relative">
+                    <Editor
+                        initialValue={jsonString}
+                        codeOnly
+                        showToolbar={false}
+                        language="json"
+                        disabled
+                        dimensions={{width: "100%", height: 280}}
+                    />
+                    <CopyButton onClick={handleCopy} />
+                </div>
+            </div>
+        )
+    }
+
+    return (
+        <div className="flex flex-col gap-1 relative">
+            <CopyButton onClick={handleCopy} className="static self-end" />
+            <Form
+                layout="vertical"
+                disabled
+                className="[&_.ant-form-item]:!mb-2 [&_.ant-input-disabled]:!text-[rgba(0,0,0,0.85)] [&_.ant-input-number-disabled_.ant-input-number-input]:!text-[rgba(0,0,0,0.85)]"
+            >
+                {fields.map((field) => (
+                    <OutputField key={field.name} field={field} data={data} />
+                ))}
+            </Form>
+        </div>
+    )
+}
+
+// ---------------------------------------------------------------------------
+// OutputField (read-only)
+// ---------------------------------------------------------------------------
+
+function OutputField({field, data}: {field: FormFieldDescriptor; data: Record<string, unknown>}) {
+    const value = getNestedValue(data, field.name)
+
+    const label = (
+        <div className="flex flex-col leading-tight">
+            <span>{field.label}</span>
+            {field.description && (
+                <Typography.Text type="secondary" className="!text-[11px] font-normal leading-snug">
+                    {field.description}
+                </Typography.Text>
+            )}
+        </div>
+    )
+
+    if (field.type === "object" || field.type === "array" || typeof value === "object") {
+        return (
+            <Form.Item label={label}>
+                <Input.TextArea
+                    rows={3}
+                    value={typeof value === "string" ? value : JSON.stringify(value, null, 2)}
+                    readOnly
+                    className="font-mono !text-xs"
+                />
+            </Form.Item>
+        )
+    }
+
+    if (field.type === "number") {
+        return (
+            <Form.Item label={label}>
+                <InputNumber className="w-full" value={value as number} readOnly />
+            </Form.Item>
+        )
+    }
+
+    return (
+        <Form.Item label={label}>
+            <Input value={String(value ?? "")} readOnly />
+        </Form.Item>
+    )
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function CopyButton({onClick, className}: {onClick: () => void; className?: string}) {
+    return (
+        <Button
+            type="text"
+            icon={<CopySimple size={14} />}
+            size="small"
+            onClick={onClick}
+            className={className ?? "absolute top-1 right-1 z-10 opacity-70 hover:opacity-100"}
+        />
+    )
+}
+
+function getNestedValue(data: Record<string, unknown>, path: string): unknown {
+    return path.split(".").reduce<unknown>((acc, key) => {
+        if (acc && typeof acc === "object") return (acc as Record<string, unknown>)[key]
+        return undefined
+    }, data)
+}

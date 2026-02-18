@@ -56,7 +56,7 @@ const SettingsSidebar: FC<SettingsSidebarProps> = ({lastPath}) => {
             },
             {
                 key: "secrets",
-                title: "Providers & Models",
+                title: "Models",
                 icon: <Sparkle size={16} className="mt-0.5" />,
             },
             {

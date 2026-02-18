@@ -3,10 +3,7 @@ import {useCallback, useState} from "react"
 import {EnhancedModal as Modal} from "@agenta/ui"
 import {Button, Form, Input, Select} from "antd"
 
-import {getAgentaApiUrl} from "@/oss/lib/helpers/api"
-import type {ConnectionCreateRequest} from "@/oss/services/tools/api/types"
-
-import {useToolsConnections} from "../hooks/useToolsConnections"
+import {useToolsConnections, type CreateConnectionInput} from "../hooks/useToolsConnections"
 
 interface Props {
     open: boolean
@@ -40,14 +37,12 @@ export default function ConnectModal({
     noAuth,
     onClose,
 }: Props) {
-    const {handleCreate} = useToolsConnections(integrationKey)
+    const {handleCreate, invalidate} = useToolsConnections(integrationKey)
     const [loading, setLoading] = useState(false)
     const [form] = Form.useForm()
 
     const availableModes = resolveAvailableModes(authSchemes, noAuth)
     const [selectedMode, setSelectedMode] = useState<AuthMode>(availableModes[0] || "oauth")
-
-    const callbackUrl = `${getAgentaApiUrl()}/preview/tools/callback`
 
     const handleClose = useCallback(() => {
         form.resetFields()
@@ -60,40 +55,38 @@ export default function ConnectModal({
             const values = await form.validateFields()
             setLoading(true)
 
-            const payload: ConnectionCreateRequest = {
+            const payload: CreateConnectionInput = {
                 slug: values.slug,
                 name: values.name || values.slug,
                 mode: selectedMode,
-                ...(selectedMode === "oauth" ? {callback_url: callbackUrl} : {}),
                 ...(selectedMode === "api_key" && values.api_key
                     ? {credentials: {api_key: values.api_key}}
                     : {}),
             }
 
             const result = await handleCreate(payload)
+            const redirectUrl =
+                typeof result.connection?.data?.redirect_url === "string"
+                    ? result.connection.data.redirect_url
+                    : undefined
 
-            if (result.redirect_url) {
+            if (redirectUrl) {
                 // OAuth: open popup window
                 const popup = window.open(
-                    result.redirect_url,
+                    redirectUrl,
                     "tools_oauth",
                     "width=600,height=700,popup=yes",
                 )
 
-                // Listen for postMessage from callback page
-                const handler = (event: MessageEvent) => {
-                    if (event.data?.type === "tools:oauth:complete") {
-                        window.removeEventListener("message", handler)
-                        handleClose()
-                    }
+                if (!popup) {
+                    setLoading(false)
+                    return
                 }
-                window.addEventListener("message", handler)
 
-                // Fallback: detect popup closed without postMessage
                 const pollTimer = setInterval(() => {
-                    if (popup && popup.closed) {
+                    if (popup.closed) {
                         clearInterval(pollTimer)
-                        window.removeEventListener("message", handler)
+                        invalidate()
                         handleClose()
                     }
                 }, 1000)
@@ -104,7 +97,7 @@ export default function ConnectModal({
         } catch {
             setLoading(false)
         }
-    }, [form, selectedMode, handleCreate, callbackUrl, handleClose])
+    }, [form, selectedMode, handleCreate, handleClose, invalidate])
 
     return (
         <Modal

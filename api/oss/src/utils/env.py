@@ -563,11 +563,6 @@ class ComposioConfig(BaseModel):
 
     api_key: str = os.getenv("COMPOSIO_API_KEY", "")
     api_url: str = os.getenv("COMPOSIO_API_URL", "https://backend.composio.dev/api/v3")
-    # Public-facing URL Composio redirects to after OAuth.
-    # Must be reachable from Composio's servers (use ngrok / tunnel in local dev).
-    # Falls back to AGENTA_API_URL-derived path when not set.
-    callback_url: str | None = os.getenv("COMPOSIO_CALLBACK_URL") or None
-
     @property
     def enabled(self) -> bool:
         return bool(self.api_key.strip())

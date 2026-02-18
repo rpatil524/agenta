@@ -67,6 +67,7 @@ async def list_integrations(
     api_key: str,
     api_url: str = "https://backend.composio.dev/api/v3",
     search: Optional[str] = None,
+    sort_by: Optional[str] = None,
     limit: Optional[int] = None,
     cursor: Optional[str] = None,
 ) -> Tuple[List[ToolCatalogIntegration], Optional[str], int]:
@@ -75,7 +76,8 @@ async def list_integrations(
     Args:
         api_key: Composio API key
         api_url: Composio API base URL
-        search: Optional search query (client-side filter)
+        search: Optional search query (sent as ``search=`` to Composio /toolkits)
+        sort_by: Optional sort — "usage" or "alphabetically"
         limit: Items per page (max 1000)
         cursor: Composio next_cursor from a previous response
 
@@ -86,6 +88,10 @@ async def list_integrations(
     page_limit = min(limit, MAX_PAGE_SIZE) if limit else DEFAULT_PAGE_SIZE
 
     params: Dict[str, Any] = {"limit": page_limit}
+    if search:
+        params["search"] = search
+    if sort_by:
+        params["sort_by"] = sort_by
     if cursor:
         params["cursor"] = cursor
 
@@ -118,19 +124,6 @@ async def list_integrations(
         else len(items_raw)
     )
 
-    # Client-side search filter (Composio /toolkits does not support server-side search)
-    if search:
-        search_lower = search.lower()
-        items_raw = [
-            item
-            for item in items_raw
-            if search_lower in item.get("name", "").lower()
-            or search_lower in (item.get("description") or "").lower()
-        ]
-        # Suppress cursor when search is applied — filtered results are complete
-        # for this page and following pages likely won't match the same term.
-        next_cursor = None
-
     items = [_parse_integration(item) for item in items_raw]
 
     log.debug(
@@ -154,7 +147,8 @@ async def list_actions(
     integration_key: str,
     api_key: str,
     api_url: str = "https://backend.composio.dev/api/v3",
-    search: Optional[str] = None,
+    query: Optional[str] = None,
+    tags: Optional[List[str]] = None,
     limit: Optional[int] = None,
     cursor: Optional[str] = None,
 ) -> Tuple[List[ToolCatalogAction], Optional[str], int]:
@@ -164,7 +158,8 @@ async def list_actions(
         integration_key: Integration slug (e.g. "gmail")
         api_key: Composio API key
         api_url: Composio API base URL
-        search: Optional search query (client-side filter)
+        query: Optional full-text search (sent as ``query=`` to Composio /tools)
+        tags: Optional category tags filter (sent as ``tags=`` to Composio /tools)
         limit: Items per page (max 1000)
         cursor: Composio next_cursor from a previous response
 
@@ -180,6 +175,10 @@ async def list_actions(
         "include_deprecated": False,
         "limit": page_limit,
     }
+    if query:
+        params["query"] = query
+    if tags:
+        params["tags"] = tags
     if cursor:
         params["cursor"] = cursor
 
@@ -214,17 +213,6 @@ async def list_actions(
 
     # Strip deprecated actions (belt-and-suspenders on top of the API param)
     items_raw = [item for item in items_raw if not item.get("is_deprecated")]
-
-    # Client-side search filter
-    if search:
-        search_lower = search.lower()
-        items_raw = [
-            item
-            for item in items_raw
-            if search_lower in item.get("name", "").lower()
-            or search_lower in (item.get("description") or "").lower()
-        ]
-        next_cursor = None
 
     items = [_parse_action(item, integration_key) for item in items_raw]
 

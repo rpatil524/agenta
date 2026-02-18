@@ -1,13 +1,22 @@
-import React, {useCallback, useMemo, useState} from "react"
+import React, {useCallback, useMemo, useRef, useState} from "react"
 
-import {MagnifyingGlass} from "@phosphor-icons/react"
-import {Button, Divider, Dropdown, Input, Typography} from "antd"
+import {CaretRight, MagnifyingGlass, Plus} from "@phosphor-icons/react"
+import {Button, Divider, Dropdown, Input, Spin, Tooltip, Typography} from "antd"
 import clsx from "clsx"
 import {useSetAtom} from "jotai"
 
 import LLMIconMap from "@/oss/components/LLMIcons"
 import {getPromptById, getLLMConfig} from "@/oss/components/Playground/context/promptShape"
 import {usePromptsSource} from "@/oss/components/Playground/context/PromptsSource"
+import {
+    catalogDrawerOpenAtom,
+    useCatalogActions,
+    useConnectionsQuery,
+    useIntegrationDetail,
+} from "@/oss/features/gateway-tools"
+import CatalogDrawer from "@/oss/features/gateway-tools/drawers/CatalogDrawer"
+import ToolExecutionDrawer from "@/oss/features/gateway-tools/drawers/ToolExecutionDrawer"
+import type {ConnectionItem} from "@/oss/services/tools/api/types"
 
 import AddButton from "../../../assets/AddButton"
 import {
@@ -33,14 +42,113 @@ const formatToolLabel = (toolCode: string) =>
         .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
         .join(" ")
 
+// Right panel: actions for a Composio integration (lazy-fetched)
+function ComposioActionsList({
+    integrationKey,
+    onSelectAction,
+}: {
+    integrationKey: string
+    connections: ConnectionItem[]
+    onSelectAction: (actionKey: string, actionName: string) => void
+}) {
+    const {actions, isLoading} = useCatalogActions(integrationKey)
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center py-4">
+                <Spin size="small" />
+            </div>
+        )
+    }
+
+    if (!actions.length) {
+        return <div className="py-3 px-2 text-[11px] text-[#7E8B99]">No actions found</div>
+    }
+
+    return (
+        <>
+            {actions.map((action) => (
+                <Button
+                    key={action.key}
+                    type="text"
+                    block
+                    className="!flex !h-[28px] !items-center !justify-start !text-left !py-[5px] !px-2 hover:!bg-[#F8FAFC]"
+                    onClick={() => onSelectAction(action.key, action.name)}
+                >
+                    <span className="text-[#0F172A] text-xs truncate">{action.name}</span>
+                </Button>
+            ))}
+        </>
+    )
+}
+
+// Left panel row for a Composio integration — fetches its own logo
+function IntegrationRow({
+    integrationKey,
+    count,
+    isHovered,
+    onHover,
+}: {
+    integrationKey: string
+    count: number
+    isHovered: boolean
+    onHover: () => void
+}) {
+    const {integration} = useIntegrationDetail(integrationKey)
+
+    return (
+        <Button
+            type="text"
+            block
+            onMouseEnter={onHover}
+            className={clsx(
+                "!flex !h-[28px] !items-center !gap-1.5 !py-[5px] !px-1.5 !text-left",
+                isHovered ? "!bg-[#EFF6FF]" : "hover:!bg-[#F8FAFC]",
+            )}
+        >
+            {integration?.logo ? (
+                <img
+                    src={integration.logo}
+                    alt={integrationKey}
+                    className="h-4 w-4 rounded object-contain shrink-0"
+                />
+            ) : (
+                <span className="h-4 w-4 rounded bg-[#F1F5F9] shrink-0" />
+            )}
+            <Typography.Text className="flex-1 text-[#0F172A] text-xs capitalize truncate">
+                {integrationKey.replace(/_/g, " ")}
+            </Typography.Text>
+            <span className="text-[#94A3B8] text-[10px] shrink-0">{count}</span>
+            <CaretRight size={10} className="text-[#CBD5E1] shrink-0" />
+        </Button>
+    )
+}
+
 const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnly}) => {
     const addNewMessage = useSetAtom(addPromptMessageMutationAtomFamily(compoundKey))
     const addNewTool = useSetAtom(addPromptToolMutationAtomFamily(compoundKey))
     const [isDropdownOpen, setIsDropdownOpen] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
+    const [hoveredKey, setHoveredKey] = useState<string | null>(null)
+    const [leftPanelHeight, setLeftPanelHeight] = useState<number | undefined>(undefined)
+    const leftPanelRef = useRef<HTMLDivElement>(null)
+
+    const handleRowHover = useCallback((key: string) => {
+        if (leftPanelRef.current) {
+            setLeftPanelHeight(leftPanelRef.current.offsetHeight)
+        }
+        setHoveredKey(key)
+    }, [])
     // promptId may contain colons (e.g. "prompt:prompt1"), so split only on the first ":"
     const promptId = compoundKey.substring(compoundKey.indexOf(":") + 1)
     const prompts = usePromptsSource(variantId)
+
+    const setCatalogOpen = useSetAtom(catalogDrawerOpenAtom)
+    const {
+        connections,
+        isLoading: connectionsLoading,
+        refetch: refetchConnections,
+    } = useConnectionsQuery()
 
     const responseFormatInfo = useMemo(() => {
         const item = getPromptById(prompts, promptId)
@@ -68,34 +176,57 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
             const providerMatches =
                 normalizedTerm && meta.label.toLowerCase().includes(normalizedTerm)
 
-            const toolEntries = Object.entries(tools).map(([toolCode, toolSpec]) => {
-                return {
-                    code: toolCode,
-                    label: formatToolLabel(toolCode),
-                    payload: Array.isArray(toolSpec) ? toolSpec[0] : toolSpec,
-                }
-            })
+            const toolEntries = Object.entries(tools).map(([toolCode, toolSpec]) => ({
+                code: toolCode,
+                label: formatToolLabel(toolCode),
+                payload: Array.isArray(toolSpec) ? toolSpec[0] : toolSpec,
+            }))
 
             const matchingTools = toolEntries.filter((tool) => {
                 if (!normalizedTerm) return true
-                const toolMatches =
+                return (
+                    providerMatches ||
                     tool.label.toLowerCase().includes(normalizedTerm) ||
                     tool.code.toLowerCase().includes(normalizedTerm)
-                return providerMatches || toolMatches
+                )
             })
 
             if (matchingTools.length) {
-                groups.push({
-                    key: providerKey,
-                    label: meta.label,
-                    Icon,
-                    tools: matchingTools,
-                })
+                groups.push({key: providerKey, label: meta.label, Icon, tools: matchingTools})
             }
 
             return groups
         }, [])
     }, [searchTerm])
+
+    // Group connections by integration, filtered by search term
+    const groupedConnections = useMemo(() => {
+        const normalizedTerm = searchTerm.trim().toLowerCase()
+        const map: Record<string, ConnectionItem[]> = {}
+        for (const conn of connections) {
+            const key = conn.integration_key
+            if (
+                normalizedTerm &&
+                !key.toLowerCase().includes(normalizedTerm) &&
+                !(conn.name || conn.slug).toLowerCase().includes(normalizedTerm)
+            ) {
+                continue
+            }
+            if (!map[key]) map[key] = []
+            map[key].push(conn)
+        }
+        return map
+    }, [connections, searchTerm])
+
+    const integrationKeys = Object.keys(groupedConnections)
+    const hasBuiltin = filteredToolGroups.length > 0
+    const hasComposio = connectionsLoading || integrationKeys.length > 0
+
+    const closeDropdown = useCallback(() => {
+        setIsDropdownOpen(false)
+        setSearchTerm("")
+        setHoveredKey(null)
+    }, [])
 
     const handleAddTool = useCallback(
         (params?: {
@@ -107,82 +238,195 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
             toolLabel?: string
         }) => {
             addNewTool(params)
-            setIsDropdownOpen(false)
-            setSearchTerm("")
+            closeDropdown()
         },
-        [addNewTool],
+        [addNewTool, closeDropdown],
     )
 
+    const handleComposioActionAdd = useCallback(
+        (integrationKey: string, actionKey: string, actionName: string) => {
+            addNewTool({
+                source: "builtin",
+                providerKey: `composio.${integrationKey}`,
+                providerLabel: "Composio",
+                toolCode: actionKey,
+                toolLabel: actionName,
+            })
+            closeDropdown()
+        },
+        [addNewTool, closeDropdown],
+    )
+
+    // Derive right-panel content from hoveredKey
+    const hoveredBuiltinGroup = hoveredKey?.startsWith("builtin:")
+        ? filteredToolGroups.find((g) => g.key === hoveredKey.slice("builtin:".length))
+        : null
+    const hoveredIntegrationKey = hoveredKey?.startsWith("composio:")
+        ? hoveredKey.slice("composio:".length)
+        : null
+    const showRightPanel = !!(hoveredBuiltinGroup || hoveredIntegrationKey)
+
     const dropdownContent = (
-        <div className={clsx("w-[280px] bg-white rounded-lg shadow-lg", "flex flex-col")}>
-            <div className="flex items-center gap-2 p-2">
-                <Input
-                    allowClear
-                    autoFocus
-                    variant="borderless"
-                    placeholder="Search"
-                    value={searchTerm}
-                    onChange={(event) => setSearchTerm(event.target.value)}
-                    prefix={<MagnifyingGlass size={16} className="text-[#98A2B3]" />}
-                    className="flex-1 !shadow-none !outline-none !border-none focus:!shadow-none focus:!outline-none focus:!border-none"
-                />
-                <Button
-                    type="primary"
-                    size="small"
-                    className="shrink-0"
-                    onClick={() => handleAddTool({source: "inline"})}
-                >
-                    + Create in-line
-                </Button>
-            </div>
+        <div
+            className="flex items-start bg-white rounded-lg shadow-lg overflow-hidden"
+            onMouseLeave={() => setHoveredKey(null)}
+        >
+            {/* Left panel */}
+            <div ref={leftPanelRef} className="w-[220px] flex flex-col shrink-0">
+                <div className="flex items-center gap-2 p-2">
+                    <Input
+                        allowClear
+                        autoFocus
+                        variant="borderless"
+                        placeholder="Search"
+                        value={searchTerm}
+                        onChange={(event) => {
+                            setSearchTerm(event.target.value)
+                            setHoveredKey(null)
+                        }}
+                        prefix={<MagnifyingGlass size={16} className="text-[#98A2B3]" />}
+                        className="flex-1 !shadow-none !outline-none !border-none focus:!shadow-none focus:!outline-none focus:!border-none"
+                    />
+                    <Button
+                        type="primary"
+                        size="small"
+                        className="shrink-0"
+                        onClick={() => handleAddTool({source: "inline"})}
+                    >
+                        + Create in-line
+                    </Button>
+                </div>
 
-            <Divider className="m-0" orientation="horizontal" />
+                <Divider className="m-0" orientation="horizontal" />
 
-            <div className="max-h-64 overflow-y-auto flex flex-col p-1">
-                {filteredToolGroups.length > 0 ? (
-                    filteredToolGroups.map(({key, label, Icon, tools}) => (
-                        <div key={key} className="flex flex-col">
-                            <div className="flex items-center py-[5px] px-1.5 h-[28px]">
-                                {Icon && (
-                                    <span className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full bg-[#F8FAFC]">
-                                        <Icon className="h-4 w-4 text-[#758391]" />
-                                    </span>
-                                )}
-                                <Typography.Text className="text-[#758391]">
-                                    {label}
-                                </Typography.Text>
-                            </div>
-                            <div className="flex flex-col">
-                                {tools.map(({code, label: toolLabel, payload}) => (
-                                    <Button
-                                        key={code}
-                                        type="text"
-                                        block
-                                        className="flex h-[28px] items-center gap-2 justify-start text-left py-[5px] px-1.5 hover:!bg-[#F8FAFC]"
-                                        onClick={() =>
-                                            handleAddTool({
-                                                payload,
-                                                source: "builtin",
-                                                providerKey: key,
-                                                providerLabel: label,
-                                                toolCode: code,
-                                                toolLabel,
-                                            })
-                                        }
-                                    >
-                                        <span className="text-[#94A3B8]">•</span>
-                                        <span className="text-[#0F172A]">{toolLabel}</span>
-                                    </Button>
-                                ))}
-                            </div>
+                <div className="max-h-80 overflow-y-auto flex flex-col p-1">
+                    {/* Builtin section */}
+                    {hasBuiltin && (
+                        <div className="flex flex-col">
+                            <Typography.Text className="text-[#758391] text-xs py-[5px] px-1.5 font-medium">
+                                Builtin
+                            </Typography.Text>
+                            {filteredToolGroups.map(({key, label, Icon}) => (
+                                <Button
+                                    key={key}
+                                    type="text"
+                                    block
+                                    onMouseEnter={() => handleRowHover(`builtin:${key}`)}
+                                    className={clsx(
+                                        "!flex !h-[28px] !items-center !gap-1.5 !py-[5px] !px-1.5 !text-left",
+                                        hoveredKey === `builtin:${key}`
+                                            ? "!bg-[#EFF6FF]"
+                                            : "hover:!bg-[#F8FAFC]",
+                                    )}
+                                >
+                                    {Icon ? (
+                                        <span className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-[#F8FAFC] shrink-0">
+                                            <Icon className="h-3.5 w-3.5 text-[#758391]" />
+                                        </span>
+                                    ) : (
+                                        <span className="h-5 w-5 shrink-0" />
+                                    )}
+                                    <Typography.Text className="flex-1 text-[#0F172A] text-xs">
+                                        {label}
+                                    </Typography.Text>
+                                    <CaretRight size={10} className="text-[#CBD5E1] shrink-0" />
+                                </Button>
+                            ))}
                         </div>
-                    ))
-                ) : (
-                    <div className="py-8 text-center text-[12px] leading-5 text-[#7E8B99]">
-                        No tools found
-                    </div>
-                )}
+                    )}
+
+                    {/* Composio section */}
+                    {hasComposio && (
+                        <>
+                            {hasBuiltin && <Divider className="my-1" orientation="horizontal" />}
+                            <div className="flex items-center justify-between py-[5px] px-1.5">
+                                <Typography.Text className="text-[#758391] text-xs font-medium">
+                                    Composio
+                                </Typography.Text>
+                                <Tooltip title="Add integration">
+                                    <Button
+                                        type="text"
+                                        size="small"
+                                        icon={<Plus size={12} />}
+                                        className="h-5 w-5 flex items-center justify-center p-0 text-[#758391]"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            setIsDropdownOpen(false)
+                                            setCatalogOpen(true)
+                                        }}
+                                    />
+                                </Tooltip>
+                            </div>
+                            {connectionsLoading ? (
+                                <div className="flex justify-center py-2">
+                                    <Spin size="small" />
+                                </div>
+                            ) : (
+                                integrationKeys.map((key) => (
+                                    <IntegrationRow
+                                        key={key}
+                                        integrationKey={key}
+                                        count={groupedConnections[key].length}
+                                        isHovered={hoveredKey === `composio:${key}`}
+                                        onHover={() => handleRowHover(`composio:${key}`)}
+                                    />
+                                ))
+                            )}
+                        </>
+                    )}
+
+                    {/* Empty state */}
+                    {!hasBuiltin && !hasComposio && (
+                        <div className="py-8 text-center text-[12px] leading-5 text-[#7E8B99]">
+                            No tools found
+                        </div>
+                    )}
+                </div>
             </div>
+
+            {/* Right panel: actions on hover — height locked to left panel */}
+            {showRightPanel && (
+                <div
+                    className="w-[220px] overflow-y-auto flex flex-col p-1 shrink-0 border-l border-[#F0F0F0]"
+                    style={leftPanelHeight ? {height: leftPanelHeight} : undefined}
+                >
+                    {hoveredBuiltinGroup &&
+                        hoveredBuiltinGroup.tools.map(({code, label: toolLabel, payload}) => (
+                            <Button
+                                key={code}
+                                type="text"
+                                block
+                                className="!flex !h-[28px] !items-center !justify-start !text-left !py-[5px] !px-2 hover:!bg-[#F8FAFC]"
+                                onClick={() =>
+                                    handleAddTool({
+                                        payload,
+                                        source: "builtin",
+                                        providerKey: hoveredBuiltinGroup.key,
+                                        providerLabel: hoveredBuiltinGroup.label,
+                                        toolCode: code,
+                                        toolLabel,
+                                    })
+                                }
+                            >
+                                <span className="text-[#0F172A] text-xs">{toolLabel}</span>
+                            </Button>
+                        ))}
+
+                    {hoveredIntegrationKey && (
+                        <ComposioActionsList
+                            integrationKey={hoveredIntegrationKey}
+                            connections={groupedConnections[hoveredIntegrationKey] || []}
+                            onSelectAction={(actionKey, actionName) =>
+                                handleComposioActionAdd(
+                                    hoveredIntegrationKey,
+                                    actionKey,
+                                    actionName,
+                                )
+                            }
+                        />
+                    )}
+                </div>
+            )}
         </div>
     )
 
@@ -202,7 +446,13 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
                     />
                     <Dropdown
                         open={isDropdownOpen}
-                        onOpenChange={setIsDropdownOpen}
+                        onOpenChange={(open) => {
+                            setIsDropdownOpen(open)
+                            if (!open) {
+                                setSearchTerm("")
+                                setHoveredKey(null)
+                            }
+                        }}
                         trigger={["click"]}
                         menu={{items: []}}
                         popupRender={() => dropdownContent}
@@ -240,6 +490,9 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
                 )}
             </div>
             <TemplateFormatSelector variantId={variantId} disabled={viewOnly} />
+
+            <CatalogDrawer onConnectionCreated={refetchConnections} />
+            <ToolExecutionDrawer />
         </div>
     )
 }
