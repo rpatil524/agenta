@@ -127,13 +127,13 @@ export function DrillInContent({
     excludeKeys,
 }: DrillInContentProps) {
     // Parse initialPath to array format, removing rootTitle prefix if present
-    const parsedInitialPath = (() => {
+    const parsedInitialPath = useMemo(() => {
         if (!initialPath) return []
         const pathArray = typeof initialPath === "string" ? initialPath.split(".") : initialPath
         // Remove the rootTitle prefix if present
         const startIndex = pathArray[0] === rootTitle ? 1 : 0
         return pathArray.slice(startIndex)
-    })()
+    }, [initialPath, rootTitle])
 
     const [currentPath, setCurrentPath] = useState<string[]>(parsedInitialPath)
     const [collapsedFields, setCollapsedFields] = useState<Record<string, boolean>>({})

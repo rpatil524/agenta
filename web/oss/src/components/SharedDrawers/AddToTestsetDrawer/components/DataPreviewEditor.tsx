@@ -71,8 +71,11 @@ export function DataPreviewEditor({
         [setRowDataPreview, setUpdatedTraceData],
     )
 
-    // We know traceSpan entity has drillIn configured
-    const entityWithDrillIn = traceSpan as any
+    // Type assertion needed because traceSpan.drillIn is optional in the general type,
+    // but we know it's configured for the trace entity.
+    const entityWithDrillIn = traceSpan as typeof traceSpan & {
+        drillIn: NonNullable<typeof traceSpan.drillIn>
+    }
 
     return (
         <div className="flex flex-col gap-1">
