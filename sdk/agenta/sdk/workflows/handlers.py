@@ -15,7 +15,7 @@ import httpx
 from pydantic import BaseModel, Field
 
 from agenta.sdk.utils.logging import get_module_logger
-from agenta.sdk.utils.helpers import apply_replacements_with_tracking
+from agenta.sdk.utils.helpers import apply_replacements_with_tracking, _PLACEHOLDER_RE
 from agenta.sdk.utils.lazy import (
     _load_jinja2,
     _load_jsonpath,
@@ -208,8 +208,6 @@ def resolve_any(expr: str, data: Dict[str, Any]) -> Any:
 
 # ========= Placeholder & coercion helpers =========
 
-_PLACEHOLDER_RE = re.compile(r"\{\{\s*(.*?)\s*\}\}")
-
 
 def extract_placeholders(template: str) -> Iterable[str]:
     """Yield the inner text of all {{ ... }} occurrences (trimmed)."""
@@ -241,23 +239,6 @@ def build_replacements(
         except Exception:
             unresolved.add(expr)
     return replacements, unresolved
-
-
-def apply_replacements(template: str, replacements: Dict[str, str]) -> str:
-    """Replace {{ expr }} using a callback to avoid regex-injection issues."""
-
-    def _repl(m: re.Match) -> str:
-        expr = m.group(1).strip()
-        return replacements.get(expr, m.group(0))
-
-    return _PLACEHOLDER_RE.sub(_repl, template)
-
-
-def compute_truly_unreplaced(original: set, rendered: str) -> set:
-    """Only count placeholders that were in the original template and remain."""
-    now = set(extract_placeholders(rendered))
-    return original & now
-
 
 def missing_lib_hints(unreplaced: set) -> Optional[str]:
     """Suggest installing python-jsonpath if placeholders indicate json-path or json-pointer usage."""
