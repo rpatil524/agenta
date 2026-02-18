@@ -1945,7 +1945,7 @@ def _apply_responses_bridge_if_needed(
     return provider_settings
 
 
-@instrument()
+@instrument(ignore_inputs=["parameters"])
 async def completion_v0(
     parameters: Data,
     inputs: Dict[str, str],
@@ -2009,7 +2009,7 @@ async def completion_v0(
         return [tool_call.dict() for tool_call in message.tool_calls]
 
 
-@instrument()
+@instrument(ignore_inputs=["parameters"])
 async def chat_v0(
     parameters: Data,
     inputs: Optional[Dict[str, str]] = None,
@@ -2064,7 +2064,7 @@ async def chat_v0(
     return response.choices[0].message.model_dump(exclude_none=True)  # type: ignore
 
 
-@instrument()
+@instrument(ignore_inputs=["parameters"])
 async def hook_v0(
     parameters: Optional[Data] = None,
     inputs: Optional[Data] = None,
