@@ -85,7 +85,7 @@ check_with_repair() {
     if repair_path "$path"; then
         printf "Retesting after repair: %s\n" "$path"
         check_endpoint "$path"
-        return 0
+        return $?
     fi
 
     return 1

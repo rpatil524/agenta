@@ -3,6 +3,13 @@ name: "06 - railway preview: build images"
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+    paths:
+      - 'api/**'
+      - 'web/**'
+      - 'services/**'
+      - 'hosting/railway/**'
+      - '.github/workflows/06-railway-preview-build.yml'
+      - '.github/workflows/07-railway-preview-deploy.yml'
   workflow_dispatch:
     inputs:
       pr_number:

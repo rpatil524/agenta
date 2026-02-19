@@ -38,6 +38,15 @@ This folder contains a CLI-first bootstrap path to deploy Agenta OSS on Railway 
 3. Valid `RAILWAY_API_TOKEN` in your shell (account token from https://railway.com/account/tokens)
 4. For Railway UI template export, set a gateway image (`AGENTA_GATEWAY_IMAGE`) so gateway has source metadata
 
+## Security Note
+
+The scripts use placeholder defaults for `AGENTA_AUTH_KEY` and `AGENTA_CRYPT_KEY` (all-zeros and all-ones). This is fine for ephemeral preview environments. For persistent deployments, set unique values:
+
+```bash
+export AGENTA_AUTH_KEY="$(openssl rand -hex 32)"
+export AGENTA_CRYPT_KEY="$(openssl rand -hex 32)"
+```
+
 ## Quick Start
 
 ```bash

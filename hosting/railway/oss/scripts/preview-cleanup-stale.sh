@@ -32,8 +32,6 @@ MAX_AGE_SECONDS=$((MAX_AGE_HOURS * 3600))
 DELETED=0
 SKIPPED=0
 
-railway project list --json | jq -c --arg prefix "$PREVIEW_PROJECT_PREFIX" \
-    '.[] | select(.name | startswith($prefix)) | {name: .name, createdAt: .createdAt}' |
 while IFS= read -r project; do
     name="$(printf "%s" "$project" | jq -r '.name')"
     created_at="$(printf "%s" "$project" | jq -r '.createdAt')"
@@ -64,6 +62,7 @@ while IFS= read -r project; do
         printf "KEEP: '%s' (age: %dh, max: %dh)\n" "$name" "$age_hours" "$MAX_AGE_HOURS"
         SKIPPED=$((SKIPPED + 1))
     fi
-done
+done < <(railway project list --json | jq -c --arg prefix "$PREVIEW_PROJECT_PREFIX" \
+    '.[] | select(.name | startswith($prefix)) | {name: .name, createdAt: .createdAt}')
 
 printf "Cleanup complete. Deleted: %d, Skipped: %d (prefix: %s, max age: %dh)\n" "$DELETED" "$SKIPPED" "$PREVIEW_PROJECT_PREFIX" "$MAX_AGE_HOURS"
