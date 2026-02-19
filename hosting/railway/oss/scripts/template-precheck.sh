@@ -5,9 +5,9 @@ set -euo pipefail
 PROJECT_NAME="${RAILWAY_PROJECT_NAME:-agenta-oss-railway}"
 ENV_NAME="${RAILWAY_ENVIRONMENT_NAME:-production}"
 
-if [ -z "${RAILWAY_TOKEN:-}" ]; then
+if [ -z "${RAILWAY_API_TOKEN:-}" ] && [ -z "${RAILWAY_TOKEN:-}" ]; then
     railway whoami >/dev/null 2>&1 || {
-        printf "Railway authentication is required. Set RAILWAY_TOKEN or run railway login.\n" >&2
+        printf "Railway authentication is required. Set RAILWAY_API_TOKEN or run railway login.\n" >&2
         exit 1
     }
 fi

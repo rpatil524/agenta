@@ -8,9 +8,9 @@ MAX_RETRIES="${SMOKE_MAX_RETRIES:-10}"
 SLEEP_SECONDS="${SMOKE_SLEEP_SECONDS:-5}"
 AUTO_REPAIR="${SMOKE_AUTO_REPAIR:-false}"
 
-if [ -z "${RAILWAY_TOKEN:-}" ]; then
+if [ -z "${RAILWAY_API_TOKEN:-}" ] && [ -z "${RAILWAY_TOKEN:-}" ]; then
     railway whoami >/dev/null 2>&1 || {
-        printf "Railway authentication is required. Set RAILWAY_TOKEN or run railway login.\n" >&2
+        printf "Railway authentication is required. Set RAILWAY_API_TOKEN or run railway login.\n" >&2
         exit 1
     }
 fi

@@ -35,13 +35,13 @@ This folder contains a CLI-first bootstrap path to deploy Agenta OSS on Railway 
 
 1. Railway CLI installed (`railway --version`)
 2. `jq` installed
-3. Valid `RAILWAY_TOKEN` in your shell
+3. Valid `RAILWAY_API_TOKEN` in your shell (account token from https://railway.com/account/tokens)
 4. For Railway UI template export, set a gateway image (`AGENTA_GATEWAY_IMAGE`) so gateway has source metadata
 
 ## Quick Start
 
 ```bash
-export RAILWAY_TOKEN="<token>"
+export RAILWAY_API_TOKEN="<token>"
 export RAILWAY_PROJECT_NAME="agenta-oss-railway"
 export RAILWAY_ENVIRONMENT_NAME="staging"
 # Optional but recommended for template export support:

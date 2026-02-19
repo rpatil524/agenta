@@ -31,7 +31,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+  RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
 jobs:
   deploy:

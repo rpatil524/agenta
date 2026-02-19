@@ -7,9 +7,9 @@ ENV_NAME="${RAILWAY_ENVIRONMENT_NAME:-production}"
 RUN_DB_INIT="${UPGRADE_RUN_DB_INIT:-true}"
 RUN_GATEWAY_RETRY="${UPGRADE_GATEWAY_RETRY_ON_FAIL:-true}"
 
-if [ -z "${RAILWAY_TOKEN:-}" ]; then
+if [ -z "${RAILWAY_API_TOKEN:-}" ] && [ -z "${RAILWAY_TOKEN:-}" ]; then
     railway whoami >/dev/null 2>&1 || {
-        printf "Railway authentication is required. Set RAILWAY_TOKEN or run railway login.\n" >&2
+        printf "Railway authentication is required. Set RAILWAY_API_TOKEN or run railway login.\n" >&2
         exit 1
     }
 fi
