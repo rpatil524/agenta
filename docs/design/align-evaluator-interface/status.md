@@ -19,14 +19,13 @@
 - [x] Created QA protocol
 
 #### Phase 1: SDK — Handler + Sandbox + Templates
-- [x] `auto_custom_code_run_v0`: Added `trace` param, version branching (v1/v2), arity-based inference
+- [x] `auto_custom_code_run_v0`: Added `trace` param and explicit version branching (v1/v2)
 - [x] `auto_ai_critique_v0`: Added `trace` param, `trace` injected into template context
 - [x] `sandbox.py`: Added `version` and `trace` pass-through params
 - [x] `runners/base.py`: Updated interface with `version` and `trace` kwargs
-- [x] `runners/local.py`: Arity-based inference (inspect.signature) for robust v1/v2 dispatch
+- [x] `runners/local.py`: Version-based v1/v2 dispatch
 - [x] `runners/daytona.py`: Version-branched params dict shape
 - [x] `templates.py`: Added `"v1"` templates (python/js/ts) alongside existing `"v0"`
-- [x] `handlers.py`: Added `_infer_custom_code_evaluate_arity()` for python/js/ts, `_resolve_custom_code_interface_version()`, `_count_js_like_params()`
 - [x] `handlers.py`: `ErrorStatus` exceptions preserved (not wrapped in `CustomCodeServerV0Error`)
 
 #### Phase 2: API — Evaluator Definitions + Presets
@@ -52,7 +51,7 @@
 - **Sandbox**: Pass params dict, version determines shape
 - **`correct_answer_key`**: Hidden in UI for v2; stripped from submit payload; not required by v2 handler
 - **No assembly changes**: `WorkflowServiceRequestData` stays as-is
-- **Arity inference**: LocalRunner uses `inspect.signature` to auto-detect v1 vs v2 even if version param is wrong
+- **Version source of truth**: Runtime dispatch follows explicit `parameters.version` (`"1"`/`"2"`)
 - **LLM-as-a-judge trace**: `trace` added to template context, works in playground; evaluation-run support needs trace assembly verification
 
 ### Known Issues / Follow-ups

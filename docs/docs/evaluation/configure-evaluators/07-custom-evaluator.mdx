@@ -32,7 +32,6 @@ def evaluate(
 The function should return one of:
 
 - **`float`** (0.0 to 1.0) — a score where 0.0 is worst and 1.0 is best
-- **`dict`** with `score` and optionally `success` — e.g. `{"score": 0.8, "success": True}`
 - **`bool`** — `True` maps to 1.0, `False` to 0.0
 
 ## Examples
@@ -103,23 +102,6 @@ def evaluate(
     elif total_tokens <= max_tokens * 1.5:
         return 0.5
     return 0.0
-```
-
-### Returning a dict
-
-```python
-from typing import Dict, Any
-
-def evaluate(
-    inputs: Dict[str, Any],
-    outputs: Any,
-    trace: Dict[str, Any],
-) -> dict:
-    is_correct = outputs == inputs.get("correct_answer")
-    return {
-        "score": 1.0 if is_correct else 0.0,
-        "success": is_correct,
-    }
 ```
 
 ## Accessing ground truth
@@ -197,12 +179,14 @@ function evaluate(
 
 ## Legacy interface (v1)
 
+:::info
 Existing evaluators created before this update use the legacy 4-parameter interface:
 
 ```python
 def evaluate(app_params, inputs, output, correct_answer) -> float:
 ```
 
-These continue to work unchanged. The system automatically detects which interface your code uses based on the number of parameters in your `evaluate` function.
+These continue to work unchanged.
 
 If you want to migrate an existing evaluator to the new interface, update the function signature to `(inputs, outputs, trace)` and access ground truth directly from `inputs` instead of the `correct_answer` parameter.
+:::

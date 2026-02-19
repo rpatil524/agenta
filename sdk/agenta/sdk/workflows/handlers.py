@@ -1,4 +1,3 @@
-import ast
 import json
 import math
 import os
@@ -58,132 +57,6 @@ _WEBHOOK_RESPONSE_MAX_BYTES = 1 * 1024 * 1024.0  # 1 MB
 _WEBHOOK_ALLOW_INSECURE = (
     os.getenv("AGENTA_WEBHOOK_ALLOW_INSECURE") or "true"
 ).lower() in {"true", "1", "t", "y", "yes", "on", "enable", "enabled"}
-
-
-def _count_js_like_params(params_source: str) -> Optional[int]:
-    token = []
-    parts: List[str] = []
-    depth_paren = 0
-    depth_brack = 0
-    depth_brace = 0
-    depth_angle = 0
-    quote: Optional[str] = None
-    escaped = False
-
-    for ch in params_source:
-        if quote is not None:
-            token.append(ch)
-            if escaped:
-                escaped = False
-                continue
-            if ch == "\\":
-                escaped = True
-                continue
-            if ch == quote:
-                quote = None
-            continue
-
-        if ch in {'"', "'", "`"}:
-            quote = ch
-            token.append(ch)
-            continue
-
-        if ch == "(":
-            depth_paren += 1
-        elif ch == ")":
-            depth_paren = max(depth_paren - 1, 0)
-        elif ch == "[":
-            depth_brack += 1
-        elif ch == "]":
-            depth_brack = max(depth_brack - 1, 0)
-        elif ch == "{":
-            depth_brace += 1
-        elif ch == "}":
-            depth_brace = max(depth_brace - 1, 0)
-        elif ch == "<":
-            depth_angle += 1
-        elif ch == ">":
-            depth_angle = max(depth_angle - 1, 0)
-
-        if (
-            ch == ","
-            and depth_paren == 0
-            and depth_brack == 0
-            and depth_brace == 0
-            and depth_angle == 0
-        ):
-            parts.append("".join(token).strip())
-            token = []
-            continue
-
-        token.append(ch)
-
-    if token:
-        parts.append("".join(token).strip())
-
-    if not parts:
-        return 0
-
-    filtered = [part for part in parts if part]
-    return len(filtered)
-
-
-def _infer_custom_code_evaluate_arity(*, code: str, runtime: str) -> Optional[int]:
-    if runtime == "python":
-        try:
-            tree = ast.parse(code)
-        except Exception:
-            return None
-
-        for node in ast.walk(tree):
-            if (
-                isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-                and node.name == "evaluate"
-            ):
-                if node.args.vararg is not None:
-                    return None
-
-                positional = len(node.args.posonlyargs) + len(node.args.args)
-                return positional
-
-        return None
-
-    # javascript / typescript
-    patterns = [
-        r"(?:async\s+)?function\s+evaluate\s*\((.*?)\)",
-        r"(?:const|let|var)\s+evaluate\s*=\s*(?:async\s*)?\((.*?)\)\s*=>",
-    ]
-
-    for pattern in patterns:
-        match = re.search(pattern, code, flags=re.DOTALL)
-        if not match:
-            continue
-
-        arity = _count_js_like_params(match.group(1))
-        if arity is not None:
-            return arity
-
-    return None
-
-
-def _resolve_custom_code_interface_version(
-    *,
-    declared_version: Optional[str],
-    code: str,
-    runtime: str,
-) -> str:
-    inferred_arity = _infer_custom_code_evaluate_arity(code=code, runtime=runtime)
-
-    if inferred_arity == 3:
-        return "2"
-
-    if inferred_arity == 4:
-        return "1"
-
-    if declared_version in {"1", "2"}:
-        return declared_version
-
-    return "1"
 
 
 def _is_blocked_ip(ip: ipaddress._BaseAddress) -> bool:
@@ -1041,11 +914,7 @@ async def auto_custom_code_run_v0(
             got=runtime,
         )
 
-    effective_version = _resolve_custom_code_interface_version(
-        declared_version=declared_version,
-        code=code,
-        runtime=runtime,
-    )
+    effective_version = declared_version if declared_version in {"1", "2"} else "1"
 
     def _run_v2() -> Any:
         try:

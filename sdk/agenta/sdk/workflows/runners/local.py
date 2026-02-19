@@ -1,4 +1,3 @@
-import inspect
 from typing import Any, Dict, Union, Optional
 
 from agenta.sdk.workflows.runners.base import CodeRunner
@@ -55,42 +54,10 @@ class LocalRunner(CodeRunner):
 
             fn = environment["evaluate"]
 
-            # If possible, infer which interface the user code expects.
-            # This makes local execution robust even when the caller passes the
-            # wrong version (e.g., older evaluators opened in a UI that injects
-            # a new default hidden version).
-            try:
-                sig = inspect.signature(fn)
-                params = list(sig.parameters.values())
-                has_varargs = any(
-                    p.kind == inspect.Parameter.VAR_POSITIONAL for p in params
-                )
-                positional = [
-                    p
-                    for p in params
-                    if p.kind
-                    in (
-                        inspect.Parameter.POSITIONAL_ONLY,
-                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                    )
-                ]
-                arity = len(positional)
-            except Exception:
-                sig = None
-                has_varargs = True
-                arity = -1
-
-            # Call the evaluation function based on inferred arity first.
-            # If we can't infer (varargs), fall back to version.
-            if not has_varargs and arity == 3:
+            if version == "2":
                 result = fn(inputs, output, trace)
-            elif not has_varargs and arity == 4:
-                result = fn(app_params, inputs, output, correct_answer)
             else:
-                if version == "2":
-                    result = fn(inputs, output, trace)
-                else:
-                    result = fn(app_params, inputs, output, correct_answer)
+                result = fn(app_params, inputs, output, correct_answer)
 
             # Attempt to convert result to float
             if isinstance(result, (float, int, str)):

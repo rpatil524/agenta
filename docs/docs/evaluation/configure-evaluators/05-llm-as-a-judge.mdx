@@ -23,9 +23,18 @@ Use double curly braces `{{ }}` to reference variables in your prompt:
 | `{{inputs}}` | All inputs formatted as key-value pairs |
 | `{{outputs}}` | The application's output |
 | `{{reference}}` | The reference/ground truth answer from the testset. Configure the column name under Advanced Settings. |
-| `{{correct_answer}}` | Alias for `{{reference}}` (backward compatibility) |
-| `{{prediction}}` | Alias for `{{outputs}}` (backward compatibility) |
-| `{{trace}}` | The full execution trace (spans, latency, tokens, costs). Available in the evaluator playground. |
+| `{{trace}}` | The full execution trace (spans, latency, tokens, costs). |
+
+##### Where inputs come from
+
+The `inputs` variable has different sources depending on the evaluation context:
+
+| Context | `inputs` source | Contains |
+|---------|-----------------|----------|
+| **Batch evaluation** | Testcase data | All testcase columns (e.g. `country`, `correct_answer`) |
+| **Online evaluation** | Trace data | The actual application inputs from the trace root span |
+
+If no `correct_answer` column is present in your testset, the variable will be left blank in the prompt.
 
 ##### Accessing nested fields
 
@@ -44,19 +53,6 @@ In addition to dot-notation, the template engine supports:
 
 - **JSON Path**: `{{$.inputs.country}}` — standard JSONPath syntax
 - **JSON Pointer**: `{{/inputs/country}}` — RFC 6901 JSON Pointer syntax
-
-##### Where inputs come from
-
-The `inputs` variable has different sources depending on the evaluation context:
-
-| Context | `inputs` source | Contains |
-|---------|-----------------|----------|
-| **Batch evaluation** | Testcase data | All testcase columns (e.g. `country`, `correct_answer`) |
-| **Online evaluation** | Trace data | The actual application inputs from the trace root span |
-
-This dual-source design means the same prompt template works for both batch and online evaluation without modification.
-
-If no `correct_answer` column is present in your testset, the variable will be left blank in the prompt.
 
 Here's the default prompt:
 
