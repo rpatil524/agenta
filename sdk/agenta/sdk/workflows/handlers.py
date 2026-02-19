@@ -1,3 +1,4 @@
+import ast
 import json
 import math
 import os
@@ -31,6 +32,7 @@ from agenta.sdk.workflows.sandbox import execute_code_safely
 from agenta.sdk.workflows.templates import EVALUATOR_TEMPLATES
 from agenta.sdk.workflows.errors import (
     CustomCodeServerV0Error,
+    ErrorStatus,
     InvalidConfigurationParametersV0Error,
     InvalidConfigurationParameterV0Error,
     InvalidInputsV0Error,
@@ -56,6 +58,132 @@ _WEBHOOK_RESPONSE_MAX_BYTES = 1 * 1024 * 1024.0  # 1 MB
 _WEBHOOK_ALLOW_INSECURE = (
     os.getenv("AGENTA_WEBHOOK_ALLOW_INSECURE") or "true"
 ).lower() in {"true", "1", "t", "y", "yes", "on", "enable", "enabled"}
+
+
+def _count_js_like_params(params_source: str) -> Optional[int]:
+    token = []
+    parts: List[str] = []
+    depth_paren = 0
+    depth_brack = 0
+    depth_brace = 0
+    depth_angle = 0
+    quote: Optional[str] = None
+    escaped = False
+
+    for ch in params_source:
+        if quote is not None:
+            token.append(ch)
+            if escaped:
+                escaped = False
+                continue
+            if ch == "\\":
+                escaped = True
+                continue
+            if ch == quote:
+                quote = None
+            continue
+
+        if ch in {'"', "'", "`"}:
+            quote = ch
+            token.append(ch)
+            continue
+
+        if ch == "(":
+            depth_paren += 1
+        elif ch == ")":
+            depth_paren = max(depth_paren - 1, 0)
+        elif ch == "[":
+            depth_brack += 1
+        elif ch == "]":
+            depth_brack = max(depth_brack - 1, 0)
+        elif ch == "{":
+            depth_brace += 1
+        elif ch == "}":
+            depth_brace = max(depth_brace - 1, 0)
+        elif ch == "<":
+            depth_angle += 1
+        elif ch == ">":
+            depth_angle = max(depth_angle - 1, 0)
+
+        if (
+            ch == ","
+            and depth_paren == 0
+            and depth_brack == 0
+            and depth_brace == 0
+            and depth_angle == 0
+        ):
+            parts.append("".join(token).strip())
+            token = []
+            continue
+
+        token.append(ch)
+
+    if token:
+        parts.append("".join(token).strip())
+
+    if not parts:
+        return 0
+
+    filtered = [part for part in parts if part]
+    return len(filtered)
+
+
+def _infer_custom_code_evaluate_arity(*, code: str, runtime: str) -> Optional[int]:
+    if runtime == "python":
+        try:
+            tree = ast.parse(code)
+        except Exception:
+            return None
+
+        for node in ast.walk(tree):
+            if (
+                isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                and node.name == "evaluate"
+            ):
+                if node.args.vararg is not None:
+                    return None
+
+                positional = len(node.args.posonlyargs) + len(node.args.args)
+                return positional
+
+        return None
+
+    # javascript / typescript
+    patterns = [
+        r"(?:async\s+)?function\s+evaluate\s*\((.*?)\)",
+        r"(?:const|let|var)\s+evaluate\s*=\s*(?:async\s*)?\((.*?)\)\s*=>",
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, code, flags=re.DOTALL)
+        if not match:
+            continue
+
+        arity = _count_js_like_params(match.group(1))
+        if arity is not None:
+            return arity
+
+    return None
+
+
+def _resolve_custom_code_interface_version(
+    *,
+    declared_version: Optional[str],
+    code: str,
+    runtime: str,
+) -> str:
+    inferred_arity = _infer_custom_code_evaluate_arity(code=code, runtime=runtime)
+
+    if inferred_arity == 3:
+        return "2"
+
+    if inferred_arity == 4:
+        return "1"
+
+    if declared_version in {"1", "2"}:
+        return declared_version
+
+    return "1"
 
 
 def _is_blocked_ip(ip: ipaddress._BaseAddress) -> bool:
@@ -852,14 +980,20 @@ async def auto_custom_code_run_v0(
     parameters: Optional[Data] = None,
     inputs: Optional[Data] = None,
     outputs: Optional[Union[Data, str]] = None,
+    trace: Optional[Data] = None,
 ) -> Any:
     """
     Custom code execution evaluator for running arbitrary code to evaluate outputs.
 
+    Supports two interface versions controlled by parameters["version"]:
+    - v1 (default/"1"): evaluate(app_params, inputs, output, correct_answer)
+    - v2 ("2"):         evaluate(inputs, outputs, trace)
+
     Args:
-        inputs: Testcase data with ground truth
+        inputs: Testcase data / app inputs
         outputs: Output from the workflow execution
         parameters: Configuration for the evaluator with code to execute
+        trace: Full trace data with spans, metrics (v2 only)
 
     Returns:
         Evaluation result with score from the custom code
@@ -872,21 +1006,15 @@ async def auto_custom_code_run_v0(
 
     code = str(parameters["code"])
 
-    if "correct_answer_key" not in parameters:
-        raise MissingConfigurationParameterV0Error(path="correct_answer_key")
+    declared_version = str(parameters.get("version") or "").strip() or None
 
-    correct_answer_key = str(parameters["correct_answer_key"])
-
-    if inputs is None or not isinstance(inputs, dict):
+    if inputs is not None and not isinstance(inputs, dict):
         raise InvalidInputsV0Error(expected="dict", got=inputs)
 
-    if correct_answer_key not in inputs:
-        raise MissingInputV0Error(path=correct_answer_key)
-
-    correct_answer = inputs[correct_answer_key]
-
-    if not isinstance(outputs, str) and not isinstance(outputs, dict):
+    if not isinstance(outputs, (str, dict)):
         raise InvalidOutputsV0Error(expected=["dict", "str"], got=outputs)
+
+    _outputs_value: Union[dict, str] = outputs
 
     threshold = parameters.get("threshold") or 0.5
 
@@ -904,8 +1032,6 @@ async def auto_custom_code_run_v0(
             got=threshold,
         )
 
-    _outputs = None
-
     runtime = parameters.get("runtime") or "python"
 
     if runtime not in ["python", "javascript", "typescript"]:
@@ -915,23 +1041,68 @@ async def auto_custom_code_run_v0(
             got=runtime,
         )
 
-    # --------------------------------------------------------------------------
-    try:
-        _outputs = execute_code_safely(
-            app_params={},
-            inputs=inputs,
-            output=outputs,
-            correct_answer=correct_answer,
-            code=code,
-            runtime=runtime,
-            templates=EVALUATOR_TEMPLATES.get("v0", {}),
-        )
-    except Exception as e:
-        raise CustomCodeServerV0Error(
-            message=str(e),
-            stacktrace=traceback.format_exc(),
-        ) from e
-    # --------------------------------------------------------------------------
+    effective_version = _resolve_custom_code_interface_version(
+        declared_version=declared_version,
+        code=code,
+        runtime=runtime,
+    )
+
+    def _run_v2() -> Any:
+        try:
+            return execute_code_safely(
+                app_params={},
+                inputs=inputs or {},
+                output=_outputs_value,
+                correct_answer=None,
+                code=code,
+                runtime=runtime,
+                templates=EVALUATOR_TEMPLATES.get("v1", {}),
+                version="2",
+                trace=trace,
+            )
+        except ErrorStatus:
+            raise
+        except Exception as e:
+            raise CustomCodeServerV0Error(
+                message=str(e),
+                stacktrace=traceback.format_exc(),
+            ) from e
+
+    def _run_v1() -> Any:
+        if "correct_answer_key" not in parameters:
+            raise MissingConfigurationParameterV0Error(path="correct_answer_key")
+
+        correct_answer_key = str(parameters["correct_answer_key"])
+
+        if inputs is None or not isinstance(inputs, dict):
+            raise InvalidInputsV0Error(expected="dict", got=inputs)
+
+        if correct_answer_key not in inputs:
+            raise MissingInputV0Error(path=correct_answer_key)
+
+        correct_answer = inputs[correct_answer_key]
+
+        try:
+            return execute_code_safely(
+                app_params={},
+                inputs=inputs,
+                output=_outputs_value,
+                correct_answer=correct_answer,
+                code=code,
+                runtime=runtime,
+                templates=EVALUATOR_TEMPLATES.get("v0", {}),
+                version="1",
+                trace=None,
+            )
+        except ErrorStatus:
+            raise
+        except Exception as e:
+            raise CustomCodeServerV0Error(
+                message=str(e),
+                stacktrace=traceback.format_exc(),
+            ) from e
+
+    _outputs = _run_v2() if effective_version == "2" else _run_v1()
 
     if isinstance(_outputs, (int, float)):
         return {"score": _outputs, "success": _outputs >= threshold}
@@ -950,6 +1121,7 @@ async def auto_ai_critique_v0(
     parameters: Optional[Data] = None,
     inputs: Optional[Data] = None,
     outputs: Optional[Union[Data, str]] = None,
+    trace: Optional[Data] = None,
 ) -> Any:
     """
     AI critique evaluator for using an LLM to evaluate outputs.
@@ -1098,7 +1270,7 @@ async def auto_ai_critique_v0(
             }
         )
 
-    if correct_answer:
+    if correct_answer is not None:
         context.update(
             **{
                 "ground_truth": correct_answer,
@@ -1107,7 +1279,7 @@ async def auto_ai_critique_v0(
             }
         )
 
-    if outputs:
+    if outputs is not None:
         context.update(
             **{
                 "prediction": outputs,
@@ -1115,11 +1287,18 @@ async def auto_ai_critique_v0(
             }
         )
 
-    if inputs:
+    if inputs is not None:
         context.update(**inputs)
         context.update(
             **{
                 "inputs": inputs,
+            }
+        )
+
+    if trace is not None:
+        context.update(
+            **{
+                "trace": trace,
             }
         )
 

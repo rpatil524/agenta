@@ -264,6 +264,30 @@ const ConfigureEvaluator = ({
         return match ? parseFloat(match[0]) : 3
     }, [editEvalEditValues?.data?.parameters?.version, selectedEvaluator])
 
+    const watchedCodeEvaluatorVersion = Form.useWatch(["parameters", "version"], form)
+
+    const codeEvaluatorVersionNumber = useMemo(() => {
+        if (selectedEvaluator?.key !== "auto_custom_code_run") return null
+
+        // Back-compat: older code evaluators may not have an explicit version saved.
+        // In edit/clone mode, treat missing version as v1 even if the hidden field
+        // has an initialValue/default.
+        const saved = editEvalEditValues?.data?.parameters?.version
+        const hasSaved = saved !== undefined && saved !== null && String(saved).trim() !== ""
+        if ((editMode || cloneConfig) && !hasSaved) return 1
+
+        const raw = watchedCodeEvaluatorVersion
+        if (raw === undefined || raw === null || String(raw).trim() === "") return 1
+        const match = String(raw).match(/\d+(\.\d+)?/)
+        return match ? parseFloat(match[0]) : 1
+    }, [
+        selectedEvaluator?.key,
+        watchedCodeEvaluatorVersion,
+        editMode,
+        cloneConfig,
+        editEvalEditValues?.data?.parameters?.version,
+    ])
+
     const evalFields = useMemo(() => {
         const templateEntries = Object.entries(selectedEvaluator?.settings_template || {})
         const allowStructuredOutputs = evaluatorVersionNumber >= 4
@@ -272,6 +296,13 @@ const ConfigureEvaluator = ({
             (acc, [key, field]) => {
                 const f = field as Partial<EvaluationSettingsTemplate> | undefined
                 if (!f?.type) return acc
+                if (
+                    selectedEvaluator?.key === "auto_custom_code_run" &&
+                    key === "correct_answer_key" &&
+                    (codeEvaluatorVersionNumber ?? 1) >= 2
+                ) {
+                    return acc
+                }
                 if (!allowStructuredOutputs && (key === "json_schema" || key === "response_type")) {
                     return acc
                 }
@@ -284,7 +315,7 @@ const ConfigureEvaluator = ({
             },
             [] as (EvaluationSettingsTemplate & {key: string})[],
         )
-    }, [selectedEvaluator, evaluatorVersionNumber])
+    }, [selectedEvaluator, evaluatorVersionNumber, codeEvaluatorVersionNumber])
 
     const advancedSettingsFields = evalFields.filter((field) => field.advanced)
     const basicSettingsFields = evalFields.filter((field) => !field.advanced)
@@ -293,7 +324,19 @@ const ConfigureEvaluator = ({
         try {
             setSubmitLoading(true)
             if (!selectedEvaluator?.key) throw new Error("No selected key")
-            const parameters = values.parameters || {}
+            const parameters = {...(values.parameters || {})}
+
+            const parseVersion = (raw: unknown, fallback: number) => {
+                if (raw === undefined || raw === null) return fallback
+                const match = String(raw).match(/\d+(\.\d+)?/)
+                return match ? parseFloat(match[0]) : fallback
+            }
+
+            const evaluatorVersion = parseVersion(parameters.version, 1)
+
+            if (selectedEvaluator.key === "auto_custom_code_run" && evaluatorVersion >= 2) {
+                delete parameters.correct_answer_key
+            }
 
             const jsonSchemaFieldPath: (string | number)[] = ["parameters", "json_schema"]
             const hasJsonSchema = Object.prototype.hasOwnProperty.call(parameters, "json_schema")
@@ -334,6 +377,11 @@ const ConfigureEvaluator = ({
 
             const existingParameters = editEvalEditValues?.data?.parameters || {}
             const mergedParameters = {...existingParameters, ...parameters}
+
+            if (selectedEvaluator.key === "auto_custom_code_run" && evaluatorVersion >= 2) {
+                delete mergedParameters.correct_answer_key
+            }
+
             const createOutputsSchema = deriveEvaluatorOutputsSchema({
                 evaluatorKey: selectedEvaluator.key,
                 evaluatorTemplate: selectedEvaluator,
@@ -430,12 +478,26 @@ const ConfigureEvaluator = ({
                 ...editEvalEditValues,
                 parameters: editEvalEditValues.data?.parameters || {},
             })
+
+            if (
+                selectedEvaluator?.key === "auto_custom_code_run" &&
+                !editEvalEditValues.data?.parameters?.version
+            ) {
+                form.setFieldValue(["parameters", "version"], "1")
+            }
         } else if (cloneConfig && editEvalEditValues) {
             // When cloning, copy only parameters and clear the name so user provides a new name
             form.setFieldsValue({
                 parameters: editEvalEditValues.data?.parameters || {},
                 name: "",
             })
+
+            if (
+                selectedEvaluator?.key === "auto_custom_code_run" &&
+                !editEvalEditValues.data?.parameters?.version
+            ) {
+                form.setFieldValue(["parameters", "version"], "1")
+            }
         } else if (selectedEvaluator?.settings_template) {
             // Create mode: apply default values from the evaluator template
             // This is needed because form.resetFields() clears the form but Form.Item initialValue
