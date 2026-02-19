@@ -213,9 +213,13 @@ class ToolsService:
         callback_url = f"{env.agenta.api_url}/preview/tools/connections/callback"
 
         # Initiate with provider
+        connection_data = connection_create.data
         provider_result = await adapter.initiate_connection(
             user_id=str(project_id),
             integration_key=integration_key,
+            auth_scheme=connection_data.auth_scheme.value
+            if connection_data and connection_data.auth_scheme
+            else None,
             callback_url=callback_url,
         )
 
@@ -223,23 +227,16 @@ class ToolsService:
         auth_config_id = provider_result.get("auth_config_id")
         redirect_url = provider_result.get("redirect_url")
 
-        # Update data with adapter response
+        # Update data with adapter response — overwrite with provider-enriched dict.
         if provider_key == "composio":
-            incoming_data = (
-                connection_create.data
-                if isinstance(connection_create.data, dict)
-                else {}
-            )
-            data = {}
-            # Keep credentials if provided (API-key style flows).
-            if isinstance(incoming_data.get("credentials"), dict):
-                data["credentials"] = incoming_data["credentials"]
-            data["connected_account_id"] = provider_connection_id
-            data["auth_config_id"] = auth_config_id
-            data["project_id"] = str(project_id)
+            data: Dict[str, Any] = {
+                "connected_account_id": provider_connection_id,
+                "auth_config_id": auth_config_id,
+                "project_id": str(project_id),
+            }
             if redirect_url:
                 data["redirect_url"] = redirect_url
-            connection_create.data = data
+            connection_create.data = data  # type: ignore[assignment]
 
         # Persist locally
         return await self.tools_dao.create_connection(

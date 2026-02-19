@@ -69,6 +69,7 @@ export default function ConnectionManagerDrawer() {
                 }
 
                 const syncConnection = async () => {
+                    window.focus()
                     try {
                         const latest = await fetchConnection(state.connectionId)
                         setConnection(latest.connection ?? null)

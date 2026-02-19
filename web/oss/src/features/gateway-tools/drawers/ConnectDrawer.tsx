@@ -1,6 +1,7 @@
 import {useCallback, useState} from "react"
 
-import {Button, Divider, Drawer, Form, Input, Select, Typography} from "antd"
+import {EnhancedModal, ModalContent, ModalFooter} from "@agenta/ui"
+import {Divider, Form, Input, Select, Typography} from "antd"
 
 import {queryClient} from "@/oss/lib/api/queryClient"
 import {createConnection, fetchConnection} from "@/oss/services/tools/api"
@@ -71,12 +72,7 @@ export default function ConnectDrawer({
                     name: values.name || values.slug,
                     provider_key: DEFAULT_PROVIDER,
                     integration_key: integrationKey,
-                    data: {
-                        auth_scheme: selectedMode,
-                        ...(selectedMode === "api_key" && values.api_key
-                            ? {credentials: {api_key: values.api_key}}
-                            : {}),
-                    },
+                    data: {auth_scheme: selectedMode},
                 },
             })
 
@@ -85,7 +81,7 @@ export default function ConnectDrawer({
             const redirectUrl = (result.connection?.data as Record<string, unknown> | undefined)
                 ?.redirect_url
             if (redirectUrl) {
-                // OAuth: open popup window
+                // Composio handles all auth (OAuth and API key) via their redirect UI
                 const popup = window.open(
                     redirectUrl,
                     "tools_oauth",
@@ -94,9 +90,8 @@ export default function ConnectDrawer({
 
                 const connectionId = result.connection?.id
 
-                const onOAuthDone = async () => {
-                    // Poll the individual connection endpoint which checks
-                    // Composio for status and updates is_valid in the DB.
+                const onAuthDone = async () => {
+                    window.focus()
                     if (connectionId) {
                         try {
                             await fetchConnection(connectionId)
@@ -112,7 +107,7 @@ export default function ConnectDrawer({
                 const handler = (event: MessageEvent) => {
                     if (event.data?.type === "tools:oauth:complete") {
                         window.removeEventListener("message", handler)
-                        onOAuthDone()
+                        void onAuthDone()
                     }
                 }
                 window.addEventListener("message", handler)
@@ -122,11 +117,10 @@ export default function ConnectDrawer({
                     if (popup && popup.closed) {
                         clearInterval(pollTimer)
                         window.removeEventListener("message", handler)
-                        onOAuthDone()
+                        void onAuthDone()
                     }
                 }, 1000)
             } else {
-                // API key or no-auth: connection created immediately
                 handleClose()
                 onSuccess?.()
             }
@@ -136,85 +130,90 @@ export default function ConnectDrawer({
     }, [form, selectedMode, integrationKey, handleClose, onSuccess, invalidateConnections])
 
     return (
-        <Drawer
+        <EnhancedModal
             open={open}
-            onClose={handleClose}
+            onCancel={handleClose}
             title={`Connect to ${integrationName}`}
-            width={420}
-            footer={
-                <div className="flex justify-end gap-2">
-                    <Button onClick={handleClose}>Cancel</Button>
-                    <Button type="primary" loading={loading} onClick={handleSubmit}>
-                        {selectedMode === "oauth" ? "Connect via OAuth" : "Connect"}
-                    </Button>
-                </div>
-            }
+            footer={null}
+            width={480}
+            destroyOnClose
         >
-            <div className="flex items-start gap-3">
-                {integrationLogo && (
-                    <img
-                        src={integrationLogo}
-                        alt={integrationName}
-                        className="w-10 h-10 rounded object-contain shrink-0"
-                    />
-                )}
-                <div className="flex flex-col min-w-0">
-                    <Typography.Text strong>{integrationName}</Typography.Text>
-                    {integrationDescription && (
-                        <Typography.Paragraph
-                            type="secondary"
-                            className="!text-xs !mb-0"
-                            ellipsis={{
-                                rows: 3,
-                                expandable: "collapsible",
-                                symbol: (expanded: boolean) => (expanded ? "see less" : "see more"),
-                            }}
-                        >
-                            {integrationDescription}
-                        </Typography.Paragraph>
-                    )}
-                </div>
-            </div>
-
-            <Divider className="!my-4" />
-
-            <Form form={form} layout="vertical">
-                <Form.Item
-                    name="slug"
-                    label="Connection Slug"
-                    rules={[{required: true, message: "Required"}]}
-                    tooltip="A unique identifier for this connection"
-                >
-                    <Input placeholder={`e.g. my-${integrationKey}`} />
-                </Form.Item>
-
-                <Form.Item name="name" label="Display Name">
-                    <Input placeholder={`e.g. My ${integrationName} Account`} />
-                </Form.Item>
-
-                {availableModes.length > 1 && (
-                    <Form.Item label="Auth Method">
-                        <Select
-                            value={selectedMode}
-                            onChange={setSelectedMode}
-                            options={availableModes.map((m) => ({
-                                value: m,
-                                label: m === "oauth" ? "OAuth" : "API Key",
-                            }))}
+            <ModalContent>
+                {/* Integration header */}
+                <div className="flex items-center gap-3">
+                    {integrationLogo && (
+                        <img
+                            src={integrationLogo}
+                            alt={integrationName}
+                            className="w-9 h-9 rounded object-contain shrink-0"
                         />
-                    </Form.Item>
-                )}
+                    )}
+                    <div className="flex flex-col min-w-0">
+                        <Typography.Text strong className="leading-snug">
+                            {integrationName}
+                        </Typography.Text>
+                        {integrationDescription && (
+                            <Typography.Text type="secondary" className="!text-xs line-clamp-2">
+                                {integrationDescription}
+                            </Typography.Text>
+                        )}
+                    </div>
+                </div>
 
-                {selectedMode === "api_key" && (
+                <Divider className="!m-0" />
+
+                {/* Form */}
+                <Form
+                    form={form}
+                    layout="vertical"
+                    className="!mb-0"
+                    requiredMark={(label, {required}) => (
+                        <>
+                            {label}
+                            {required && <span className="text-red-500 ml-1">*</span>}
+                        </>
+                    )}
+                >
                     <Form.Item
-                        name="api_key"
-                        label="API Key"
-                        rules={[{required: true, message: "API key is required"}]}
+                        name="slug"
+                        label="slug (used in tools)"
+                        rules={[{required: true, message: "Required"}]}
+                        className="!mb-4"
                     >
-                        <Input.Password placeholder="Enter API key" />
+                        <Input placeholder={`e.g. my-${integrationKey}`} />
                     </Form.Item>
-                )}
-            </Form>
-        </Drawer>
+
+                    <Form.Item
+                        name="name"
+                        label="name (used as display)"
+                        className={availableModes.length > 1 ? "!mb-4" : "!mb-0"}
+                    >
+                        <Input placeholder={`e.g. My ${integrationName} Account`} />
+                    </Form.Item>
+
+                    {availableModes.length > 1 && (
+                        <Form.Item label="Auth Method" className="!mb-0">
+                            <Select
+                                value={selectedMode}
+                                onChange={setSelectedMode}
+                                options={availableModes.map((m) => ({
+                                    value: m,
+                                    label: m === "oauth" ? "OAuth" : "API Key",
+                                }))}
+                            />
+                        </Form.Item>
+                    )}
+                </Form>
+
+                <Divider className="!m-0" />
+
+                <ModalFooter
+                    onCancel={handleClose}
+                    onConfirm={handleSubmit}
+                    confirmLabel="Connect"
+                    isLoading={loading}
+                />
+            </ModalContent>
+        </EnhancedModal>
     )
 }

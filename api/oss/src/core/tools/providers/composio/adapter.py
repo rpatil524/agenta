@@ -199,45 +199,92 @@ class ComposioAdapter(GatewayAdapterInterface):
         *,
         user_id: str,
         integration_key: str,
+        auth_scheme: Optional[str] = None,
         callback_url: Optional[str] = None,
     ) -> Dict[str, Any]:
-        # Step 1: resolve auth config for this integration
+        # Step 1: validate the toolkit exists and get its auth scheme info.
         try:
-            auth_configs = await self._get(
+            toolkit = await self._get(f"/toolkits/{integration_key}")
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                raise AdapterError(
+                    provider_key="composio",
+                    operation="initiate_connection.validate_toolkit",
+                    detail=f"Integration '{integration_key}' not found",
+                ) from e
+            raise AdapterError(
+                provider_key="composio",
+                operation="initiate_connection.validate_toolkit",
+                detail=str(e),
+            ) from e
+        except httpx.HTTPError as e:
+            raise AdapterError(
+                provider_key="composio",
+                operation="initiate_connection.validate_toolkit",
+                detail=str(e),
+            ) from e
+
+        # Step 2: create an auth config for this integration.
+        # api_key → use_custom_auth; Composio's redirect UI collects the credentials.
+        # oauth / None → use_composio_managed_auth.
+        log.info(
+            "initiate_connection: integration_key=%s auth_scheme=%r",
+            integration_key,
+            auth_scheme,
+        )
+
+        if auth_scheme == "api_key":
+            # Derive Composio authScheme from toolkit's auth_config_details.
+            # Fall back to "API_KEY" as the common default.
+            composio_auth_scheme = "API_KEY"
+            for detail in toolkit.get("auth_config_details") or []:
+                mode = detail.get("mode", "")
+                if mode and "oauth" not in mode.lower():
+                    composio_auth_scheme = mode
+                    break
+
+            auth_config_body: Dict[str, Any] = {
+                "type": "use_custom_auth",
+                "authScheme": composio_auth_scheme,
+            }
+        else:
+            auth_config_body = {"type": "use_composio_managed_auth"}
+
+        auth_configs_payload = {
+            "toolkit": {"slug": integration_key},
+            "auth_config": auth_config_body,
+        }
+        log.info(
+            "initiate_connection: POST /auth_configs payload=%s", auth_configs_payload
+        )
+
+        try:
+            auth_config_result = await self._post(
                 "/auth_configs",
-                params={"toolkit_slugs": integration_key},
+                json=auth_configs_payload,
             )
         except httpx.HTTPError as e:
             raise AdapterError(
                 provider_key="composio",
-                operation="initiate_connection.resolve_auth_config",
+                operation="initiate_connection.create_auth_config",
                 detail=str(e),
             ) from e
 
-        items = (
-            auth_configs
-            if isinstance(auth_configs, list)
-            else auth_configs.get("items", [])
-        )
-        if not items:
+        auth_config_id = (auth_config_result.get("auth_config") or {}).get("id")
+        if not auth_config_id:
             raise AdapterError(
                 provider_key="composio",
-                operation="initiate_connection",
-                detail=f"No auth config found for integration '{integration_key}'",
+                operation="initiate_connection.create_auth_config",
+                detail=f"No auth_config_id in response for integration '{integration_key}'",
             )
 
-        # Prefer the auth_config whose toolkit slug matches the requested integration.
-        # The API-side filter (toolkit_slugs param) may not be reliable, so we
-        # also filter client-side to avoid picking the wrong integration's config.
-        matched = [
-            item
-            for item in items
-            if item.get("toolkit", {}).get("slug") == integration_key
-        ]
-        target = matched[0] if matched else items[0]
-        auth_config_id = target.get("id")
+        log.info(
+            "initiate_connection: integration_key=%s auth_config_id=%s",
+            integration_key,
+            auth_config_id,
+        )
 
-        # Step 2: initiate connected account link
+        # Step 3: initiate connected account link.
         payload: Dict[str, Any] = {
             "user_id": user_id,
             "auth_config_id": auth_config_id,

@@ -551,7 +551,7 @@ const TurnMessageAdapter: React.FC<Props> = ({
                                     ? undefined
                                     : (propsHandleRerun ?? handleRerun),
                             onMinimize: () => setMinimized((c) => !c),
-                            onDelete: isToolKind ? undefined : deleteMessage,
+                            onDelete: deleteMessage,
                         }}
                     >
                         {headerRight}

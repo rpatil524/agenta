@@ -178,9 +178,9 @@ export default function CatalogDrawer({onConnectionCreated}: Props) {
     }, [])
 
     const handleConnectionSuccess = useCallback(() => {
-        setConnectIntegration(null)
+        handleClose()
         onConnectionCreated?.()
-    }, [onConnectionCreated])
+    }, [handleClose, onConnectionCreated])
 
     return (
         <>

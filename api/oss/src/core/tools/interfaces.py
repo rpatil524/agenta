@@ -127,6 +127,7 @@ class GatewayAdapterInterface(ABC):
         *,
         user_id: str,
         integration_key: str,
+        auth_scheme: Optional[str] = None,
         callback_url: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Returns provider-side { id, redirect_url }."""

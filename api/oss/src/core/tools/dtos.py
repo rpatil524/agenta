@@ -98,7 +98,6 @@ class ToolConnectionCreateData(BaseModel):
     callback_url: Optional[str] = None
     #
     auth_scheme: Optional[ToolAuthScheme] = None
-    credentials: Optional[Dict[str, str]] = None
 
 
 class ToolConnection(
@@ -148,7 +147,7 @@ class ToolConnectionCreate(
     provider_key: ToolProviderKind
     integration_key: str
     #
-    data: Optional[Json] = None
+    data: Optional[ToolConnectionCreateData] = None
 
 
 # ---------------------------------------------------------------------------

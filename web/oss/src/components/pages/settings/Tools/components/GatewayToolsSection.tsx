@@ -65,6 +65,7 @@ export default function GatewayToolsSection() {
                 )
 
                 const cleanup = async () => {
+                    window.focus()
                     // Poll the individual connection endpoint which checks
                     // Composio for status and updates is_valid in the DB.
                     try {

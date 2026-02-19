@@ -1078,7 +1078,7 @@ def _oauth_card(
         heading_html = f'<p class="h-error">{error or "Something went wrong"}</p>'
 
     agenta_btn = (
-        f'<a id="agenta-return-btn" href="{agenta_url}" class="btn btn-primary" onclick="returnToAgenta(event);">Return to Agenta</a>'
+        '<button id="agenta-return-btn" type="button" class="btn btn-primary" onclick="returnToAgenta(event);">Return to Agenta</button>'
         if agenta_url
         else ""
     )
@@ -1194,6 +1194,8 @@ def _oauth_card(
       border-radius: 8px;
       text-decoration: none;
       text-align: center;
+      border: none;
+      cursor: pointer;
     }}
     .btn-primary {{
       background: #18181b;
@@ -1224,24 +1226,20 @@ def _oauth_card(
         event.preventDefault();
       }}
 
-      const btn = document.getElementById("agenta-return-btn");
-      const target = btn ? btn.getAttribute("href") : null;
-      if (!target) {{
-        return false;
+      try {{
+        if (window.opener && !window.opener.closed) {{
+          window.opener.postMessage({{type: "tools:oauth:complete"}}, "*");
+          window.opener.focus();
+        }}
+      }} catch (_e) {{
+        // Best effort focus only.
       }}
 
       try {{
-        if (window.opener && !window.opener.closed) {{
-          window.opener.location.href = target;
-          window.opener.focus();
-          window.close();
-          return false;
-        }}
+        window.close();
       }} catch (_e) {{
-        // Fallback to same-tab redirect below.
+        // Ignore close errors.
       }}
-
-      window.location.href = target;
       return false;
     }}
 

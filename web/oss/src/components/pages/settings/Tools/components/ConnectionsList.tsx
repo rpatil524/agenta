@@ -55,6 +55,7 @@ export default function ConnectionsList({integrationKey, connections}: Props) {
         const pollTimer = setInterval(() => {
             if (popup.closed) {
                 clearInterval(pollTimer)
+                window.focus()
                 invalidate()
             }
         }, 1000)
