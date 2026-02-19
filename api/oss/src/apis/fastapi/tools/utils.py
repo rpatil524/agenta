@@ -26,14 +26,21 @@ class ParsedSlug:
 def parse_tool_slug(slug: str) -> ParsedSlug:
     """Parse a tool slug into its components.
 
+    Accepts both dot-separated and double-underscore-separated formats.
+    The double-underscore format is used for LLM function names (OpenAI
+    restricts function names to [a-zA-Z0-9_-]+, so dots are not allowed).
+
     Format: tools.{provider_key}.{integration_key}[.{action_key}[.{connection_slug}]]
+         or tools__{provider_key}__{integration_key}[__{action_key}[__{connection_slug}]]
 
     Examples:
-        tools.composio.gmail                              → provider + integration
-        tools.composio.gmail.SEND_EMAIL                   → + action
-        tools.composio.gmail.SEND_EMAIL.support_inbox     → + connection
+        tools.composio.gmail                                    → provider + integration
+        tools.composio.gmail.SEND_EMAIL                         → + action
+        tools.composio.gmail.SEND_EMAIL.support_inbox           → + connection
+        tools__composio__gmail__SEND_EMAIL__support_inbox       → same, __ format
     """
-    parts = slug.split(".")
+    normalized = slug.replace("__", ".")
+    parts = normalized.split(".")
 
     if len(parts) < 3 or parts[0] != "tools":
         raise ValueError(f"Invalid tool slug: {slug}")

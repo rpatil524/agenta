@@ -13,6 +13,7 @@ import {
     moleculeBackedPromptsAtomFamily,
     moleculeBackedVariantAtomFamily,
 } from "@/oss/components/Playground/state/atoms"
+import {useIntegrationDetail} from "@/oss/features/gateway-tools/hooks/useIntegrationDetail"
 import {stripAgentaMetadataDeep} from "@/oss/lib/shared/variant/valueHelpers"
 
 import toolsSpecs from "../PlaygroundVariantConfigPrompt/assets/tools.specs.json"
@@ -150,6 +151,24 @@ function inferBuiltinToolInfo(toolObj: ToolObj): BuiltinToolInfo | undefined {
     return undefined
 }
 
+interface GatewayToolParsed {
+    provider: string
+    integration: string
+    action: string
+    connection: string
+}
+
+// Parse gateway tool slug: tools__{provider}__{integration}__{action}__{connection}
+// Segments may contain single underscores (e.g. CREATE_EMAIL_DRAFT); only __ is a separator.
+function parseGatewayFunctionName(name: string | undefined): GatewayToolParsed | null {
+    if (!name) return null
+    const parts = name.split("__")
+    if (parts.length !== 5 || parts[0] !== "tools") return null
+    const [, provider, integration, action, connection] = parts
+    if (!provider || !integration || !action || !connection) return null
+    return {provider, integration, action, connection}
+}
+
 function toToolObj(value: unknown): ToolObj {
     try {
         if (typeof value === "string") return value ? (JSON5.parse(value) as ToolObj) : {}
@@ -240,6 +259,7 @@ function ToolHeader(props: {
     builtinProviderLabel?: string
     builtinToolLabel?: string
     builtinIcon?: React.FC<{className?: string}>
+    builtinIconUrl?: string
 }) {
     const {
         name,
@@ -253,6 +273,7 @@ function ToolHeader(props: {
         builtinProviderLabel,
         builtinToolLabel,
         builtinIcon: BuiltinIcon,
+        builtinIconUrl,
     } = props
 
     return (
@@ -261,11 +282,19 @@ function ToolHeader(props: {
                 {isBuiltinTool ? (
                     <div className="flex items-center gap-1">
                         <div className="flex items-center">
-                            {BuiltinIcon && (
+                            {builtinIconUrl ? (
+                                <span className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full bg-[#F8FAFC]">
+                                    <img
+                                        src={builtinIconUrl}
+                                        alt={builtinProviderLabel}
+                                        className="h-4 w-4 object-contain"
+                                    />
+                                </span>
+                            ) : BuiltinIcon ? (
                                 <span className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full bg-[#F8FAFC]">
                                     <BuiltinIcon className="h-4 w-4" />
                                 </span>
-                            )}
+                            ) : null}
                             {builtinProviderLabel && (
                                 <Typography.Text>{builtinProviderLabel}</Typography.Text>
                             )}
@@ -405,6 +434,13 @@ const PlaygroundTool: React.FC<PlaygroundToolProps> = ({
     const fallbackIcon =
         fallbackProvider?.iconKey != null ? LLMIconMap[fallbackProvider.iconKey] : undefined
 
+    // Gateway tool detection — parse display info from the function name (survives reload)
+    const gatewayParsed = useMemo(
+        () => parseGatewayFunctionName((toolObj as any)?.function?.name),
+        [(toolObj as any)?.function?.name],
+    )
+    const {integration: gatewayIntegration} = useIntegrationDetail(gatewayParsed?.integration ?? "")
+
     // Use molecule-backed atoms for single source of truth
     useAtomValue(moleculeBackedVariantAtomFamily(variantId))
     const entityData = useAtomValue(
@@ -494,17 +530,26 @@ const PlaygroundTool: React.FC<PlaygroundToolProps> = ({
                             minimized={minimized}
                             onToggleMinimize={() => setMinimized((v) => !v)}
                             onDelete={deleteMessage}
-                            isBuiltinTool={isBuiltinTool}
+                            isBuiltinTool={isBuiltinTool || Boolean(gatewayParsed)}
                             builtinProviderLabel={
-                                builtinMeta?.providerLabel ??
-                                (fallbackProvider?.label || inferredToolInfo?.providerKey)
+                                gatewayParsed
+                                    ? gatewayParsed.integration
+                                    : (builtinMeta?.providerLabel ??
+                                      (fallbackProvider?.label || inferredToolInfo?.providerKey))
                             }
                             builtinToolLabel={
-                                builtinMeta?.toolLabel ??
-                                inferredToolInfo?.toolCode ??
-                                fallbackToolLabel
+                                gatewayParsed
+                                    ? `${gatewayParsed.action} / ${gatewayParsed.connection}`
+                                    : (builtinMeta?.toolLabel ??
+                                      inferredToolInfo?.toolCode ??
+                                      fallbackToolLabel)
                             }
-                            builtinIcon={builtinMeta?.Icon ?? fallbackIcon}
+                            builtinIcon={
+                                gatewayParsed ? undefined : (builtinMeta?.Icon ?? fallbackIcon)
+                            }
+                            builtinIconUrl={
+                                gatewayParsed ? (gatewayIntegration?.logo ?? undefined) : undefined
+                            }
                         />
                     }
                 />

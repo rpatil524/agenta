@@ -45,7 +45,7 @@ from agenta.sdk.models.shared import (  # noqa: F401
 
 class Status(BaseModel):
     timestamp: datetime
-    type: str
+    type: Optional[str] = None
     code: Optional[str] = None
     message: Optional[str] = None
     stacktrace: Optional[str] = None

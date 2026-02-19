@@ -9,7 +9,8 @@ from oss.src.core.tools.dtos import (
     ToolCatalogProvider,
     ToolConnection,
     ToolConnectionCreate,
-    ExecutionResult,
+    ToolExecutionRequest,
+    ToolExecutionResponse,
 )
 
 
@@ -160,11 +161,7 @@ class GatewayAdapterInterface(ABC):
     async def execute(
         self,
         *,
-        integration_key: str,
-        action_key: str,
-        provider_connection_id: str,
-        user_id: Optional[str] = None,
-        arguments: Dict[str, Any],
-    ) -> ExecutionResult:
+        request: ToolExecutionRequest,
+    ) -> ToolExecutionResponse:
         """Execute a tool action."""
         ...

@@ -114,16 +114,41 @@ export interface ConnectionsQueryResponse {
 // Tool execution
 // ---------------------------------------------------------------------------
 
-export interface ToolCallRequest {
-    id: string
-    name: string // slug: tools.{provider}.{integration}.{action}.{connection}
-    arguments: Record<string, unknown>
+export interface ToolCallFunction {
+    name: string // slug: tools__{provider}__{integration}__{action}__{connection}
+    arguments: string | Record<string, unknown> // JSON string (as LLM returns) or parsed dict
 }
 
+export interface ToolCallData {
+    id: string // LLM call ID (e.g. "call_zEoV...")
+    type?: string
+    function: ToolCallFunction
+}
+
+/** Request — wraps the raw OpenAI tool call verbatim. */
+export interface ToolCallRequest {
+    data: ToolCallData
+}
+
+export interface ToolResultData {
+    role: string // "tool"
+    tool_call_id: string // echoed from ToolCallData.id
+    content: string // execution result as JSON string
+}
+
+export interface Status {
+    timestamp: string // ISO datetime
+    type: string // "ok" | "error"
+    code?: string
+    message?: string
+    stacktrace?: string
+}
+
+/** Response — Agenta envelope with identity, status, and the OpenAI tool message. */
 export interface ToolCallResult {
-    id: string
-    result?: Record<string, unknown>
-    status?: Record<string, unknown>
+    id?: string // Agenta UUID
+    status?: Status
+    data?: ToolResultData
 }
 
 export interface ToolCallResponse {

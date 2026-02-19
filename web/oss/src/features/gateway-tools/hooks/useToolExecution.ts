@@ -5,12 +5,14 @@ import {v4 as uuidv4} from "uuid"
 import {executeToolCall} from "@/oss/services/tools/api"
 import type {ToolCallResult} from "@/oss/services/tools/api/types"
 
+// Double-underscore separator: valid for LLM function names (no dots allowed)
+// and accepted by the /tools/call API which normalises __ → . before parsing.
 export const buildToolSlug = (
     provider: string,
     integration: string,
     action: string,
     connectionSlug: string,
-) => `tools.${provider}.${integration}.${action}.${connectionSlug}`
+) => `tools__${provider}__${integration}__${action}__${connectionSlug}`
 
 export const useToolExecution = () => {
     const [isExecuting, setIsExecuting] = useState(false)

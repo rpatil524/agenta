@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from "react"
+import React, {useCallback, useEffect, useMemo, useRef, useState} from "react"
 
 import {CaretRight, MagnifyingGlass, Plus} from "@phosphor-icons/react"
 import {Button, Divider, Dropdown, Input, Spin, Tooltip, Typography} from "antd"
@@ -16,6 +16,7 @@ import {
 } from "@/oss/features/gateway-tools"
 import CatalogDrawer from "@/oss/features/gateway-tools/drawers/CatalogDrawer"
 import ToolExecutionDrawer from "@/oss/features/gateway-tools/drawers/ToolExecutionDrawer"
+import {buildToolSlug} from "@/oss/features/gateway-tools/hooks/useToolExecution"
 import {fetchActionDetail} from "@/oss/services/tools/api"
 import type {ConnectionItem} from "@/oss/services/tools/api/types"
 
@@ -37,6 +38,7 @@ interface Props {
 }
 
 interface ComposioActionSelectParams {
+    providerKey: string
     integrationKey: string
     integrationName: string
     connectionSlug: string
@@ -52,25 +54,98 @@ const formatToolLabel = (toolCode: string) =>
         .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
         .join(" ")
 
-// Right panel: actions for a Composio connection (lazy-fetched)
+function PanelScrollSentinel({
+    onVisible,
+    hasMore,
+    isFetching,
+    scrollRootRef,
+    observeKey,
+}: {
+    onVisible: () => void
+    hasMore: boolean
+    isFetching: boolean
+    scrollRootRef: React.RefObject<HTMLDivElement | null>
+    observeKey: string
+}) {
+    const ref = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        const el = ref.current
+        if (!el || !hasMore || isFetching) return
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting && !isFetching) {
+                    onVisible()
+                }
+            },
+            {
+                root: scrollRootRef.current ?? null,
+                rootMargin: "160px",
+                threshold: 0.01,
+            },
+        )
+        observer.observe(el)
+
+        return () => observer.disconnect()
+    }, [onVisible, hasMore, isFetching, scrollRootRef, observeKey])
+
+    if (!hasMore) return null
+    return <div ref={ref} className="h-px shrink-0" />
+}
+
+// Right panel: actions for a Composio connection (lazy-fetched, infinite scroll)
 function ComposioActionsList({
+    providerKey,
     integrationKey,
     connectionSlug,
+    scrollRootRef,
     onSelectAction,
 }: {
+    providerKey: string
     integrationKey: string
     connectionSlug: string
+    scrollRootRef: React.RefObject<HTMLDivElement | null>
     onSelectAction: (params: ComposioActionSelectParams) => void
 }) {
-    const {actions, isLoading} = useCatalogActions(integrationKey)
+    const {
+        actions,
+        total,
+        prefetchThreshold,
+        isLoading,
+        isFetchingNextPage,
+        hasNextPage,
+        requestMore,
+        setSearch,
+    } = useCatalogActions(integrationKey)
     const {integration} = useIntegrationDetail(integrationKey)
+    const [searchTerm, setSearchTerm] = useState("")
+    const sentinelIndex = useMemo(
+        () => Math.max(0, actions.length - prefetchThreshold),
+        [actions.length, prefetchThreshold],
+    )
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setSearch(searchTerm.trim())
+        }, 250)
+
+        return () => clearTimeout(timer)
+    }, [searchTerm, setSearch])
+
+    useEffect(() => {
+        setSearch("")
+        setSearchTerm("")
+
+        return () => setSearch("")
+    }, [integrationKey, setSearch])
 
     const handleActionClick = async (actionKey: string, actionName: string) => {
         const integrationName = integration?.name || integrationKey
 
         let inputSchema: Record<string, unknown> = {type: "object", properties: {}}
         try {
-            const detail = await fetchActionDetail("composio", integrationKey, actionKey)
+            const detail = await fetchActionDetail(providerKey, integrationKey, actionKey)
             if (detail?.action?.schemas?.inputs) {
                 inputSchema = detail.action.schemas.inputs as Record<string, unknown>
             }
@@ -79,6 +154,7 @@ function ComposioActionsList({
         }
 
         onSelectAction({
+            providerKey,
             integrationKey,
             integrationName,
             connectionSlug,
@@ -87,7 +163,7 @@ function ComposioActionsList({
             payload: {
                 type: "function",
                 function: {
-                    name: actionKey,
+                    name: buildToolSlug(providerKey, integrationKey, actionKey, connectionSlug),
                     description: actionName,
                     parameters: inputSchema,
                 },
@@ -95,32 +171,85 @@ function ComposioActionsList({
         })
     }
 
-    if (isLoading) {
-        return (
-            <div className="flex justify-center py-4">
-                <Spin size="small" />
-            </div>
-        )
-    }
-
-    if (!actions.length) {
-        return <div className="py-3 px-2 text-[11px] text-[#7E8B99]">No actions found</div>
-    }
-
     return (
-        <>
-            {actions.map((action) => (
-                <Button
-                    key={action.key}
-                    type="text"
-                    block
-                    className="!flex !h-[28px] !items-center !justify-start !text-left !py-[5px] !px-2 hover:!bg-[#F8FAFC]"
-                    onClick={() => handleActionClick(action.key, action.name)}
-                >
-                    <span className="text-[#0F172A] text-xs truncate">{action.name}</span>
-                </Button>
-            ))}
-        </>
+        <div className="flex flex-col min-h-0">
+            <div className="p-2">
+                <Input
+                    allowClear
+                    variant="borderless"
+                    value={searchTerm}
+                    placeholder="Search actions"
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    onClear={() => setSearchTerm("")}
+                    prefix={<MagnifyingGlass size={14} className="text-[#98A2B3]" />}
+                    className="flex-1 !shadow-none !outline-none !border-none focus:!shadow-none focus:!outline-none focus:!border-none"
+                />
+            </div>
+            <Divider className="m-0" orientation="horizontal" />
+
+            {isLoading && actions.length === 0 ? (
+                <div className="flex justify-center py-4">
+                    <Spin size="small" />
+                </div>
+            ) : !actions.length ? (
+                <div className="py-3 px-2 text-[11px] text-[#7E8B99]">No actions found</div>
+            ) : (
+                <>
+                    {actions.map((action, index) => (
+                        <React.Fragment key={action.key}>
+                            {index === sentinelIndex && (
+                                <PanelScrollSentinel
+                                    onVisible={requestMore}
+                                    hasMore={hasNextPage}
+                                    isFetching={isFetchingNextPage}
+                                    scrollRootRef={scrollRootRef}
+                                    observeKey={`${integrationKey}:${actions.length}:threshold`}
+                                />
+                            )}
+                            <Button
+                                type="text"
+                                block
+                                className="!flex !h-[28px] !items-center !justify-start !text-left !py-[5px] !px-2 hover:!bg-[#F8FAFC]"
+                                onClick={() => handleActionClick(action.key, action.name)}
+                            >
+                                <span className="text-[#0F172A] text-xs truncate">
+                                    {action.name}
+                                </span>
+                            </Button>
+                        </React.Fragment>
+                    ))}
+
+                    <PanelScrollSentinel
+                        onVisible={requestMore}
+                        hasMore={hasNextPage}
+                        isFetching={isFetchingNextPage}
+                        scrollRootRef={scrollRootRef}
+                        observeKey={`${integrationKey}:${actions.length}:bottom`}
+                    />
+
+                    {isFetchingNextPage && (
+                        <div className="flex justify-center py-2 shrink-0">
+                            <Spin size="small" />
+                        </div>
+                    )}
+                    {!isFetchingNextPage && hasNextPage && (
+                        <div className="flex justify-center py-2">
+                            <Button
+                                type="text"
+                                size="small"
+                                className="text-[11px] text-[#7E8B99]"
+                                onClick={requestMore}
+                            >
+                                Load more
+                            </Button>
+                        </div>
+                    )}
+                    <div className="text-[10px] text-[#94A3B8] px-2 pb-1">
+                        Showing {Math.min(actions.length, total)} of {total}
+                    </div>
+                </>
+            )}
+        </div>
     )
 }
 
@@ -173,6 +302,7 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
     const [hoveredKey, setHoveredKey] = useState<string | null>(null)
     const [leftPanelHeight, setLeftPanelHeight] = useState<number | undefined>(undefined)
     const leftPanelRef = useRef<HTMLDivElement>(null)
+    const rightPanelRef = useRef<HTMLDivElement>(null)
 
     const handleRowHover = useCallback((key: string) => {
         if (leftPanelRef.current) {
@@ -278,6 +408,7 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
 
     const handleComposioActionAdd = useCallback(
         ({
+            providerKey,
             integrationKey,
             integrationName,
             connectionSlug,
@@ -287,7 +418,7 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
         }: ComposioActionSelectParams) => {
             addNewTool({
                 source: "builtin",
-                providerKey: integrationKey,
+                providerKey,
                 providerLabel: integrationName,
                 toolCode: `${connectionSlug}/${actionKey}`,
                 toolLabel: actionName,
@@ -314,7 +445,7 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
         >
             {/* Left panel */}
             <div ref={leftPanelRef} className="w-[220px] flex flex-col shrink-0">
-                <div className="flex items-center gap-2 p-2">
+                <div className="p-2">
                     <Input
                         allowClear
                         autoFocus
@@ -328,14 +459,6 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
                         prefix={<MagnifyingGlass size={16} className="text-[#98A2B3]" />}
                         className="flex-1 !shadow-none !outline-none !border-none focus:!shadow-none focus:!outline-none focus:!border-none"
                     />
-                    <Button
-                        type="primary"
-                        size="small"
-                        className="shrink-0"
-                        onClick={() => handleAddTool({source: "inline"})}
-                    >
-                        + Create in-line
-                    </Button>
                 </div>
 
                 <Divider className="m-0" orientation="horizontal" />
@@ -422,11 +545,25 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
                         </div>
                     )}
                 </div>
+
+                <Divider className="m-0" orientation="horizontal" />
+
+                <div className="p-2">
+                    <Button
+                        type="primary"
+                        size="small"
+                        block
+                        onClick={() => handleAddTool({source: "inline"})}
+                    >
+                        + Create in-line
+                    </Button>
+                </div>
             </div>
 
             {/* Right panel: actions on hover — height locked to left panel */}
             {showRightPanel && (
                 <div
+                    ref={rightPanelRef}
                     className="w-[220px] overflow-y-auto flex flex-col p-1 shrink-0 border-l border-[#F0F0F0]"
                     style={leftPanelHeight ? {height: leftPanelHeight} : undefined}
                 >
@@ -454,8 +591,11 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
 
                     {hoveredConnection && (
                         <ComposioActionsList
+                            key={hoveredConnection.id}
+                            providerKey={hoveredConnection.provider_key}
                             integrationKey={hoveredConnection.integration_key}
                             connectionSlug={hoveredConnection.slug}
+                            scrollRootRef={rightPanelRef}
                             onSelectAction={handleComposioActionAdd}
                         />
                     )}

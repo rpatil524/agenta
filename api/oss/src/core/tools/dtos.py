@@ -11,6 +11,7 @@ from oss.src.core.shared.dtos import (
     Metadata,
     Slug,
     Json,
+    Status,
 )
 
 # ---------------------------------------------------------------------------
@@ -155,25 +156,59 @@ class ToolConnectionCreate(
 # ---------------------------------------------------------------------------
 
 
-class ToolCall(Identifier):
+class ToolCallFunction(BaseModel):
+    """Mirrors OpenAI function call: {name, arguments}."""
+
     name: str  # ~ tool.slug
-    arguments: Dict[str, Any]
+    arguments: Any  # JSON string (as returned by LLM) or parsed dict
+
+
+class ToolCallData(BaseModel):
+    """OpenAI tool_calls array item — passed verbatim from the LLM."""
+
+    id: str  # LLM call ID (e.g. "call_zEoV...")
+    type: str = "function"
+    function: ToolCallFunction
+
+
+class ToolCall(BaseModel):
+    """Request envelope — wraps the raw OpenAI tool call."""
+
+    data: ToolCallData
+
+
+class ToolResultData(BaseModel):
+    """OpenAI tool message — passed verbatim back to the LLM."""
+
+    role: str = "tool"
+    tool_call_id: str  # Echoed from ToolCallData.id
+    content: str  # Execution result serialised as a JSON string
 
 
 class ToolResult(Identifier):
-    result: Optional[Json] = None
-    status: Optional[Json] = (
-        None  # {"message": "success"} or {"message": "failed", "error": "..."}
-    )
+    """Response envelope with Agenta identity, status, and the OpenAI tool message."""
+
+    status: Optional[Status] = None
+    data: Optional[ToolResultData] = None
 
 
 # ---------------------------------------------------------------------------
-# Tool Execution
+# Tool Execution (adapter-level DTOs)
 # ---------------------------------------------------------------------------
 
 
-class ExecutionResult(BaseModel):
-    """Result from executing a tool action via a provider adapter."""
+class ToolExecutionRequest(BaseModel):
+    """Input DTO for executing a tool action via a provider adapter."""
+
+    integration_key: str
+    action_key: str
+    provider_connection_id: str
+    user_id: Optional[str] = None
+    arguments: Dict[str, Any] = {}
+
+
+class ToolExecutionResponse(BaseModel):
+    """Output DTO from executing a tool action via a provider adapter."""
 
     data: Optional[Json] = None
     error: Optional[str] = None

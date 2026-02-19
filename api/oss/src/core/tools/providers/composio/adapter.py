@@ -11,7 +11,8 @@ from oss.src.core.tools.dtos import (
     ToolCatalogActionDetails,
     ToolCatalogIntegration,
     ToolCatalogProvider,
-    ExecutionResult,
+    ToolExecutionRequest,
+    ToolExecutionResponse,
 )
 from oss.src.core.tools.interfaces import GatewayAdapterInterface
 from oss.src.core.tools.exceptions import AdapterError
@@ -328,23 +329,19 @@ class ComposioAdapter(GatewayAdapterInterface):
     async def execute(
         self,
         *,
-        integration_key: str,
-        action_key: str,
-        provider_connection_id: str,
-        user_id: Optional[str] = None,
-        arguments: Dict[str, Any],
-    ) -> ExecutionResult:
+        request: ToolExecutionRequest,
+    ) -> ToolExecutionResponse:
         composio_slug = self._to_composio_slug(
-            integration_key=integration_key,
-            action_key=action_key,
+            integration_key=request.integration_key,
+            action_key=request.action_key,
         )
 
         payload: Dict[str, Any] = {
-            "arguments": arguments,
-            "connected_account_id": provider_connection_id,
+            "arguments": request.arguments,
+            "connected_account_id": request.provider_connection_id,
         }
-        if user_id:
-            payload["user_id"] = user_id
+        if request.user_id:
+            payload["user_id"] = request.user_id
 
         try:
             result = await self._post(
@@ -365,7 +362,7 @@ class ComposioAdapter(GatewayAdapterInterface):
                 detail=str(e),
             ) from e
 
-        return ExecutionResult(
+        return ToolExecutionResponse(
             data=result.get("data"),
             error=result.get("error"),
             successful=result.get("successful", False),

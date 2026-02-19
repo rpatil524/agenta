@@ -11,6 +11,8 @@ from oss.src.core.tools.dtos import (
     ToolCatalogProvider,
     ToolConnection,
     ToolConnectionCreate,
+    ToolExecutionRequest,
+    ToolExecutionResponse,
 )
 from oss.src.core.tools.interfaces import (
     ToolsDAOInterface,
@@ -393,21 +395,16 @@ class ToolsService:
         provider_connection_id: str,
         user_id: Optional[str] = None,
         arguments: Dict[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> ToolExecutionResponse:
         """Execute a tool action using the provider adapter."""
         adapter = self.adapter_registry.get(provider_key)
 
-        result = await adapter.execute(
-            integration_key=integration_key,
-            action_key=action_key,
-            provider_connection_id=provider_connection_id,
-            user_id=user_id,
-            arguments=arguments,
+        return await adapter.execute(
+            request=ToolExecutionRequest(
+                integration_key=integration_key,
+                action_key=action_key,
+                provider_connection_id=provider_connection_id,
+                user_id=user_id,
+                arguments=arguments,
+            ),
         )
-
-        # Convert ExecutionResult to dict
-        return {
-            "data": result.data,
-            "error": result.error,
-            "successful": result.successful,
-        }

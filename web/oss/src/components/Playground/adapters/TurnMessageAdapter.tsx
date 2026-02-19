@@ -428,7 +428,9 @@ const TurnMessageAdapter: React.FC<Props> = ({
                     onChangeText={onChangeText}
                     state={"readOnly"}
                     headerBottom={
-                        toolCallsView ? <ToolCallViewHeader className="mt-2" {...p} /> : null
+                        p.name || p.callId ? (
+                            <ToolCallViewHeader className="mt-2" name={p.name} callId={p.callId} />
+                        ) : null
                     }
                     headerRight={
                         <TurnMessageHeaderOptions

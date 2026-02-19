@@ -1,3 +1,5 @@
+import json
+from datetime import datetime, timezone
 from typing import List, Optional
 from uuid import UUID, uuid4
 
@@ -24,6 +26,7 @@ from oss.src.apis.fastapi.tools.models import (
     ToolCallResponse,
 )
 
+from oss.src.core.shared.dtos import Status
 from oss.src.core.tools.dtos import (
     ToolCatalogActionDetails,  # noqa: F401
     ToolCatalogProviderDetails,  # noqa: F401
@@ -31,6 +34,7 @@ from oss.src.core.tools.dtos import (
     #
     ToolCall,
     ToolResult,
+    ToolResultData,
 )
 from oss.src.core.tools.service import (
     ToolsService,
@@ -670,6 +674,18 @@ class ToolsRouter:
             if not has_permission:
                 raise FORBIDDEN_EXCEPTION
 
+        slug = body.connection.slug
+        if "." in slug or "__" in slug:
+            return JSONResponse(
+                status_code=422,
+                content={
+                    "detail": (
+                        "Connection slug must not contain dots or consecutive underscores. "
+                        "Use single hyphens or underscores as separators."
+                    )
+                },
+            )
+
         if isinstance(body.connection.data, dict):
             body.connection.data = {
                 k: v
@@ -884,14 +900,15 @@ class ToolsRouter:
             if not has_permission:
                 raise FORBIDDEN_EXCEPTION
 
-        # Parse tool slug: tools.{provider}.{integration}.{action}[.{connection_slug}]
-        slug_parts = body.name.split(".")
+        # Parse tool slug — accept both dot and double-underscore formats.
+        # Double-underscore is used for LLM function names where dots are forbidden.
+        slug_parts = body.data.function.name.replace("__", ".").split(".")
 
         if len(slug_parts) < 4 or slug_parts[0] != "tools":
             return JSONResponse(
                 status_code=400,
                 content={
-                    "detail": f"Invalid tool slug format: {body.name}. Expected: tools.{{provider}}.{{integration}}.{{action}}[.{{connection}}]"
+                    "detail": f"Invalid tool slug format: {body.data.function.name}. Expected: tools.{{provider}}.{{integration}}.{{action}}[.{{connection}}]"
                 },
             )
 
@@ -956,6 +973,16 @@ class ToolsRouter:
             else None
         )
 
+        # Parse arguments — OpenAI returns them as a JSON string; normalise to dict.
+        arguments = body.data.function.arguments
+        if isinstance(arguments, str):
+            try:
+                arguments = json.loads(arguments)
+            except Exception:
+                arguments = {}
+        elif not isinstance(arguments, dict):
+            arguments = {}
+
         # Execute the tool via the adapter
         try:
             execution_result = await self.tools_service.execute_tool(
@@ -964,19 +991,22 @@ class ToolsRouter:
                 action_key=action_key,
                 provider_connection_id=connection.provider_connection_id,
                 user_id=user_id,
-                arguments=body.arguments,
+                arguments=arguments,
             )
 
-            call_id = str(body.id) if body.id else str(uuid4())
-
-            # Pass the full execution envelope (data/error/successful) as
-            # result so that schemas.outputs can be applied directly in the FE.
             result = ToolResult(
-                id=call_id,
-                result=execution_result,
-                status={"error": execution_result.get("error")}
-                if not execution_result.get("successful")
-                else {},
+                id=uuid4(),
+                data=ToolResultData(
+                    tool_call_id=body.data.id,
+                    content=json.dumps(execution_result.model_dump()),
+                ),
+                status=Status(
+                    timestamp=datetime.now(timezone.utc),
+                    code="STATUS_CODE_OK"
+                    if execution_result.successful
+                    else "STATUS_CODE_ERROR",
+                    message=execution_result.error,
+                ),
             )
 
             return ToolCallResponse(call=result)
@@ -984,9 +1014,16 @@ class ToolsRouter:
         except Exception as e:
             log.error(f"Tool execution failed: {e}")
             result = ToolResult(
-                id=str(body.id) if body.id else str(uuid4()),
-                result=None,
-                status={"error": str(e)},
+                id=uuid4(),
+                data=ToolResultData(
+                    tool_call_id=body.data.id,
+                    content=json.dumps({"error": str(e)}),
+                ),
+                status=Status(
+                    timestamp=datetime.now(timezone.utc),
+                    code="STATUS_CODE_ERROR",
+                    message=str(e),
+                ),
             )
             return ToolCallResponse(call=result)
 
