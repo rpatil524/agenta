@@ -187,68 +187,70 @@ function ComposioActionsList({
             </div>
             <Divider className="m-0" orientation="horizontal" />
 
-            {isLoading && actions.length === 0 ? (
-                <div className="flex justify-center py-4">
-                    <Spin size="small" />
-                </div>
-            ) : !actions.length ? (
-                <div className="py-3 px-2 text-[11px] text-[#7E8B99]">No actions found</div>
-            ) : (
-                <>
-                    {actions.map((action, index) => (
-                        <React.Fragment key={action.key}>
-                            {index === sentinelIndex && (
-                                <PanelScrollSentinel
-                                    onVisible={requestMore}
-                                    hasMore={hasNextPage}
-                                    isFetching={isFetchingNextPage}
-                                    scrollRootRef={scrollRootRef}
-                                    observeKey={`${integrationKey}:${actions.length}:threshold`}
-                                />
-                            )}
-                            <Button
-                                type="text"
-                                block
-                                className="!flex !h-[28px] !items-center !justify-start !text-left !py-[5px] !px-2 hover:!bg-[#F8FAFC]"
-                                onClick={() => handleActionClick(action.key, action.name)}
-                            >
-                                <span className="text-[#0F172A] text-xs truncate">
-                                    {action.name}
-                                </span>
-                            </Button>
-                        </React.Fragment>
-                    ))}
-
-                    <PanelScrollSentinel
-                        onVisible={requestMore}
-                        hasMore={hasNextPage}
-                        isFetching={isFetchingNextPage}
-                        scrollRootRef={scrollRootRef}
-                        observeKey={`${integrationKey}:${actions.length}:bottom`}
-                    />
-
-                    {isFetchingNextPage && (
-                        <div className="flex justify-center py-2 shrink-0">
-                            <Spin size="small" />
-                        </div>
-                    )}
-                    {!isFetchingNextPage && hasNextPage && (
-                        <div className="flex justify-center py-2">
-                            <Button
-                                type="text"
-                                size="small"
-                                className="text-[11px] text-[#7E8B99]"
-                                onClick={requestMore}
-                            >
-                                Load more
-                            </Button>
-                        </div>
-                    )}
-                    <div className="text-[10px] text-[#94A3B8] px-2 pb-1">
-                        Showing {Math.min(actions.length, total)} of {total}
+            <div className="p-1">
+                {isLoading && actions.length === 0 ? (
+                    <div className="flex justify-center py-4">
+                        <Spin size="small" />
                     </div>
-                </>
-            )}
+                ) : !actions.length ? (
+                    <div className="py-3 px-2 text-[11px] text-[#7E8B99]">No actions found</div>
+                ) : (
+                    <>
+                        {actions.map((action, index) => (
+                            <React.Fragment key={action.key}>
+                                {index === sentinelIndex && (
+                                    <PanelScrollSentinel
+                                        onVisible={requestMore}
+                                        hasMore={hasNextPage}
+                                        isFetching={isFetchingNextPage}
+                                        scrollRootRef={scrollRootRef}
+                                        observeKey={`${integrationKey}:${actions.length}:threshold`}
+                                    />
+                                )}
+                                <Button
+                                    type="text"
+                                    block
+                                    className="!flex !h-[28px] !items-center !justify-start !text-left !py-[5px] !px-2 hover:!bg-[#F8FAFC]"
+                                    onClick={() => handleActionClick(action.key, action.name)}
+                                >
+                                    <span className="text-[#0F172A] text-xs truncate">
+                                        {action.name}
+                                    </span>
+                                </Button>
+                            </React.Fragment>
+                        ))}
+
+                        <PanelScrollSentinel
+                            onVisible={requestMore}
+                            hasMore={hasNextPage}
+                            isFetching={isFetchingNextPage}
+                            scrollRootRef={scrollRootRef}
+                            observeKey={`${integrationKey}:${actions.length}:bottom`}
+                        />
+
+                        {isFetchingNextPage && (
+                            <div className="flex justify-center py-2 shrink-0">
+                                <Spin size="small" />
+                            </div>
+                        )}
+                        {!isFetchingNextPage && hasNextPage && (
+                            <div className="flex justify-center py-2">
+                                <Button
+                                    type="text"
+                                    size="small"
+                                    className="text-[11px] text-[#7E8B99]"
+                                    onClick={requestMore}
+                                >
+                                    Load more
+                                </Button>
+                            </div>
+                        )}
+                        <div className="text-[10px] text-[#94A3B8] px-2 pb-1">
+                            Showing {Math.min(actions.length, total)} of {total}
+                        </div>
+                    </>
+                )}
+            </div>
         </div>
     )
 }
@@ -450,7 +452,7 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
                         allowClear
                         autoFocus
                         variant="borderless"
-                        placeholder="Search"
+                        placeholder="Search integrations"
                         value={searchTerm}
                         onChange={(event) => {
                             setSearchTerm(event.target.value)
@@ -538,68 +540,80 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
                         </>
                     )}
 
-                    {/* Empty state */}
-                    {!hasBuiltin && !hasComposio && (
-                        <div className="py-8 text-center text-[12px] leading-5 text-[#7E8B99]">
-                            No tools found
-                        </div>
+                    {/* Inline section */}
+                    {(hasBuiltin || hasComposio) && (
+                        <Divider className="my-1" orientation="horizontal" />
                     )}
-                </div>
-
-                <Divider className="m-0" orientation="horizontal" />
-
-                <div className="p-2">
-                    <Button
-                        type="primary"
-                        size="small"
-                        block
-                        onClick={() => handleAddTool({source: "inline"})}
-                    >
-                        + Create in-line
-                    </Button>
+                    <div className="flex items-center justify-between py-[5px] px-1.5">
+                        <Typography.Text className="text-[#758391] text-xs font-medium">
+                            Inline
+                        </Typography.Text>
+                        <Tooltip title="Add inline tool">
+                            <Button
+                                type="text"
+                                size="small"
+                                icon={<Plus size={12} />}
+                                className="h-5 w-5 flex items-center justify-center p-0 text-[#758391]"
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleAddTool({source: "inline"})
+                                }}
+                            />
+                        </Tooltip>
+                    </div>
                 </div>
             </div>
 
             {/* Right panel: actions on hover — height locked to left panel */}
             {showRightPanel && (
-                <div
-                    ref={rightPanelRef}
-                    className="w-[220px] overflow-y-auto flex flex-col p-1 shrink-0 border-l border-[#F0F0F0]"
-                    style={leftPanelHeight ? {height: leftPanelHeight} : undefined}
-                >
-                    {hoveredBuiltinGroup &&
-                        hoveredBuiltinGroup.tools.map(({code, label: toolLabel, payload}) => (
-                            <Button
-                                key={code}
-                                type="text"
-                                block
-                                className="!flex !h-[28px] !items-center !justify-start !text-left !py-[5px] !px-2 hover:!bg-[#F8FAFC]"
-                                onClick={() =>
-                                    handleAddTool({
-                                        payload,
-                                        source: "builtin",
-                                        providerKey: hoveredBuiltinGroup.key,
-                                        providerLabel: hoveredBuiltinGroup.label,
-                                        toolCode: code,
-                                        toolLabel,
-                                    })
-                                }
-                            >
-                                <span className="text-[#0F172A] text-xs">{toolLabel}</span>
-                            </Button>
-                        ))}
+                <>
+                    <div className="w-px self-stretch shrink-0 bg-[#F0F0F0]" />
+                    <div
+                        ref={rightPanelRef}
+                        className="w-[220px] overflow-y-auto flex flex-col shrink-0"
+                        style={leftPanelHeight ? {height: leftPanelHeight} : undefined}
+                    >
+                        {hoveredBuiltinGroup && hoveredBuiltinGroup.tools.length > 0 && (
+                            <div className="p-1">
+                                {hoveredBuiltinGroup.tools.map(
+                                    ({code, label: toolLabel, payload}) => (
+                                        <Button
+                                            key={code}
+                                            type="text"
+                                            block
+                                            className="!flex !h-[28px] !items-center !justify-start !text-left !py-[5px] !px-2 hover:!bg-[#F8FAFC]"
+                                            onClick={() =>
+                                                handleAddTool({
+                                                    payload,
+                                                    source: "builtin",
+                                                    providerKey: hoveredBuiltinGroup.key,
+                                                    providerLabel: hoveredBuiltinGroup.label,
+                                                    toolCode: code,
+                                                    toolLabel,
+                                                })
+                                            }
+                                        >
+                                            <span className="text-[#0F172A] text-xs">
+                                                {toolLabel}
+                                            </span>
+                                        </Button>
+                                    ),
+                                )}
+                            </div>
+                        )}
 
-                    {hoveredConnection && (
-                        <ComposioActionsList
-                            key={hoveredConnection.id}
-                            providerKey={hoveredConnection.provider_key}
-                            integrationKey={hoveredConnection.integration_key}
-                            connectionSlug={hoveredConnection.slug}
-                            scrollRootRef={rightPanelRef}
-                            onSelectAction={handleComposioActionAdd}
-                        />
-                    )}
-                </div>
+                        {hoveredConnection && (
+                            <ComposioActionsList
+                                key={hoveredConnection.id}
+                                providerKey={hoveredConnection.provider_key}
+                                integrationKey={hoveredConnection.integration_key}
+                                connectionSlug={hoveredConnection.slug}
+                                scrollRootRef={rightPanelRef}
+                                onSelectAction={handleComposioActionAdd}
+                            />
+                        )}
+                    </div>
+                </>
             )}
         </div>
     )

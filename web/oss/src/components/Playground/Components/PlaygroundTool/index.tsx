@@ -373,7 +373,20 @@ const PlaygroundTool: React.FC<PlaygroundToolProps> = ({
 }) => {
     const editorIdRef = useRef(uuidv4())
     const isReadOnly = Boolean(disabled)
-    const [minimized, setMinimized] = useState(false)
+    const [minimized, setMinimized] = useState(() => {
+        // Custom/inline tools start expanded; builtin and gateway tools start minimized
+        const source = (baseProperty as any)?.__source
+        if (source === "builtin") return true
+        const fnName = (() => {
+            try {
+                const obj = typeof value === "string" ? JSON5.parse(value) : value
+                return (obj as any)?.function?.name ?? ""
+            } catch {
+                return ""
+            }
+        })()
+        return parseGatewayFunctionName(fnName) !== null
+    })
 
     const builtinMeta = useMemo(() => {
         const agentaMetadata =
@@ -441,6 +454,9 @@ const PlaygroundTool: React.FC<PlaygroundToolProps> = ({
     )
     const {integration: gatewayIntegration} = useIntegrationDetail(gatewayParsed?.integration ?? "")
 
+    // Builtin and gateway tools have non-editable schemas; only custom/inline tools are editable
+    const isSchemaReadOnly = isReadOnly || isBuiltinTool || Boolean(gatewayParsed)
+
     // Use molecule-backed atoms for single source of truth
     useAtomValue(moleculeBackedVariantAtomFamily(variantId))
     const entityData = useAtomValue(
@@ -490,7 +506,7 @@ const PlaygroundTool: React.FC<PlaygroundToolProps> = ({
         <PlaygroundVariantPropertyControlWrapper
             className={clsx(
                 "w-full max-w-full overflow-y-auto flex [&_>_div]:!w-auto [&_>_div]:!grow !my-0",
-                {"[_.agenta-shared-editor]:w-full": isReadOnly},
+                {"[_.agenta-shared-editor]:w-full": isSchemaReadOnly},
             )}
         >
             <EditorProvider
@@ -508,7 +524,7 @@ const PlaygroundTool: React.FC<PlaygroundToolProps> = ({
                         validationSchema: isBuiltinTool ? undefined : TOOL_SCHEMA,
                     }}
                     handleChange={(e) => {
-                        if (isReadOnly) return
+                        if (isSchemaReadOnly) return
                         onEditorChange(e)
                     }}
                     syncWithInitialValueChanges
@@ -519,7 +535,8 @@ const PlaygroundTool: React.FC<PlaygroundToolProps> = ({
                             ? "[&_.agenta-editor-wrapper]:h-[calc(8px+calc(3*19.88px))] [&_.agenta-editor-wrapper]:overflow-y-auto [&_.agenta-editor-wrapper]:!mb-0"
                             : "[&_.agenta-editor-wrapper]:h-fit",
                     ])}
-                    state={isReadOnly ? "readOnly" : "filled"}
+                    state={isSchemaReadOnly ? "readOnly" : "filled"}
+                    disabled={isSchemaReadOnly}
                     header={
                         <ToolHeader
                             idForActions={editorIdRef.current}
