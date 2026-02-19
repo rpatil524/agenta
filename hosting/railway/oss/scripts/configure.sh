@@ -127,6 +127,9 @@ main() {
 
     unset_vars api AGENTA_LICENSE PORT SCRIPT_NAME REDIS_URI REDIS_URI_VOLATILE REDIS_URI_DURABLE SUPERTOKENS_CONNECTION_URI AGENTA_API_INTERNAL_URL ALEMBIC_CFG_PATH_CORE ALEMBIC_CFG_PATH_TRACING
 
+    set_optional_vars api \
+        "COMPOSIO_API_KEY=${COMPOSIO_API_KEY:-}"
+
     set_vars services \
         AGENTA_WEB_URL="https://${public_domain_ref}" \
         AGENTA_API_URL="https://${public_domain_ref}/api" \
