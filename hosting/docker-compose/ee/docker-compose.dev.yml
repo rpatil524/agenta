@@ -194,7 +194,6 @@ services:
         # === STORAGE ============================================== #
         volumes:
             - ../../../api/oss/src/crons/queries.sh:/queries.sh
-            - ../../../api/oss/src/crons/tools.sh:/tools.sh
             - ../../../api/ee/src/crons/meters.sh:/meters.sh
             - ../../../api/ee/src/crons/spans.sh:/spans.sh
         # === CONFIGURATION ======================================== #

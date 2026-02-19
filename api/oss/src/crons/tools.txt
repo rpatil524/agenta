@@ -1,2 +1,0 @@
-# Tools catalog cache warmup - runs hourly
-0 * * * * root /tools-catalog.sh >> /proc/1/fd/1 2>&1

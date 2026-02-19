@@ -561,12 +561,13 @@ class PostgresConfig(BaseModel):
 class ComposioConfig(BaseModel):
     """Composio integration configuration"""
 
-    api_key: str = os.getenv("COMPOSIO_API_KEY", "")
+    api_key: str | None = os.getenv("COMPOSIO_API_KEY")
     api_url: str = os.getenv("COMPOSIO_API_URL", "https://backend.composio.dev/api/v3")
 
     @property
     def enabled(self) -> bool:
-        return bool(self.api_key.strip())
+        """Composio enabled if API key is present"""
+        return bool(self.api_key)
 
     model_config = ConfigDict(extra="ignore")
 

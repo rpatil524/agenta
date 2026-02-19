@@ -316,7 +316,7 @@ Output (example):
   "count": 1,
   "connections": [
     {
-      "id": "019abc12-3456-7890-abcd-ef1234567890",
+      "id": "some-secret-id",
       "provider": "composio",
       "integration": "gmail",
       "connection_slug": "support_inbox",
@@ -361,7 +361,7 @@ OAuth response body (example):
 
 {
   "connection": {
-    "id": "019abc12-3456-7890-abcd-ef1234567890",
+    "id": "some-secret-id",
     "provider": "composio",
     "integration": "gmail",
     "connection_slug": "support_inbox",
@@ -389,7 +389,7 @@ API key response body (example):
 
 {
   "connection": {
-    "id": "019abc12-3456-7890-abcd-ef1234567890",
+    "id": "some-secret-id",
     "provider": "composio",
     "integration": "stripe",
     "connection_slug": "prod_key",
@@ -413,7 +413,7 @@ Output (example):
 
 {
   "connection": {
-    "id": "019abc12-3456-7890-abcd-ef1234567890",
+    "id": "some-secret-id",
     "provider": "composio",
     "integration": "gmail",
     "connection_slug": "support_inbox",
@@ -442,7 +442,7 @@ Response (example):
 
 {
   "connection": {
-    "id": "019abc12-3456-7890-abcd-ef1234567890",
+    "id": "some-secret-id",
     "provider": "composio",
     "integration": "gmail",
     "connection_slug": "support_inbox",
@@ -714,7 +714,7 @@ Response:
 
 {
   "connection": {
-    "id": "019abc12-3456-7890-abcd-ef1234567890",
+    "id": "some-secret-id",
     "integration": "gmail",
     "connection_slug": "support_inbox",
     "status": "PENDING",

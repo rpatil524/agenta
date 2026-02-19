@@ -22,7 +22,6 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # -- TOOL CONNECTIONS -------------------------------------------------------
-    # Note: SQLAlchemy will automatically create the enum type when creating the table
     op.create_table(
         "tool_connections",
         sa.Column("project_id", sa.UUID(), nullable=False),
@@ -31,11 +30,6 @@ def upgrade() -> None:
         sa.Column("name", sa.String(), nullable=True),
         sa.Column("description", sa.String(), nullable=True),
         #
-        sa.Column(
-            "kind",
-            sa.Enum("COMPOSIO", "AGENTA", name="tool_provider_kind_enum"),
-            nullable=False,
-        ),
         sa.Column("provider_key", sa.String(), nullable=False),
         sa.Column("integration_key", sa.String(), nullable=False),
         #
@@ -81,4 +75,3 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.drop_table("tool_connections")
-    op.execute("DROP TYPE IF EXISTS tool_provider_kind_enum")

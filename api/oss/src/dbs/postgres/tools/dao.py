@@ -40,6 +40,7 @@ class ToolsDAO(ToolsDAOInterface):
         #
         connection_create: ToolConnectionCreate,
     ) -> Optional[ToolConnection]:
+        """Insert a new connection row. Raises EntityCreationConflict on slug collision."""
         dbe = map_connection_create_to_dbe(
             project_id=project_id,
             user_id=user_id,
@@ -78,6 +79,7 @@ class ToolsDAO(ToolsDAOInterface):
         project_id: UUID,
         connection_id: UUID,
     ) -> Optional[ToolConnection]:
+        """Fetch a connection by ID scoped to project_id. Returns None if not found."""
         async with engine.core_session() as session:
             stmt = (
                 select(self.ToolConnectionDBE)
@@ -106,6 +108,7 @@ class ToolsDAO(ToolsDAOInterface):
         provider_connection_id: Optional[str] = None,
         data_update: Optional[dict] = None,
     ) -> Optional[ToolConnection]:
+        """Partially update flags and/or data for a connection. Returns updated DTO or None."""
         async with engine.core_session() as session:
             stmt = (
                 select(self.ToolConnectionDBE)
@@ -154,6 +157,7 @@ class ToolsDAO(ToolsDAOInterface):
         project_id: UUID,
         connection_id: UUID,
     ) -> bool:
+        """Hard-delete a connection row. Returns True if a row was deleted."""
         async with engine.core_session() as session:
             stmt = (
                 delete(self.ToolConnectionDBE)
@@ -174,7 +178,9 @@ class ToolsDAO(ToolsDAOInterface):
         #
         provider_key: Optional[str] = None,
         integration_key: Optional[str] = None,
+        is_active: Optional[bool] = True,
     ) -> List[ToolConnection]:
+        """List connections with optional filters. Defaults to active-only (is_active=True)."""
         async with engine.core_session() as session:
             stmt = select(self.ToolConnectionDBE).filter(
                 self.ToolConnectionDBE.project_id == project_id,
@@ -186,6 +192,12 @@ class ToolsDAO(ToolsDAOInterface):
             if integration_key:
                 stmt = stmt.filter(
                     self.ToolConnectionDBE.integration_key == integration_key
+                )
+
+            if is_active is not None:
+                expected = "true" if is_active else "false"
+                stmt = stmt.filter(
+                    self.ToolConnectionDBE.flags["is_active"].astext == expected
                 )
 
             stmt = stmt.order_by(self.ToolConnectionDBE.created_at.desc())
@@ -200,16 +212,19 @@ class ToolsDAO(ToolsDAOInterface):
         self,
         *,
         provider_connection_id: str,
+        project_id: Optional[UUID] = None,
     ) -> Optional[ToolConnection]:
+        """Set is_valid=True and is_active=True for the connection matching the provider ID."""
         async with engine.core_session() as session:
-            stmt = (
-                select(self.ToolConnectionDBE)
-                .filter(
-                    self.ToolConnectionDBE.data["connected_account_id"].astext
-                    == provider_connection_id
-                )
-                .limit(1)
+            stmt = select(self.ToolConnectionDBE).filter(
+                self.ToolConnectionDBE.data["connected_account_id"].astext
+                == provider_connection_id
             )
+
+            if project_id is not None:
+                stmt = stmt.filter(self.ToolConnectionDBE.project_id == project_id)
+
+            stmt = stmt.limit(1)
 
             result = await session.execute(stmt)
             dbe = result.scalars().first()
@@ -236,6 +251,7 @@ class ToolsDAO(ToolsDAOInterface):
         *,
         provider_connection_id: str,
     ) -> Optional[ToolConnection]:
+        """Lookup any connection by provider-side connected_account_id (no project scope)."""
         async with engine.core_session() as session:
             stmt = (
                 select(self.ToolConnectionDBE)

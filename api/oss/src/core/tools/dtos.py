@@ -192,6 +192,32 @@ class ToolResult(Identifier):
 
 
 # ---------------------------------------------------------------------------
+# Tool Connection (adapter-level DTOs)
+# ---------------------------------------------------------------------------
+
+
+class ToolConnectionRequest(BaseModel):
+    """Input DTO for initiating a provider connection via a gateway adapter."""
+
+    user_id: str
+    integration_key: str
+    auth_scheme: Optional[str] = None
+    callback_url: Optional[str] = None
+
+
+class ToolConnectionResponse(BaseModel):
+    """Output DTO from ToolsGatewayInterface.initiate_connection.
+
+    The adapter builds ``connection_data`` with provider-specific fields so the
+    service never needs to know which provider it is talking to.
+    """
+
+    provider_connection_id: str
+    redirect_url: Optional[str] = None
+    connection_data: Dict[str, Any] = {}
+
+
+# ---------------------------------------------------------------------------
 # Tool Execution (adapter-level DTOs)
 # ---------------------------------------------------------------------------
 

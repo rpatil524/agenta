@@ -105,8 +105,8 @@ from oss.src.apis.fastapi.evaluations.router import SimpleEvaluationsRouter
 from oss.src.core.ai_services.service import AIServicesService
 from oss.src.apis.fastapi.ai_services.router import AIServicesRouter
 from oss.src.dbs.postgres.tools.dao import ToolsDAO
-from oss.src.core.tools.providers.composio import ComposioAdapter
-from oss.src.core.tools.registry import GatewayAdapterRegistry
+from oss.src.core.tools.providers.composio import ComposioToolsAdapter
+from oss.src.core.tools.registry import ToolsGatewayRegistry
 from oss.src.core.tools.service import ToolsService
 from oss.src.apis.fastapi.tools.router import ToolsRouter
 
@@ -170,6 +170,9 @@ async def lifespan(*args, **kwargs):
     validate_required_env_vars()
 
     yield
+
+    for adapter in _composio_adapters.values():
+        await adapter.close()
 
 
 app = FastAPI(
@@ -346,12 +349,14 @@ simple_evaluations_service = SimpleEvaluationsService(
 # Tools adapter + service
 _composio_adapters = {}
 if env.composio.enabled:
-    _composio_adapters["composio"] = ComposioAdapter(
-        api_key=env.composio.api_key,
+    _composio_adapters["composio"] = ComposioToolsAdapter(
+        api_key=env.composio.api_key,  # type: ignore[arg-type]  # guarded by .enabled
         api_url=env.composio.api_url,
     )
+else:
+    log.warning("Composio not enabled — set COMPOSIO_API_KEY to activate gateway tools")
 
-tools_adapter_registry = GatewayAdapterRegistry(
+tools_adapter_registry = ToolsGatewayRegistry(
     adapters=_composio_adapters,
 )
 

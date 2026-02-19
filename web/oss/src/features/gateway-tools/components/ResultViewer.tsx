@@ -26,21 +26,41 @@ export default function ResultViewer({result, error, outputSchema, jsonMode}: Pr
 
     if (!result) return null
 
-    const statusError = result.status?.error as string | undefined
-    if (statusError) {
+    const statusCode = result.status?.code
+    const statusMessage = result.status?.message
+    const hasStatusError =
+        (typeof statusCode === "string" && statusCode !== "STATUS_CODE_OK") ||
+        (typeof statusMessage === "string" && statusMessage.trim().length > 0)
+
+    if (hasStatusError) {
         return (
             <Alert
                 type="error"
                 message="Tool returned an error"
-                description={statusError}
+                description={
+                    statusCode && statusMessage
+                        ? `${statusCode}: ${statusMessage}`
+                        : (statusMessage ?? statusCode ?? "Unknown tool execution error")
+                }
                 showIcon
             />
         )
     }
 
-    // result.result contains the actual tool output data
-    // If result.result is missing, fall back to the result object itself
-    const data = (result.result ?? {}) as Record<string, unknown>
+    let data: Record<string, unknown> = {}
+    const rawContent = result.data?.content
+    if (typeof rawContent === "string" && rawContent.trim().length > 0) {
+        try {
+            const parsed = JSON.parse(rawContent)
+            if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+                data = parsed as Record<string, unknown>
+            } else {
+                data = {value: parsed}
+            }
+        } catch {
+            data = {raw: rawContent}
+        }
+    }
 
     return <ResultDisplay data={data} outputSchema={outputSchema} jsonMode={jsonMode} />
 }

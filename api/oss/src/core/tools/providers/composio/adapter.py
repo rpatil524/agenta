@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import httpx
 
@@ -7,16 +7,16 @@ from oss.src.utils.logging import get_module_logger
 from agenta.sdk.models.workflows import JsonSchemas
 
 from oss.src.core.tools.dtos import (
-    ToolCatalogAction,
     ToolCatalogActionDetails,
-    ToolCatalogIntegration,
     ToolCatalogProvider,
+    ToolConnectionRequest,
+    ToolConnectionResponse,
     ToolExecutionRequest,
     ToolExecutionResponse,
 )
-from oss.src.core.tools.interfaces import GatewayAdapterInterface
+from oss.src.core.tools.interfaces import ToolsGatewayInterface
 from oss.src.core.tools.exceptions import AdapterError
-from oss.src.core.tools.providers.composio import catalog
+from oss.src.core.tools.providers.composio.catalog import ComposioCatalogClient
 
 
 log = get_module_logger(__name__)
@@ -24,8 +24,13 @@ log = get_module_logger(__name__)
 COMPOSIO_DEFAULT_API_URL = "https://backend.composio.dev/api/v3"
 
 
-class ComposioAdapter(GatewayAdapterInterface):
-    """Composio V3 API adapter — uses httpx directly (no SDK)."""
+class ComposioToolsAdapter(ToolsGatewayInterface, ComposioCatalogClient):
+    """Composio V3 API adapter — uses httpx directly (no SDK).
+
+    Catalog operations (list/get integrations and actions) are provided by
+    ``ComposioCatalogClient``. Connection management and tool execution are
+    implemented here.
+    """
 
     def __init__(
         self,
@@ -35,6 +40,13 @@ class ComposioAdapter(GatewayAdapterInterface):
     ):
         self.api_key = api_key
         self.api_url = api_url.rstrip("/")
+        # Shared client — one connection pool for the adapter's lifetime.
+        # Call close() on shutdown (wired in entrypoints/routers.py lifespan).
+        self._client = httpx.AsyncClient(timeout=30.0)
+
+    async def close(self) -> None:
+        """Close the shared HTTP client and release connection pool resources."""
+        await self._client.aclose()
 
     def _headers(self) -> Dict[str, str]:
         return {
@@ -48,15 +60,13 @@ class ComposioAdapter(GatewayAdapterInterface):
         *,
         params: Optional[Dict[str, Any]] = None,
     ) -> Any:
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(
-                f"{self.api_url}{path}",
-                headers=self._headers(),
-                params=params,
-                timeout=30.0,
-            )
-            resp.raise_for_status()
-            return resp.json()
+        resp = await self._client.get(
+            f"{self.api_url}{path}",
+            headers=self._headers(),
+            params=params,
+        )
+        resp.raise_for_status()
+        return resp.json()
 
     async def _post(
         self,
@@ -64,42 +74,35 @@ class ComposioAdapter(GatewayAdapterInterface):
         *,
         json: Optional[Dict[str, Any]] = None,
     ) -> Any:
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                f"{self.api_url}{path}",
-                headers=self._headers(),
-                json=json or {},
-                timeout=30.0,
+        resp = await self._client.post(
+            f"{self.api_url}{path}",
+            headers=self._headers(),
+            json=json or {},
+        )
+        if not resp.is_success:
+            log.error(
+                "Composio POST %s → %s: %s",
+                path,
+                resp.status_code,
+                resp.text,
             )
-            if not resp.is_success:
-                log.error(
-                    "Composio POST %s → %s: %s",
-                    path,
-                    resp.status_code,
-                    resp.text,
-                )
-            resp.raise_for_status()
-            return resp.json()
+        resp.raise_for_status()
+        return resp.json()
 
     async def _delete(self, path: str) -> bool:
-        async with httpx.AsyncClient() as client:
-            resp = await client.delete(
-                f"{self.api_url}{path}",
-                headers=self._headers(),
-                timeout=30.0,
-            )
-            resp.raise_for_status()
-            return True
+        resp = await self._client.delete(
+            f"{self.api_url}{path}",
+            headers=self._headers(),
+        )
+        resp.raise_for_status()
+        return True
 
     # -----------------------------------------------------------------------
-    # Catalog
+    # Catalog — provider listing
     # -----------------------------------------------------------------------
 
     async def list_providers(self) -> List[ToolCatalogProvider]:
-        integrations_count = await catalog.count_integrations(
-            api_key=self.api_key,
-            api_url=self.api_url,
-        )
+        integrations_count = await self.count_integrations()
         return [
             ToolCatalogProvider(
                 key="composio",
@@ -109,42 +112,12 @@ class ComposioAdapter(GatewayAdapterInterface):
             )
         ]
 
-    async def list_integrations(
-        self,
-        *,
-        search: Optional[str] = None,
-        sort_by: Optional[str] = None,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-    ) -> Tuple[List[ToolCatalogIntegration], Optional[str], int]:
-        return await catalog.list_integrations(
-            api_key=self.api_key,
-            api_url=self.api_url,
-            search=search,
-            sort_by=sort_by,
-            limit=limit,
-            cursor=cursor,
-        )
+    # list_integrations, get_integration, list_actions are inherited from
+    # ComposioCatalogClient and satisfy the ToolsGatewayInterface contract.
 
-    async def list_actions(
-        self,
-        *,
-        integration_key: str,
-        query: Optional[str] = None,
-        categories: Optional[List[str]] = None,
-        important: Optional[bool] = None,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-    ) -> Tuple[List[ToolCatalogAction], Optional[str], int]:
-        return await catalog.list_actions(
-            integration_key=integration_key,
-            api_key=self.api_key,
-            api_url=self.api_url,
-            query=query,
-            tags=categories,  # Our "categories" maps to Composio's "tags" param
-            limit=limit,
-            cursor=cursor,
-        )
+    # -----------------------------------------------------------------------
+    # Catalog — action detail
+    # -----------------------------------------------------------------------
 
     async def get_action(
         self,
@@ -197,11 +170,13 @@ class ComposioAdapter(GatewayAdapterInterface):
     async def initiate_connection(
         self,
         *,
-        user_id: str,
-        integration_key: str,
-        auth_scheme: Optional[str] = None,
-        callback_url: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        request: ToolConnectionRequest,
+    ) -> ToolConnectionResponse:
+        user_id = request.user_id
+        integration_key = request.integration_key
+        auth_scheme = request.auth_scheme
+        callback_url = request.callback_url
+
         # Step 1: validate the toolkit exists and get its auth scheme info.
         try:
             toolkit = await self._get(f"/toolkits/{integration_key}")
@@ -301,11 +276,21 @@ class ComposioAdapter(GatewayAdapterInterface):
                 detail=str(e),
             ) from e
 
-        return {
-            "id": result.get("connected_account_id"),
-            "redirect_url": result.get("redirect_url"),
+        provider_connection_id = result.get("connected_account_id", "")
+        redirect_url = result.get("redirect_url")
+
+        connection_data: Dict[str, Any] = {
+            "connected_account_id": provider_connection_id,
             "auth_config_id": auth_config_id,
         }
+        if redirect_url:
+            connection_data["redirect_url"] = redirect_url
+
+        return ToolConnectionResponse(
+            provider_connection_id=provider_connection_id,
+            redirect_url=redirect_url,
+            connection_data=connection_data,
+        )
 
     async def get_connection_status(
         self,
@@ -332,7 +317,27 @@ class ComposioAdapter(GatewayAdapterInterface):
         provider_connection_id: str,
         force: bool = False,
         callback_url: Optional[str] = None,
+        integration_key: Optional[str] = None,
+        user_id: Optional[str] = None,
     ) -> Dict[str, Any]:
+        # For Composio OAuth flows, "refresh" means re-initiating the auth link.
+        # The provider does not expose a token-refresh endpoint for OAuth connections,
+        # so we create a new connected_accounts/link which the user must re-authorize.
+        if integration_key and user_id:
+            result = await self.initiate_connection(
+                request=ToolConnectionRequest(
+                    user_id=user_id,
+                    integration_key=integration_key,
+                    callback_url=callback_url,
+                ),
+            )
+            return {
+                "id": result.provider_connection_id,
+                "redirect_url": result.redirect_url,
+                "auth_config_id": result.connection_data.get("auth_config_id"),
+                "is_valid": False,  # Re-auth pending until callback fires
+            }
+
         payload: Dict[str, Any] = {}
         if callback_url:
             payload["callback_url"] = callback_url

@@ -212,36 +212,35 @@ class ToolServiceResponse(BaseModel):
     errors: List[ToolError] = []
 ```
 
-### 2.5 Slug Utilities
+### 2.5 Tool Slug Format
 
-> File: `api/oss/src/core/tools/slugs.py`
+Tool slugs use a **5-part dot-separated format**:
 
-```python
-class ParsedToolSlug(NamedTuple):
-    provider: str                # gmail
-    name: str                    # SEND_EMAIL
-    slug: str | None             # support_inbox or None
+```
+tools.{provider}.{integration}.{action}.{connection}
+```
 
+| Segment | Example | Description |
+|---------|---------|-------------|
+| `tools` | `tools` | Literal prefix — always `"tools"` |
+| `provider` | `composio` | Gateway provider key (e.g. `"composio"`) |
+| `integration` | `gmail` | Integration / toolkit slug |
+| `action` | `SEND_EMAIL` | Action key (uppercase convention) |
+| `connection` | `support_inbox` | Connection slug identifying which authenticated account to use |
 
-def parse_tool_slug(slug: str) -> ParsedToolSlug:
-    """
-    Parse: tools.gateway.{provider}.{tool}[.{slug}]
+**All five segments are required** for tool execution via `POST /call`.
 
-    Examples:
-        "tools.gateway.gmail.SEND_EMAIL"                → ("gmail", "SEND_EMAIL", None)
-        "tools.gateway.gmail.SEND_EMAIL.support_inbox"  → ("gmail", "SEND_EMAIL", "support_inbox")
-    """
+> LLMs do not support `.` in function names. Use `__` as a separator when building
+> function names for LLM `tools` arrays, e.g. `tools__composio__gmail__SEND_EMAIL__support_inbox`.
+> The `POST /call` endpoint normalises `__` → `.` before parsing.
 
+**Examples:**
 
-def build_tool_slug(
-    *,
-    provider: str,
-    name: str,
-    slug: str | None = None,
-) -> str:
-    """
-    Build: tools.gateway.{provider}.{tool}[.{slug}]
-    """
+```
+tools.composio.gmail.SEND_EMAIL.support_inbox
+tools.composio.github.CREATE_ISSUE.work_account
+tools__composio__slack__SEND_MESSAGE__team_bot  ← LLM-safe encoding
+```
 ```
 
 ---
@@ -649,7 +648,7 @@ All fields are optional. Empty body returns all tools.
   "count": 2,
   "tools": [
     {
-      "id": "019abc12-3456-7890-abcd-ef1234567890",
+      "id": "some-secret-id",
       "provider": "gmail",
       "slug": "support_inbox",
       "name": "Support inbox",
@@ -707,7 +706,7 @@ Create a new tool (initiate OAuth or API key connection).
 ```json
 {
   "tool": {
-    "id": "019abc12-3456-7890-abcd-ef1234567890",
+    "id": "some-secret-id",
     "provider": "gmail",
     "slug": "support_inbox",
     "name": "Support inbox",
@@ -772,7 +771,7 @@ Get a single tool. Supports polling: when `is_valid=false` and no error status, 
 ```json
 {
   "tool": {
-    "id": "019abc12-3456-7890-abcd-ef1234567890",
+    "id": "some-secret-id",
     "provider": "gmail",
     "slug": "support_inbox",
     "name": "Support inbox",

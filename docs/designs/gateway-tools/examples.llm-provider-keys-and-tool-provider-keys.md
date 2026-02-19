@@ -298,7 +298,7 @@ Notes:
 **Response (OAuth)**
 ```json
 {
-  "secret_id": "019abc12-3456-7890-abcd-ef1234567890",
+  "secret_id": "some-secret-id",
   "status": "pending",
   "redirect_url": "https://connect.example/link/ln_..."
 }
@@ -310,7 +310,7 @@ Notes:
 
 ```json
 {
-  "secret_id": "019abc12-3456-7890-abcd-ef1234567890",
+  "secret_id": "some-secret-id",
   "state": "opaque-state",
   "code": "oauth-code"
 }

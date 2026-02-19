@@ -39,9 +39,14 @@ export const useToolExecution = () => {
                     params.connectionSlug,
                 )
                 const response = await executeToolCall({
-                    id: uuidv4(),
-                    name: slug,
-                    arguments: params.arguments,
+                    data: {
+                        id: uuidv4(),
+                        type: "function",
+                        function: {
+                            name: slug,
+                            arguments: params.arguments,
+                        },
+                    },
                 })
                 setResult(response.call)
                 return response.call

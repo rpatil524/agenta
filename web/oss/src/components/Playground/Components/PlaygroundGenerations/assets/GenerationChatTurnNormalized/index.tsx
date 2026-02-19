@@ -209,6 +209,7 @@ const GenerationChatTurnNormalized = ({
                                 <GatewayToolExecuteButton
                                     toolPayloads={assistantToolPayloads}
                                     onUpdateToolResponse={handleUpdateToolResponse}
+                                    onExecuteAndSendToChat={onRun}
                                 />
                             </div>
                         }

@@ -1,7 +1,8 @@
 import React, {useCallback, useState} from "react"
 
-import {Lightning} from "@phosphor-icons/react"
-import {Button, message as antMessage} from "antd"
+import {CaretDown, Lightning} from "@phosphor-icons/react"
+import {Dropdown, message as antMessage} from "antd"
+import {v4 as uuidv4} from "uuid"
 
 import {executeToolCall} from "@/oss/services/tools/api"
 
@@ -23,20 +24,26 @@ export interface GatewayToolPayloadInfo {
 interface Props {
     toolPayloads: GatewayToolPayloadInfo[]
     onUpdateToolResponse: (callId: string | undefined, resultStr: string) => void
+    onExecuteAndSendToChat?: () => void
 }
 
-const GatewayToolExecuteButton: React.FC<Props> = ({toolPayloads, onUpdateToolResponse}) => {
+const GatewayToolExecuteButton: React.FC<Props> = ({
+    toolPayloads,
+    onUpdateToolResponse,
+    onExecuteAndSendToChat,
+}) => {
     const [executingId, setExecutingId] = useState<string | null>(null)
 
     const handleExecute = useCallback(
-        async (p: GatewayToolPayloadInfo) => {
+        async (p: GatewayToolPayloadInfo, sendToChat: boolean) => {
             const execId = p.callId || p.name || "default"
+            const toolCallId = p.callId || `call_${uuidv4()}`
             setExecutingId(execId)
 
             try {
                 const response = await executeToolCall({
                     data: {
-                        id: p.callId || "",
+                        id: toolCallId,
                         type: "function",
                         function: {
                             name: p.name!,
@@ -47,13 +54,16 @@ const GatewayToolExecuteButton: React.FC<Props> = ({toolPayloads, onUpdateToolRe
                 const resultStr =
                     response.call?.data?.content ?? JSON.stringify(response.call?.data, null, 2)
                 onUpdateToolResponse(p.callId, resultStr)
+                if (sendToChat) {
+                    onExecuteAndSendToChat?.()
+                }
             } catch {
                 antMessage.error("Tool execution failed")
             } finally {
                 setExecutingId(null)
             }
         },
-        [onUpdateToolResponse],
+        [onExecuteAndSendToChat, onUpdateToolResponse],
     )
 
     const gatewayPayloads = toolPayloads.filter((p) => isGatewaySlug(p.name || ""))
@@ -62,15 +72,25 @@ const GatewayToolExecuteButton: React.FC<Props> = ({toolPayloads, onUpdateToolRe
     return (
         <div className="flex flex-col gap-1">
             {gatewayPayloads.map((p) => (
-                <Button
+                <Dropdown.Button
                     key={p.callId || p.name}
                     size="small"
-                    icon={<Lightning size={12} />}
+                    icon={<CaretDown size={12} />}
                     loading={executingId === (p.callId || p.name || "default")}
-                    onClick={() => handleExecute(p)}
+                    onClick={() => handleExecute(p, true)}
+                    menu={{
+                        items: [
+                            {
+                                key: "call-and-send",
+                                label: "Call tool",
+                            },
+                        ],
+                        onClick: () => handleExecute(p, false),
+                    }}
                 >
-                    Call tool
-                </Button>
+                    <Lightning size={12} />
+                    Call tool and send to chat
+                </Dropdown.Button>
             ))}
         </div>
     )

@@ -1,6 +1,5 @@
 from sqlalchemy import (
     Column,
-    Enum,
     ForeignKeyConstraint,
     Index,
     PrimaryKeyConstraint,
@@ -8,7 +7,6 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 
-from oss.src.core.tools.dtos import ToolProviderKind
 from oss.src.dbs.postgres.shared.base import Base
 from oss.src.dbs.postgres.shared.dbas import (
     DataDBA,
@@ -59,11 +57,6 @@ class ToolConnectionDBE(
             "provider_key",
             "integration_key",
         ),
-    )
-
-    kind = Column(
-        Enum(ToolProviderKind, name="tool_provider_kind_enum"),
-        nullable=False,
     )
 
     provider_key = Column(

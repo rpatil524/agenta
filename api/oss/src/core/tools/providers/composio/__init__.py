@@ -1,19 +1,19 @@
 # Avoid importing adapter here to prevent SDK dependency issues in standalone scripts
 # Import directly when needed:
-#   from oss.src.core.tools.providers.composio.adapter import ComposioAdapter
+#   from oss.src.core.tools.providers.composio.adapter import ComposioToolsAdapter
 
 __all__ = [
-    "ComposioAdapter",
+    "ComposioToolsAdapter",
     "ComposioToolConnectionData",
 ]
 
 
 def __getattr__(name):
     """Lazy import to avoid SDK dependency on module import."""
-    if name == "ComposioAdapter":
-        from oss.src.core.tools.providers.composio.adapter import ComposioAdapter
+    if name == "ComposioToolsAdapter":
+        from oss.src.core.tools.providers.composio.adapter import ComposioToolsAdapter
 
-        return ComposioAdapter
+        return ComposioToolsAdapter
     if name == "ComposioToolConnectionData":
         from oss.src.core.tools.providers.composio.dtos import (
             ComposioToolConnectionData,

@@ -75,6 +75,35 @@ class ConnectionInactiveError(ToolsError):
         super().__init__(msg)
 
 
+class ConnectionInvalidError(ToolsError):
+    """Raised when a connection exists but is not yet valid (credentials missing)."""
+
+    def __init__(
+        self,
+        *,
+        connection_slug: str,
+        detail: Optional[str] = None,
+    ):
+        self.connection_slug = connection_slug
+        self.detail = detail
+        msg = f"Connection credentials not established: {connection_slug}"
+        if detail:
+            msg += f" - {detail}"
+        super().__init__(msg)
+
+
+class ToolSlugInvalidError(ToolsError):
+    """Raised when a tool slug contains invalid characters or has the wrong format."""
+
+    def __init__(self, slug: str, detail: Optional[str] = None):
+        self.slug = slug
+        self.detail = detail
+        msg = f"Invalid tool slug: {slug}"
+        if detail:
+            msg += f" — {detail}"
+        super().__init__(msg)
+
+
 class ToolNotConnectedError(ToolsError):
     """Raised when trying to invoke a tool with no active connection."""
 

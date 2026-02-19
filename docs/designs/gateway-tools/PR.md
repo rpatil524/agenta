@@ -70,7 +70,7 @@ created_at / updated_at / deleted_at + …_by_id columns
 
 - `ee/src/models/shared_models.py` — `VIEW_TOOLS`, `EDIT_TOOLS`, `RUN_TOOLS` permissions added
 - EE migration mirror at `api/ee/databases/postgres/migrations/…/e5f6a1b2c3d4`
-- Docker compose files updated for `COMPOSIO_ENABLED` / `COMPOSIO_API_KEY` env vars
+- Docker compose files updated for `COMPOSIO_API_KEY` env var
 
 ---
 
@@ -90,8 +90,7 @@ created_at / updated_at / deleted_at + …_by_id columns
 
 | Env Var | Default | Required |
 |---------|---------|----------|
-| `COMPOSIO_ENABLED` | `false` | No — set `true` to activate |
-| `COMPOSIO_API_KEY` | — | Yes when enabled |
+| `COMPOSIO_API_KEY` | — | Yes — presence enables Composio automatically |
 | `COMPOSIO_API_URL` | `https://backend.composio.dev/api/v3` | No |
 
 ---

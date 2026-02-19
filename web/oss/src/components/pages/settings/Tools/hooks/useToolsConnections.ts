@@ -24,7 +24,13 @@ export const useToolsConnections = (integrationKey: string) => {
             queryKey: ["tools", "integrationDetail", DEFAULT_PROVIDER, integrationKey],
         })
         queryClient.invalidateQueries({
+            queryKey: ["tools", "integrationConnections", DEFAULT_PROVIDER, integrationKey],
+        })
+        queryClient.invalidateQueries({
             queryKey: ["tools", "integrations", DEFAULT_PROVIDER],
+        })
+        queryClient.invalidateQueries({
+            queryKey: ["tools", "connections"],
         })
     }, [integrationKey])
 

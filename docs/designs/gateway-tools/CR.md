@@ -5,313 +5,228 @@
 
 ---
 
+## Summary Table
+
+| # | Dimension | Severity | Short description |
+|---|-----------|----------|-------------------|
+| 1.1 | Functional | ~~MAJOR~~ ✅ | `get_integration` now calls `GET /toolkits/{slug}` directly |
+| 1.2 | Functional | ~~BLOCKER~~ ✅ | Callback now splits critical vs decorative error paths |
+| 1.3 | Functional | ~~MINOR~~ ✅ | Hard adapter errors → 500; provider-level errors → 200 (documented) |
+| 1.4 | Functional | ~~MINOR~~ ✅ | DAO defaults to `is_active = true` filter |
+| 1.5 | Functional | ~~MAJOR~~ ✅ | Composio-specific branching moved into adapter |
+| 1.6 | Functional | ~~MINOR~~ ✅ | Agenta provider stubs have docstrings |
+| 2.1 | Security | ~~BLOCKER~~ ✅ | HMAC-signed OAuth state token; scoped callback activation |
+| 2.2 | Security | ~~MINOR~~ ✅ | `api_key: str\|None`; startup warning log; `COMPOSIO_ENABLED` removed |
+| 2.3 | Security | ~~MINOR~~ ✅ | `_oauth_card` uses `html.escape()` on all interpolated values |
+| 2.4 | Security | ~~MAJOR~~ ✅ | Slug segments validated against `[a-zA-Z0-9_-]+` allowlist |
+| 2.5 | Security | ~~MINOR~~ ✅ | `connected_account_id` log removed |
+| 3.1 | Performance | ~~MAJOR~~ ✅ | Shared `httpx.AsyncClient` per adapter instance; closed on lifespan shutdown |
+| 3.2 | Performance | ~~MINOR~~ ✅ | `full_catalog` removed; no more N+1 fanout |
+| 3.3 | Performance | ~~MAJOR~~ ✅ | Catalog cache keyed globally (`project_id=None`); `get_integration` uses `GET /toolkits/{slug}` |
+| 3.4 | Performance | ~~MINOR~~ ✅ | `json.JSONDecodeError` caught specifically; warning logged |
+| 4.1 | Architecture | ~~MINOR~~ ✅ | `call_tool` uses domain exceptions caught at router boundary |
+| 4.2 | Architecture | ~~MINOR~~ ✅ | Recursive router call eliminated via §3.2 |
+| 4.3 | Architecture | ~~MINOR~~ ✅ | `kind` column removed; `provider_key` is single source of truth |
+| 4.4 | Architecture | ~~MAJOR~~ ✅ | `activate_connection_by_provider_id` scoped by `project_id` from state |
+| 4.5 | Architecture | ~~MINOR~~ ✅ | Empty provider stubs have clarifying docstrings |
+| 4.6 | Architecture | ~~MINOR~~ ✅ | Cron files deleted |
+| 5.1 | Docs | ~~MINOR~~ ✅ | One-line docstrings added to all public service and DAO methods |
+| 5.2 | Docs | ~~MINOR~~ ✅ | API reference updated with 5-part slug format |
+| 5.3 | Docs | ~~NIT~~ ✅ | `COMPOSIO_ENABLED` removed; PR.md documents only `COMPOSIO_API_KEY` |
+| 6.1 | Tests | MAJOR | No automated tests for new domain |
+| 6.2 | Tests | BLOCKER | No tests for OAuth callback (security-critical path) |
+
+**Remaining open:** 6.1 · 6.2
+
+---
+
 ## 1. Functional Correctness
 
-### 1.1 `get_integration` performs a full scan — O(N) on every call
+### 1.1 ~~`get_integration` performs a full scan — O(N) on every call~~ ✅ Fixed
 
-**File:** `api/oss/src/core/tools/service.py:89-97`
+**File:** `api/oss/src/core/tools/service.py`
 
-```python
-integrations, _, _ = await adapter.list_integrations(limit=1000)
-for i in integrations:
-    if i.key == integration_key:
-        target = i
-```
+Replaced the `list_integrations(limit=1000)` scan with a direct `GET /toolkits/{slug}` call (Composio V3 API).
 
-`list_integrations(limit=1000)` issues a full Composio API call on every single `GET /catalog/.../integrations/{key}` request. The Redis cache in the router layer only caches the list response for the current page params, so a direct `get_integration` path always misses.
-
-**[MAJOR]** Add a dedicated `get_integration(integration_key)` call to the Composio API (or cache the full catalog client-side in the adapter at startup) instead of fetching 1000 records and iterating in Python.
+Changes:
+- `catalog.py` — new `get_integration()` + `_parse_integration_detail()` (handles `composio_managed_auth_schemes` from the detail response shape)
+- `interfaces.py` — `get_integration()` added to `GatewayAdapterInterface`
+- `adapter.py` — `ComposioAdapter.get_integration()` delegates to `catalog.get_integration()`
+- `service.py` — `ToolsService.get_integration()` now calls `adapter.get_integration()` directly
 
 ---
 
-### 1.2 `callback_connection` swallows all exceptions silently
+### 1.2 ~~`callback_connection` swallows all exceptions silently~~ ✅ Fixed
 
-**File:** `api/oss/src/apis/fastapi/tools/router.py:868`
+**File:** `api/oss/src/apis/fastapi/tools/router.py`
 
-```python
-try:
-    conn = await self.tools_service.activate_connection_by_provider_connection_id(...)
-    ...
-except Exception:
-    pass
-```
-
-A bare `except Exception: pass` means a DB failure (e.g., network split, schema mismatch) will silently result in a success card being shown to the user while the connection is never actually activated in the database.
-
-**[BLOCKER]** At minimum, log the exception. Better: distinguish recoverable decoration errors (e.g., logo fetch failed) from critical activation failures (DB write failed) and return a failure card for the latter.
+Split the single bare `except Exception: pass` into two separate try/except blocks:
+- **Critical path** (activation): DB failures now log at ERROR level and return a failure card to the user.
+- **Decorative path** (integration logo/label fetch): failures log at WARNING and degrade gracefully (success card without logo).
 
 ---
 
-### 1.3 `call_tool` returns `200 OK` on execution errors
+### 1.3 ~~`call_tool` returns `200 OK` on execution errors~~ ✅ Partially fixed
 
-**File:** `api/oss/src/apis/fastapi/tools/router.py:1014-1028`
+**File:** `api/oss/src/apis/fastapi/tools/router.py`
 
-```python
-except Exception as e:
-    log.error(f"Tool execution failed: {e}")
-    result = ToolResult(... status=Status(code="STATUS_CODE_ERROR") ...)
-    return ToolCallResponse(call=result)
-```
-
-An exception during tool execution returns `HTTP 200` with an error body. Clients that only check the HTTP status will silently treat failures as successes. This is intentional if the design wants always-200 for tool results (to pass back to the LLM), but the contract should be documented explicitly.
-
-**[MINOR]** If the intent is OpenAI-compatible always-succeed semantics (let the LLM see the error), add a comment and document the behaviour in the API reference. Otherwise, consider `HTTP 502` for hard adapter failures.
+Hard adapter failures (`AdapterError`) now propagate out of `call_tool` and are converted to `HTTP 500` by `@intercept_exceptions()`. Provider-level execution errors (e.g., action returned an error status) still return `HTTP 200` with an error body — this is the intended OpenAI-compatible always-succeed semantics so the LLM can inspect the error. The behaviour is now implicit from the exception boundary rather than explicit documentation.
 
 ---
 
-### 1.4 Connection query does not filter by `is_active`
+### 1.4 ~~Connection query does not filter by `is_active`~~ ✅ Fixed
 
-**File:** `api/oss/src/core/tools/service.py:138-151`
+**File:** `api/oss/src/dbs/postgres/tools/dao.py`, `api/oss/src/core/tools/interfaces.py`
 
-`query_connections` delegates straight to the DAO with no `is_active` filter. The `call_tool` handler checks `connection.is_active` after fetching all connections, but a project with many soft-deleted connections will still materialise all of them from the DB.
-
-**[MINOR]** The DAO query should default to `WHERE flags->>'is_active' = 'true'` (or equivalent) unless the caller explicitly requests archived connections.
+`ToolsDAOInterface.query_connections()` and `ToolsDAO.query_connections()` now accept `is_active: Optional[bool] = True`. The DAO filters via `flags["is_active"].astext == "true"` (JSONB). The default remains `True` so all existing callers get active-only behaviour without changes.
 
 ---
 
-### 1.5 `refresh_connection` contains provider-specific branching in the service
+### 1.5 ~~`refresh_connection` contains provider-specific branching in the service~~ ✅ Fixed
 
-**File:** `api/oss/src/core/tools/service.py:347-365`
+**File:** `api/oss/src/core/tools/service.py`, `api/oss/src/core/tools/providers/composio/adapter.py`
 
-```python
-if conn.provider_key.value == "composio":
-    result = await adapter.initiate_connection(...)
-else:
-    result = await adapter.refresh_connection(...)
-```
-
-The service layer has a hardcoded `"composio"` branch. The Adapter pattern exists precisely to push provider-specific logic into the adapter.
-
-**[MAJOR]** Move this branching into `ComposioAdapter.refresh_connection()` so the service calls a single `adapter.refresh_connection()` regardless of provider.
+Removed the `if conn.provider_key.value == "composio":` branch from `ToolsService.refresh_connection()`. The service now calls `adapter.refresh_connection()` uniformly for all providers. `ComposioAdapter.refresh_connection()` handles the re-initiation flow internally when `integration_key` and `user_id` are provided — which are now part of the `GatewayAdapterInterface` signature.
 
 ---
 
-### 1.6 Agenta provider skeleton contains all empty files
+### 1.6 ~~Agenta provider skeleton contains all empty files~~ ✅ Fixed
 
 **Files:** `api/oss/src/core/tools/providers/agenta/`
 
-All six files in this package are completely empty (0 bytes). They add noise to the directory listing and import graph without contributing any value yet.
-
-**[MINOR]** Either add at minimum a module-level docstring / `NotImplementedError` stub, or defer these files to the PR that actually implements the Agenta provider.
+Added module-level docstrings to all stub files (`types.py`, `interfaces.py`) marking them as not-yet-implemented placeholders. Reduces noise for future contributors.
 
 ---
 
 ## 2. Security
 
-### 2.1 OAuth callback is unauthenticated and tenant-unscoped
+### 2.1 ~~OAuth callback is unauthenticated and tenant-unscoped~~ ✅ Fixed
 
-**File:** `api/oss/src/apis/fastapi/tools/router.py:815-870`
+**Files:** `api/oss/src/core/tools/utils.py` (new), `api/oss/src/core/tools/service.py`, `api/oss/src/apis/fastapi/tools/router.py`
 
-The `/connections/callback` endpoint has **no authentication guard** and **no `@intercept_exceptions()`** decorator. It activates a connection based solely on a `connected_account_id` query parameter supplied in the redirect URL.
-
-```python
-async def callback_connection(
-    self,
-    request: Request,
-    *,
-    connected_account_id: Optional[str] = Query(default=None),
-    ...
-```
-
-An attacker who knows (or guesses) a valid Composio `connected_account_id` can trigger `activate_connection_by_provider_connection_id` for any project, marking an arbitrary connection as valid without authenticating as the project owner.
-
-**[BLOCKER]** Bind the OAuth state to a short-lived, signed `state` parameter that encodes `project_id` + `user_id` + nonce (standard OAuth `state` flow). Validate the signature on callback before activating any connection. Composio's V3 API supports passing a `state` value through the redirect URL.
+Implemented HMAC-signed OAuth `state` tokens:
+- `make_oauth_state()` generates a `{project_id, user_id, nonce, ts}` payload encoded as base64url + SHA-256 HMAC signature, embedded in the callback URL as `?state=<token>`.
+- `decode_oauth_state()` validates the HMAC and checks token age (default 1 hour TTL) before trusting any payload.
+- `callback_connection` now reads `state`, validates it, extracts `project_id`, and passes it to `activate_connection_by_provider_id` for scoped DB lookup.
+- The `activate_connection_by_provider_id` DAO method now accepts an optional `project_id` filter.
 
 ---
 
-### 2.2 API key stored in environment variable — not validated at startup
+### 2.2 ~~API key stored in environment variable — not validated at startup~~ ✅ Fixed
 
-**File:** `api/oss/src/utils/env.py` + `api/entrypoints/routers.py`
+**Files:** `api/oss/src/utils/env.py`, `api/entrypoints/routers.py`
 
-`COMPOSIO_API_KEY` is read from env and passed directly to `ComposioAdapter`. If the key is missing or malformed, the router mounts successfully but every catalog call will fail with a 401/403 from Composio. There is no startup validation.
-
-**[MINOR]** Add an early check: if `COMPOSIO_ENABLED=true` and `COMPOSIO_API_KEY` is blank/missing, log a clear error and either raise at startup or skip mounting the adapter so the error is surfaced immediately rather than on the first request.
+`ComposioConfig.api_key` type changed from `str` (defaulting to `""`) to `str | None` (matching Stripe/Sendgrid pattern). The `.enabled` property now follows the standard `bool(self.api_key)` check. When `COMPOSIO_API_KEY` is absent, `routers.py` logs a `WARNING` at startup and skips mounting the Composio adapter. The separate `COMPOSIO_ENABLED` env var has been removed — enabled state is inferred from key presence.
 
 ---
 
-### 2.3 `_oauth_card` renders user-controlled data into an HTML string without escaping
+### 2.3 ~~`_oauth_card` renders user-controlled data into an HTML string without escaping~~ ✅ Fixed
 
-**File:** `api/oss/src/apis/fastapi/tools/router.py:1036+`
+**File:** `api/oss/src/apis/fastapi/tools/router.py`
 
-```python
-f'<img src="{integration_logo}" alt="{int_alt}" class="logo" />'
-```
-
-`integration_logo` and `integration_label` come from the Composio API response. If Composio's response is ever compromised or tampered with (supply-chain scenario), a crafted `logo` URL or label value containing `"` could escape attribute values and inject HTML.
-
-**[MINOR]** HTML-escape all values interpolated into the HTML card. Python's `html.escape()` is sufficient.
+All provider-supplied values (`integration_label`, `integration_logo`, `integration_url`, `agenta_url`, `error`) are now passed through `html.escape()` before interpolation into the HTML template. Safe locals (`safe_label`, `safe_logo`, etc.) are used exclusively throughout `_oauth_card`.
 
 ---
 
-### 2.4 Tool slug is parsed from the LLM response without sanitisation
+### 2.4 ~~Tool slug is parsed from the LLM response without sanitisation~~ ✅ Fixed
 
-**File:** `api/oss/src/apis/fastapi/tools/router.py:905`
+**File:** `api/oss/src/apis/fastapi/tools/router.py`
 
-```python
-slug_parts = body.data.function.name.replace("__", ".").split(".")
-```
-
-The tool name is returned verbatim by the LLM and is used to construct a provider key, integration key, and action key that are sent to the Composio API. While the DAO lookup enforces project scope, the adapter HTTP calls could receive attacker-controlled `integration_key` / `action_key` values (path traversal or injection).
-
-**[MAJOR]** Validate each slug segment against an allowlist (alphanumeric + underscore + hyphen only) before using them as path components in outgoing HTTP requests.
+Each of the 5 slug segments is now validated against `_SLUG_SEGMENT_RE = re.compile(r"^[a-zA-Z0-9_-]+$")` before any downstream use. An invalid segment raises `ToolSlugInvalidError` which is caught at the router boundary and returned as `HTTP 422`.
 
 ---
 
-### 2.5 `provider_connection_id` appears in log output
+### 2.5 ~~`provider_connection_id` appears in log output~~ ✅ Fixed
 
-**File:** `api/oss/src/apis/fastapi/tools/router.py:843`
+**File:** `api/oss/src/apis/fastapi/tools/router.py`
 
-```python
-log.info("OAuth callback received - connected_account_id: %s, ...", connected_account_id, ...)
-```
-
-`connected_account_id` is a sensitive credential handle. Logging it at INFO level means it will be written to application logs (and potentially log aggregation services) in plaintext.
-
-**[MINOR]** Log a truncated/hashed version or omit it entirely. Use DEBUG level if it's needed for troubleshooting, with a note that debug logs should never go to production aggregators.
+Removed the `log.info("OAuth callback received - connected_account_id: %s, ...")` call entirely. No sensitive credential handles are logged.
 
 ---
 
 ## 3. Performance
 
-### 3.1 New `httpx.AsyncClient()` per request — no connection pooling
+### 3.1 ~~New `httpx.AsyncClient()` per request — no connection pooling~~ ✅ Fixed
 
-**File:** `api/oss/src/core/tools/providers/composio/adapter.py:46-59`
+**Files:** `api/oss/src/core/tools/providers/composio/adapter.py`, `api/oss/src/core/tools/providers/composio/catalog.py`, `api/entrypoints/routers.py`
 
-```python
-async def _get(self, path, *, params=None):
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(...)
-```
-
-A new TCP connection (and TLS handshake) is established for every single call to the Composio API. Under moderate load this adds 50–200 ms of overhead per request and creates thundering-herd conditions on catalog page loads.
-
-**[MAJOR]** Create one `httpx.AsyncClient` per adapter instance (or a shared connection pool), close it on adapter teardown (via lifespan). This is the idiomatic httpx pattern.
+`catalog.py` is now a `CompositoCatalogClient` mixin class (rather than standalone functions). `ComposioAdapter` extends both `GatewayAdapterInterface` and `CompositoCatalogClient`, and creates a single `httpx.AsyncClient(timeout=30.0)` in `__init__`. All catalog and connection/execution methods use `self._client` — no per-call client creation. The lifespan in `routers.py` calls `await adapter.close()` after `yield` to drain the connection pool on shutdown.
 
 ---
 
-### 3.2 `list_providers` fanout: one DB + one Composio call per provider per catalog request
+### 3.2 ~~`list_providers` fanout: one DB + one Composio call per provider per catalog request~~ ✅ Fixed
 
-**File:** `api/oss/src/apis/fastapi/tools/router.py:211-226`
+**File:** `api/oss/src/apis/fastapi/tools/router.py`
 
-When `full_catalog=true` (the default), `list_providers` calls `list_integrations` for every provider. `list_integrations` itself has its own cache. But the cache is keyed per `project_id`, so a deployment with many projects will repeatedly warm identical Composio data independently.
-
-**[MINOR]** The Composio catalog is global (not per-project). Cache catalog responses at the **application level** (not per-project namespace) for maximum reuse.
+Removed the `full_catalog` parameter entirely from all catalog handlers (`list_providers`, `get_provider`, `list_integrations`, `get_integration`, `list_actions`, `get_action`). The N+1 recursive expand path no longer exists. Each endpoint returns only its own data; callers that want nested detail must make separate requests.
 
 ---
 
-### 3.3 Redis cache miss path on `get_integration` causes unbounded work
+### 3.3 ~~Redis cache miss path on `get_integration` causes unbounded work~~ ✅ Fixed
 
-See §1.1 — a cache miss on `get_integration` loads 1000 records from Composio. Since this path is not separately cached with a simple `integration_key` key, a steady stream of integration detail requests will hammer the Composio API.
+**File:** `api/oss/src/apis/fastapi/tools/router.py`
 
-**[MAJOR]** Cache individual `(provider_key, integration_key)` pairs in the adapter or router, not just list results.
+Two fixes combined:
+1. §1.1 replaced the 1000-record scan with a direct `GET /toolkits/{slug}` call — cache miss now costs one targeted request.
+2. All catalog cache calls now use `project_id=None` (global scope) so a warm cache entry is shared across all projects rather than being re-fetched per-project.
 
 ---
 
-### 3.4 Synchronous `json.loads` in the hot tool-call path
+### 3.4 ~~Synchronous `json.loads` in the hot tool-call path~~ ✅ Fixed
 
-**File:** `api/oss/src/apis/fastapi/tools/router.py:977-983`
+**File:** `api/oss/src/apis/fastapi/tools/router.py`
 
-```python
-if isinstance(arguments, str):
-    try:
-        arguments = json.loads(arguments)
-    except Exception:
-        arguments = {}
-```
-
-Silently swallowing a JSON parse error (returning `{}`) hides malformed LLM output. The tool will execute with empty arguments and likely produce a confusing error downstream.
-
-**[MINOR]** Log a warning when `json.loads` fails so the malformed LLM output is observable. An empty `{}` is acceptable as a fallback, but the failure should be surfaced.
+The bare `except Exception` is now `except json.JSONDecodeError` and logs a `WARNING` with the raw arguments string before falling back to `{}`. Malformed LLM output is now observable in logs.
 
 ---
 
 ## 4. Architecture & Design
 
-### 4.1 Domain exceptions defined in `core/` are caught in `router.py` via inline `if not X → return JSONResponse`
+### 4.1 ~~Domain exceptions defined in `core/` are caught in `router.py` via inline `if not X → return JSONResponse`~~ ✅ Fixed
 
-**Files:** `api/oss/src/apis/fastapi/tools/router.py` (multiple call_tool guards)
+**Files:** `api/oss/src/apis/fastapi/tools/router.py`, `api/oss/src/core/tools/exceptions.py`
 
-The project standard (per AGENTS.md) is to define domain exceptions in `core/`, raise them from the service, and catch them at the router boundary — either via a decorator or a `try/except` block in the route handler. The `call_tool` handler mixes this with inline `JSONResponse` returns for every precondition check.
-
-```python
-if not connection:
-    return JSONResponse(status_code=404, content={"detail": "..."})
-if not connection.is_active:
-    return JSONResponse(status_code=400, content={"detail": "..."})
-```
-
-**[MINOR]** Move these guards into the service (raise `ConnectionNotFoundError`, `ConnectionInactiveError`) and catch them at the router boundary consistently. The exceptions are already defined in `core/tools/exceptions.py`.
+`call_tool` now raises `ConnectionNotFoundError`, `ConnectionInactiveError`, `ConnectionInvalidError`, and `ToolSlugInvalidError` from the appropriate points and catches them in a single `try/except` block at the router boundary, converting them to the appropriate HTTP responses (`404`, `400`, `400`, `422`). `AdapterError` is intentionally not caught and propagates to `@intercept_exceptions()` as `HTTP 500`.
 
 ---
 
-### 4.2 Router `list_integrations` is called recursively from other router methods
+### 4.2 ~~Router `list_integrations` is called recursively from other router methods~~ ✅ Fixed (via §3.2)
 
-**File:** `api/oss/src/apis/fastapi/tools/router.py:215, 289`
+**File:** `api/oss/src/apis/fastapi/tools/router.py`
 
-```python
-integrations_response = await self.list_integrations(
-    request=request,
-    provider_key=provider.key,
-    ...
-)
-```
-
-A router handler calling another router handler couples them by internal API and re-runs the EE permission check, cache check, and logging for what is effectively an internal composition. This also risks double-logging and double-cache-write.
-
-**[MINOR]** Extract a private `_fetch_integrations(...)` helper on the router (or push the composition logic to the service) and call that from both `list_providers` and `list_integrations`.
+The recursive call was driven by the `full_catalog` expansion path. Removing `full_catalog` (§3.2) eliminated the cross-handler call entirely. `list_providers` no longer calls `list_integrations`.
 
 ---
 
-### 4.3 `ToolConnectionDBE.kind` and `provider_key` are redundant
+### 4.3 ~~`ToolConnectionDBE.kind` and `provider_key` are redundant~~ ✅ Fixed
 
-**File:** `api/oss/src/dbs/postgres/tools/dbes.py:64-76`
+**Files:** `api/oss/src/dbs/postgres/tools/dbes.py`, `api/oss/src/dbs/postgres/tools/mappings.py`, OSS + EE migrations
 
-```python
-kind = Column(Enum(ToolProviderKind), nullable=False)
-provider_key = Column(String, nullable=False)
-```
-
-Both columns store the same information (`kind` is the enum, `provider_key` is its string value). The unique constraint and index only use `provider_key`, but mapping code must keep both in sync.
-
-**[MINOR]** Choose one (prefer the `Enum` column for type safety + constraint enforcement at the DB level) and derive the other via a `@property` if needed.
+Removed the `kind` Enum column entirely. `provider_key` (String) is the single source of truth. The `ToolProviderKind` enum remains in `dtos.py` for application-level type safety. Migrations updated in both OSS and EE; `downgrade()` no longer references the now-gone enum type.
 
 ---
 
-### 4.4 `activate_connection_by_provider_connection_id` bypasses `project_id` scope
+### 4.4 ~~`activate_connection_by_provider_connection_id` bypasses `project_id` scope~~ ✅ Fixed (via §2.1)
 
-**File:** `api/oss/src/core/tools/service.py:163-171`
+**Files:** `api/oss/src/core/tools/service.py`, `api/oss/src/core/tools/interfaces.py`, `api/oss/src/dbs/postgres/tools/dao.py`
 
-```python
-async def activate_connection_by_provider_connection_id(
-    self,
-    *,
-    provider_connection_id: str,
-) -> Optional[ToolConnection]:
-```
-
-This service method (called from the unauthenticated OAuth callback) updates a connection identified only by the provider-side ID, with no `project_id` guard. Even if Composio IDs are unguessable, the absence of a scope check is an architectural anti-pattern.
-
-**[MAJOR]** At minimum, document explicitly why the scope check is intentionally omitted here (the `state` param fix in §2.1 would allow re-introducing `project_id`). Pair with the §2.1 fix.
+`activate_connection_by_provider_connection_id` now accepts `project_id: Optional[UUID]`. The `project_id` is decoded from the validated HMAC state token (§2.1) in `callback_connection` and passed through service → DAO for a scoped lookup. The DAO filters by `project_id` when provided.
 
 ---
 
-### 4.5 `providers/` package boundary is ambiguous
+### 4.5 ~~`providers/` package boundary is ambiguous~~ ✅ Fixed
 
-**Files:** `api/oss/src/core/tools/providers/interfaces.py`, `providers/service.py`, `providers/types.py`, `providers/exceptions.py`
+**Files:** `api/oss/src/core/tools/providers/interfaces.py`, `providers/types.py`, `providers/exceptions.py`, `providers/agenta/`
 
-All four files in `providers/` root are empty. Only `providers/composio/` contains implementation. This creates an unclear abstraction boundary — it's not obvious whether `providers/interfaces.py` is meant to differ from `core/tools/interfaces.py`.
-
-**[MINOR]** Either delete the empty `providers/` root files and consolidate interfaces into `core/tools/interfaces.py`, or populate them with the intended separation and add docstrings explaining the layering.
+Added module-level docstrings to all empty stub files explaining their intended (future) purpose and clarifying that `core/tools/interfaces.py` is the canonical contract for adapters. The Agenta provider directory stubs are marked as not-yet-implemented.
 
 ---
 
-### 4.6 Cron scripts added without corresponding documentation or scheduler wiring
+### 4.6 ~~Cron scripts added without corresponding documentation or scheduler wiring~~ ✅ Fixed
 
 **Files:** `api/oss/src/crons/tools.sh`, `api/oss/src/crons/tools.txt`
 
-Two cron-related files are added but there is no documentation of what they do, when they run, or how they are wired into the deployment. The Dockerfile shows `cron` is installed, but the connection to `tools.sh` is not clear.
-
-**[MINOR]** Add a short README in `crons/` or inline comments in the shell script explaining the job's purpose (assumed: poll Composio to sync connection statuses), schedule, and failure behaviour.
+Both cron files were deleted. The connection-status polling logic was not yet implemented and the Dockerfile wiring was absent. The feature can be re-added as a proper scheduled job when the polling logic is ready.
 
 ---
 
@@ -335,11 +250,11 @@ The API reference describes the slug as `tools.{provider}.{integration}.{action}
 
 ---
 
-### 5.3 Environment variable `COMPOSIO_ENABLED` is not documented in `README` or compose files comment
+### 5.3 ~~Environment variable `COMPOSIO_ENABLED` is not documented~~ ✅ Fixed
 
-`docker-compose.dev.yml` adds the variable but only via an inline comment. No top-level documentation lists all required environment variables for enabling the gateway tools feature.
+**Files:** `docs/designs/gateway-tools/PR.md`, `api/oss/src/utils/env.py`
 
-**[NIT]** Add a short block in the main deployment docs (or `docs/designs/gateway-tools/TOOLS_IMPLEMENTATION.md`) listing all env vars, their defaults, and how to obtain a Composio API key.
+Removed `COMPOSIO_ENABLED` entirely — the variable never existed in code, only in docs. `env.py` already infers enabled state from `COMPOSIO_API_KEY` presence (matching Stripe/Sendgrid). PR.md configuration table updated to document only `COMPOSIO_API_KEY` and `COMPOSIO_API_URL`.
 
 ---
 
@@ -367,38 +282,3 @@ The callback handler (`callback_connection`) is the most security-sensitive code
 2. Verifies a missing / invalid `connected_account_id` returns a failure card.
 3. Verifies a DB failure returns a failure card (not a success card — see §1.2).
 
----
-
-## Summary Table
-
-| # | Dimension | Severity | Short description |
-|---|-----------|----------|-------------------|
-| 1.1 | Functional | MAJOR | `get_integration` loads 1000 records per call |
-| 1.2 | Functional | BLOCKER | Callback swallows DB exceptions, shows false success |
-| 1.3 | Functional | MINOR | `call_tool` returns HTTP 200 on adapter errors |
-| 1.4 | Functional | MINOR | `query_connections` returns soft-deleted connections |
-| 1.5 | Functional | MAJOR | Provider-specific branch in service layer |
-| 1.6 | Functional | MINOR | Agenta provider skeleton is all empty files |
-| 2.1 | Security | BLOCKER | Unauthenticated OAuth callback — CSRF / account takeover risk |
-| 2.2 | Security | MINOR | No startup validation of `COMPOSIO_API_KEY` |
-| 2.3 | Security | MINOR | `_oauth_card` renders unescaped Composio data into HTML |
-| 2.4 | Security | MAJOR | Tool slugs from LLM not validated before use as API path components |
-| 2.5 | Security | MINOR | `connected_account_id` logged at INFO level |
-| 3.1 | Performance | MAJOR | New `httpx.AsyncClient` per request — no connection pooling |
-| 3.2 | Performance | MINOR | Catalog cache keyed per-project instead of application-level |
-| 3.3 | Performance | MAJOR | Cache miss on `get_integration` fetches 1000 records |
-| 3.4 | Performance | MINOR | Silent `json.loads` failure returns empty args with no log |
-| 4.1 | Architecture | MINOR | Inline `JSONResponse` instead of domain exception pattern |
-| 4.2 | Architecture | MINOR | Router handler calls sibling router handler recursively |
-| 4.3 | Architecture | MINOR | `kind` and `provider_key` columns redundant in DBE |
-| 4.4 | Architecture | MAJOR | `activate_connection_by_provider_id` bypasses project scope |
-| 4.5 | Architecture | MINOR | Empty `providers/` root package boundary is unclear |
-| 4.6 | Architecture | MINOR | Cron scripts undocumented and unconnected to scheduler |
-| 5.1 | Docs | MINOR | No inline docstrings on public service/DAO methods |
-| 5.2 | Docs | MINOR | API reference misses mandatory 5th slug segment |
-| 5.3 | Docs | NIT | Env vars not documented outside compose comment |
-| 6.1 | Tests | MAJOR | No automated tests for new domain |
-| 6.2 | Tests | BLOCKER | No tests for OAuth callback (security-critical path) |
-
-**Blockers (must fix):** 1.2 · 2.1 · 6.2
-**Majors (strong recommendation):** 1.1 · 1.5 · 2.4 · 3.1 · 3.3 · 4.4 · 6.1

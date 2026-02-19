@@ -2,14 +2,11 @@ import {useAtomValue} from "jotai"
 import {atomWithQuery} from "jotai-tanstack-query"
 
 import {fetchIntegrations} from "@/oss/services/tools/api"
-import type {IntegrationItem} from "@/oss/services/tools/api/types"
+import type {IntegrationItem, IntegrationsResponse} from "@/oss/services/tools/api/types"
 
 const DEFAULT_PROVIDER = "composio"
 
-export const integrationsQueryAtom = atomWithQuery<{
-    count: number
-    items: IntegrationItem[]
-}>(() => ({
+export const integrationsQueryAtom = atomWithQuery<IntegrationsResponse>(() => ({
     queryKey: ["tools", "integrations", DEFAULT_PROVIDER],
     queryFn: () => fetchIntegrations(DEFAULT_PROVIDER),
     staleTime: 5 * 60_000,
@@ -18,7 +15,7 @@ export const integrationsQueryAtom = atomWithQuery<{
 
 export const useToolsIntegrations = () => {
     const query = useAtomValue(integrationsQueryAtom)
-    const integrations: IntegrationItem[] = query.data?.items ?? []
+    const integrations: IntegrationItem[] = query.data?.integrations ?? []
 
     return {
         integrations,

@@ -3,6 +3,7 @@ from uuid import UUID
 
 from oss.src.utils.logging import get_module_logger
 from oss.src.utils.env import env
+from oss.src.core.tools.utils import make_oauth_state
 
 from oss.src.core.tools.dtos import (
     ToolCatalogAction,
@@ -11,13 +12,14 @@ from oss.src.core.tools.dtos import (
     ToolCatalogProvider,
     ToolConnection,
     ToolConnectionCreate,
+    ToolConnectionRequest,
     ToolExecutionRequest,
     ToolExecutionResponse,
 )
 from oss.src.core.tools.interfaces import (
     ToolsDAOInterface,
 )
-from oss.src.core.tools.registry import GatewayAdapterRegistry
+from oss.src.core.tools.registry import ToolsGatewayRegistry
 from oss.src.core.tools.exceptions import (
     ConnectionInactiveError,
     ConnectionNotFoundError,
@@ -32,7 +34,7 @@ class ToolsService:
         self,
         *,
         tools_dao: ToolsDAOInterface,
-        adapter_registry: GatewayAdapterRegistry,
+        adapter_registry: ToolsGatewayRegistry,
     ):
         self.tools_dao = tools_dao
         self.adapter_registry = adapter_registry
@@ -42,6 +44,7 @@ class ToolsService:
     # -----------------------------------------------------------------------
 
     async def list_providers(self) -> List[ToolCatalogProvider]:
+        """Return all providers across registered adapters."""
         results: List[ToolCatalogProvider] = []
         for _key, adapter in self.adapter_registry.items():
             providers = await adapter.list_providers()
@@ -53,6 +56,7 @@ class ToolsService:
         *,
         provider_key: str,
     ) -> Optional[ToolCatalogProvider]:
+        """Return a single provider by key, or None if not found."""
         adapter = self.adapter_registry.get(provider_key)
         providers = await adapter.list_providers()
         for p in providers:
@@ -70,6 +74,7 @@ class ToolsService:
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
     ) -> Tuple[List[ToolCatalogIntegration], Optional[str], int]:
+        """List integrations for a provider with optional filtering and pagination."""
         adapter = self.adapter_registry.get(provider_key)
         integrations, next_cursor, total = await adapter.list_integrations(
             search=search,
@@ -85,16 +90,9 @@ class ToolsService:
         provider_key: str,
         integration_key: str,
     ) -> Optional[ToolCatalogIntegration]:
+        """Return a single integration by key, or None if not found."""
         adapter = self.adapter_registry.get(provider_key)
-        # Fetch with max limit to find the specific integration
-        integrations, _, _ = await adapter.list_integrations(limit=1000)
-        target = None
-        for i in integrations:
-            if i.key == integration_key:
-                target = i
-                break
-
-        return target
+        return await adapter.get_integration(integration_key=integration_key)
 
     async def list_actions(
         self,
@@ -108,6 +106,7 @@ class ToolsService:
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
     ) -> Tuple[List[ToolCatalogAction], Optional[str], int]:
+        """List actions for an integration with optional search and pagination."""
         adapter = self.adapter_registry.get(provider_key)
         return await adapter.list_actions(
             integration_key=integration_key,
@@ -125,6 +124,7 @@ class ToolsService:
         integration_key: str,
         action_key: str,
     ) -> Optional[ToolCatalogActionDetails]:
+        """Return full action detail including input/output schema, or None if not found."""
         adapter = self.adapter_registry.get(provider_key)
         return await adapter.get_action(
             integration_key=integration_key,
@@ -142,12 +142,14 @@ class ToolsService:
         #
         provider_key: Optional[str] = None,
         integration_key: Optional[str] = None,
+        is_active: Optional[bool] = True,
     ) -> List[ToolConnection]:
-        """Query connections with optional filtering."""
+        """Query connections with optional filtering. Defaults to active-only."""
         return await self.tools_dao.query_connections(
             project_id=project_id,
             provider_key=provider_key,
             integration_key=integration_key,
+            is_active=is_active,
         )
 
     async def find_connection_by_provider_connection_id(
@@ -164,10 +166,12 @@ class ToolsService:
         self,
         *,
         provider_connection_id: str,
+        project_id: Optional[UUID] = None,
     ) -> Optional[ToolConnection]:
-        """Mark a connection valid+active after OAuth completes (no project_id needed)."""
+        """Mark a connection valid+active after OAuth completes."""
         return await self.tools_dao.activate_connection_by_provider_id(
             provider_connection_id=provider_connection_id,
+            project_id=project_id,
         )
 
     async def list_connections(
@@ -190,6 +194,7 @@ class ToolsService:
         project_id: UUID,
         connection_id: UUID,
     ) -> Optional[ToolConnection]:
+        """Return a single connection by ID scoped to the project, or None."""
         # Read-only by design: do not mutate local state during GET.
         return await self.tools_dao.get_connection(
             project_id=project_id,
@@ -204,39 +209,41 @@ class ToolsService:
         #
         connection_create: ToolConnectionCreate,
     ) -> ToolConnection:
+        """Initiate a provider connection and persist it locally in pending state."""
         provider_key = connection_create.provider_key.value
         integration_key = connection_create.integration_key
 
         adapter = self.adapter_registry.get(provider_key)
 
         # Callback URL is server-owned. Do not trust/require client-provided values.
-        callback_url = f"{env.agenta.api_url}/preview/tools/connections/callback"
-
-        # Initiate with provider
-        connection_data = connection_create.data
-        provider_result = await adapter.initiate_connection(
-            user_id=str(project_id),
-            integration_key=integration_key,
-            auth_scheme=connection_data.auth_scheme.value
-            if connection_data and connection_data.auth_scheme
-            else None,
-            callback_url=callback_url,
+        # Embed a signed state token so the callback can scope the activation.
+        state = make_oauth_state(
+            project_id=project_id,
+            user_id=user_id,
+            secret_key=env.agenta.crypt_key,
+        )
+        callback_url = (
+            f"{env.agenta.api_url}/preview/tools/connections/callback?state={state}"
         )
 
-        provider_connection_id = provider_result.get("id")
-        auth_config_id = provider_result.get("auth_config_id")
-        redirect_url = provider_result.get("redirect_url")
+        # Initiate with provider
+        connection_create_data = connection_create.data
+        provider_result = await adapter.initiate_connection(
+            request=ToolConnectionRequest(
+                user_id=str(project_id),
+                integration_key=integration_key,
+                auth_scheme=connection_create_data.auth_scheme.value
+                if connection_create_data and connection_create_data.auth_scheme
+                else None,
+                callback_url=callback_url,
+            ),
+        )
 
-        # Update data with adapter response — overwrite with provider-enriched dict.
-        if provider_key == "composio":
-            data: Dict[str, Any] = {
-                "connected_account_id": provider_connection_id,
-                "auth_config_id": auth_config_id,
-                "project_id": str(project_id),
-            }
-            if redirect_url:
-                data["redirect_url"] = redirect_url
-            connection_create.data = data  # type: ignore[assignment]
+        # Merge provider-returned connection_data with service-level project_id.
+        # The adapter owns provider-specific field names; the service adds project scope.
+        data: Dict[str, Any] = dict(provider_result.connection_data)
+        data["project_id"] = str(project_id)
+        connection_create.data = data  # type: ignore[assignment]
 
         # Persist locally
         return await self.tools_dao.create_connection(
@@ -252,6 +259,7 @@ class ToolsService:
         project_id: UUID,
         connection_id: UUID,
     ) -> bool:
+        """Revoke provider-side connection and delete locally. Raises ConnectionNotFoundError if missing."""
         # Look up connection
         conn = await self.tools_dao.get_connection(
             project_id=project_id,
@@ -336,32 +344,31 @@ class ToolsService:
                 detail="Cannot refresh an inactive connection. Create a new connection to re-establish authorization.",
             )
 
-        # Callback URL is server-owned. Refresh must use the same canonical callback.
-        callback_url = f"{env.agenta.api_url}/preview/tools/connections/callback"
+        # Callback URL is server-owned with a signed state token.
+        state = make_oauth_state(
+            project_id=project_id,
+            user_id=project_id,  # refresh has no user_id; use project_id as entity
+            secret_key=env.agenta.crypt_key,
+        )
+        callback_url = (
+            f"{env.agenta.api_url}/preview/tools/connections/callback?state={state}"
+        )
 
         adapter = self.adapter_registry.get(conn.provider_key.value)
 
-        # Re-initiate a link (same behavior as create) because provider refresh
-        # links can be non-deterministic for callback redirects.
+        # Delegate provider-specific refresh logic to the adapter.
+        # For OAuth providers (e.g. Composio), the adapter re-initiates the link.
         provider_connection_id = conn.provider_connection_id
-        auth_config_id = None
-        if conn.provider_key.value == "composio":
-            result = await adapter.initiate_connection(
-                user_id=str(project_id),
-                integration_key=conn.integration_key,
-                callback_url=callback_url,
-            )
-            provider_connection_id = result.get("id") or provider_connection_id
-            auth_config_id = result.get("auth_config_id")
-            # Re-auth flow is pending until callback marks it active.
-            is_valid = False
-        else:
-            result = await adapter.refresh_connection(
-                provider_connection_id=conn.provider_connection_id,
-                force=force,
-                callback_url=callback_url,
-            )
-            is_valid = result.get("is_valid", conn.is_valid)
+        result = await adapter.refresh_connection(
+            provider_connection_id=conn.provider_connection_id,
+            force=force,
+            callback_url=callback_url,
+            integration_key=conn.integration_key,
+            user_id=str(project_id),
+        )
+        provider_connection_id = result.get("id") or provider_connection_id
+        auth_config_id = result.get("auth_config_id")
+        is_valid = result.get("is_valid", conn.is_valid)
 
         redirect_url = result.get("redirect_url")
         # Always overwrite redirect_url so FE doesn't reuse stale links from prior flows.

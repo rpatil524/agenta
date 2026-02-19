@@ -36,7 +36,6 @@ def map_connection_create_to_dbe(
         name=dto.name,
         description=dto.description,
         #
-        kind=dto.provider_key,  # kind mirrors provider_key as an enum
         provider_key=dto.provider_key,
         integration_key=dto.integration_key,
         #

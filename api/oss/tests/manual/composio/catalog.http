@@ -1,6 +1,6 @@
 @composio_url = https://backend.composio.dev/api/v3
-@composio_api_key = ak_AMEAYdfEP8l-47XRj_ze
-@composio_user_id = b2ad354c-315e-4a50-aa72-28e64d3291da
+@composio_api_key = {{$dotenv COMPOSIO_API_KEY}}
+@composio_user_id = {{$dotenv COMPOSIO_USER_ID}}
 
 ###
 # @name list_toolkits

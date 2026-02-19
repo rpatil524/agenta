@@ -44,11 +44,10 @@ Each provider implementation:
 - Connection lifecycle management (refresh, revoke)
 
 **Configuration:**
-```python
+```
 # Environment variables
-COMPOSIO_ENABLED=true
-COMPOSIO_API_KEY=<your_key>
-COMPOSIO_API_URL=https://backend.composio.dev/api/v3  # Optional
+COMPOSIO_API_KEY=<your_key>                              # Required — presence enables Composio
+COMPOSIO_API_URL=https://backend.composio.dev/api/v3    # Optional (default shown)
 ```
 
 **Usage in entrypoints:**

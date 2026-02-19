@@ -195,7 +195,6 @@ services:
         volumes:
             #
             - ../../../api/oss/src/crons/queries.sh:/queries.sh
-            - ../../../api/oss/src/crons/tools.sh:/tools.sh
         # === CONFIGURATION ======================================== #
         env_file:
             - ${ENV_FILE:-./.env.oss.dev}

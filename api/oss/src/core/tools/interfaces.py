@@ -9,6 +9,8 @@ from oss.src.core.tools.dtos import (
     ToolCatalogProvider,
     ToolConnection,
     ToolConnectionCreate,
+    ToolConnectionRequest,
+    ToolConnectionResponse,
     ToolExecutionRequest,
     ToolExecutionResponse,
 )
@@ -64,6 +66,7 @@ class ToolsDAOInterface(ABC):
         #
         provider_key: Optional[str] = None,
         integration_key: Optional[str] = None,
+        is_active: Optional[bool] = True,
     ) -> List[ToolConnection]: ...
 
     @abstractmethod
@@ -78,10 +81,11 @@ class ToolsDAOInterface(ABC):
         self,
         *,
         provider_connection_id: str,
+        project_id: Optional[UUID] = None,
     ) -> Optional[ToolConnection]: ...
 
 
-class GatewayAdapterInterface(ABC):
+class ToolsGatewayInterface(ABC):
     """Port for external tool providers (Composio, Agenta, etc.)."""
 
     @abstractmethod
@@ -98,6 +102,13 @@ class GatewayAdapterInterface(ABC):
     ) -> Tuple[List[ToolCatalogIntegration], Optional[str], int]:
         """Returns (items, next_cursor, total_items)."""
         ...
+
+    @abstractmethod
+    async def get_integration(
+        self,
+        *,
+        integration_key: str,
+    ) -> Optional[ToolCatalogIntegration]: ...
 
     @abstractmethod
     async def list_actions(
@@ -125,12 +136,12 @@ class GatewayAdapterInterface(ABC):
     async def initiate_connection(
         self,
         *,
-        user_id: str,
-        integration_key: str,
-        auth_scheme: Optional[str] = None,
-        callback_url: Optional[str] = None,
-    ) -> Dict[str, Any]:
-        """Returns provider-side { id, redirect_url }."""
+        request: ToolConnectionRequest,
+    ) -> ToolConnectionResponse:
+        """Initiate a provider-side connection. Returns a typed response with
+        provider_connection_id, redirect_url, and connection_data — the dict
+        the service will persist in the local connection record.
+        """
         ...
 
     @abstractmethod
@@ -149,6 +160,8 @@ class GatewayAdapterInterface(ABC):
         provider_connection_id: str,
         force: bool = False,
         callback_url: Optional[str] = None,
+        integration_key: Optional[str] = None,
+        user_id: Optional[str] = None,
     ) -> Dict[str, Any]: ...
 
     @abstractmethod

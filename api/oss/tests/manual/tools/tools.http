@@ -132,11 +132,17 @@ Content-Type: application/json
 Authorization: {{authorization}}
 
 {
-  "name": "tools.composio.gmail.SEND_EMAIL.{{gmail_connection_slug}}",
-  "arguments": {
-    "recipient_email": "team@agenta.ai",
-    "subject": "Test from Agenta",
-    "body": "This is a test email sent via the Tools Gateway."
+  "data": {
+    "id": "call_{{$guid}}",
+    "type": "function",
+    "function": {
+      "name": "tools.composio.gmail.SEND_EMAIL.{{gmail_connection_slug}}",
+      "arguments": {
+        "recipient_email": "team@agenta.ai",
+        "subject": "Test from Agenta",
+        "body": "This is a test email sent via the Tools Gateway."
+      }
+    }
   }
 }
 
@@ -147,11 +153,17 @@ Content-Type: application/json
 Authorization: {{authorization}}
 
 {
-  "name": "tools.composio.github.LIST_PULL_REQUESTS.{{github_connection_slug}}",
-  "arguments": {
-    "owner": "Agenta-AI",
-    "repo": "agenta",
-    "state": "open"
+  "data": {
+    "id": "call_{{$guid}}",
+    "type": "function",
+    "function": {
+      "name": "tools.composio.github.LIST_PULL_REQUESTS.{{github_connection_slug}}",
+      "arguments": {
+        "owner": "Agenta-AI",
+        "repo": "agenta",
+        "state": "open"
+      }
+    }
   }
 }
 
@@ -169,11 +181,17 @@ Content-Type: application/json
 Authorization: {{authorization}}
 
 {
-  "name": "tools.composio.github.LIST_PULL_REQUESTS.{{github_connection_slug}}",
-  "arguments": {
-    "owner": "Agenta-AI",
-    "repo": "agenta",
-    "state": "open"
+  "data": {
+    "id": "call_{{$guid}}",
+    "type": "function",
+    "function": {
+      "name": "tools.composio.github.LIST_PULL_REQUESTS.{{github_connection_slug}}",
+      "arguments": {
+        "owner": "Agenta-AI",
+        "repo": "agenta",
+        "state": "open"
+      }
+    }
   }
 }
 
