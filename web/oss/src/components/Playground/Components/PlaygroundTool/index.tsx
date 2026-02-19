@@ -4,8 +4,8 @@ import {legacyAppRevisionEntityWithBridgeAtomFamily} from "@agenta/entities/lega
 import {Input, Tooltip, Typography} from "antd"
 import clsx from "clsx"
 import {useAtomValue, useSetAtom} from "jotai"
-import Image from "next/image"
 import JSON5 from "json5"
+import Image from "next/image"
 import {v4 as uuidv4} from "uuid"
 
 import {EditorProvider} from "@/oss/components/Editor/Editor"
