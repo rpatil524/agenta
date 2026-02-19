@@ -9,7 +9,6 @@ export interface ProviderItem {
     name: string
     description?: string
     integrations_count?: number
-    enabled: boolean
 }
 
 export interface ProvidersResponse {

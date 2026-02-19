@@ -4,6 +4,7 @@ import {CaretRight, MagnifyingGlass, Plus} from "@phosphor-icons/react"
 import {Button, Divider, Dropdown, Input, Spin, Tooltip, Typography} from "antd"
 import clsx from "clsx"
 import {useSetAtom} from "jotai"
+import Image from "next/image"
 
 import LLMIconMap from "@/oss/components/LLMIcons"
 import {getPromptById, getLLMConfig} from "@/oss/components/Playground/context/promptShape"
@@ -280,10 +281,13 @@ function ConnectionRow({
             )}
         >
             {integration?.logo ? (
-                <img
+                <Image
                     src={integration.logo}
                     alt={connection.integration_key}
+                    width={16}
+                    height={16}
                     className="h-4 w-4 rounded object-contain shrink-0"
+                    unoptimized
                 />
             ) : (
                 <span className="h-4 w-4 rounded bg-[#F1F5F9] shrink-0" />

@@ -16,6 +16,7 @@ import {
 } from "antd"
 import type {MenuProps} from "antd"
 import {useAtom, useSetAtom} from "jotai"
+import Image from "next/image"
 
 import type {ConnectionItem, IntegrationItem} from "@/oss/services/tools/api/types"
 
@@ -300,10 +301,13 @@ function IntegrationsView({onSelect}: {onSelect: (integration: IntegrationItem) 
                                 >
                                     <div className="flex items-start gap-3">
                                         {integration.logo && (
-                                            <img
+                                            <Image
                                                 src={integration.logo}
                                                 alt={integration.name}
+                                                width={32}
+                                                height={32}
                                                 className="w-8 h-8 rounded object-contain shrink-0"
+                                                unoptimized
                                             />
                                         )}
                                         <div className="flex flex-col gap-0.5 min-w-0 flex-1">
@@ -430,10 +434,13 @@ function ActionsView({
                         className="shrink-0"
                     />
                     {integration.logo && (
-                        <img
+                        <Image
                             src={integration.logo}
                             alt={integration.name}
+                            width={32}
+                            height={32}
                             className="w-8 h-8 rounded object-contain shrink-0"
+                            unoptimized
                         />
                     )}
                     <Typography.Text strong className="truncate flex-1">

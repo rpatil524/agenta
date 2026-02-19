@@ -2,6 +2,7 @@ import {useCallback, useState} from "react"
 
 import {EnhancedModal, ModalContent, ModalFooter} from "@agenta/ui"
 import {Divider, Form, Input, Select, Typography} from "antd"
+import Image from "next/image"
 
 import {queryClient} from "@/oss/lib/api/queryClient"
 import {createConnection, fetchConnection} from "@/oss/services/tools/api"
@@ -142,10 +143,13 @@ export default function ConnectDrawer({
                 {/* Integration header */}
                 <div className="flex items-center gap-3">
                     {integrationLogo && (
-                        <img
+                        <Image
                             src={integrationLogo}
                             alt={integrationName}
+                            width={36}
+                            height={36}
                             className="w-9 h-9 rounded object-contain shrink-0"
+                            unoptimized
                         />
                     )}
                     <div className="flex flex-col min-w-0">

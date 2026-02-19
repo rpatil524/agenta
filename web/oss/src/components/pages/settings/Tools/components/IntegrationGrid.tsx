@@ -2,6 +2,7 @@ import {useState, useMemo} from "react"
 
 import {MagnifyingGlass} from "@phosphor-icons/react"
 import {Badge, Card, Empty, Input, Spin, Typography} from "antd"
+import Image from "next/image"
 
 import type {IntegrationItem} from "@/oss/services/tools/api/types"
 
@@ -73,10 +74,13 @@ function IntegrationCard({
         <Card hoverable onClick={onClick} className="cursor-pointer" size="small">
             <div className="flex items-start gap-3">
                 {integration.logo && (
-                    <img
+                    <Image
                         src={integration.logo}
                         alt={integration.name}
+                        width={32}
+                        height={32}
                         className="w-8 h-8 rounded object-contain shrink-0"
+                        unoptimized
                     />
                 )}
                 <div className="flex flex-col gap-1 min-w-0">

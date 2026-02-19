@@ -2,6 +2,7 @@ import {useState} from "react"
 
 import {ArrowLeft, Plus} from "@phosphor-icons/react"
 import {Button, Spin, Typography} from "antd"
+import Image from "next/image"
 
 import {useIntegrationDetail} from "../hooks/useIntegrationDetail"
 
@@ -34,10 +35,13 @@ export default function IntegrationDetail({integrationKey, onBack}: Props) {
             <div className="flex items-center gap-3">
                 <Button type="text" icon={<ArrowLeft size={16} />} onClick={onBack} />
                 {integration.logo && (
-                    <img
+                    <Image
                         src={integration.logo}
                         alt={integration.name}
+                        width={32}
+                        height={32}
                         className="w-8 h-8 rounded object-contain"
+                        unoptimized
                     />
                 )}
                 <div>

@@ -24,6 +24,7 @@ import {
     Typography,
 } from "antd"
 import {useAtom, useSetAtom} from "jotai"
+import Image from "next/image"
 
 import type {ActionItem} from "@/oss/services/tools/api/types"
 
@@ -254,10 +255,13 @@ function ActionPickerStep({
             <div className="flex flex-col gap-3 px-6 pt-4 pb-3 shrink-0">
                 <div className="flex items-center gap-3">
                     {integrationLogo && (
-                        <img
+                        <Image
                             src={integrationLogo}
                             alt={integrationName}
+                            width={32}
+                            height={32}
                             className="w-8 h-8 rounded object-contain shrink-0"
+                            unoptimized
                         />
                     )}
                     <div className="flex flex-col min-w-0 flex-1">
@@ -434,10 +438,13 @@ function ActionDetailStep({
                         />
                     )}
                     {integrationLogo && (
-                        <img
+                        <Image
                             src={integrationLogo}
                             alt={integrationName}
+                            width={24}
+                            height={24}
                             className="w-6 h-6 rounded object-contain shrink-0"
+                            unoptimized
                         />
                     )}
                     {integrationName && (

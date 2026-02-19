@@ -4,6 +4,7 @@ import {legacyAppRevisionEntityWithBridgeAtomFamily} from "@agenta/entities/lega
 import {Input, Tooltip, Typography} from "antd"
 import clsx from "clsx"
 import {useAtomValue, useSetAtom} from "jotai"
+import Image from "next/image"
 import JSON5 from "json5"
 import {v4 as uuidv4} from "uuid"
 
@@ -284,10 +285,13 @@ function ToolHeader(props: {
                         <div className="flex items-center">
                             {builtinIconUrl ? (
                                 <span className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full bg-[#F8FAFC]">
-                                    <img
+                                    <Image
                                         src={builtinIconUrl}
-                                        alt={builtinProviderLabel}
+                                        alt={builtinProviderLabel || ""}
+                                        width={16}
+                                        height={16}
                                         className="h-4 w-4 object-contain"
+                                        unoptimized
                                     />
                                 </span>
                             ) : BuiltinIcon ? (
