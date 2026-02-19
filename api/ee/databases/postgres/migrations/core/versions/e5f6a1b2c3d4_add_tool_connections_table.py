@@ -1,7 +1,7 @@
 """add tool_connections table
 
 Revision ID: e5f6a1b2c3d4
-Revises: fd77265d65dc
+Revises: c2d3e4f5a6b7
 Create Date: 2026-02-09 12:00:00.000000
 
 """
