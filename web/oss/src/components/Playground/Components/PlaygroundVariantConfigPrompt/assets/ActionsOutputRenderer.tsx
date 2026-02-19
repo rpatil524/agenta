@@ -173,19 +173,21 @@ function ComposioActionsList({
 
     return (
         <div className="flex flex-col min-h-0">
-            <div className="p-2">
-                <Input
-                    allowClear
-                    variant="borderless"
-                    value={searchTerm}
-                    placeholder="Search actions"
-                    onChange={(event) => setSearchTerm(event.target.value)}
-                    onClear={() => setSearchTerm("")}
-                    prefix={<MagnifyingGlass size={14} className="text-[#98A2B3]" />}
-                    className="flex-1 !shadow-none !outline-none !border-none focus:!shadow-none focus:!outline-none focus:!border-none"
-                />
+            <div className="sticky top-0 z-10 bg-white">
+                <div className="p-2">
+                    <Input
+                        allowClear
+                        variant="borderless"
+                        value={searchTerm}
+                        placeholder="Search actions"
+                        onChange={(event) => setSearchTerm(event.target.value)}
+                        onClear={() => setSearchTerm("")}
+                        prefix={<MagnifyingGlass size={14} className="text-[#98A2B3]" />}
+                        className="flex-1 !shadow-none !outline-none !border-none focus:!shadow-none focus:!outline-none focus:!border-none"
+                    />
+                </div>
+                <Divider className="m-0" orientation="horizontal" />
             </div>
-            <Divider className="m-0" orientation="horizontal" />
 
             <div className="p-1">
                 {isLoading && actions.length === 0 ? (
@@ -447,119 +449,124 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
         >
             {/* Left panel */}
             <div ref={leftPanelRef} className="w-[220px] flex flex-col shrink-0">
-                <div className="p-2">
-                    <Input
-                        allowClear
-                        autoFocus
-                        variant="borderless"
-                        placeholder="Search integrations"
-                        value={searchTerm}
-                        onChange={(event) => {
-                            setSearchTerm(event.target.value)
-                            setHoveredKey(null)
-                        }}
-                        prefix={<MagnifyingGlass size={16} className="text-[#98A2B3]" />}
-                        className="flex-1 !shadow-none !outline-none !border-none focus:!shadow-none focus:!outline-none focus:!border-none"
-                    />
-                </div>
-
-                <Divider className="m-0" orientation="horizontal" />
-
-                <div className="max-h-80 overflow-y-auto flex flex-col p-1">
-                    {/* Builtin section */}
-                    {hasBuiltin && (
-                        <div className="flex flex-col">
-                            <Typography.Text className="text-[#758391] text-xs py-[5px] px-1.5 font-medium">
-                                Builtin
-                            </Typography.Text>
-                            {filteredToolGroups.map(({key, label, Icon}) => (
-                                <Button
-                                    key={key}
-                                    type="text"
-                                    block
-                                    onMouseEnter={() => handleRowHover(`builtin:${key}`)}
-                                    className={clsx(
-                                        "!flex !h-[28px] !items-center !gap-1.5 !py-[5px] !px-1.5 !text-left",
-                                        hoveredKey === `builtin:${key}`
-                                            ? "!bg-[#EFF6FF]"
-                                            : "hover:!bg-[#F8FAFC]",
-                                    )}
-                                >
-                                    {Icon ? (
-                                        <span className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-[#F8FAFC] shrink-0">
-                                            <Icon className="h-3.5 w-3.5 text-[#758391]" />
-                                        </span>
-                                    ) : (
-                                        <span className="h-5 w-5 shrink-0" />
-                                    )}
-                                    <Typography.Text className="flex-1 text-[#0F172A] text-xs">
-                                        {label}
-                                    </Typography.Text>
-                                    <CaretRight size={10} className="text-[#CBD5E1] shrink-0" />
-                                </Button>
-                            ))}
-                        </div>
-                    )}
-
-                    {/* Composio section */}
-                    {hasComposio && (
-                        <>
-                            {hasBuiltin && <Divider className="my-1" orientation="horizontal" />}
-                            <div className="flex items-center justify-between py-[5px] px-1.5">
-                                <Typography.Text className="text-[#758391] text-xs font-medium">
-                                    Composio
-                                </Typography.Text>
-                                <Tooltip title="Add integration">
-                                    <Button
-                                        type="text"
-                                        size="small"
-                                        icon={<Plus size={12} />}
-                                        className="h-5 w-5 flex items-center justify-center p-0 text-[#758391]"
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            setIsDropdownOpen(false)
-                                            setCatalogOpen(true)
-                                        }}
-                                    />
-                                </Tooltip>
-                            </div>
-                            {connectionsLoading ? (
-                                <div className="flex justify-center py-2">
-                                    <Spin size="small" />
-                                </div>
-                            ) : (
-                                filteredConnections.map((conn) => (
-                                    <ConnectionRow
-                                        key={conn.id}
-                                        connection={conn}
-                                        isHovered={hoveredKey === `composio:${conn.id}`}
-                                        onHover={() => handleRowHover(`composio:${conn.id}`)}
-                                    />
-                                ))
-                            )}
-                        </>
-                    )}
-
-                    {/* Inline section */}
-                    {(hasBuiltin || hasComposio) && (
-                        <Divider className="my-1" orientation="horizontal" />
-                    )}
-                    <div className="flex items-center justify-between py-[5px] px-1.5">
-                        <Typography.Text className="text-[#758391] text-xs font-medium">
-                            Inline
-                        </Typography.Text>
-                        <Tooltip title="Add inline tool">
-                            <Button
-                                type="text"
-                                size="small"
-                                icon={<Plus size={12} />}
-                                className="h-5 w-5 flex items-center justify-center p-0 text-[#758391]"
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleAddTool({source: "inline"})
+                <div className="max-h-80 overflow-y-auto flex flex-col">
+                    <div className="sticky top-0 z-10 bg-white">
+                        <div className="p-2">
+                            <Input
+                                allowClear
+                                autoFocus
+                                variant="borderless"
+                                placeholder="Search integrations"
+                                value={searchTerm}
+                                onChange={(event) => {
+                                    setSearchTerm(event.target.value)
+                                    setHoveredKey(null)
                                 }}
+                                prefix={<MagnifyingGlass size={16} className="text-[#98A2B3]" />}
+                                className="flex-1 !shadow-none !outline-none !border-none focus:!shadow-none focus:!outline-none focus:!border-none"
                             />
-                        </Tooltip>
+                        </div>
+                        <Divider className="m-0" orientation="horizontal" />
+                    </div>
+
+                    <div className="p-1">
+                        {/* Builtin section */}
+                        {hasBuiltin && (
+                            <div className="flex flex-col">
+                                <Typography.Text className="text-[#758391] text-xs py-[5px] px-1.5 font-medium">
+                                    Builtin
+                                </Typography.Text>
+                                {filteredToolGroups.map(({key, label, Icon}) => (
+                                    <Button
+                                        key={key}
+                                        type="text"
+                                        block
+                                        onMouseEnter={() => handleRowHover(`builtin:${key}`)}
+                                        className={clsx(
+                                            "!flex !h-[28px] !items-center !gap-1.5 !py-[5px] !px-1.5 !text-left",
+                                            hoveredKey === `builtin:${key}`
+                                                ? "!bg-[#EFF6FF]"
+                                                : "hover:!bg-[#F8FAFC]",
+                                        )}
+                                    >
+                                        {Icon ? (
+                                            <span className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-[#F8FAFC] shrink-0">
+                                                <Icon className="h-3.5 w-3.5 text-[#758391]" />
+                                            </span>
+                                        ) : (
+                                            <span className="h-5 w-5 shrink-0" />
+                                        )}
+                                        <Typography.Text className="flex-1 text-[#0F172A] text-xs">
+                                            {label}
+                                        </Typography.Text>
+                                        <CaretRight size={10} className="text-[#CBD5E1] shrink-0" />
+                                    </Button>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Composio section */}
+                        {hasComposio && (
+                            <>
+                                {hasBuiltin && (
+                                    <Divider className="my-1" orientation="horizontal" />
+                                )}
+                                <div className="flex items-center justify-between py-[5px] px-1.5">
+                                    <Typography.Text className="text-[#758391] text-xs font-medium">
+                                        Composio
+                                    </Typography.Text>
+                                    <Tooltip title="Add integration">
+                                        <Button
+                                            type="text"
+                                            size="small"
+                                            icon={<Plus size={12} />}
+                                            className="h-5 w-5 flex items-center justify-center p-0 text-[#758391]"
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                setIsDropdownOpen(false)
+                                                setCatalogOpen(true)
+                                            }}
+                                        />
+                                    </Tooltip>
+                                </div>
+                                {connectionsLoading ? (
+                                    <div className="flex justify-center py-2">
+                                        <Spin size="small" />
+                                    </div>
+                                ) : (
+                                    filteredConnections.map((conn) => (
+                                        <ConnectionRow
+                                            key={conn.id}
+                                            connection={conn}
+                                            isHovered={hoveredKey === `composio:${conn.id}`}
+                                            onHover={() => handleRowHover(`composio:${conn.id}`)}
+                                        />
+                                    ))
+                                )}
+                            </>
+                        )}
+
+                        {/* Inline section */}
+                        {(hasBuiltin || hasComposio) && (
+                            <Divider className="my-1" orientation="horizontal" />
+                        )}
+                        <div className="flex items-center justify-between py-[5px] px-1.5">
+                            <Typography.Text className="text-[#758391] text-xs font-medium">
+                                Inline
+                            </Typography.Text>
+                            <Tooltip title="Add inline tool">
+                                <Button
+                                    type="text"
+                                    size="small"
+                                    icon={<Plus size={12} />}
+                                    className="h-5 w-5 flex items-center justify-center p-0 text-[#758391]"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleAddTool({source: "inline"})
+                                    }}
+                                />
+                            </Tooltip>
+                        </div>
                     </div>
                 </div>
             </div>
