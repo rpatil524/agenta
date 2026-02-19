@@ -220,6 +220,9 @@ function ComposioActionsList({
                                         {action.name}
                                     </span>
                                 </Button>
+                                {index < actions.length - 1 && (
+                                    <div className="mx-2 h-px bg-[#F1F5F9]" />
+                                )}
                             </React.Fragment>
                         ))}
 
@@ -587,27 +590,31 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
                         {hoveredBuiltinGroup && hoveredBuiltinGroup.tools.length > 0 && (
                             <div className="p-1">
                                 {hoveredBuiltinGroup.tools.map(
-                                    ({code, label: toolLabel, payload}) => (
-                                        <Button
-                                            key={code}
-                                            type="text"
-                                            block
-                                            className="!flex !h-[28px] !items-center !justify-start !text-left !py-[5px] !px-2 hover:!bg-[#F8FAFC]"
-                                            onClick={() =>
-                                                handleAddTool({
-                                                    payload,
-                                                    source: "builtin",
-                                                    providerKey: hoveredBuiltinGroup.key,
-                                                    providerLabel: hoveredBuiltinGroup.label,
-                                                    toolCode: code,
-                                                    toolLabel,
-                                                })
-                                            }
-                                        >
-                                            <span className="text-[#0F172A] text-xs">
-                                                {toolLabel}
-                                            </span>
-                                        </Button>
+                                    ({code, label: toolLabel, payload}, index) => (
+                                        <React.Fragment key={code}>
+                                            <Button
+                                                type="text"
+                                                block
+                                                className="!flex !h-[28px] !items-center !justify-start !text-left !py-[5px] !px-2 hover:!bg-[#F8FAFC]"
+                                                onClick={() =>
+                                                    handleAddTool({
+                                                        payload,
+                                                        source: "builtin",
+                                                        providerKey: hoveredBuiltinGroup.key,
+                                                        providerLabel: hoveredBuiltinGroup.label,
+                                                        toolCode: code,
+                                                        toolLabel,
+                                                    })
+                                                }
+                                            >
+                                                <span className="text-[#0F172A] text-xs">
+                                                    {toolLabel}
+                                                </span>
+                                            </Button>
+                                            {index < hoveredBuiltinGroup.tools.length - 1 && (
+                                                <div className="mx-2 h-px bg-[#F1F5F9]" />
+                                            )}
+                                        </React.Fragment>
                                     ),
                                 )}
                             </div>
