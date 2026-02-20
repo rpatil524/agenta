@@ -113,7 +113,9 @@ async def chat(request: ChatRequest):
                 yield event({"type": "text-delta", "id": text_id, "delta": chunk})
             yield event({"type": "text-end", "id": text_id})
 
-            root.set_attributes({"outputs": {"response": full_response}}, namespace="data")
+            root.set_attributes(
+                {"outputs": {"response": full_response}}, namespace="data"
+            )
 
             # Trace URL as custom data part
             ctx = span.get_span_context()
