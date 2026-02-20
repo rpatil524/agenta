@@ -1,6 +1,5 @@
 from typing import Dict, Any, Callable, Optional
 from uuid import uuid4, UUID
-from traceback import print_exc
 
 from agenta.sdk.utils.client import authed_api
 from agenta.sdk.decorators.running import auto_workflow, is_workflow
@@ -21,6 +20,21 @@ from agenta.sdk.models.workflows import (
 )
 
 from agenta.sdk.utils.references import get_slug_from_name_and_id
+
+
+def _response_detail(response) -> str:
+    try:
+        data = response.json()
+    except Exception:
+        return response.text
+
+    if isinstance(data, dict) and "detail" in data:
+        detail = data.get("detail")
+        if isinstance(detail, str):
+            return detail
+        return str(detail)
+
+    return str(data)
 
 
 async def _retrieve_evaluator(
@@ -224,10 +238,10 @@ async def aupsert(
                 evaluator_slug=evaluator_slug,
             )
 
-    except Exception:
-        print("[ERROR]: Failed to prepare evaluator:")
-        print_exc()
-        return None
+    except Exception as e:
+        message = f"Failed to prepare evaluator: {e}"
+        print("[ERROR]:", message)
+        raise ValueError(message) from e
 
     # print("Retrieve response:", retrieve_response)
 
@@ -286,10 +300,10 @@ async def aupsert(
         try:
             response.raise_for_status()
         except Exception as e:
-            print("[ERROR]: Failed to update evaluator:", e)
-            print("[ERROR]: API response:", response.text)
-            print_exc()
-            return None
+            detail = _response_detail(response)
+            message = f"Failed to update evaluator: {detail}"
+            print("[ERROR]:", message)
+            raise ValueError(message) from e
 
     else:
         # print(" --- Creating evaluator...")
@@ -322,10 +336,10 @@ async def aupsert(
         try:
             response.raise_for_status()
         except Exception as e:
-            print("[ERROR]: Failed to create evaluator:", e)
-            print("[ERROR]: API response:", response.text)
-            print_exc()
-            return None
+            detail = _response_detail(response)
+            message = f"Failed to create evaluator: {detail}"
+            print("[ERROR]:", message)
+            raise ValueError(message) from e
 
     evaluator_response = SimpleEvaluatorResponse(**response.json())
 

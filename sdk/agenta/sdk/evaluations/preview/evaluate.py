@@ -220,7 +220,6 @@ async def _upsert_entities(
                 callable(application_handler)
                 for application_handler in simple_evaluation_data.application_steps
             ):
-                failed_application_upserts = 0
                 for application_handler in simple_evaluation_data.application_steps:
                     if callable(application_handler):
                         application_revision_id = await aupsert_application(
@@ -230,15 +229,11 @@ async def _upsert_entities(
                             application_revision_id
                         )
                         if not normalized_revision_id:
-                            failed_application_upserts += 1
-                            continue
+                            raise ValueError(
+                                "Invalid 'evaluate()' specs: failed to upsert application",
+                            )
 
                         application_steps[normalized_revision_id] = "custom"
-
-                if failed_application_upserts:
-                    raise ValueError(
-                        "Invalid 'evaluate()' specs: failed to upsert one or more applications",
-                    )
 
             simple_evaluation_data.application_steps = application_steps
 
@@ -264,7 +259,6 @@ async def _upsert_entities(
                 callable(evaluator_handler)
                 for evaluator_handler in simple_evaluation_data.evaluator_steps
             ):
-                failed_evaluator_upserts = 0
                 for evaluator_handler in simple_evaluation_data.evaluator_steps:
                     if callable(evaluator_handler):
                         evaluator_revision_id = await aupsert_evaluator(
@@ -274,15 +268,11 @@ async def _upsert_entities(
                             evaluator_revision_id
                         )
                         if not normalized_revision_id:
-                            failed_evaluator_upserts += 1
-                            continue
+                            raise ValueError(
+                                "Invalid 'evaluate()' specs: failed to upsert evaluator",
+                            )
 
                         evaluator_steps[normalized_revision_id] = "custom"
-
-                if failed_evaluator_upserts:
-                    raise ValueError(
-                        "Invalid 'evaluate()' specs: failed to upsert one or more evaluators",
-                    )
 
             simple_evaluation_data.evaluator_steps = evaluator_steps
 
