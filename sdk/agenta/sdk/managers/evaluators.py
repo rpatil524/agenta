@@ -93,7 +93,15 @@ async def _fetch_simple_evaluator(
     if response.status_code == 404:
         return None
 
-    response.raise_for_status()
+    try:
+        response.raise_for_status()
+    except Exception as e:
+        detail = _response_detail(response)
+        message = (
+            f"Failed to fetch evaluator '{evaluator_id}' before update: {detail}"
+        )
+        print("[ERROR]:", message)
+        raise ValueError(message) from e
 
     simple_evaluator_response = SimpleEvaluatorResponse(**response.json())
 

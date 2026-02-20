@@ -59,6 +59,10 @@ from agenta.sdk.decorators.running import (
     invoke_application,
     invoke_evaluator,
 )
+from agenta.sdk.utils.logging import get_module_logger
+
+
+log = get_module_logger(__name__)
 
 
 class EvaluateSpecs(BaseModel):
@@ -82,6 +86,10 @@ def _normalize_step_id(step_id: Any) -> Optional[str]:
     try:
         return str(UUID(str(step_id)))
     except Exception:
+        log.warning(
+            "Ignoring invalid evaluate() step id. Expected UUID-compatible value, got %r",
+            step_id,
+        )
         return None
 
 
@@ -116,7 +124,9 @@ def _normalize_target_steps(
         if invalid_step_ids:
             errors.append(f"{invalid_step_ids} invalid id(s)")
         if invalid_origins:
-            errors.append(f"{invalid_origins} invalid origin(s)")
+            errors.append(
+                f"{invalid_origins} invalid origin(s) among entries with valid id(s)"
+            )
 
         raise ValueError(
             f"Invalid 'evaluate()' specs: invalid {step_name} ({', '.join(errors)})",
