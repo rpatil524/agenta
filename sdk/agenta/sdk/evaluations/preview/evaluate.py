@@ -113,7 +113,7 @@ def _normalize_target_steps(
             invalid_step_ids += 1
             continue
 
-        if origin not in _ALLOWED_ORIGINS:
+        if not isinstance(origin, str) or origin not in _ALLOWED_ORIGINS:
             invalid_origins += 1
             continue
 

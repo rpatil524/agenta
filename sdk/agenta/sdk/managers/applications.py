@@ -107,6 +107,15 @@ async def aupsert(
     name: Optional[str] = None,
     description: Optional[str] = None,
 ) -> Optional[UUID]:
+    """Upsert a simple application and return its revision ID.
+
+    Returns:
+        The application revision UUID, or None when the API responds without
+        a usable application/revision object.
+
+    Raises:
+        ValueError: If preparation fails or API create/update calls fail.
+    """
     # print("\n---------   UPSERT APPLICATION")
     try:
         if not is_workflow(handler):

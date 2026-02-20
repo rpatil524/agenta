@@ -133,6 +133,15 @@ async def aupsert(
     name: Optional[str] = None,
     description: Optional[str] = None,
 ) -> Optional[UUID]:
+    """Upsert a simple evaluator and return its revision ID.
+
+    Returns:
+        The evaluator revision UUID, or None when the API responds without
+        a usable evaluator/revision object.
+
+    Raises:
+        ValueError: If preparation fails or API fetch/create/update calls fail.
+    """
     # print("\n---------   UPSERT EVALUATOR")
     try:
         if not is_workflow(handler):
