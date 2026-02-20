@@ -49,7 +49,7 @@ The implementation enables hierarchical folder operations, folder-app associatio
 ## Validation Notes
 
 1. Manual API scenarios exist in `api/oss/tests/manual/folders/crud.http`.
-2. Automated tests are currently unavailable per repo guidance.
+2. Automated tests for folders are not present yet; rely on the manual scenarios above for validation.
 3. Validate:
   - Folder CRUD/query behavior.
   - Subtree move/delete behavior.
