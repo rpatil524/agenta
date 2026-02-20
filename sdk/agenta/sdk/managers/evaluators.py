@@ -97,9 +97,7 @@ async def _fetch_simple_evaluator(
         response.raise_for_status()
     except Exception as e:
         detail = _response_detail(response)
-        message = (
-            f"Failed to fetch evaluator '{evaluator_id}' before update: {detail}"
-        )
+        message = f"Failed to fetch evaluator '{evaluator_id}' before update: {detail}"
         print("[ERROR]:", message)
         raise ValueError(message) from e
 
