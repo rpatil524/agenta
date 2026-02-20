@@ -23,7 +23,6 @@ from oss.databases.postgres.migrations.tracing.utils import (
 from oss.src.services.auth_service import authentication_middleware
 from oss.src.services.analytics_service import analytics_middleware
 
-from oss.src.routers import evaluation_router
 from oss.src.core.auth.supertokens.config import init_supertokens
 
 # DBEs
@@ -102,6 +101,9 @@ from oss.src.apis.fastapi.environments.router import EnvironmentsRouter
 from oss.src.apis.fastapi.environments.router import SimpleEnvironmentsRouter
 from oss.src.apis.fastapi.evaluations.router import EvaluationsRouter
 from oss.src.apis.fastapi.evaluations.router import SimpleEvaluationsRouter
+
+from oss.src.core.ai_services.service import AIServicesService
+from oss.src.apis.fastapi.ai_services.router import AIServicesRouter
 
 
 from oss.src.routers import (
@@ -431,6 +433,13 @@ annotations = AnnotationsRouter(
     annotations_service=annotations_service,
 )
 
+# AI SERVICES ------------------------------------------------------------------
+
+ai_services_service = AIServicesService.from_env()
+ai_services = AIServicesRouter(
+    ai_services_service=ai_services_service,
+)
+
 # MOUNTING ROUTERS TO APP ROUTES -----------------------------------------------
 
 app.include_router(
@@ -533,6 +542,12 @@ app.include_router(
 )
 
 app.include_router(
+    router=ai_services.router,
+    prefix="/ai/services",
+    tags=["AI Services"],
+)
+
+app.include_router(
     router=evaluators.router,
     prefix="/preview/evaluators",
     tags=["Evaluators"],
@@ -571,12 +586,6 @@ app.include_router(
 app.include_router(
     router=simple_evaluations.router,
     prefix="/preview/simple/evaluations",
-    tags=["Evaluations"],
-)
-
-app.include_router(
-    evaluation_router.router,
-    prefix="/evaluations",
     tags=["Evaluations"],
 )
 
