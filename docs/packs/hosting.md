@@ -1,12 +1,8 @@
 # Hosting
 
-When you need a local instance of Agenta with:
-
-```bash
-bash ./hosting/docker-compose/run.sh [flags...]
-```
-
-If conflicts, trust script over this.
+Use this to run a local Agenta instance
+Unless intentional, use `--env-file <path>`.
+If conflicts, trust script.
 
 ## Recipes
 - Backend work:
@@ -23,10 +19,10 @@ If conflicts, trust script over this.
   `bash ./hosting/docker-compose/run.sh --oss --gh`
 
 ## Extensions
+- set env file: append `--env-file <path>`
 - clean rebuild: append `--no-cache` (requires `--build`)
 - skip pull step: append `--no-pull`
 - volume reset: append `--nuke`
-- custom env file: append `--env-file <path>`
 
 ## Logs
 General:  `docker compose logs -f --tail=200`

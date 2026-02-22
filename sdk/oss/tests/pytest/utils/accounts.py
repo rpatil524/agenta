@@ -1,7 +1,7 @@
 import requests
 import pytest
 
-from tests.pytest.utils.constants import BASE_TIMEOUT
+from oss.tests.pytest.utils.constants import BASE_TIMEOUT
 
 
 def create_account(ag_env):
