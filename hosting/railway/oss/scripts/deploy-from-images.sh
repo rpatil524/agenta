@@ -72,6 +72,8 @@ render_api_like_wrapper() {
 FROM ${AGENTA_API_IMAGE}
 
 ENV AGENTA_LICENSE=oss
+ENV AGENTA_API_URL=http://api.railway.internal:8000/api
+ENV AGENTA_API_INTERNAL_URL=http://api.railway.internal:8000/api
 ENV REDIS_URI=redis://redis.railway.internal:6379/0
 ENV REDIS_URI_VOLATILE=redis://redis.railway.internal:6379/0
 ENV REDIS_URI_DURABLE=redis://redis.railway.internal:6379/0
