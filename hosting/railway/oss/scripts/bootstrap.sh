@@ -24,19 +24,38 @@ require_cmd() {
 }
 
 require_railway_auth() {
-    if [ -n "${RAILWAY_API_TOKEN:-}" ] || [ -n "${RAILWAY_TOKEN:-}" ]; then
+    if [ -z "${RAILWAY_API_TOKEN:-}" ] && [ -z "${RAILWAY_TOKEN:-}" ]; then
+        railway whoami >/dev/null 2>&1 || {
+            printf "Railway authentication is required. Set RAILWAY_API_TOKEN or run 'railway login'.\n" >&2
+            exit 1
+        }
         return 0
     fi
 
-    railway whoami >/dev/null 2>&1 || {
-        printf "Railway authentication is required. Set RAILWAY_API_TOKEN or run railway login.\n" >&2
+    # Verify the token actually works. A revoked or invalid token will cause
+    # every subsequent call to fail with a confusing "Unauthorized" error.
+    local whoami_output
+    whoami_output="$(railway_call whoami 2>&1)" || {
+        printf "Railway authentication failed. The token appears to be invalid or revoked.\n" >&2
+        printf "Output: %s\n" "$whoami_output" >&2
         exit 1
     }
 }
 
 ensure_project_linked() {
-    local existing_project
-    existing_project="$(railway_call project list --json | jq -r --arg name "$PROJECT_NAME" '.[] | select(.name == $name) | .name' | head -n 1 || true)"
+    local project_json existing_project
+
+    # Fetch the project list. If the command fails, project_json will be empty
+    # and we fall through to the "init" branch.
+    project_json="$(railway_call project list --json 2>/dev/null || true)"
+
+    existing_project=""
+    if [ -n "$project_json" ]; then
+        existing_project="$(printf "%s" "$project_json" \
+            | jq -r --arg name "$PROJECT_NAME" \
+                '.[] | select(.name == $name) | .name' 2>/dev/null \
+            | head -n 1 || true)"
+    fi
 
     if [ -n "$existing_project" ]; then
         railway_call link --project "$PROJECT_NAME" --json >/dev/null
