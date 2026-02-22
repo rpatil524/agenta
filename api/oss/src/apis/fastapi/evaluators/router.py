@@ -56,6 +56,9 @@ from oss.src.apis.fastapi.evaluators.models import (
     SimpleEvaluatorQueryRequest,
     SimpleEvaluatorResponse,
     SimpleEvaluatorsResponse,
+    #
+    EvaluatorTemplate,
+    EvaluatorTemplatesResponse,
 )
 from oss.src.apis.fastapi.evaluators.utils import (
     parse_evaluator_variant_query_request_from_params,
@@ -1135,6 +1138,18 @@ class SimpleEvaluatorsRouter:
             response_model_exclude_none=True,
         )
 
+        # EVALUATOR TEMPLATES --------------------------------------------------
+
+        self.router.add_api_route(
+            "/templates",
+            self.list_evaluator_templates,
+            methods=["GET"],
+            operation_id="list_evaluator_templates",
+            status_code=status.HTTP_200_OK,
+            response_model=EvaluatorTemplatesResponse,
+            response_model_exclude_none=True,
+        )
+
     # SIMPLE EVALUATORS --------------------------------------------------------
 
     @intercept_exceptions()
@@ -1596,3 +1611,32 @@ class SimpleEvaluatorsRouter:
         )
 
         return simple_evaluators_response
+
+    # EVALUATOR TEMPLATES ------------------------------------------------------
+
+    async def list_evaluator_templates(
+        self,
+        request: Request,
+        *,
+        include_archived: bool = False,
+    ) -> EvaluatorTemplatesResponse:
+        """
+        Returns the list of built-in evaluator templates.
+
+        These are static evaluator type definitions (not user-created configs).
+        """
+        from oss.src.resources.evaluators.evaluators import get_all_evaluators
+
+        all_templates = get_all_evaluators()
+
+        # Filter templates based on include_archived flag
+        templates = [
+            EvaluatorTemplate(**template)
+            for template in all_templates
+            if include_archived or not template.get("archived", False)
+        ]
+
+        return EvaluatorTemplatesResponse(
+            count=len(templates),
+            templates=templates,
+        )

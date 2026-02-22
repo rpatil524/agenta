@@ -156,15 +156,13 @@ export const fetchEvaluatorTemplates = async () => {
 - [ ] Regenerate OpenAPI spec (will auto-update on next SDK build)
 - [ ] Verify SDK autogen client updates automatically
 
-### Phase 2 (Next Sprint - Templates Migration)
+### Phase 2 (Templates Migration) ✅ COMPLETED
 
-- [ ] Add `/preview/simple/evaluators/templates` endpoint
-- [ ] Add `fetchEvaluatorTemplates()` service function
-- [ ] Update `evaluatorsQueryAtomFamily` atom
-- [ ] Update all components using `preview=false`
-- [ ] Deprecate `fetchAllEvaluators()`
-- [ ] Add deprecation header to `GET /evaluators/`
-- [ ] Remove `GET /evaluators/` after frontend migration
+- [x] Add `/preview/simple/evaluators/templates` endpoint
+- [x] Update `fetchAllEvaluators()` to use new endpoint
+- [x] Remove `GET /evaluators/` legacy endpoint and router
+- [x] Move `BUILTIN_EVALUATORS` to shared location (`get_builtin_evaluators()`)
+- [x] Update migrations and services to use new function
 
 ---
 
