@@ -1616,6 +1616,7 @@ class SimpleEvaluatorsRouter:
 
     # EVALUATOR TEMPLATES ------------------------------------------------------
 
+    @intercept_exceptions()
     async def list_evaluator_templates(
         self,
         request: Request,
