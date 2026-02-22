@@ -1,6 +1,6 @@
 # Railway OSS Deployment (Programmatic)
 
-This folder contains a CLI-first bootstrap path to deploy Agenta OSS on Railway with minimal manual steps.
+This directory contains a CLI-first bootstrap path to deploy Agenta OSS on Railway with minimal manual steps.
 
 ## Goals
 
