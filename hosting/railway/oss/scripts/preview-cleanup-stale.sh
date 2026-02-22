@@ -51,13 +51,16 @@ while IFS= read -r project; do
     if [ "$age_seconds" -gt "$MAX_AGE_SECONDS" ]; then
         if [ "$DRY_RUN" = "true" ]; then
             printf "DRY-RUN: would delete '%s' (idle: %dh, last update: %s)\n" "$name" "$age_hours" "$updated_at"
+            DELETED=$((DELETED + 1))
         else
             printf "DELETE: '%s' (idle: %dh, last update: %s)\n" "$name" "$age_hours" "$updated_at"
-            railway delete --project "$name" --yes --json >/dev/null 2>&1 || {
+            if railway delete --project "$name" --yes --json >/dev/null 2>&1; then
+                DELETED=$((DELETED + 1))
+            else
                 printf "  FAILED to delete '%s'\n" "$name" >&2
-            }
+                SKIPPED=$((SKIPPED + 1))
+            fi
         fi
-        DELETED=$((DELETED + 1))
     else
         printf "KEEP: '%s' (idle: %dh, max: %dh)\n" "$name" "$age_hours" "$MAX_AGE_HOURS"
         SKIPPED=$((SKIPPED + 1))
@@ -65,4 +68,8 @@ while IFS= read -r project; do
 done < <(railway project list --json | jq -c --arg prefix "$PREVIEW_PROJECT_PREFIX" \
     '.[] | select(.name | startswith($prefix)) | {name: .name, updatedAt: .updatedAt}')
 
-printf "Cleanup complete. Deleted: %d, Skipped: %d (prefix: %s, max age: %dh)\n" "$DELETED" "$SKIPPED" "$PREVIEW_PROJECT_PREFIX" "$MAX_AGE_HOURS"
+if [ "$DRY_RUN" = "true" ]; then
+    printf "Cleanup complete (dry-run). Would delete: %d, Skipped: %d (prefix: %s, max age: %dh)\n" "$DELETED" "$SKIPPED" "$PREVIEW_PROJECT_PREFIX" "$MAX_AGE_HOURS"
+else
+    printf "Cleanup complete. Deleted: %d, Skipped/failed: %d (prefix: %s, max age: %dh)\n" "$DELETED" "$SKIPPED" "$PREVIEW_PROJECT_PREFIX" "$MAX_AGE_HOURS"
+fi
