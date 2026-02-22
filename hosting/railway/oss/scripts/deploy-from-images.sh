@@ -167,6 +167,10 @@ render_api_like_wrapper cron '["cron", "-f"]'
 export RAILWAY_PROJECT_NAME="$PROJECT_NAME"
 export RAILWAY_ENVIRONMENT_NAME="$ENV_NAME"
 
+# Brief pause to avoid hitting Railway's API rate limit immediately after
+# the bootstrap phase, which fires many API calls in quick succession.
+sleep "${RAILWAY_POST_BOOTSTRAP_SLEEP:-5}"
+
 "$ROOT_DIR/hosting/railway/oss/scripts/configure.sh"
 
 # Ensure infra picks up freshly configured credentials before migrations.

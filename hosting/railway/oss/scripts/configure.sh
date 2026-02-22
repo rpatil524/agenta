@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+# shellcheck source=lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+
 PROJECT_NAME="${RAILWAY_PROJECT_NAME:-agenta-oss-railway}"
 ENV_NAME="${RAILWAY_ENVIRONMENT_NAME:-staging}"
 
@@ -31,7 +34,7 @@ require_railway_auth() {
 set_vars() {
     local service="$1"
     shift
-    railway variable set --service "$service" --environment "$ENV_NAME" --skip-deploys "$@" >/dev/null
+    railway_call variable set --service "$service" --environment "$ENV_NAME" --skip-deploys "$@" >/dev/null
 }
 
 set_optional_vars() {
@@ -47,7 +50,7 @@ set_optional_vars() {
     done
 
     if [ "${#args[@]}" -gt 0 ]; then
-        railway variable set --service "$service" --environment "$ENV_NAME" --skip-deploys "${args[@]}" >/dev/null
+        railway_call variable set --service "$service" --environment "$ENV_NAME" --skip-deploys "${args[@]}" >/dev/null
     fi
 }
 
@@ -57,7 +60,7 @@ unset_vars() {
 
     local key
     for key in "$@"; do
-        railway variable delete "$key" --service "$service" --environment "$ENV_NAME" >/dev/null 2>&1 || true
+        railway_call variable delete "$key" --service "$service" --environment "$ENV_NAME" >/dev/null 2>&1 || true
     done
 }
 
