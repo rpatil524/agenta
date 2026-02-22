@@ -1088,6 +1088,20 @@ class SimpleEvaluatorsRouter:
             response_model_exclude_none=True,
         )
 
+        # EVALUATOR TEMPLATES --------------------------------------------------
+        # NOTE: This must be registered BEFORE /{evaluator_id} routes to avoid
+        # FastAPI matching "templates" as a UUID path parameter
+
+        self.router.add_api_route(
+            "/templates",
+            self.list_evaluator_templates,
+            methods=["GET"],
+            operation_id="list_evaluator_templates",
+            status_code=status.HTTP_200_OK,
+            response_model=EvaluatorTemplatesResponse,
+            response_model_exclude_none=True,
+        )
+
         self.router.add_api_route(
             "/{evaluator_id}",
             self.fetch_simple_evaluator,
@@ -1135,18 +1149,6 @@ class SimpleEvaluatorsRouter:
             operation_id="query_simple_evaluators",
             status_code=status.HTTP_200_OK,
             response_model=SimpleEvaluatorsResponse,
-            response_model_exclude_none=True,
-        )
-
-        # EVALUATOR TEMPLATES --------------------------------------------------
-
-        self.router.add_api_route(
-            "/templates",
-            self.list_evaluator_templates,
-            methods=["GET"],
-            operation_id="list_evaluator_templates",
-            status_code=status.HTTP_200_OK,
-            response_model=EvaluatorTemplatesResponse,
             response_model_exclude_none=True,
         )
 
