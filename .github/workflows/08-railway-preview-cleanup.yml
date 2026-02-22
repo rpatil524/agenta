@@ -39,7 +39,7 @@ jobs:
 
       - name: Install Railway CLI
         run: |
-          curl -fsSL https://raw.githubusercontent.com/railwayapp/cli/master/install.sh | sh
+          npm install -g @railway/cli@latest
           railway --version
 
       - name: Install jq
@@ -111,7 +111,7 @@ jobs:
 
       - name: Install Railway CLI
         run: |
-          curl -fsSL https://raw.githubusercontent.com/railwayapp/cli/master/install.sh | sh
+          npm install -g @railway/cli@latest
           railway --version
 
       - name: Install jq

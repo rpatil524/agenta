@@ -206,6 +206,47 @@ The smoke script supports these environment variables:
 
 For CI, consider `SMOKE_AUTO_REPAIR=false` to get clean pass/fail signals without side effects.
 
+## Rate Limits and Token Types
+
+Railway enforces API rate limits per token tier:
+
+| Plan    | Requests per hour | Requests per second |
+|---------|-------------------|---------------------|
+| Free    | 100               | -                   |
+| Hobby   | 1,000             | 10                  |
+| Pro     | 10,000            | 50                  |
+
+Railway has three token types: account (personal), workspace (team), and project.
+Account tokens work with the CLI. Workspace tokens carry Pro rate limits but the
+CLI rejects them with "Unauthorized" because it internally calls user-scoped
+GraphQL queries (like `me { ... }`) that workspace tokens cannot resolve. This is
+a known limitation with no fix planned as of February 2026.
+See [railwayapp/cli#618](https://github.com/railwayapp/cli/issues/618),
+[railwayapp/cli#575](https://github.com/railwayapp/cli/issues/575),
+and [railwayapp/cli#789](https://github.com/railwayapp/cli/pull/789).
+
+The deploy scripts use a `railway_call` wrapper (defined in `lib.sh`) that retries
+on rate-limit responses with exponential backoff. Preview deploys also set
+`CONFIGURE_SKIP_UNSETS=true` to skip ~73 unnecessary variable-delete API calls,
+keeping total calls around 58 per deploy.
+
+### Future: migrate high-call operations to GraphQL
+
+Workspace tokens work with the Railway GraphQL API at
+`https://backboard.railway.com/graphql/v2`. To unlock Pro rate limits (10,000 RPH)
+without waiting for CLI support, the highest-call-count operations could be replaced
+with direct GraphQL mutations. The best candidates are:
+
+- `configure.sh` variable set/delete loops (currently one CLI call per variable per
+  service). A single `variableCollectionUpsert` GraphQL mutation can set all
+  variables for a service in one call.
+- `bootstrap.sh` project listing and service creation. The `projects` and
+  `serviceCreate` mutations can be batched.
+- `preview-cleanup-stale.sh` project deletion loop.
+
+This is not urgent while deploys stay under ~58 calls, but becomes necessary if
+the deploy flow grows or back-to-back deploys hit the 1,000 RPH Hobby ceiling.
+
 ## Notes
 
 - This fast-start flow keeps auth minimal (`AGENTA_LICENSE=oss`) and does not wire CI yet.
