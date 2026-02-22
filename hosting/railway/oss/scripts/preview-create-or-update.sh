@@ -53,11 +53,17 @@ export AGENTA_SERVICES_IMAGE="${AGENTA_SERVICES_IMAGE:-ghcr.io/${GHCR_NAMESPACE}
 export RAILWAY_PROJECT_NAME="$PROJECT_NAME"
 export RAILWAY_ENVIRONMENT_NAME="$ENV_NAME"
 
+# Preview projects are always fresh; skip unsetting stale variables to save
+# ~73 Railway API calls per deploy and stay within rate limits.
+export CONFIGURE_SKIP_UNSETS=true
+
 "$ROOT_DIR/hosting/railway/oss/scripts/bootstrap.sh"
 "$ROOT_DIR/hosting/railway/oss/scripts/deploy-from-images.sh"
 
-railway link --project "$PROJECT_NAME" --environment "$ENV_NAME" --json >/dev/null
-DOMAIN="$(railway variable list -k --service gateway --environment "$ENV_NAME" | grep '^RAILWAY_PUBLIC_DOMAIN=' | cut -d= -f2- || true)"
+# shellcheck source=lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+railway_call link --project "$PROJECT_NAME" --environment "$ENV_NAME" --json >/dev/null
+DOMAIN="$(railway_call variable list -k --service gateway --environment "$ENV_NAME" | grep '^RAILWAY_PUBLIC_DOMAIN=' | cut -d= -f2- || true)"
 
 printf "Preview deploy completed for '%s' (%s)\n" "$PROJECT_NAME" "$ENV_NAME"
 if [ -n "$DOMAIN" ]; then

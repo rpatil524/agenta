@@ -7,6 +7,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 PROJECT_NAME="${RAILWAY_PROJECT_NAME:-agenta-oss-railway}"
 ENV_NAME="${RAILWAY_ENVIRONMENT_NAME:-staging}"
+SKIP_UNSETS="${CONFIGURE_SKIP_UNSETS:-false}"
 
 POSTGRES_REF_NS="${RAILWAY_POSTGRES_REF_NS:-Postgres}"
 AGENTA_AUTH_KEY="${AGENTA_AUTH_KEY:-0000000000000000000000000000000000000000000000000000000000000000}"
@@ -55,6 +56,10 @@ set_optional_vars() {
 }
 
 unset_vars() {
+    if [ "$SKIP_UNSETS" = "true" ]; then
+        return 0
+    fi
+
     local service="$1"
     shift
 
@@ -67,7 +72,7 @@ unset_vars() {
 set_healthcheck() {
     local service="$1"
     local path="$2"
-    railway environment edit --environment "$ENV_NAME" --service-config "$service" healthcheckPath "$path" --message "set healthcheck for ${service}" --json >/dev/null
+    railway_call environment edit --environment "$ENV_NAME" --service-config "$service" healthcheckPath "$path" --message "set healthcheck for ${service}" --json >/dev/null
 }
 
 main() {
@@ -79,9 +84,9 @@ main() {
         printf "WARNING: Using default placeholder auth/crypt keys. Set AGENTA_AUTH_KEY and AGENTA_CRYPT_KEY for production deployments.\n" >&2
     fi
 
-    railway link --project "$PROJECT_NAME" --environment "$ENV_NAME" --json >/dev/null
+    railway_call link --project "$PROJECT_NAME" --environment "$ENV_NAME" --json >/dev/null
 
-    railway domain --service gateway --json >/dev/null 2>&1 || true
+    railway_call domain --service gateway --json >/dev/null 2>&1 || true
 
     local public_domain_ref
     public_domain_ref='${{gateway.RAILWAY_PUBLIC_DOMAIN}}'
@@ -97,7 +102,7 @@ main() {
 
     if [ -z "$POSTGRES_PASSWORD" ]; then
         local existing_postgres_password
-        existing_postgres_password="$(railway variable list -k --service "$POSTGRES_REF_NS" --environment "$ENV_NAME" | grep '^POSTGRES_PASSWORD=' | cut -d= -f2- || true)"
+        existing_postgres_password="$(railway_call variable list -k --service "$POSTGRES_REF_NS" --environment "$ENV_NAME" | grep '^POSTGRES_PASSWORD=' | cut -d= -f2- || true)"
         if [ -n "$existing_postgres_password" ]; then
             POSTGRES_PASSWORD="$existing_postgres_password"
         else

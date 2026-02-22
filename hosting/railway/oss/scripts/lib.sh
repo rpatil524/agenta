@@ -24,8 +24,7 @@ railway_call() {
     local exit_code
 
     while [ "$attempt" -le "$max_attempts" ]; do
-        output="$(railway "$@" 2>&1)"
-        exit_code=$?
+        output="$(railway "$@" 2>&1)" && exit_code=0 || exit_code=$?
 
         if printf "%s" "$output" | grep -qi "ratelimit\|rate.limit\|rate limit"; then
             if [ "$attempt" -eq "$max_attempts" ]; then
