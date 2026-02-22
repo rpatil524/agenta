@@ -2,7 +2,7 @@ name: "06 - railway preview: build images"
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - 'api/**'
       - 'web/**'
@@ -28,6 +28,7 @@ concurrency:
 
 jobs:
   build-and-push:
+    if: github.event_name == 'workflow_dispatch' || !github.event.pull_request.draft
     runs-on: ubuntu-latest
     outputs:
       image_tag: ${{ steps.tag.outputs.image_tag }}

@@ -71,6 +71,11 @@ main() {
     require_cmd railway
     require_railway_auth
 
+    if [ "$AGENTA_AUTH_KEY" = "0000000000000000000000000000000000000000000000000000000000000000" ] || \
+       [ "$AGENTA_CRYPT_KEY" = "1111111111111111111111111111111111111111111111111111111111111111" ]; then
+        printf "WARNING: Using default placeholder auth/crypt keys. Set AGENTA_AUTH_KEY and AGENTA_CRYPT_KEY for production deployments.\n" >&2
+    fi
+
     railway link --project "$PROJECT_NAME" --environment "$ENV_NAME" --json >/dev/null
 
     railway domain --service gateway --json >/dev/null 2>&1 || true
