@@ -1,7 +1,8 @@
 import {useMemo, useState} from "react"
 
-import {ArrowsClockwise, GearSix, Play, Plus, Trash, XCircle} from "@phosphor-icons/react"
-import {Button, message, Table, Tag, Tooltip, Typography} from "antd"
+import {MoreOutlined} from "@ant-design/icons"
+import {ArrowClockwise, Play, Plus, Trash, XCircle} from "@phosphor-icons/react"
+import {Button, Dropdown, message, Table, Tag, Tooltip, Typography} from "antd"
 import type {ColumnsType} from "antd/es/table"
 import {useSetAtom} from "jotai"
 
@@ -185,64 +186,67 @@ export default function GatewayToolsSection() {
                     value ? formatDay({date: value, outputFormat: "YYYY-MM-DD HH:mm"}) : "-",
             },
             {
-                title: <GearSix size={16} />,
+                title: "",
                 key: "actions",
-                width: 160,
+                width: 48,
                 fixed: "right",
                 align: "center",
                 render: (_, record) => (
-                    <div className="flex items-center gap-1">
-                        <Tooltip title="Test">
-                            <Button
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    openExecution(record)
-                                }}
-                                type="text"
-                                icon={<Play />}
-                                size="small"
-                                disabled={!(record.flags?.is_active && record.flags?.is_valid)}
-                            />
-                        </Tooltip>
-                        <Tooltip title="Refresh">
-                            <Button
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    onRefresh(record)
-                                }}
-                                type="text"
-                                icon={<ArrowsClockwise />}
-                                size="small"
-                                loading={actionLoading === `refresh-${record.id}`}
-                            />
-                        </Tooltip>
-                        <Tooltip title="Revoke">
-                            <Button
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    confirmRevoke(record)
-                                }}
-                                type="text"
-                                icon={<XCircle />}
-                                size="small"
-                                disabled={!record.flags?.is_valid}
-                                loading={actionLoading === `revoke-${record.id}`}
-                            />
-                        </Tooltip>
-                        <Tooltip title="Delete">
-                            <Button
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    confirmDelete(record)
-                                }}
-                                color="danger"
-                                variant="text"
-                                icon={<Trash />}
-                                size="small"
-                                loading={actionLoading === `delete-${record.id}`}
-                            />
-                        </Tooltip>
-                    </div>
+                    <Dropdown
+                        trigger={["click"]}
+                        styles={{root: {width: 180}}}
+                        menu={{
+                            items: [
+                                {
+                                    key: "test",
+                                    label: "Test",
+                                    icon: <Play size={16} />,
+                                    disabled: !(record.flags?.is_active && record.flags?.is_valid),
+                                    onClick: (e) => {
+                                        e.domEvent.stopPropagation()
+                                        openExecution(record)
+                                    },
+                                },
+                                {
+                                    key: "refresh",
+                                    label: "Refresh",
+                                    icon: <ArrowClockwise size={16} />,
+                                    onClick: (e) => {
+                                        e.domEvent.stopPropagation()
+                                        onRefresh(record)
+                                    },
+                                },
+                                {
+                                    key: "revoke",
+                                    label: "Revoke",
+                                    icon: <XCircle size={16} />,
+                                    disabled: !record.flags?.is_valid,
+                                    onClick: (e) => {
+                                        e.domEvent.stopPropagation()
+                                        confirmRevoke(record)
+                                    },
+                                },
+                                {type: "divider"},
+                                {
+                                    key: "delete",
+                                    label: "Delete",
+                                    icon: <Trash size={16} />,
+                                    danger: true,
+                                    onClick: (e) => {
+                                        e.domEvent.stopPropagation()
+                                        confirmDelete(record)
+                                    },
+                                },
+                            ],
+                        }}
+                    >
+                        <Button
+                            onClick={(e) => e.stopPropagation()}
+                            type="text"
+                            aria-label="Open connection actions"
+                            icon={<MoreOutlined />}
+                        />
+                    </Dropdown>
                 ),
             },
         ],
@@ -254,7 +258,7 @@ export default function GatewayToolsSection() {
             <section className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                     <Typography.Text className="text-sm font-medium">
-                        Composio integrations
+                        Third-party tool integrations
                     </Typography.Text>
 
                     <Button
@@ -267,9 +271,10 @@ export default function GatewayToolsSection() {
                     </Button>
                     <Tooltip title="Reload all connections">
                         <Button
-                            icon={<ArrowsClockwise size={14} />}
+                            icon={<ArrowClockwise size={14} />}
                             type="text"
                             size="small"
+                            aria-label="Reload all connections"
                             loading={reloading}
                             onClick={reloadAll}
                         />

@@ -24,7 +24,7 @@ log = get_module_logger(__name__)
 COMPOSIO_DEFAULT_API_URL = "https://backend.composio.dev/api/v3"
 
 
-class ComposioToolsAdapter(ToolsGatewayInterface, ComposioCatalogClient):
+class ComposioToolsAdapter(ComposioCatalogClient, ToolsGatewayInterface):
     """Composio V3 API adapter — uses httpx directly (no SDK).
 
     Catalog operations (list/get integrations and actions) are provided by

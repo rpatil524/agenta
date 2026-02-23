@@ -1,16 +1,17 @@
-import {useCallback, useEffect, useState} from "react"
+import {useCallback, useState} from "react"
 
-import {ArrowsClockwise, Play, Trash, XCircle} from "@phosphor-icons/react"
+import {ArrowClockwise, Play, Trash, XCircle} from "@phosphor-icons/react"
 import {Button, Descriptions, Divider, Drawer, Spin, Typography} from "antd"
 import {useAtom, useSetAtom} from "jotai"
 
 import AlertPopup from "@/oss/components/AlertPopup/AlertPopup"
 import ConnectionStatusBadge from "@/oss/components/pages/settings/Tools/components/ConnectionStatusBadge"
+import {queryClient} from "@/oss/lib/api/queryClient"
 import {formatDay} from "@/oss/lib/helpers/dateTimeHelper"
-import {fetchConnection} from "@/oss/services/tools/api"
 import type {ConnectionItem} from "@/oss/services/tools/api/types"
 
 import {useConnectionActions} from "../hooks/useConnectionActions"
+import {useConnectionQuery} from "../hooks/useConnectionQuery"
 import {connectionDrawerAtom, executionDrawerAtom} from "../state/atoms"
 
 export default function ConnectionManagerDrawer() {
@@ -18,35 +19,25 @@ export default function ConnectionManagerDrawer() {
     const setExecution = useSetAtom(executionDrawerAtom)
     const open = !!state
     const {handleDelete, handleRefresh, handleRevoke} = useConnectionActions()
+    const connectionId = state?.connectionId
+    const {connection, isLoading, refetch} = useConnectionQuery(connectionId)
 
-    const [connection, setConnection] = useState<ConnectionItem | null>(null)
-    const [loading, setLoading] = useState(false)
     const [actionLoading, setActionLoading] = useState<string | null>(null)
-
-    // Load connection details when drawer opens
-    useEffect(() => {
-        if (!state?.connectionId) return
-        let cancelled = false
-        setLoading(true)
-        fetchConnection(state.connectionId)
-            .then((result) => {
-                if (!cancelled) setConnection(result.connection ?? null)
-            })
-            .catch(() => {
-                if (!cancelled) setConnection(null)
-            })
-            .finally(() => {
-                if (!cancelled) setLoading(false)
-            })
-        return () => {
-            cancelled = true
-        }
-    }, [state?.connectionId])
 
     const handleClose = useCallback(() => {
         setState(null)
-        setConnection(null)
     }, [setState])
+
+    const setConnectionInCache = useCallback(
+        (nextConnection: ConnectionItem | null) => {
+            if (!connectionId) return
+            queryClient.setQueryData(["tools", "connections", connectionId], {
+                count: nextConnection ? 1 : 0,
+                connection: nextConnection,
+            })
+        },
+        [connectionId],
+    )
 
     const onRefresh = useCallback(async () => {
         if (!state?.connectionId) return
@@ -64,17 +55,16 @@ export default function ConnectionManagerDrawer() {
                 )
 
                 if (!popup) {
-                    setConnection(result.connection ?? null)
+                    setConnectionInCache(result.connection ?? null)
                     return
                 }
 
                 const syncConnection = async () => {
                     window.focus()
                     try {
-                        const latest = await fetchConnection(state.connectionId)
-                        setConnection(latest.connection ?? null)
+                        await refetch()
                     } catch {
-                        setConnection(result.connection ?? null)
+                        setConnectionInCache(result.connection ?? null)
                     }
                 }
 
@@ -94,12 +84,12 @@ export default function ConnectionManagerDrawer() {
                     }
                 }, 1000)
             } else {
-                setConnection(result.connection ?? null)
+                setConnectionInCache(result.connection ?? null)
             }
         } finally {
             setActionLoading(null)
         }
-    }, [state?.connectionId, handleRefresh])
+    }, [state?.connectionId, handleRefresh, refetch, setConnectionInCache])
 
     const onRevoke = useCallback(() => {
         if (!state?.connectionId) return
@@ -111,13 +101,13 @@ export default function ConnectionManagerDrawer() {
                 setActionLoading("revoke")
                 try {
                     const result = await handleRevoke(state.connectionId)
-                    setConnection(result.connection ?? null)
+                    setConnectionInCache(result.connection ?? null)
                 } finally {
                     setActionLoading(null)
                 }
             },
         })
-    }, [state?.connectionId, handleRevoke])
+    }, [state?.connectionId, handleRevoke, setConnectionInCache])
 
     const onDelete = useCallback(() => {
         if (!state?.connectionId) return
@@ -158,7 +148,7 @@ export default function ConnectionManagerDrawer() {
             destroyOnClose
         >
             <div className="flex flex-col gap-4">
-                {loading ? (
+                {isLoading ? (
                     <div className="flex justify-center py-8">
                         <Spin />
                     </div>
@@ -238,7 +228,7 @@ export default function ConnectionManagerDrawer() {
                                 Test Connection
                             </Button>
                             <Button
-                                icon={<ArrowsClockwise size={14} />}
+                                icon={<ArrowClockwise size={14} />}
                                 loading={actionLoading === "refresh"}
                                 onClick={onRefresh}
                             >

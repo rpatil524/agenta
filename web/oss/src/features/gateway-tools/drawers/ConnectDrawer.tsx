@@ -1,11 +1,13 @@
-import {useCallback, useState} from "react"
+import {useCallback, useRef, useState} from "react"
 
 import {EnhancedModal, ModalContent, ModalFooter} from "@agenta/ui"
-import {Divider, Form, Input, Select, Typography} from "antd"
+import {Divider, Form, Input, Select, Tooltip, Typography} from "antd"
 import Image from "next/image"
 
 import {queryClient} from "@/oss/lib/api/queryClient"
 import {createConnection, fetchConnection} from "@/oss/services/tools/api"
+
+import {generateDefaultSlug} from "../utils/slugify"
 
 const DEFAULT_PROVIDER = "composio"
 
@@ -47,12 +49,16 @@ export default function ConnectDrawer({
 }: Props) {
     const [loading, setLoading] = useState(false)
     const [form] = Form.useForm()
+    // Track whether the user has manually edited the slug field.
+    // While false, slug auto-tracks the name field.
+    const slugTouchedRef = useRef(false)
 
     const availableModes = resolveAvailableModes(authSchemes)
     const [selectedMode, setSelectedMode] = useState<AuthMode>(availableModes[0] || "oauth")
 
     const handleClose = useCallback(() => {
         form.resetFields()
+        slugTouchedRef.current = false
         setLoading(false)
         onClose()
     }, [form, onClose])
@@ -171,6 +177,10 @@ export default function ConnectDrawer({
                     form={form}
                     layout="vertical"
                     className="!mb-0"
+                    initialValues={{
+                        name: integrationName,
+                        slug: generateDefaultSlug(integrationName),
+                    }}
                     requiredMark={(label, {required}) => (
                         <>
                             {label}
@@ -179,20 +189,43 @@ export default function ConnectDrawer({
                     )}
                 >
                     <Form.Item
-                        name="slug"
-                        label="slug (used in tools)"
-                        rules={[{required: true, message: "Required"}]}
+                        name="name"
+                        label={
+                            <Tooltip title="Display name for this connection">
+                                <span>Name</span>
+                            </Tooltip>
+                        }
                         className="!mb-4"
                     >
-                        <Input placeholder={`e.g. my-${integrationKey}`} />
+                        <Input
+                            placeholder={`e.g. My ${integrationName} Account`}
+                            onChange={(e) => {
+                                if (!slugTouchedRef.current) {
+                                    form.setFieldValue(
+                                        "slug",
+                                        generateDefaultSlug(e.target.value || integrationName),
+                                    )
+                                }
+                            }}
+                        />
                     </Form.Item>
 
                     <Form.Item
-                        name="name"
-                        label="name (used as display)"
+                        name="slug"
+                        label={
+                            <Tooltip title="Unique identifier used in tool call slugs — lowercase letters, numbers, and hyphens only">
+                                <span>Slug</span>
+                            </Tooltip>
+                        }
+                        rules={[{required: true, message: "Required"}]}
                         className={availableModes.length > 1 ? "!mb-4" : "!mb-0"}
                     >
-                        <Input placeholder={`e.g. My ${integrationName} Account`} />
+                        <Input
+                            placeholder={`e.g. my-${integrationKey}`}
+                            onChange={() => {
+                                slugTouchedRef.current = true
+                            }}
+                        />
                     </Form.Item>
 
                     {availableModes.length > 1 && (

@@ -38,7 +38,7 @@ export default function IntegrationGrid({onSelect}: Props) {
     return (
         <section className="flex flex-col gap-4">
             <Input
-                placeholder="Search integrations..."
+                placeholder="Search integrations…"
                 prefix={<MagnifyingGlass size={16} />}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}

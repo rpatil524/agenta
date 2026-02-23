@@ -1,8 +1,7 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from "react"
+import React, {useCallback, useMemo, useRef, useState} from "react"
 
 import {
     ArrowLeft,
-    ArrowUp,
     BracketsRound,
     CopySimple,
     ListDashes,
@@ -31,110 +30,16 @@ import type {ActionItem} from "@/oss/services/tools/api/types"
 import ResultViewer from "../components/ResultViewer"
 import SchemaForm from "../components/SchemaForm"
 import type {SchemaFormHandle} from "../components/SchemaForm"
+import ScrollSentinel from "../components/ScrollSentinel"
+import ScrollToTopButton from "../components/ScrollToTopButton"
 import {useActionDetail} from "../hooks/useActionDetail"
 import {useCatalogActions, actionsSearchAtom} from "../hooks/useCatalogActions"
-import {useIntegrationInfo} from "../hooks/useIntegrationInfo"
+import {useDebouncedAtomSearch} from "../hooks/useDebouncedAtomSearch"
+import {useIntegrationDetail} from "../hooks/useIntegrationDetail"
 import {useToolExecution} from "../hooks/useToolExecution"
 import {executionDrawerAtom} from "../state/atoms"
 
 const DEFAULT_PROVIDER = "composio"
-
-// ---------------------------------------------------------------------------
-// Debounce helper (same pattern as CatalogDrawer)
-// ---------------------------------------------------------------------------
-
-function useDebouncedAtomSearch(setAtom: (v: string) => void, delay = 300) {
-    const [local, setLocal] = useState("")
-    const timerRef = useRef<ReturnType<typeof setTimeout>>()
-
-    const onChange = useCallback(
-        (v: string) => {
-            setLocal(v)
-            clearTimeout(timerRef.current)
-            timerRef.current = setTimeout(() => setAtom(v), delay)
-        },
-        [setAtom, delay],
-    )
-
-    const reset = useCallback(() => {
-        clearTimeout(timerRef.current)
-        setLocal("")
-        setAtom("")
-    }, [setAtom])
-
-    useEffect(() => () => clearTimeout(timerRef.current), [])
-
-    return {value: local, onChange, reset}
-}
-
-// ---------------------------------------------------------------------------
-// ScrollSentinel (same pattern as CatalogDrawer)
-// ---------------------------------------------------------------------------
-
-function ScrollSentinel({
-    onVisible,
-    hasMore,
-    isFetching,
-}: {
-    onVisible: () => void
-    hasMore: boolean
-    isFetching: boolean
-}) {
-    const ref = useRef<HTMLDivElement>(null)
-
-    useEffect(() => {
-        const el = ref.current
-        if (!el || !hasMore) return
-
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting && !isFetching) {
-                    onVisible()
-                }
-            },
-            {rootMargin: "200px"},
-        )
-        observer.observe(el)
-        return () => observer.disconnect()
-    }, [onVisible, hasMore, isFetching])
-
-    if (!hasMore) return null
-
-    return <div ref={ref} className="h-0 w-0" />
-}
-
-// ---------------------------------------------------------------------------
-// ScrollToTopButton
-// ---------------------------------------------------------------------------
-
-function ScrollToTopButton({scrollRef}: {scrollRef: React.RefObject<HTMLDivElement | null>}) {
-    const [visible, setVisible] = useState(false)
-
-    useEffect(() => {
-        const el = scrollRef.current
-        if (!el) return
-
-        const onScroll = () => {
-            setVisible(el.scrollTop > 300)
-        }
-        el.addEventListener("scroll", onScroll, {passive: true})
-        return () => el.removeEventListener("scroll", onScroll)
-    }, [scrollRef])
-
-    if (!visible) return null
-
-    return (
-        <div className="sticky bottom-4 flex justify-end pointer-events-none">
-            <Button
-                type="default"
-                shape="circle"
-                icon={<ArrowUp size={16} />}
-                className="pointer-events-auto shadow-[0_2px_8px_rgba(0,0,0,0.15)]"
-                onClick={() => scrollRef.current?.scrollTo({top: 0, behavior: "smooth"})}
-            />
-        </div>
-    )
-}
 
 // ---------------------------------------------------------------------------
 // ToolExecutionDrawer (root)
@@ -147,7 +52,7 @@ export default function ToolExecutionDrawer() {
     const setActionsSearch = useSetAtom(actionsSearchAtom)
 
     // Fetch integration info as fallback when name/logo not in state
-    const {integration} = useIntegrationInfo(state?.integrationKey ?? "")
+    const {integration} = useIntegrationDetail(state?.integrationKey ?? "")
     const integrationName = state?.integrationName ?? integration?.name
     const integrationLogo = state?.integrationLogo ?? integration?.logo
 
@@ -275,7 +180,7 @@ function ActionPickerStep({
                 </div>
 
                 <Input
-                    placeholder="Search actions..."
+                    placeholder="Search actions…"
                     prefix={<MagnifyingGlass size={16} />}
                     value={search.value}
                     onChange={(e) => search.onChange(e.target.value)}
@@ -291,7 +196,10 @@ function ActionPickerStep({
             <Divider className="!m-0" />
 
             {/* Scrollable content */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-3 relative">
+            <div
+                ref={scrollRef}
+                className="flex-1 overflow-y-auto overscroll-contain px-6 py-3 relative"
+            >
                 {isLoading && actions.length === 0 ? (
                     <div className="flex items-center justify-center py-8">
                         <Spin />
@@ -432,6 +340,7 @@ function ActionDetailStep({
                     {canGoBack && (
                         <Button
                             type="text"
+                            aria-label="Go back"
                             icon={<ArrowLeft size={16} />}
                             onClick={onBack}
                             className="shrink-0"
@@ -458,7 +367,7 @@ function ActionDetailStep({
                         </Typography.Text>
                     )}
                     <Typography.Text strong className="truncate flex-1">
-                        {detailLoading ? "Loading..." : displayName}
+                        {detailLoading ? "Loading…" : displayName}
                     </Typography.Text>
                     <Segmented
                         size="small"
@@ -483,7 +392,10 @@ function ActionDetailStep({
             <Divider className="!m-0" />
 
             {/* Scrollable content */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-3 relative">
+            <div
+                ref={scrollRef}
+                className="flex-1 overflow-y-auto overscroll-contain px-6 py-3 relative"
+            >
                 {detailLoading ? (
                     <div className="flex items-center justify-center py-8">
                         <Spin />
@@ -499,6 +411,7 @@ function ActionDetailStep({
                                 {!jsonMode && (
                                     <Button
                                         type="text"
+                                        aria-label="Copy inputs"
                                         icon={<CopySimple size={14} />}
                                         size="small"
                                         onClick={handleCopyInputs}

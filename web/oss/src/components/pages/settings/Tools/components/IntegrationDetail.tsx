@@ -33,7 +33,12 @@ export default function IntegrationDetail({integrationKey, onBack}: Props) {
         <section className="flex flex-col gap-6">
             {/* Header */}
             <div className="flex items-center gap-3">
-                <Button type="text" icon={<ArrowLeft size={16} />} onClick={onBack} />
+                <Button
+                    type="text"
+                    aria-label="Go back"
+                    icon={<ArrowLeft size={16} />}
+                    onClick={onBack}
+                />
                 {integration.logo && (
                     <Image
                         src={integration.logo}

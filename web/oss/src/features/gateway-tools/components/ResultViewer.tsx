@@ -107,7 +107,7 @@ function ResultDisplay({
     if (jsonMode || fields.length === 0) {
         return (
             <div className="flex flex-col gap-1">
-                <div className="rounded-lg border border-solid border-[#d9d9d9] overflow-hidden relative">
+                <div className="rounded-lg border border-solid border-gray-300 dark:border-gray-700 overflow-hidden relative">
                     <Editor
                         initialValue={jsonString}
                         codeOnly
@@ -128,7 +128,7 @@ function ResultDisplay({
             <Form
                 layout="vertical"
                 disabled
-                className="[&_.ant-form-item]:!mb-2 [&_.ant-input-disabled]:!text-[rgba(0,0,0,0.85)] [&_.ant-input-number-disabled_.ant-input-number-input]:!text-[rgba(0,0,0,0.85)]"
+                className="[&_.ant-form-item]:!mb-2 [&_.ant-input-disabled]:!text-[var(--ant-color-text)] [&_.ant-input-number-disabled_.ant-input-number-input]:!text-[var(--ant-color-text)]"
             >
                 {fields.map((field) => (
                     <OutputField key={field.name} field={field} data={data} />
@@ -192,6 +192,7 @@ function CopyButton({onClick, className}: {onClick: () => void; className?: stri
     return (
         <Button
             type="text"
+            aria-label="Copy result"
             icon={<CopySimple size={14} />}
             size="small"
             onClick={onClick}

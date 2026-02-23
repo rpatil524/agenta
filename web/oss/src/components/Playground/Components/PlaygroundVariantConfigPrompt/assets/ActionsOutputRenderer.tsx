@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from "react"
 
-import {CaretRight, MagnifyingGlass, Plus} from "@phosphor-icons/react"
-import {Button, Divider, Dropdown, Input, Spin, Tooltip, Typography} from "antd"
+import {CaretRight, Check, Code, MagnifyingGlass, Plugs, Plus, Sparkle} from "@phosphor-icons/react"
+import {Button, Divider, Dropdown, Input, Spin, Typography} from "antd"
 import clsx from "clsx"
 import {useSetAtom} from "jotai"
 import Image from "next/image"
@@ -18,13 +18,13 @@ import {
 import CatalogDrawer from "@/oss/features/gateway-tools/drawers/CatalogDrawer"
 import ToolExecutionDrawer from "@/oss/features/gateway-tools/drawers/ToolExecutionDrawer"
 import {buildToolSlug} from "@/oss/features/gateway-tools/hooks/useToolExecution"
-import {fetchActionDetail} from "@/oss/services/tools/api"
 import type {ConnectionItem} from "@/oss/services/tools/api/types"
 
 import AddButton from "../../../assets/AddButton"
 import {
     addPromptMessageMutationAtomFamily,
     addPromptToolMutationAtomFamily,
+    removePromptToolByNameAtomFamily,
 } from "../../../state/atoms/promptMutations"
 import {TOOL_PROVIDERS_META} from "../../PlaygroundTool/assets"
 import PlaygroundVariantPropertyControl from "../../PlaygroundVariantPropertyControl"
@@ -102,12 +102,14 @@ function ComposioActionsList({
     connectionSlug,
     scrollRootRef,
     onSelectAction,
+    selectedToolNames,
 }: {
     providerKey: string
     integrationKey: string
     connectionSlug: string
     scrollRootRef: React.RefObject<HTMLDivElement | null>
     onSelectAction: (params: ComposioActionSelectParams) => void
+    selectedToolNames: Set<string>
 }) {
     const {
         actions,
@@ -141,19 +143,13 @@ function ComposioActionsList({
         return () => setSearch("")
     }, [integrationKey, setSearch])
 
-    const handleActionClick = async (actionKey: string, actionName: string) => {
+    const handleActionClick = (actionKey: string, actionName: string) => {
         const integrationName = integration?.name || integrationKey
+        const toolName = buildToolSlug(providerKey, integrationKey, actionKey, connectionSlug)
 
-        let inputSchema: Record<string, unknown> = {type: "object", properties: {}}
-        try {
-            const detail = await fetchActionDetail(providerKey, integrationKey, actionKey)
-            if (detail?.action?.schemas?.inputs) {
-                inputSchema = detail.action.schemas.inputs as Record<string, unknown>
-            }
-        } catch {
-            // fall back to empty schema
-        }
-
+        // Fire immediately with an empty schema so the UI responds instantly.
+        // The schema fetch runs in the background — for now the tool is added
+        // with a minimal parameter definition.
         onSelectAction({
             providerKey,
             integrationKey,
@@ -164,9 +160,9 @@ function ComposioActionsList({
             payload: {
                 type: "function",
                 function: {
-                    name: buildToolSlug(providerKey, integrationKey, actionKey, connectionSlug),
+                    name: toolName,
                     description: actionName,
-                    parameters: inputSchema,
+                    parameters: {type: "object", properties: {}},
                 },
             },
         })
@@ -174,7 +170,7 @@ function ComposioActionsList({
 
     return (
         <div className="flex flex-col min-h-0">
-            <div className="sticky top-0 z-10 bg-white">
+            <div className="sticky top-0 z-10 bg-white dark:bg-slate-900">
                 <div className="p-2">
                     <Input
                         allowClear
@@ -183,7 +179,7 @@ function ComposioActionsList({
                         placeholder="Search actions"
                         onChange={(event) => setSearchTerm(event.target.value)}
                         onClear={() => setSearchTerm("")}
-                        prefix={<MagnifyingGlass size={14} className="text-[#98A2B3]" />}
+                        prefix={<MagnifyingGlass size={14} className="text-slate-400" />}
                         className="flex-1 !shadow-none !outline-none !border-none focus:!shadow-none focus:!outline-none focus:!border-none"
                     />
                 </div>
@@ -196,35 +192,56 @@ function ComposioActionsList({
                         <Spin size="small" />
                     </div>
                 ) : !actions.length ? (
-                    <div className="py-3 px-2 text-[11px] text-[#7E8B99]">No actions found</div>
+                    <div className="py-3 px-2 text-[11px] text-slate-500">No actions found</div>
                 ) : (
                     <>
-                        {actions.map((action, index) => (
-                            <React.Fragment key={action.key}>
-                                {index === sentinelIndex && (
-                                    <PanelScrollSentinel
-                                        onVisible={requestMore}
-                                        hasMore={hasNextPage}
-                                        isFetching={isFetchingNextPage}
-                                        scrollRootRef={scrollRootRef}
-                                        observeKey={`${integrationKey}:${actions.length}:threshold`}
-                                    />
-                                )}
-                                <Button
-                                    type="text"
-                                    block
-                                    className="!flex !h-[28px] !items-center !justify-start !text-left !py-[5px] !px-2 hover:!bg-[#F8FAFC]"
-                                    onClick={() => handleActionClick(action.key, action.name)}
-                                >
-                                    <span className="text-[#0F172A] text-xs truncate">
-                                        {action.name}
-                                    </span>
-                                </Button>
-                                {index < actions.length - 1 && (
-                                    <div className="mx-2 h-px bg-[#F1F5F9]" />
-                                )}
-                            </React.Fragment>
-                        ))}
+                        {actions.map((action, index) => {
+                            const toolSlug = buildToolSlug(
+                                providerKey,
+                                integrationKey,
+                                action.key,
+                                connectionSlug,
+                            )
+                            const isSelected = selectedToolNames.has(toolSlug)
+                            return (
+                                <React.Fragment key={action.key}>
+                                    {index === sentinelIndex && (
+                                        <PanelScrollSentinel
+                                            onVisible={requestMore}
+                                            hasMore={hasNextPage}
+                                            isFetching={isFetchingNextPage}
+                                            scrollRootRef={scrollRootRef}
+                                            observeKey={`${integrationKey}:${actions.length}:threshold`}
+                                        />
+                                    )}
+                                    <Button
+                                        type="text"
+                                        block
+                                        className={clsx(
+                                            "!flex !h-[28px] !items-center !justify-between !text-left !py-[5px] !px-2",
+                                            isSelected
+                                                ? "!bg-blue-50 hover:!bg-blue-100"
+                                                : "hover:!bg-slate-50",
+                                        )}
+                                        onClick={() => handleActionClick(action.key, action.name)}
+                                    >
+                                        <span className="text-slate-900 dark:text-slate-100 text-xs truncate">
+                                            {action.name}
+                                        </span>
+                                        {isSelected && (
+                                            <Check
+                                                size={14}
+                                                weight="bold"
+                                                className="text-blue-500 shrink-0"
+                                            />
+                                        )}
+                                    </Button>
+                                    {index < actions.length - 1 && (
+                                        <div className="mx-2 h-px bg-slate-100 dark:bg-slate-800" />
+                                    )}
+                                </React.Fragment>
+                            )
+                        })}
 
                         <PanelScrollSentinel
                             onVisible={requestMore}
@@ -244,14 +261,14 @@ function ComposioActionsList({
                                 <Button
                                     type="text"
                                     size="small"
-                                    className="text-[11px] text-[#7E8B99]"
+                                    className="text-[11px] text-slate-500"
                                     onClick={requestMore}
                                 >
                                     Load more
                                 </Button>
                             </div>
                         )}
-                        <div className="text-[10px] text-[#94A3B8] px-2 pb-1">
+                        <div className="text-[10px] text-slate-400 px-2 pb-1">
                             Showing {Math.min(actions.length, total)} of {total}
                         </div>
                     </>
@@ -280,7 +297,7 @@ function ConnectionRow({
             onMouseEnter={onHover}
             className={clsx(
                 "!flex !h-[28px] !items-center !gap-1.5 !py-[5px] !px-1.5 !text-left",
-                isHovered ? "!bg-[#EFF6FF]" : "hover:!bg-[#F8FAFC]",
+                isHovered ? "!bg-blue-50" : "hover:!bg-slate-50",
             )}
         >
             {integration?.logo ? (
@@ -293,14 +310,14 @@ function ConnectionRow({
                     unoptimized
                 />
             ) : (
-                <span className="h-4 w-4 rounded bg-[#F1F5F9] shrink-0" />
+                <span className="h-4 w-4 rounded bg-slate-100 dark:bg-slate-800 shrink-0" />
             )}
-            <Typography.Text className="flex-1 text-[#0F172A] text-xs truncate">
+            <Typography.Text className="flex-1 text-slate-900 dark:text-slate-100 text-xs truncate">
                 <span className="capitalize">{connection.integration_key.replace(/_/g, " ")}</span>
-                <span className="text-[#CBD5E1] mx-1">/</span>
-                <span className="text-[#64748B]">{connection.slug}</span>
+                <span className="text-slate-300 mx-1">/</span>
+                <span className="text-slate-500">{connection.slug}</span>
             </Typography.Text>
-            <CaretRight size={10} className="text-[#CBD5E1] shrink-0" />
+            <CaretRight size={10} className="text-slate-300 shrink-0" />
         </Button>
     )
 }
@@ -308,6 +325,7 @@ function ConnectionRow({
 const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnly}) => {
     const addNewMessage = useSetAtom(addPromptMessageMutationAtomFamily(compoundKey))
     const addNewTool = useSetAtom(addPromptToolMutationAtomFamily(compoundKey))
+    const removeTool = useSetAtom(removePromptToolByNameAtomFamily(compoundKey))
     const [isDropdownOpen, setIsDropdownOpen] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
     const [hoveredKey, setHoveredKey] = useState<string | null>(null)
@@ -393,8 +411,17 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
         )
     }, [connections, searchTerm])
 
+    // Derive the set of already-added tool function names for toggle/checkmark display
+    const selectedToolNames = useMemo(() => {
+        const item = getPromptById(prompts, promptId)
+        const llm = getLLMConfig(item)
+        const toolsArr = llm?.tools?.value
+        if (!Array.isArray(toolsArr)) return new Set<string>()
+        return new Set<string>(toolsArr.map((t: any) => t?.value?.function?.name).filter(Boolean))
+    }, [prompts, promptId])
+
     const hasBuiltin = filteredToolGroups.length > 0
-    const hasComposio = connectionsLoading || filteredConnections.length > 0
+    const hasComposio = true // Always show third-party integrations section
 
     const closeDropdown = useCallback(() => {
         setIsDropdownOpen(false)
@@ -411,10 +438,22 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
             toolCode?: string
             toolLabel?: string
         }) => {
-            addNewTool(params)
-            closeDropdown()
+            // For inline/custom tools, close the dropdown (they need editor focus)
+            if (!params?.payload || params?.source === "inline") {
+                addNewTool(params)
+                closeDropdown()
+                return
+            }
+
+            // For builtin tools, toggle: if already selected, remove; otherwise add
+            const toolName = params.payload?.function?.name
+            if (toolName && selectedToolNames.has(toolName)) {
+                removeTool(toolName)
+            } else {
+                addNewTool(params)
+            }
         },
-        [addNewTool, closeDropdown],
+        [addNewTool, removeTool, closeDropdown, selectedToolNames],
     )
 
     const handleComposioActionAdd = useCallback(
@@ -427,17 +466,22 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
             actionName,
             payload,
         }: ComposioActionSelectParams) => {
-            addNewTool({
-                source: "builtin",
-                providerKey,
-                providerLabel: integrationName,
-                toolCode: `${connectionSlug}/${actionKey}`,
-                toolLabel: actionName,
-                payload,
-            })
-            closeDropdown()
+            // Toggle: if already selected, remove; otherwise add
+            const toolName = payload?.function?.name
+            if (toolName && selectedToolNames.has(toolName)) {
+                removeTool(toolName)
+            } else {
+                addNewTool({
+                    source: "builtin",
+                    providerKey,
+                    providerLabel: integrationName,
+                    toolCode: `${connectionSlug}/${actionKey}`,
+                    toolLabel: actionName,
+                    payload,
+                })
+            }
         },
-        [addNewTool, closeDropdown],
+        [addNewTool, removeTool, selectedToolNames],
     )
 
     // Derive right-panel content from hoveredKey
@@ -456,8 +500,8 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
         >
             {/* Left panel */}
             <div ref={leftPanelRef} className="w-[220px] flex flex-col shrink-0">
-                <div className="max-h-80 overflow-y-auto flex flex-col">
-                    <div className="sticky top-0 z-10 bg-white">
+                <div className="max-h-80 overflow-y-auto overscroll-contain flex flex-col">
+                    <div className="sticky top-0 z-10 bg-white dark:bg-slate-900">
                         <div className="p-2">
                             <Input
                                 allowClear
@@ -469,7 +513,7 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
                                     setSearchTerm(event.target.value)
                                     setHoveredKey(null)
                                 }}
-                                prefix={<MagnifyingGlass size={16} className="text-[#98A2B3]" />}
+                                prefix={<MagnifyingGlass size={16} className="text-slate-400" />}
                                 className="flex-1 !shadow-none !outline-none !border-none focus:!shadow-none focus:!outline-none focus:!border-none"
                             />
                         </div>
@@ -477,12 +521,19 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
                     </div>
 
                     <div className="p-1">
-                        {/* Builtin section */}
+                        {/* Provider tools section */}
                         {hasBuiltin && (
                             <div className="flex flex-col">
-                                <Typography.Text className="text-[#758391] text-xs py-[5px] px-1.5 font-medium">
-                                    Builtin
-                                </Typography.Text>
+                                <div className="flex items-center gap-1.5 py-[5px] px-1.5">
+                                    <Sparkle
+                                        size={12}
+                                        weight="fill"
+                                        className="text-slate-600 dark:text-slate-300 shrink-0"
+                                    />
+                                    <Typography.Text className="text-slate-600 dark:text-slate-300 text-xs font-medium">
+                                        Provider tools
+                                    </Typography.Text>
+                                </div>
                                 {filteredToolGroups.map(({key, label, Icon}) => (
                                     <Button
                                         key={key}
@@ -492,54 +543,63 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
                                         className={clsx(
                                             "!flex !h-[28px] !items-center !gap-1.5 !py-[5px] !px-1.5 !text-left",
                                             hoveredKey === `builtin:${key}`
-                                                ? "!bg-[#EFF6FF]"
-                                                : "hover:!bg-[#F8FAFC]",
+                                                ? "!bg-blue-50"
+                                                : "hover:!bg-slate-50",
                                         )}
                                     >
                                         {Icon ? (
-                                            <span className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-[#F8FAFC] shrink-0">
-                                                <Icon className="h-3.5 w-3.5 text-[#758391]" />
+                                            <span className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-slate-50 dark:bg-slate-800 shrink-0">
+                                                <Icon className="h-3.5 w-3.5 text-slate-500" />
                                             </span>
                                         ) : (
                                             <span className="h-5 w-5 shrink-0" />
                                         )}
-                                        <Typography.Text className="flex-1 text-[#0F172A] text-xs">
+                                        <Typography.Text className="flex-1 text-slate-900 dark:text-slate-100 text-xs">
                                             {label}
                                         </Typography.Text>
-                                        <CaretRight size={10} className="text-[#CBD5E1] shrink-0" />
+                                        <CaretRight size={10} className="text-slate-300 shrink-0" />
                                     </Button>
                                 ))}
                             </div>
                         )}
 
-                        {/* Composio section */}
+                        {/* Third-party integrations section */}
                         {hasComposio && (
                             <>
                                 {hasBuiltin && (
                                     <Divider className="my-1" orientation="horizontal" />
                                 )}
-                                <div className="flex items-center justify-between py-[5px] px-1.5">
-                                    <Typography.Text className="text-[#758391] text-xs font-medium">
-                                        Composio
-                                    </Typography.Text>
-                                    <Tooltip title="Add integration">
-                                        <Button
-                                            type="text"
-                                            size="small"
-                                            icon={<Plus size={12} />}
-                                            className="h-5 w-5 flex items-center justify-center p-0 text-[#758391]"
-                                            onClick={(e) => {
-                                                e.stopPropagation()
-                                                setIsDropdownOpen(false)
-                                                setCatalogOpen(true)
-                                            }}
+                                <div
+                                    className="flex items-center justify-between py-[5px] px-1.5 cursor-pointer hover:bg-slate-50 rounded"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        setIsDropdownOpen(false)
+                                        setCatalogOpen(true)
+                                    }}
+                                >
+                                    <div className="flex items-center gap-1.5">
+                                        <Plugs
+                                            size={12}
+                                            weight="fill"
+                                            className="text-slate-600 dark:text-slate-300 shrink-0"
                                         />
-                                    </Tooltip>
+                                        <Typography.Text className="text-slate-600 dark:text-slate-300 text-xs font-medium">
+                                            Third-party integrations
+                                        </Typography.Text>
+                                    </div>
+                                    <Plus size={12} className="text-slate-500 shrink-0" />
                                 </div>
                                 {connectionsLoading ? (
                                     <div className="flex justify-center py-2">
                                         <Spin size="small" />
                                     </div>
+                                ) : filteredConnections.length === 0 ? (
+                                    <Typography.Text
+                                        type="secondary"
+                                        className="text-xs px-1.5 py-1"
+                                    >
+                                        No integrations connected yet
+                                    </Typography.Text>
                                 ) : (
                                     filteredConnections.map((conn) => (
                                         <ConnectionRow
@@ -553,26 +613,28 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
                             </>
                         )}
 
-                        {/* Inline section */}
+                        {/* Custom tools section */}
                         {(hasBuiltin || hasComposio) && (
                             <Divider className="my-1" orientation="horizontal" />
                         )}
-                        <div className="flex items-center justify-between py-[5px] px-1.5">
-                            <Typography.Text className="text-[#758391] text-xs font-medium">
-                                Inline
-                            </Typography.Text>
-                            <Tooltip title="Add inline tool">
-                                <Button
-                                    type="text"
-                                    size="small"
-                                    icon={<Plus size={12} />}
-                                    className="h-5 w-5 flex items-center justify-center p-0 text-[#758391]"
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        handleAddTool({source: "inline"})
-                                    }}
+                        <div
+                            className="flex items-center justify-between py-[5px] px-1.5 cursor-pointer hover:bg-slate-50 rounded"
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                handleAddTool({source: "inline"})
+                            }}
+                        >
+                            <div className="flex items-center gap-1.5">
+                                <Code
+                                    size={12}
+                                    weight="bold"
+                                    className="text-slate-600 dark:text-slate-300 shrink-0"
                                 />
-                            </Tooltip>
+                                <Typography.Text className="text-slate-600 dark:text-slate-300 text-xs font-medium">
+                                    Custom tools
+                                </Typography.Text>
+                            </div>
+                            <Plus size={12} className="text-slate-500 shrink-0" />
                         </div>
                     </div>
                 </div>
@@ -581,41 +643,60 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
             {/* Right panel: actions on hover — height locked to left panel */}
             {showRightPanel && (
                 <>
-                    <div className="w-px self-stretch shrink-0 bg-[#F0F0F0]" />
+                    <div className="w-px self-stretch shrink-0 bg-slate-200 dark:bg-slate-700" />
                     <div
                         ref={rightPanelRef}
-                        className="w-[220px] overflow-y-auto flex flex-col shrink-0"
+                        className="w-[220px] overflow-y-auto overscroll-contain flex flex-col shrink-0"
                         style={leftPanelHeight ? {height: leftPanelHeight} : undefined}
                     >
                         {hoveredBuiltinGroup && hoveredBuiltinGroup.tools.length > 0 && (
                             <div className="p-1">
                                 {hoveredBuiltinGroup.tools.map(
-                                    ({code, label: toolLabel, payload}, index) => (
-                                        <React.Fragment key={code}>
-                                            <Button
-                                                type="text"
-                                                block
-                                                className="!flex !h-[28px] !items-center !justify-start !text-left !py-[5px] !px-2 hover:!bg-[#F8FAFC]"
-                                                onClick={() =>
-                                                    handleAddTool({
-                                                        payload,
-                                                        source: "builtin",
-                                                        providerKey: hoveredBuiltinGroup.key,
-                                                        providerLabel: hoveredBuiltinGroup.label,
-                                                        toolCode: code,
-                                                        toolLabel,
-                                                    })
-                                                }
-                                            >
-                                                <span className="text-[#0F172A] text-xs">
-                                                    {toolLabel}
-                                                </span>
-                                            </Button>
-                                            {index < hoveredBuiltinGroup.tools.length - 1 && (
-                                                <div className="mx-2 h-px bg-[#F1F5F9]" />
-                                            )}
-                                        </React.Fragment>
-                                    ),
+                                    ({code, label: toolLabel, payload}, index) => {
+                                        const toolName = payload?.function?.name
+                                        const isSelected = !!(
+                                            toolName && selectedToolNames.has(toolName)
+                                        )
+                                        return (
+                                            <React.Fragment key={code}>
+                                                <Button
+                                                    type="text"
+                                                    block
+                                                    className={clsx(
+                                                        "!flex !h-[28px] !items-center !justify-between !text-left !py-[5px] !px-2",
+                                                        isSelected
+                                                            ? "!bg-blue-50 hover:!bg-blue-100"
+                                                            : "hover:!bg-slate-50",
+                                                    )}
+                                                    onClick={() =>
+                                                        handleAddTool({
+                                                            payload,
+                                                            source: "builtin",
+                                                            providerKey: hoveredBuiltinGroup.key,
+                                                            providerLabel:
+                                                                hoveredBuiltinGroup.label,
+                                                            toolCode: code,
+                                                            toolLabel,
+                                                        })
+                                                    }
+                                                >
+                                                    <span className="text-slate-900 dark:text-slate-100 text-xs">
+                                                        {toolLabel}
+                                                    </span>
+                                                    {isSelected && (
+                                                        <Check
+                                                            size={14}
+                                                            weight="bold"
+                                                            className="text-blue-500 shrink-0"
+                                                        />
+                                                    )}
+                                                </Button>
+                                                {index < hoveredBuiltinGroup.tools.length - 1 && (
+                                                    <div className="mx-2 h-px bg-slate-100 dark:bg-slate-800" />
+                                                )}
+                                            </React.Fragment>
+                                        )
+                                    },
                                 )}
                             </div>
                         )}
@@ -628,6 +709,7 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
                                 connectionSlug={hoveredConnection.slug}
                                 scrollRootRef={rightPanelRef}
                                 onSelectAction={handleComposioActionAdd}
+                                selectedToolNames={selectedToolNames}
                             />
                         )}
                     </div>
@@ -684,7 +766,7 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
                     />
                 ) : (
                     // Fallback for immutable/raw params (no property id)
-                    <span className="text-[#7E8B99] text-[12px] leading-[20px] block">
+                    <span className="text-slate-500 text-[12px] leading-[20px] block">
                         {(() => {
                             const t = (responseFormatInfo.raw || {})?.type
                             if (!t || t === "text") return "Default (text)"

@@ -14,7 +14,11 @@ import CatalogDrawer from "@/oss/features/gateway-tools/drawers/CatalogDrawer"
 import ToolExecutionDrawer from "@/oss/features/gateway-tools/drawers/ToolExecutionDrawer"
 import type {ConnectionItem} from "@/oss/services/tools/api/types"
 
-export default function GatewayToolsPanel() {
+interface GatewayToolsPanelProps {
+    mountDrawers?: boolean
+}
+
+export default function GatewayToolsPanel({mountDrawers = false}: GatewayToolsPanelProps) {
     const {connections, isLoading, refetch} = useConnectionsQuery()
     const setCatalogOpen = useSetAtom(catalogDrawerOpenAtom)
     const setExecutionDrawer = useSetAtom(executionDrawerAtom)
@@ -97,9 +101,13 @@ export default function GatewayToolsPanel() {
                 />
             )}
 
-            {/* Shared drawers */}
-            <CatalogDrawer onConnectionCreated={refetch} />
-            <ToolExecutionDrawer />
+            {/* Shared drawers (opt-in to avoid duplicate mounts in parent contexts) */}
+            {mountDrawers && (
+                <>
+                    <CatalogDrawer onConnectionCreated={refetch} />
+                    <ToolExecutionDrawer />
+                </>
+            )}
         </div>
     )
 }
@@ -120,6 +128,7 @@ function ConnectionRow({connection, onTest}: {connection: ConnectionItem; onTest
                 <Button
                     type="text"
                     size="small"
+                    aria-label="Test connection"
                     icon={<Play size={12} />}
                     disabled={!isReady}
                     onClick={(e) => {

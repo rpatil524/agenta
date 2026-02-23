@@ -1,6 +1,6 @@
 import {useMemo} from "react"
 
-import {ArrowsClockwise, Trash} from "@phosphor-icons/react"
+import {ArrowClockwise, Trash} from "@phosphor-icons/react"
 import {Button, Table, Tooltip, Typography} from "antd"
 import type {ColumnsType} from "antd/es/table"
 
@@ -95,7 +95,8 @@ export default function ConnectionsList({integrationKey, connections}: Props) {
                             <Button
                                 type="text"
                                 size="small"
-                                icon={<ArrowsClockwise size={14} />}
+                                aria-label="Refresh connection"
+                                icon={<ArrowClockwise size={14} />}
                                 onClick={() => void onRefresh(record)}
                                 disabled={!record.id}
                             />
@@ -106,6 +107,7 @@ export default function ConnectionsList({integrationKey, connections}: Props) {
                                 size="small"
                                 color="danger"
                                 variant="text"
+                                aria-label="Delete connection"
                                 icon={<Trash size={14} />}
                                 onClick={() => confirmDelete(record)}
                                 disabled={!record.id}

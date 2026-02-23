@@ -3,6 +3,7 @@ import json
 import re
 from datetime import datetime, timezone
 from typing import List, Optional
+from urllib.parse import urlsplit
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, HTTPException, Query, Request, status
@@ -994,6 +995,14 @@ def _oauth_card(
     safe_url = html_lib.escape(integration_url) if integration_url else None
     safe_agenta_url = html_lib.escape(agenta_url) if agenta_url else None
     safe_error = html_lib.escape(error) if error else None
+    agenta_origin = None
+    if agenta_url:
+        parsed_agenta_url = urlsplit(agenta_url)
+        if parsed_agenta_url.scheme and parsed_agenta_url.netloc:
+            agenta_origin = (
+                f"{parsed_agenta_url.scheme}://{parsed_agenta_url.netloc}"
+            )
+    agenta_post_message_origin_js = json.dumps(agenta_origin)
 
     accent = "#16a34a" if success else "#dc2626"
     agenta_favicon = (
@@ -1174,14 +1183,16 @@ def _oauth_card(
     {button_html}
   </div>
   <script>
+    const AGENTA_POST_MESSAGE_ORIGIN = {agenta_post_message_origin_js};
+
     function returnToAgenta(event) {{
       if (event) {{
         event.preventDefault();
       }}
 
       try {{
-        if (window.opener && !window.opener.closed) {{
-          window.opener.postMessage({{type: "tools:oauth:complete"}}, "*");
+        if (window.opener && !window.opener.closed && AGENTA_POST_MESSAGE_ORIGIN) {{
+          window.opener.postMessage({{type: "tools:oauth:complete"}}, AGENTA_POST_MESSAGE_ORIGIN);
           window.opener.focus();
         }}
       }} catch (_e) {{
@@ -1196,8 +1207,8 @@ def _oauth_card(
       return false;
     }}
 
-    if (window.opener) {{
-      window.opener.postMessage({{type: "tools:oauth:complete"}}, "*");
+    if (window.opener && AGENTA_POST_MESSAGE_ORIGIN) {{
+      window.opener.postMessage({{type: "tools:oauth:complete"}}, AGENTA_POST_MESSAGE_ORIGIN);
     }}
 
     const countdownEl = document.getElementById("auto-return-text");
