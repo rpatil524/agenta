@@ -332,6 +332,7 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
     const [leftPanelHeight, setLeftPanelHeight] = useState<number | undefined>(undefined)
     const leftPanelRef = useRef<HTMLDivElement>(null)
     const rightPanelRef = useRef<HTMLDivElement>(null)
+    const removedToolPayloadCacheRef = useRef<Map<string, Record<string, any>>>(new Map())
 
     const handleRowHover = useCallback((key: string) => {
         if (leftPanelRef.current) {
@@ -420,6 +421,23 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
         return new Set<string>(toolsArr.map((t: any) => t?.value?.function?.name).filter(Boolean))
     }, [prompts, promptId])
 
+    const selectedToolPayloadByName = useMemo(() => {
+        const item = getPromptById(prompts, promptId)
+        const llm = getLLMConfig(item)
+        const toolsArr = llm?.tools?.value
+        const payloadByName = new Map<string, Record<string, any>>()
+        if (!Array.isArray(toolsArr)) return payloadByName
+
+        for (const tool of toolsArr) {
+            const name = tool?.value?.function?.name
+            if (name && tool?.value) {
+                payloadByName.set(name, tool.value)
+            }
+        }
+
+        return payloadByName
+    }, [prompts, promptId])
+
     const hasBuiltin = filteredToolGroups.length > 0
     const hasComposio = true // Always show third-party integrations section
 
@@ -448,12 +466,23 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
             // For builtin tools, toggle: if already selected, remove; otherwise add
             const toolName = params.payload?.function?.name
             if (toolName && selectedToolNames.has(toolName)) {
+                const existingPayload = selectedToolPayloadByName.get(toolName)
+                if (existingPayload) {
+                    removedToolPayloadCacheRef.current.set(toolName, existingPayload)
+                }
                 removeTool(toolName)
             } else {
-                addNewTool(params)
+                const payload =
+                    (toolName && removedToolPayloadCacheRef.current.get(toolName)) || params.payload
+
+                if (toolName) {
+                    removedToolPayloadCacheRef.current.delete(toolName)
+                }
+
+                addNewTool({...params, payload})
             }
         },
-        [addNewTool, removeTool, closeDropdown, selectedToolNames],
+        [addNewTool, removeTool, closeDropdown, selectedToolNames, selectedToolPayloadByName],
     )
 
     const handleComposioActionAdd = useCallback(
@@ -469,19 +498,30 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
             // Toggle: if already selected, remove; otherwise add
             const toolName = payload?.function?.name
             if (toolName && selectedToolNames.has(toolName)) {
+                const existingPayload = selectedToolPayloadByName.get(toolName)
+                if (existingPayload) {
+                    removedToolPayloadCacheRef.current.set(toolName, existingPayload)
+                }
                 removeTool(toolName)
             } else {
+                const restoredPayload =
+                    (toolName && removedToolPayloadCacheRef.current.get(toolName)) || payload
+
+                if (toolName) {
+                    removedToolPayloadCacheRef.current.delete(toolName)
+                }
+
                 addNewTool({
                     source: "builtin",
                     providerKey,
                     providerLabel: integrationName,
                     toolCode: `${connectionSlug}/${actionKey}`,
                     toolLabel: actionName,
-                    payload,
+                    payload: restoredPayload,
                 })
             }
         },
-        [addNewTool, removeTool, selectedToolNames],
+        [addNewTool, removeTool, selectedToolNames, selectedToolPayloadByName],
     )
 
     // Derive right-panel content from hoveredKey

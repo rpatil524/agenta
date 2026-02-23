@@ -1,9 +1,18 @@
-import {useAtomValue} from "jotai"
+import {useMemo} from "react"
+
+import {atom, useAtomValue} from "jotai"
 import {atomFamily} from "jotai/utils"
 import {atomWithQuery} from "jotai-tanstack-query"
 
 import {fetchConnection} from "@/oss/services/tools/api"
 import type {ConnectionResponse} from "@/oss/services/tools/api/types"
+
+interface ConnectionQueryState {
+    data?: ConnectionResponse
+    isPending: boolean
+    error: unknown
+    refetch: () => Promise<unknown>
+}
 
 export const connectionQueryAtomFamily = atomFamily((connectionId: string) =>
     atomWithQuery<ConnectionResponse>(() => ({
@@ -15,8 +24,19 @@ export const connectionQueryAtomFamily = atomFamily((connectionId: string) =>
     })),
 )
 
+const emptyConnectionQueryAtom = atom<ConnectionQueryState>({
+    data: undefined as ConnectionResponse | undefined,
+    isPending: false,
+    error: null,
+    refetch: async () => ({}),
+})
+
 export const useConnectionQuery = (connectionId?: string) => {
-    const query = useAtomValue(connectionQueryAtomFamily(connectionId ?? ""))
+    const queryAtom = useMemo(
+        () => (connectionId ? connectionQueryAtomFamily(connectionId) : emptyConnectionQueryAtom),
+        [connectionId],
+    )
+    const query = useAtomValue(queryAtom)
 
     return {
         connection: query.data?.connection ?? null,

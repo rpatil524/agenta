@@ -5,9 +5,10 @@ import {Divider, Form, Input, Select, Tooltip, Typography} from "antd"
 import Image from "next/image"
 
 import {queryClient} from "@/oss/lib/api/queryClient"
+import {getAgentaApiUrl, getAgentaWebUrl} from "@/oss/lib/helpers/api"
 import {createConnection, fetchConnection} from "@/oss/services/tools/api"
 
-import {generateDefaultSlug} from "../utils/slugify"
+import {generateDefaultSlug, randomAlphanumeric} from "../utils/slugify"
 
 const DEFAULT_PROVIDER = "composio"
 
@@ -52,6 +53,7 @@ export default function ConnectDrawer({
     // Track whether the user has manually edited the slug field.
     // While false, slug auto-tracks the name field.
     const slugTouchedRef = useRef(false)
+    const slugSuffixRef = useRef(randomAlphanumeric(3))
 
     const availableModes = resolveAvailableModes(authSchemes)
     const [selectedMode, setSelectedMode] = useState<AuthMode>(availableModes[0] || "oauth")
@@ -59,9 +61,14 @@ export default function ConnectDrawer({
     const handleClose = useCallback(() => {
         form.resetFields()
         slugTouchedRef.current = false
+        slugSuffixRef.current = randomAlphanumeric(3)
         setLoading(false)
         onClose()
     }, [form, onClose])
+
+    const buildDefaultSlug = useCallback((name: string) => {
+        return generateDefaultSlug(name, slugSuffixRef.current)
+    }, [])
 
     const invalidateConnections = useCallback(() => {
         queryClient.invalidateQueries({queryKey: ["tools", "connections"]})
@@ -111,8 +118,21 @@ export default function ConnectDrawer({
                     onSuccess?.()
                 }
 
+                const trustedOrigins = new Set<string>([window.location.origin])
+                for (const url of [getAgentaApiUrl(), getAgentaWebUrl()]) {
+                    if (!url) continue
+                    try {
+                        trustedOrigins.add(new URL(url).origin)
+                    } catch {
+                        // ignore invalid env URLs
+                    }
+                }
+
                 const handler = (event: MessageEvent) => {
-                    if (event.data?.type === "tools:oauth:complete") {
+                    if (
+                        event.data?.type === "tools:oauth:complete" &&
+                        trustedOrigins.has(event.origin)
+                    ) {
                         window.removeEventListener("message", handler)
                         void onAuthDone()
                     }
@@ -179,7 +199,7 @@ export default function ConnectDrawer({
                     className="!mb-0"
                     initialValues={{
                         name: integrationName,
-                        slug: generateDefaultSlug(integrationName),
+                        slug: buildDefaultSlug(integrationName),
                     }}
                     requiredMark={(label, {required}) => (
                         <>
@@ -203,7 +223,7 @@ export default function ConnectDrawer({
                                 if (!slugTouchedRef.current) {
                                     form.setFieldValue(
                                         "slug",
-                                        generateDefaultSlug(e.target.value || integrationName),
+                                        buildDefaultSlug(e.target.value || integrationName),
                                     )
                                 }
                             }}

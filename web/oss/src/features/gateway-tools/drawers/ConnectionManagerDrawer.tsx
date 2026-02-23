@@ -7,6 +7,7 @@ import {useAtom, useSetAtom} from "jotai"
 import AlertPopup from "@/oss/components/AlertPopup/AlertPopup"
 import ConnectionStatusBadge from "@/oss/components/pages/settings/Tools/components/ConnectionStatusBadge"
 import {queryClient} from "@/oss/lib/api/queryClient"
+import {getAgentaApiUrl, getAgentaWebUrl} from "@/oss/lib/helpers/api"
 import {formatDay} from "@/oss/lib/helpers/dateTimeHelper"
 import type {ConnectionItem} from "@/oss/services/tools/api/types"
 
@@ -68,8 +69,21 @@ export default function ConnectionManagerDrawer() {
                     }
                 }
 
+                const trustedOrigins = new Set<string>([window.location.origin])
+                for (const url of [getAgentaApiUrl(), getAgentaWebUrl()]) {
+                    if (!url) continue
+                    try {
+                        trustedOrigins.add(new URL(url).origin)
+                    } catch {
+                        // ignore invalid env URLs
+                    }
+                }
+
                 const handler = (event: MessageEvent) => {
-                    if (event.data?.type === "tools:oauth:complete") {
+                    if (
+                        event.data?.type === "tools:oauth:complete" &&
+                        trustedOrigins.has(event.origin)
+                    ) {
                         window.removeEventListener("message", handler)
                         void syncConnection()
                     }

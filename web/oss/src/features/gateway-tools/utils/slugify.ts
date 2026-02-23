@@ -35,8 +35,7 @@ export function randomAlphanumeric(n: number): string {
  * Format: `slugify(name)-<3-char random suffix>`
  * Example: "Google Calendar" → "google-calendar-7mx"
  */
-export function generateDefaultSlug(name: string): string {
+export function generateDefaultSlug(name: string, suffix = randomAlphanumeric(3)): string {
     const base = slugify(name)
-    const suffix = randomAlphanumeric(3)
     return base ? `${base}-${suffix}` : suffix
 }
