@@ -21,8 +21,8 @@ import agenta as ag
 from agenta.sdk.managers.apps import AppManager
 from agenta.sdk.managers.shared import SharedManager
 
-from tests.pytest.utils.env import get_ag_env
-from tests.pytest.utils.accounts import create_account
+from oss.tests.pytest.utils.env import get_ag_env
+from oss.tests.pytest.utils.accounts import create_account
 
 
 def _env_available() -> bool:
