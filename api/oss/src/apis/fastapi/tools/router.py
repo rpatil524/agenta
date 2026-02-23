@@ -999,9 +999,7 @@ def _oauth_card(
     if agenta_url:
         parsed_agenta_url = urlsplit(agenta_url)
         if parsed_agenta_url.scheme and parsed_agenta_url.netloc:
-            agenta_origin = (
-                f"{parsed_agenta_url.scheme}://{parsed_agenta_url.netloc}"
-            )
+            agenta_origin = f"{parsed_agenta_url.scheme}://{parsed_agenta_url.netloc}"
     agenta_post_message_origin_js = json.dumps(agenta_origin)
 
     accent = "#16a34a" if success else "#dc2626"
