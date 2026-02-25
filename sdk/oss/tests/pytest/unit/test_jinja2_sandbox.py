@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 
 from agenta.sdk.types import PromptTemplate, TemplateFormatError
@@ -17,14 +19,16 @@ def test_handlers_jinja2_renders_safe_template() -> None:
     assert result == "Hello alice"
 
 
-def test_handlers_jinja2_blocks_ssti_payload() -> None:
-    result = _format_with_template(
-        content=SSTI_PAYLOAD,
-        format="jinja2",
-        kwargs={},
-    )
+def test_handlers_jinja2_blocks_ssti_payload(caplog: pytest.LogCaptureFixture) -> None:
+    with caplog.at_level(logging.WARNING):
+        result = _format_with_template(
+            content=SSTI_PAYLOAD,
+            format="jinja2",
+            kwargs={},
+        )
 
     assert result == SSTI_PAYLOAD
+    assert any("sandbox violation" in r.message for r in caplog.records)
 
 
 def test_prompt_template_jinja2_renders_safe_template() -> None:

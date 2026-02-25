@@ -283,7 +283,11 @@ def _format_with_template(
 
         try:
             return env.from_string(content).render(**kwargs)
-        except TemplateError:
+        except TemplateError as e:
+            log.warning(
+                "Jinja2 template rendering failed (possible sandbox violation): %s",
+                str(e),
+            )
             return content
 
     elif format == "curly":
