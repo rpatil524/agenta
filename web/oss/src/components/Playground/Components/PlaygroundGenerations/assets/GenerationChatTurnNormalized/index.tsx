@@ -23,7 +23,10 @@ import {
     cancelChatTurnAtom,
     runChatTurnAtom,
 } from "@/oss/state/newPlayground/chat/actions"
-import {buildAssistantMessage} from "@/oss/state/newPlayground/helpers/messageFactory"
+import {
+    buildAssistantMessage,
+    buildUserMessage,
+} from "@/oss/state/newPlayground/helpers/messageFactory"
 
 interface Props {
     turnId: string
@@ -127,38 +130,68 @@ const GenerationChatTurnNormalized = ({
 
     // Update a tool response message content with the execution result
     const handleUpdateToolResponse = useCallback(
-        (callId: string | undefined, resultStr: string) => {
+        (callId: string | undefined, resultStr: string, toolName?: string) => {
             setTurn((draft: any) => {
-                const toolResponses = draft?.toolResponsesByRevision?.[variantId as string]
-                if (!Array.isArray(toolResponses)) return
-                const matchIndex = callId
+                if (!draft) return
+
+                if (!draft.toolResponsesByRevision) {
+                    draft.toolResponsesByRevision = {}
+                }
+
+                const revisionId = variantId as string
+                const currentToolResponses = draft.toolResponsesByRevision?.[revisionId]
+                const toolResponses: any[] = Array.isArray(currentToolResponses)
+                    ? currentToolResponses
+                    : []
+
+                let matchIndex = callId
                     ? toolResponses.findIndex(
                           (m: any) =>
                               m?.toolCallId?.value === callId || m?.tool_call_id?.value === callId,
                       )
-                    : 0
-                if (matchIndex < 0) return
+                    : toolResponses.length > 0
+                      ? 0
+                      : -1
+
+                if (matchIndex < 0) {
+                    const toolNode = buildUserMessage(messageSchema, {
+                        role: "tool",
+                        content: "",
+                    }) as any
+                    if (!toolNode) return
+                    if (toolName && !toolNode?.name?.value) {
+                        toolNode.name = {value: toolName}
+                    }
+                    if (callId && !toolNode?.toolCallId?.value) {
+                        toolNode.toolCallId = {value: callId}
+                    }
+                    toolResponses.push(toolNode)
+                    matchIndex = toolResponses.length - 1
+                }
+
                 const toolMsg = toolResponses[matchIndex]
                 if (!toolMsg) return
                 // If the schema didn't include a content field, create it directly
                 if (!toolMsg.content) {
                     toolMsg.content = {value: resultStr}
-                    return
-                }
-                const cv = toolMsg.content.value
-                if (Array.isArray(cv)) {
-                    const idx = cv.findIndex((p: any) => (p?.type?.value ?? p?.type) === "text")
-                    if (idx >= 0) {
-                        cv[idx].text.value = resultStr
-                    } else {
-                        cv.push({type: {value: "text"}, text: {value: resultStr}})
-                    }
                 } else {
-                    toolMsg.content.value = resultStr
+                    const cv = toolMsg.content.value
+                    if (Array.isArray(cv)) {
+                        const idx = cv.findIndex((p: any) => (p?.type?.value ?? p?.type) === "text")
+                        if (idx >= 0) {
+                            cv[idx].text.value = resultStr
+                        } else {
+                            cv.push({type: {value: "text"}, text: {value: resultStr}})
+                        }
+                    } else {
+                        toolMsg.content.value = resultStr
+                    }
                 }
+
+                draft.toolResponsesByRevision[revisionId] = toolResponses
             })
         },
-        [setTurn, variantId],
+        [setTurn, variantId, messageSchema],
     )
 
     return (
@@ -234,6 +267,7 @@ const GenerationChatTurnNormalized = ({
                               />
                           ))
                         : null}
+                    {isRunning ? <TypingIndicator /> : null}
                 </>
             ) : (
                 <ClickRunPlaceholder />

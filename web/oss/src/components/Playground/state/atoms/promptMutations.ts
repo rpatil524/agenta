@@ -204,9 +204,11 @@ export const addPromptToolMutationAtomFamily = atomFamily((compoundKey: string) 
     ),
 )
 
-// Remove a tool by its function name from a prompt identified by `${revisionId}:${promptId}`
+// Remove a tool by identifier from a prompt identified by `${revisionId}:${promptId}`
+// - function tools: identifier is value.function.name
+// - non-function builtin tools: identifier is __tool (toolCode)
 export const removePromptToolByNameAtomFamily = atomFamily((compoundKey: string) =>
-    atom(null, (_get, set, toolFunctionName: string) => {
+    atom(null, (_get, set, toolIdentifier: string) => {
         const [revisionId, promptId] = splitCompoundKey(compoundKey)
 
         const mutatePrompts = (prev: any[]) => {
@@ -219,7 +221,9 @@ export const removePromptToolByNameAtomFamily = atomFamily((compoundKey: string)
                 if (!Array.isArray(toolsArr)) return p
 
                 const updatedTools = toolsArr.filter(
-                    (tool: any) => tool?.value?.function?.name !== toolFunctionName,
+                    (tool: any) =>
+                        tool?.value?.function?.name !== toolIdentifier &&
+                        tool?.__tool !== toolIdentifier,
                 )
                 if (updatedTools.length === toolsArr.length) return p
 

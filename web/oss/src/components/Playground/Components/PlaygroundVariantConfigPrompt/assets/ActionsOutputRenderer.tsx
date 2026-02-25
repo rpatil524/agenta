@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from "react"
 
 import {CaretRight, Check, Code, MagnifyingGlass, Plugs, Plus, Sparkle} from "@phosphor-icons/react"
-import {Button, Divider, Dropdown, Input, Spin, Typography} from "antd"
+import {Button, Divider, Dropdown, Input, Spin, Typography, message} from "antd"
 import clsx from "clsx"
 import {useSetAtom} from "jotai"
 import Image from "next/image"
@@ -18,6 +18,8 @@ import {
 import CatalogDrawer from "@/oss/features/gateway-tools/drawers/CatalogDrawer"
 import ToolExecutionDrawer from "@/oss/features/gateway-tools/drawers/ToolExecutionDrawer"
 import {buildToolSlug} from "@/oss/features/gateway-tools/hooks/useToolExecution"
+import {isToolsEnabled} from "@/oss/lib/helpers/isEE"
+import {fetchActionDetail} from "@/oss/services/tools/api"
 import type {ConnectionItem} from "@/oss/services/tools/api/types"
 
 import AddButton from "../../../assets/AddButton"
@@ -45,7 +47,6 @@ interface ComposioActionSelectParams {
     connectionSlug: string
     actionKey: string
     actionName: string
-    payload: Record<string, any>
 }
 
 const formatToolLabel = (toolCode: string) =>
@@ -54,6 +55,29 @@ const formatToolLabel = (toolCode: string) =>
         .filter(Boolean)
         .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
         .join(" ")
+
+const getActionInputSchema = (schema: unknown): Record<string, unknown> => {
+    if (!schema || typeof schema !== "object" || Array.isArray(schema)) {
+        return {type: "object", properties: {}}
+    }
+
+    const normalized = {...(schema as Record<string, unknown>)}
+
+    if (typeof normalized.type !== "string") {
+        normalized.type = "object"
+    }
+
+    if (
+        normalized.type === "object" &&
+        (!normalized.properties ||
+            typeof normalized.properties !== "object" ||
+            Array.isArray(normalized.properties))
+    ) {
+        normalized.properties = {}
+    }
+
+    return normalized
+}
 
 function PanelScrollSentinel({
     onVisible,
@@ -108,7 +132,7 @@ function ComposioActionsList({
     integrationKey: string
     connectionSlug: string
     scrollRootRef: React.RefObject<HTMLDivElement | null>
-    onSelectAction: (params: ComposioActionSelectParams) => void
+    onSelectAction: (params: ComposioActionSelectParams) => Promise<void> | void
     selectedToolNames: Set<string>
 }) {
     const {
@@ -123,6 +147,7 @@ function ComposioActionsList({
     } = useCatalogActions(integrationKey)
     const {integration} = useIntegrationDetail(integrationKey)
     const [searchTerm, setSearchTerm] = useState("")
+    const [pendingActionKeys, setPendingActionKeys] = useState<Set<string>>(new Set())
     const sentinelIndex = useMemo(
         () => Math.max(0, actions.length - prefetchThreshold),
         [actions.length, prefetchThreshold],
@@ -143,34 +168,37 @@ function ComposioActionsList({
         return () => setSearch("")
     }, [integrationKey, setSearch])
 
-    const handleActionClick = (actionKey: string, actionName: string) => {
-        const integrationName = integration?.name || integrationKey
-        const toolName = buildToolSlug(providerKey, integrationKey, actionKey, connectionSlug)
+    const handleActionClick = async (actionKey: string, actionName: string) => {
+        if (pendingActionKeys.has(actionKey)) return
 
-        // Fire immediately with an empty schema so the UI responds instantly.
-        // The schema fetch runs in the background — for now the tool is added
-        // with a minimal parameter definition.
-        onSelectAction({
-            providerKey,
-            integrationKey,
-            integrationName,
-            connectionSlug,
-            actionKey,
-            actionName,
-            payload: {
-                type: "function",
-                function: {
-                    name: toolName,
-                    description: actionName,
-                    parameters: {type: "object", properties: {}},
-                },
-            },
+        const integrationName = integration?.name || integrationKey
+        setPendingActionKeys((prev) => {
+            const next = new Set(prev)
+            next.add(actionKey)
+            return next
         })
+
+        try {
+            await onSelectAction({
+                providerKey,
+                integrationKey,
+                integrationName,
+                connectionSlug,
+                actionKey,
+                actionName,
+            })
+        } finally {
+            setPendingActionKeys((prev) => {
+                const next = new Set(prev)
+                next.delete(actionKey)
+                return next
+            })
+        }
     }
 
     return (
         <div className="flex flex-col min-h-0">
-            <div className="sticky top-0 z-10 bg-white dark:bg-slate-900">
+            <div className="sticky top-0 z-10 bg-white">
                 <div className="p-2">
                     <Input
                         allowClear
@@ -183,7 +211,7 @@ function ComposioActionsList({
                         className="flex-1 !shadow-none !outline-none !border-none focus:!shadow-none focus:!outline-none focus:!border-none"
                     />
                 </div>
-                <Divider className="m-0" orientation="horizontal" />
+                <div className="h-px bg-slate-100" />
             </div>
 
             <div className="p-1">
@@ -203,6 +231,7 @@ function ComposioActionsList({
                                 connectionSlug,
                             )
                             const isSelected = selectedToolNames.has(toolSlug)
+                            const isPending = pendingActionKeys.has(action.key)
                             return (
                                 <React.Fragment key={action.key}>
                                     {index === sentinelIndex && (
@@ -217,28 +246,32 @@ function ComposioActionsList({
                                     <Button
                                         type="text"
                                         block
+                                        disabled={isPending}
                                         className={clsx(
                                             "!flex !h-[28px] !items-center !justify-between !text-left !py-[5px] !px-2",
                                             isSelected
                                                 ? "!bg-blue-50 hover:!bg-blue-100"
                                                 : "hover:!bg-slate-50",
+                                            isPending && "opacity-70",
                                         )}
                                         onClick={() => handleActionClick(action.key, action.name)}
                                     >
-                                        <span className="text-slate-900 dark:text-slate-100 text-xs truncate">
+                                        <span className="text-slate-900 text-xs truncate">
                                             {action.name}
                                         </span>
-                                        {isSelected && (
-                                            <Check
-                                                size={14}
-                                                weight="bold"
-                                                className="text-blue-500 shrink-0"
-                                            />
+                                        {isPending ? (
+                                            <Spin size="small" />
+                                        ) : (
+                                            isSelected && (
+                                                <Check
+                                                    size={14}
+                                                    weight="bold"
+                                                    className="text-blue-500 shrink-0"
+                                                />
+                                            )
                                         )}
                                     </Button>
-                                    {index < actions.length - 1 && (
-                                        <div className="mx-2 h-px bg-slate-100 dark:bg-slate-800" />
-                                    )}
+                                    <div className="mx-2 h-px bg-slate-100" />
                                 </React.Fragment>
                             )
                         })}
@@ -296,23 +329,25 @@ function ConnectionRow({
             block
             onMouseEnter={onHover}
             className={clsx(
-                "!flex !h-[28px] !items-center !gap-1.5 !py-[5px] !px-1.5 !text-left",
+                "!flex !h-[28px] !items-center !justify-start !gap-1.5 !py-[5px] !px-1.5 !text-left",
                 isHovered ? "!bg-blue-50" : "hover:!bg-slate-50",
             )}
         >
-            {integration?.logo ? (
-                <Image
-                    src={integration.logo}
-                    alt={connection.integration_key}
-                    width={16}
-                    height={16}
-                    className="h-4 w-4 rounded object-contain shrink-0"
-                    unoptimized
-                />
-            ) : (
-                <span className="h-4 w-4 rounded bg-slate-100 dark:bg-slate-800 shrink-0" />
-            )}
-            <Typography.Text className="flex-1 text-slate-900 dark:text-slate-100 text-xs truncate">
+            <span className="flex h-4 w-4 items-center justify-center shrink-0">
+                {integration?.logo ? (
+                    <Image
+                        src={integration.logo}
+                        alt={connection.integration_key}
+                        width={16}
+                        height={16}
+                        className="h-4 w-4 rounded object-contain shrink-0"
+                        unoptimized
+                    />
+                ) : (
+                    <span className="h-4 w-4 rounded bg-slate-100 shrink-0" />
+                )}
+            </span>
+            <Typography.Text className="flex-1 text-slate-900 text-xs leading-5 truncate">
                 <span className="capitalize">{connection.integration_key.replace(/_/g, " ")}</span>
                 <span className="text-slate-300 mx-1">/</span>
                 <span className="text-slate-500">{connection.slug}</span>
@@ -328,6 +363,7 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
     const removeTool = useSetAtom(removePromptToolByNameAtomFamily(compoundKey))
     const [isDropdownOpen, setIsDropdownOpen] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
+    const [builtinActionsSearch, setBuiltinActionsSearch] = useState("")
     const [hoveredKey, setHoveredKey] = useState<string | null>(null)
     const [leftPanelHeight, setLeftPanelHeight] = useState<number | undefined>(undefined)
     const leftPanelRef = useRef<HTMLDivElement>(null)
@@ -412,13 +448,16 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
         )
     }, [connections, searchTerm])
 
-    // Derive the set of already-added tool function names for toggle/checkmark display
+    // Derive the set of already-added tool identifiers for toggle/checkmark display.
+    // Function tools use function.name; builtin (non-function) tools fall back to __tool (toolCode).
     const selectedToolNames = useMemo(() => {
         const item = getPromptById(prompts, promptId)
         const llm = getLLMConfig(item)
         const toolsArr = llm?.tools?.value
         if (!Array.isArray(toolsArr)) return new Set<string>()
-        return new Set<string>(toolsArr.map((t: any) => t?.value?.function?.name).filter(Boolean))
+        return new Set<string>(
+            toolsArr.flatMap((t: any) => [t?.value?.function?.name, t?.__tool]).filter(Boolean),
+        )
     }, [prompts, promptId])
 
     const selectedToolPayloadByName = useMemo(() => {
@@ -439,11 +478,12 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
     }, [prompts, promptId])
 
     const hasBuiltin = filteredToolGroups.length > 0
-    const hasComposio = true // Always show third-party integrations section
+    const hasComposio = isToolsEnabled()
 
     const closeDropdown = useCallback(() => {
         setIsDropdownOpen(false)
         setSearchTerm("")
+        setBuiltinActionsSearch("")
         setHoveredKey(null)
     }, [])
 
@@ -463,8 +503,9 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
                 return
             }
 
-            // For builtin tools, toggle: if already selected, remove; otherwise add
-            const toolName = params.payload?.function?.name
+            // For builtin tools, toggle: if already selected, remove; otherwise add.
+            // Function tools use function.name; builtin (non-function) tools fall back to toolCode.
+            const toolName = params.payload?.function?.name ?? params.toolCode
             if (toolName && selectedToolNames.has(toolName)) {
                 const existingPayload = selectedToolPayloadByName.get(toolName)
                 if (existingPayload) {
@@ -486,42 +527,49 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
     )
 
     const handleComposioActionAdd = useCallback(
-        ({
+        async ({
             providerKey,
             integrationKey,
             integrationName,
             connectionSlug,
             actionKey,
             actionName,
-            payload,
         }: ComposioActionSelectParams) => {
-            // Toggle: if already selected, remove; otherwise add
-            const toolName = payload?.function?.name
+            const toolName = buildToolSlug(providerKey, integrationKey, actionKey, connectionSlug)
+
+            // Toggle: if already selected, remove; otherwise fetch + add
             if (toolName && selectedToolNames.has(toolName)) {
-                const existingPayload = selectedToolPayloadByName.get(toolName)
-                if (existingPayload) {
-                    removedToolPayloadCacheRef.current.set(toolName, existingPayload)
-                }
                 removeTool(toolName)
-            } else {
-                const restoredPayload =
-                    (toolName && removedToolPayloadCacheRef.current.get(toolName)) || payload
-
-                if (toolName) {
-                    removedToolPayloadCacheRef.current.delete(toolName)
-                }
-
-                addNewTool({
-                    source: "builtin",
-                    providerKey,
-                    providerLabel: integrationName,
-                    toolCode: `${connectionSlug}/${actionKey}`,
-                    toolLabel: actionName,
-                    payload: restoredPayload,
-                })
+                return
             }
+
+            let payload: Record<string, unknown>
+            try {
+                const detail = await fetchActionDetail(providerKey, integrationKey, actionKey)
+                const action = detail.action
+                payload = {
+                    type: "function",
+                    function: {
+                        name: toolName,
+                        description: action?.description ?? actionName,
+                        parameters: getActionInputSchema(action?.schemas?.inputs),
+                    },
+                }
+            } catch {
+                message.error("Failed to load action details. Please try again.")
+                return
+            }
+
+            addNewTool({
+                source: "builtin",
+                providerKey,
+                providerLabel: integrationName,
+                toolCode: `${connectionSlug}/${actionKey}`,
+                toolLabel: actionName,
+                payload,
+            })
         },
-        [addNewTool, removeTool, selectedToolNames, selectedToolPayloadByName],
+        [addNewTool, removeTool, selectedToolNames],
     )
 
     // Derive right-panel content from hoveredKey
@@ -532,6 +580,22 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
         ? connections.find((c) => c.id === hoveredKey.slice("composio:".length))
         : null
     const showRightPanel = !!(hoveredBuiltinGroup || hoveredConnection)
+    const filteredHoveredBuiltinTools = useMemo(() => {
+        if (!hoveredBuiltinGroup) return []
+
+        const normalizedTerm = builtinActionsSearch.trim().toLowerCase()
+        if (!normalizedTerm) return hoveredBuiltinGroup.tools
+
+        return hoveredBuiltinGroup.tools.filter(
+            ({code, label}) =>
+                code.toLowerCase().includes(normalizedTerm) ||
+                label.toLowerCase().includes(normalizedTerm),
+        )
+    }, [hoveredBuiltinGroup, builtinActionsSearch])
+
+    useEffect(() => {
+        setBuiltinActionsSearch("")
+    }, [hoveredBuiltinGroup?.key])
 
     const dropdownContent = (
         <div
@@ -541,7 +605,7 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
             {/* Left panel */}
             <div ref={leftPanelRef} className="w-[220px] flex flex-col shrink-0">
                 <div className="max-h-80 overflow-y-auto overscroll-contain flex flex-col">
-                    <div className="sticky top-0 z-10 bg-white dark:bg-slate-900">
+                    <div className="sticky top-0 z-10 bg-white">
                         <div className="p-2">
                             <Input
                                 allowClear
@@ -557,7 +621,7 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
                                 className="flex-1 !shadow-none !outline-none !border-none focus:!shadow-none focus:!outline-none focus:!border-none"
                             />
                         </div>
-                        <Divider className="m-0" orientation="horizontal" />
+                        <div className="h-px bg-slate-100" />
                     </div>
 
                     <div className="p-1">
@@ -568,10 +632,10 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
                                     <Sparkle
                                         size={12}
                                         weight="fill"
-                                        className="text-slate-600 dark:text-slate-300 shrink-0"
+                                        className="text-slate-600 shrink-0"
                                     />
-                                    <Typography.Text className="text-slate-600 dark:text-slate-300 text-xs font-medium">
-                                        Provider tools
+                                    <Typography.Text className="text-slate-600 text-xs font-medium">
+                                        Built-in tools
                                     </Typography.Text>
                                 </div>
                                 {filteredToolGroups.map(({key, label, Icon}) => (
@@ -581,20 +645,20 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
                                         block
                                         onMouseEnter={() => handleRowHover(`builtin:${key}`)}
                                         className={clsx(
-                                            "!flex !h-[28px] !items-center !gap-1.5 !py-[5px] !px-1.5 !text-left",
+                                            "!flex !h-[28px] !items-center !justify-start !gap-1.5 !py-[5px] !px-1.5 !text-left",
                                             hoveredKey === `builtin:${key}`
                                                 ? "!bg-blue-50"
                                                 : "hover:!bg-slate-50",
                                         )}
                                     >
                                         {Icon ? (
-                                            <span className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-slate-50 dark:bg-slate-800 shrink-0">
-                                                <Icon className="h-3.5 w-3.5 text-slate-500" />
+                                            <span className="flex h-4 w-4 items-center justify-center shrink-0">
+                                                <Icon className="h-4 w-4 text-slate-500" />
                                             </span>
                                         ) : (
-                                            <span className="h-5 w-5 shrink-0" />
+                                            <span className="h-4 w-4 shrink-0" />
                                         )}
-                                        <Typography.Text className="flex-1 text-slate-900 dark:text-slate-100 text-xs">
+                                        <Typography.Text className="flex-1 text-slate-900 text-xs leading-5">
                                             {label}
                                         </Typography.Text>
                                         <CaretRight size={10} className="text-slate-300 shrink-0" />
@@ -621,10 +685,10 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
                                         <Plugs
                                             size={12}
                                             weight="fill"
-                                            className="text-slate-600 dark:text-slate-300 shrink-0"
+                                            className="text-slate-600 shrink-0"
                                         />
-                                        <Typography.Text className="text-slate-600 dark:text-slate-300 text-xs font-medium">
-                                            Third-party integrations
+                                        <Typography.Text className="text-slate-600 text-xs font-medium">
+                                            Third-party tools
                                         </Typography.Text>
                                     </div>
                                     <Plus size={12} className="text-slate-500 shrink-0" />
@@ -665,12 +729,8 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
                             }}
                         >
                             <div className="flex items-center gap-1.5">
-                                <Code
-                                    size={12}
-                                    weight="bold"
-                                    className="text-slate-600 dark:text-slate-300 shrink-0"
-                                />
-                                <Typography.Text className="text-slate-600 dark:text-slate-300 text-xs font-medium">
+                                <Code size={12} weight="bold" className="text-slate-600 shrink-0" />
+                                <Typography.Text className="text-slate-600 text-xs font-medium">
                                     Custom tools
                                 </Typography.Text>
                             </div>
@@ -689,55 +749,85 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
                         className="w-[220px] overflow-y-auto overscroll-contain flex flex-col shrink-0"
                         style={leftPanelHeight ? {height: leftPanelHeight} : undefined}
                     >
-                        {hoveredBuiltinGroup && hoveredBuiltinGroup.tools.length > 0 && (
-                            <div className="p-1">
-                                {hoveredBuiltinGroup.tools.map(
-                                    ({code, label: toolLabel, payload}, index) => {
-                                        const toolName = payload?.function?.name
-                                        const isSelected = !!(
-                                            toolName && selectedToolNames.has(toolName)
+                        {hoveredBuiltinGroup && (
+                            <div className="flex flex-col min-h-0">
+                                <div className="sticky top-0 z-10 bg-white">
+                                    <div className="p-2">
+                                        <Input
+                                            allowClear
+                                            variant="borderless"
+                                            value={builtinActionsSearch}
+                                            placeholder="Search actions"
+                                            onChange={(event) =>
+                                                setBuiltinActionsSearch(event.target.value)
+                                            }
+                                            onClear={() => setBuiltinActionsSearch("")}
+                                            prefix={
+                                                <MagnifyingGlass
+                                                    size={14}
+                                                    className="text-slate-400"
+                                                />
+                                            }
+                                            className="flex-1 !shadow-none !outline-none !border-none focus:!shadow-none focus:!outline-none focus:!border-none"
+                                        />
+                                    </div>
+                                    <div className="h-px bg-slate-100" />
+                                </div>
+
+                                <div className="p-1">
+                                    {!filteredHoveredBuiltinTools.length ? (
+                                        <div className="py-3 px-2 text-[11px] text-slate-500">
+                                            No actions found
+                                        </div>
+                                    ) : (
+                                        filteredHoveredBuiltinTools.map(
+                                            ({code, label: toolLabel, payload}) => {
+                                                const toolName = payload?.function?.name ?? code
+                                                const isSelected = !!(
+                                                    toolName && selectedToolNames.has(toolName)
+                                                )
+                                                return (
+                                                    <React.Fragment key={code}>
+                                                        <Button
+                                                            type="text"
+                                                            block
+                                                            className={clsx(
+                                                                "!flex !h-[28px] !items-center !justify-between !text-left !py-[5px] !px-2",
+                                                                isSelected
+                                                                    ? "!bg-blue-50 hover:!bg-blue-100"
+                                                                    : "hover:!bg-slate-50",
+                                                            )}
+                                                            onClick={() =>
+                                                                handleAddTool({
+                                                                    payload,
+                                                                    source: "builtin",
+                                                                    providerKey:
+                                                                        hoveredBuiltinGroup.key,
+                                                                    providerLabel:
+                                                                        hoveredBuiltinGroup.label,
+                                                                    toolCode: code,
+                                                                    toolLabel,
+                                                                })
+                                                            }
+                                                        >
+                                                            <span className="text-slate-900 text-xs">
+                                                                {toolLabel}
+                                                            </span>
+                                                            {isSelected && (
+                                                                <Check
+                                                                    size={14}
+                                                                    weight="bold"
+                                                                    className="text-blue-500 shrink-0"
+                                                                />
+                                                            )}
+                                                        </Button>
+                                                        <div className="mx-2 h-px bg-slate-100" />
+                                                    </React.Fragment>
+                                                )
+                                            },
                                         )
-                                        return (
-                                            <React.Fragment key={code}>
-                                                <Button
-                                                    type="text"
-                                                    block
-                                                    className={clsx(
-                                                        "!flex !h-[28px] !items-center !justify-between !text-left !py-[5px] !px-2",
-                                                        isSelected
-                                                            ? "!bg-blue-50 hover:!bg-blue-100"
-                                                            : "hover:!bg-slate-50",
-                                                    )}
-                                                    onClick={() =>
-                                                        handleAddTool({
-                                                            payload,
-                                                            source: "builtin",
-                                                            providerKey: hoveredBuiltinGroup.key,
-                                                            providerLabel:
-                                                                hoveredBuiltinGroup.label,
-                                                            toolCode: code,
-                                                            toolLabel,
-                                                        })
-                                                    }
-                                                >
-                                                    <span className="text-slate-900 dark:text-slate-100 text-xs">
-                                                        {toolLabel}
-                                                    </span>
-                                                    {isSelected && (
-                                                        <Check
-                                                            size={14}
-                                                            weight="bold"
-                                                            className="text-blue-500 shrink-0"
-                                                        />
-                                                    )}
-                                                </Button>
-                                                {index < hoveredBuiltinGroup.tools.length - 1 && (
-                                                    <div className="mx-2 h-px bg-slate-100 dark:bg-slate-800" />
-                                                )}
-                                            </React.Fragment>
-                                        )
-                                    },
-                                )}
+                                    )}
+                                </div>
                             </div>
                         )}
 
@@ -778,6 +868,7 @@ const ActionsOutputRenderer: React.FC<Props> = ({variantId, compoundKey, viewOnl
                             setIsDropdownOpen(open)
                             if (!open) {
                                 setSearchTerm("")
+                                setBuiltinActionsSearch("")
                                 setHoveredKey(null)
                             }
                         }}
