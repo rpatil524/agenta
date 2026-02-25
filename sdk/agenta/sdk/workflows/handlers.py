@@ -278,10 +278,11 @@ def _format_with_template(
         return content.format(**kwargs)
 
     elif format == "jinja2":
-        Template, TemplateError = _load_jinja2()
+        SandboxedEnvironment, TemplateError = _load_jinja2()
+        env = SandboxedEnvironment()
 
         try:
-            return Template(content).render(**kwargs)
+            return env.from_string(content).render(**kwargs)
         except TemplateError:
             return content
 
