@@ -28,11 +28,15 @@ export default function ActionsList({actions}: Props) {
                 ),
             },
             {
-                title: "Tags",
-                dataIndex: "tags",
-                key: "tags",
-                render: (tags: Record<string, unknown> | undefined) =>
-                    tags ? Object.keys(tags).map((t) => <Tag key={t}>{t}</Tag>) : <span>-</span>,
+                title: "Categories",
+                dataIndex: "categories",
+                key: "categories",
+                render: (categories: string[] | undefined) =>
+                    categories && categories.length > 0 ? (
+                        categories.map((category) => <Tag key={category}>{category}</Tag>)
+                    ) : (
+                        <span>-</span>
+                    ),
             },
         ],
         [],

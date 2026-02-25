@@ -75,7 +75,7 @@ export const useCatalogActions = (integrationKey: string) => {
         if (loadedPages < targetPages && query.hasNextPage && !query.isFetchingNextPage) {
             query.fetchNextPage()
         }
-    }, [loadedPages, targetPages, query.hasNextPage, query.isFetchingNextPage])
+    }, [loadedPages, targetPages, query.hasNextPage, query.isFetchingNextPage, query.fetchNextPage])
 
     return {
         actions,

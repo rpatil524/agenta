@@ -53,7 +53,7 @@ const GatewayToolExecuteButton: React.FC<Props> = ({
                 })
                 const resultStr =
                     response.call?.data?.content ?? JSON.stringify(response.call?.data, null, 2)
-                onUpdateToolResponse(p.callId, resultStr, p.name)
+                onUpdateToolResponse(toolCallId, resultStr, p.name)
                 if (sendToChat) {
                     onExecuteAndSendToChat?.()
                 }
