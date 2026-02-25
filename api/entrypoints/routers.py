@@ -104,6 +104,11 @@ from oss.src.apis.fastapi.evaluations.router import SimpleEvaluationsRouter
 
 from oss.src.core.ai_services.service import AIServicesService
 from oss.src.apis.fastapi.ai_services.router import AIServicesRouter
+from oss.src.dbs.postgres.tools.dao import ToolsDAO
+from oss.src.core.tools.providers.composio import ComposioToolsAdapter
+from oss.src.core.tools.registry import ToolsGatewayRegistry
+from oss.src.core.tools.service import ToolsService
+from oss.src.apis.fastapi.tools.router import ToolsRouter
 
 
 from oss.src.routers import (
@@ -164,6 +169,9 @@ async def lifespan(*args, **kwargs):
     validate_required_env_vars()
 
     yield
+
+    for adapter in _composio_adapters.values():
+        await adapter.close()
 
 
 app = FastAPI(
@@ -241,6 +249,8 @@ environments_dao = GitDAO(
 
 evaluations_dao = EvaluationsDAO()
 folders_dao = FoldersDAO()
+
+tools_dao = ToolsDAO()
 
 # SERVICES ---------------------------------------------------------------------
 
@@ -335,6 +345,25 @@ simple_evaluations_service = SimpleEvaluationsService(
     evaluations_worker=evaluations_worker,
 )
 
+# Tools adapter + service
+_composio_adapters = {}
+if env.composio.enabled:
+    _composio_adapters["composio"] = ComposioToolsAdapter(
+        api_key=env.composio.api_key,  # type: ignore[arg-type]  # guarded by .enabled
+        api_url=env.composio.api_url,
+    )
+else:
+    log.warning("Composio not enabled — set COMPOSIO_API_KEY to activate gateway tools")
+
+tools_adapter_registry = ToolsGatewayRegistry(
+    adapters=_composio_adapters,
+)
+
+tools_service = ToolsService(
+    tools_dao=tools_dao,
+    adapter_registry=tools_adapter_registry,
+)
+
 # ROUTERS ----------------------------------------------------------------------
 
 secrets = VaultRouter(
@@ -410,6 +439,10 @@ evaluations = EvaluationsRouter(
 
 simple_evaluations = SimpleEvaluationsRouter(
     simple_evaluations_service=simple_evaluations_service,
+)
+
+tools = ToolsRouter(
+    tools_service=tools_service,
 )
 
 invocations_service = InvocationsService(
@@ -652,6 +685,12 @@ app.include_router(
     router=simple_environments.router,
     prefix="/preview/simple/environments",
     tags=["Environments"],
+)
+
+app.include_router(
+    router=tools.router,
+    prefix="/preview/tools",
+    tags=["Tools"],
 )
 
 app.include_router(
