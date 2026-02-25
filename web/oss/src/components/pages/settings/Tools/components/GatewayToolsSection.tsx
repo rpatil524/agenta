@@ -183,6 +183,15 @@ export default function GatewayToolsSection() {
                 ),
             },
             {
+                title: "Slug",
+                dataIndex: "slug",
+                key: "slug",
+                onHeaderCell: () => ({
+                    style: {minWidth: 160},
+                }),
+                render: (slug: string) => <Typography.Text>{slug}</Typography.Text>,
+            },
+            {
                 title: "Status",
                 key: "status",
                 onHeaderCell: () => ({
