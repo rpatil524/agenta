@@ -1,7 +1,7 @@
 import {useCallback, useRef, useState} from "react"
 
 import {EnhancedModal, ModalContent, ModalFooter} from "@agenta/ui"
-import {Divider, Form, Input, Select, Tooltip, Typography} from "antd"
+import {Divider, Form, Input, message, Select, Tooltip, Typography} from "antd"
 import Image from "next/image"
 
 import {queryClient} from "@/oss/lib/api/queryClient"
@@ -101,6 +101,12 @@ export default function ConnectDrawer({
                     "tools_oauth",
                     "width=600,height=700,popup=yes",
                 )
+                if (!popup) {
+                    setLoading(false)
+                    message.warning("Popup blocked. Redirecting in this tab.")
+                    window.location.assign(redirectUrl)
+                    return
+                }
 
                 const connectionId = result.connection?.id
 

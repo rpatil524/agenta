@@ -1,7 +1,7 @@
 import {useState, useMemo} from "react"
 
 import {MagnifyingGlass} from "@phosphor-icons/react"
-import {Badge, Card, Empty, Input, Spin, Typography} from "antd"
+import {Card, Empty, Input, Spin, Typography} from "antd"
 import Image from "next/image"
 
 import type {IntegrationItem} from "@/oss/services/tools/api/types"
@@ -88,13 +88,6 @@ function IntegrationCard({
                         <Typography.Text strong className="truncate">
                             {integration.name}
                         </Typography.Text>
-                        {integration.connections_count > 0 && (
-                            <Badge
-                                count={integration.connections_count}
-                                size="small"
-                                color="blue"
-                            />
-                        )}
                     </div>
                     {integration.description && (
                         <Typography.Text type="secondary" className="text-xs line-clamp-2">

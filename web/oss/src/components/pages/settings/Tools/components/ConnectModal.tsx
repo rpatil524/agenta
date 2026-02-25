@@ -10,13 +10,12 @@ interface Props {
     integrationKey: string
     integrationName: string
     authSchemes: string[]
-    noAuth: boolean
     onClose: () => void
 }
 
 type AuthMode = "oauth" | "api_key"
 
-function resolveAvailableModes(authSchemes: string[], noAuth: boolean): AuthMode[] {
+function resolveAvailableModes(authSchemes: string[]): AuthMode[] {
     const modes: AuthMode[] = []
     if (authSchemes.some((s) => s.toLowerCase().includes("oauth"))) modes.push("oauth")
     if (
@@ -25,7 +24,7 @@ function resolveAvailableModes(authSchemes: string[], noAuth: boolean): AuthMode
         )
     )
         modes.push("api_key")
-    if (modes.length === 0 && !noAuth) modes.push("oauth")
+    if (modes.length === 0) modes.push("oauth")
     return modes
 }
 
@@ -34,14 +33,13 @@ export default function ConnectModal({
     integrationKey,
     integrationName,
     authSchemes,
-    noAuth,
     onClose,
 }: Props) {
     const {handleCreate, invalidate} = useToolsConnections(integrationKey)
     const [loading, setLoading] = useState(false)
     const [form] = Form.useForm()
 
-    const availableModes = resolveAvailableModes(authSchemes, noAuth)
+    const availableModes = resolveAvailableModes(authSchemes)
     const [selectedMode, setSelectedMode] = useState<AuthMode>(availableModes[0] || "oauth")
 
     const handleClose = useCallback(() => {

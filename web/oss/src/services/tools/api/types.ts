@@ -16,6 +16,8 @@ export interface ProvidersResponse {
     providers: ProviderItem[]
 }
 
+export type ToolAuthScheme = "oauth" | "api_key"
+
 export interface IntegrationItem {
     key: string
     name: string
@@ -24,7 +26,7 @@ export interface IntegrationItem {
     url?: string
     actions_count?: number
     categories: string[]
-    auth_schemes?: string[]
+    auth_schemes?: ToolAuthScheme[]
 }
 
 export interface IntegrationsResponse {
@@ -93,7 +95,7 @@ export interface ConnectionCreateRequest {
         provider_key: string
         integration_key: string
         data?: {
-            auth_scheme?: "oauth" | "api_key"
+            auth_scheme?: ToolAuthScheme
             credentials?: Record<string, string>
         }
     }

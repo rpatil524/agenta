@@ -90,8 +90,7 @@ export default function IntegrationDetail({integrationKey, onBack}: Props) {
                 open={isConnectModalOpen}
                 integrationKey={integrationKey}
                 integrationName={integration.name}
-                authSchemes={integration.auth_schemes}
-                noAuth={integration.no_auth}
+                authSchemes={integration.auth_schemes ?? []}
                 onClose={() => setIsConnectModalOpen(false)}
             />
         </section>
