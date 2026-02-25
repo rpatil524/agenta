@@ -476,25 +476,59 @@ app.include_router(
 
 app.include_router(
     router=invocations.router,
+    prefix="/invocations",
+    tags=["Invocations"],
+)
+
+app.include_router(
+    router=invocations.router,
     prefix="/preview/invocations",
     tags=["Invocations"],
+    include_in_schema=False,
+)
+
+app.include_router(
+    router=annotations.router,
+    prefix="/annotations",
+    tags=["Annotations"],
 )
 
 app.include_router(
     router=annotations.router,
     prefix="/preview/annotations",
     tags=["Annotations"],
+    include_in_schema=False,
+)
+
+app.include_router(
+    router=testcases.router,
+    prefix="/testcases",
+    tags=["Testcases"],
 )
 
 app.include_router(
     router=testcases.router,
     prefix="/preview/testcases",
     tags=["Testcases"],
+    include_in_schema=False,
+)
+
+app.include_router(
+    router=testsets.router,
+    prefix="/testsets",
+    tags=["Testsets"],
 )
 
 app.include_router(
     router=testsets.router,
     prefix="/preview/testsets",
+    tags=["Testsets"],
+    include_in_schema=False,
+)
+
+app.include_router(
+    router=simple_testsets.router,
+    prefix="/simple/testsets",
     tags=["Testsets"],
 )
 
@@ -502,11 +536,25 @@ app.include_router(
     router=simple_testsets.router,
     prefix="/preview/simple/testsets",
     tags=["Testsets"],
+    include_in_schema=False,
+)
+
+app.include_router(
+    router=queries.router,
+    prefix="/queries",
+    tags=["Queries"],
 )
 
 app.include_router(
     router=queries.router,
     prefix="/preview/queries",
+    tags=["Queries"],
+    include_in_schema=False,
+)
+
+app.include_router(
+    router=simple_queries.router,
+    prefix="/simple/queries",
     tags=["Queries"],
 )
 
@@ -514,6 +562,7 @@ app.include_router(
     router=simple_queries.router,
     prefix="/preview/simple/queries",
     tags=["Queries"],
+    include_in_schema=False,
 )
 
 app.include_router(
@@ -524,7 +573,20 @@ app.include_router(
 
 app.include_router(
     router=applications.router,
+    prefix="/applications",
+    tags=["Applications"],
+)
+
+app.include_router(
+    router=applications.router,
     prefix="/preview/applications",
+    tags=["Applications"],
+    include_in_schema=False,
+)
+
+app.include_router(
+    router=simple_applications.router,
+    prefix="/simple/applications",
     tags=["Applications"],
 )
 
@@ -532,12 +594,20 @@ app.include_router(
     router=simple_applications.router,
     prefix="/preview/simple/applications",
     tags=["Applications"],
+    include_in_schema=False,
+)
+
+app.include_router(
+    router=workflows.router,
+    prefix="/workflows",
+    tags=["Workflows"],
 )
 
 app.include_router(
     router=workflows.router,
     prefix="/preview/workflows",
     tags=["Workflows"],
+    include_in_schema=False,
 )
 
 app.include_router(
@@ -548,7 +618,20 @@ app.include_router(
 
 app.include_router(
     router=evaluators.router,
+    prefix="/evaluators",
+    tags=["Evaluators"],
+)
+
+app.include_router(
+    router=evaluators.router,
     prefix="/preview/evaluators",
+    tags=["Evaluators"],
+    include_in_schema=False,
+)
+
+app.include_router(
+    router=simple_evaluators.router,
+    prefix="/simple/evaluators",
     tags=["Evaluators"],
 )
 
@@ -556,6 +639,7 @@ app.include_router(
     router=simple_evaluators.router,
     prefix="/preview/simple/evaluators",
     tags=["Evaluators"],
+    include_in_schema=False,
 )
 
 app.include_router(
@@ -578,7 +662,20 @@ app.include_router(
 
 app.include_router(
     router=evaluations.router,
+    prefix="/evaluations",
+    tags=["Evaluations"],
+)
+
+app.include_router(
+    router=evaluations.router,
     prefix="/preview/evaluations",
+    tags=["Evaluations"],
+    include_in_schema=False,
+)
+
+app.include_router(
+    router=simple_evaluations.router,
+    prefix="/simple/evaluations",
     tags=["Evaluations"],
 )
 
@@ -586,6 +683,7 @@ app.include_router(
     router=simple_evaluations.router,
     prefix="/preview/simple/evaluations",
     tags=["Evaluations"],
+    include_in_schema=False,
 )
 
 app.include_router(
