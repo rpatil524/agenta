@@ -1,6 +1,6 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from "react"
+import React, {useCallback, useMemo, useRef, useState} from "react"
 
-import {ArrowLeft, ArrowUp, CaretDown, MagnifyingGlass, Plus} from "@phosphor-icons/react"
+import {ArrowLeft, CaretDown, MagnifyingGlass, Plus} from "@phosphor-icons/react"
 import {
     Badge,
     Button,
@@ -20,110 +20,15 @@ import Image from "next/image"
 
 import type {ConnectionItem, IntegrationItem} from "@/oss/services/tools/api/types"
 
+import ScrollSentinel from "../components/ScrollSentinel"
+import ScrollToTopButton from "../components/ScrollToTopButton"
 import {useCatalogActions, actionsSearchAtom} from "../hooks/useCatalogActions"
 import {useCatalogIntegrations, integrationsSearchAtom} from "../hooks/useCatalogIntegrations"
+import {useDebouncedAtomSearch} from "../hooks/useDebouncedAtomSearch"
 import {useIntegrationConnections} from "../hooks/useIntegrationConnections"
 import {catalogDrawerOpenAtom, executionDrawerAtom} from "../state/atoms"
 
 import ConnectDrawer from "./ConnectDrawer"
-
-// ---------------------------------------------------------------------------
-// Debounce helper — local input → atom write after delay
-// ---------------------------------------------------------------------------
-
-function useDebouncedAtomSearch(setAtom: (v: string) => void, delay = 300) {
-    const [local, setLocal] = useState("")
-    const timerRef = useRef<ReturnType<typeof setTimeout>>()
-
-    const onChange = useCallback(
-        (v: string) => {
-            setLocal(v)
-            clearTimeout(timerRef.current)
-            timerRef.current = setTimeout(() => setAtom(v), delay)
-        },
-        [setAtom, delay],
-    )
-
-    const reset = useCallback(() => {
-        clearTimeout(timerRef.current)
-        setLocal("")
-        setAtom("")
-    }, [setAtom])
-
-    // Cleanup on unmount
-    useEffect(() => () => clearTimeout(timerRef.current), [])
-
-    return {value: local, onChange, reset}
-}
-
-// ---------------------------------------------------------------------------
-// IntersectionObserver sentinel
-// ---------------------------------------------------------------------------
-
-function ScrollSentinel({
-    onVisible,
-    hasMore,
-    isFetching,
-}: {
-    onVisible: () => void
-    hasMore: boolean
-    isFetching: boolean
-}) {
-    const ref = useRef<HTMLDivElement>(null)
-
-    useEffect(() => {
-        const el = ref.current
-        if (!el || !hasMore) return
-
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting && !isFetching) {
-                    onVisible()
-                }
-            },
-            {rootMargin: "200px"},
-        )
-        observer.observe(el)
-        return () => observer.disconnect()
-    }, [onVisible, hasMore, isFetching])
-
-    if (!hasMore) return null
-
-    return <div ref={ref} className="h-0 w-0" />
-}
-
-// ---------------------------------------------------------------------------
-// Scroll-to-top button — appears when scrolled down
-// ---------------------------------------------------------------------------
-
-function ScrollToTopButton({scrollRef}: {scrollRef: React.RefObject<HTMLDivElement | null>}) {
-    const [visible, setVisible] = useState(false)
-
-    useEffect(() => {
-        const el = scrollRef.current
-        if (!el) return
-
-        const onScroll = () => {
-            setVisible(el.scrollTop > 300)
-        }
-        el.addEventListener("scroll", onScroll, {passive: true})
-        return () => el.removeEventListener("scroll", onScroll)
-    }, [scrollRef])
-
-    if (!visible) return null
-
-    return (
-        <div className="sticky bottom-4 flex justify-end pointer-events-none">
-            <Button
-                type="default"
-                shape="circle"
-                icon={<ArrowUp size={16} />}
-                className="pointer-events-auto shadow-[0_2px_8px_rgba(0,0,0,0.15)]"
-                onClick={() => scrollRef.current?.scrollTo({top: 0, behavior: "smooth"})}
-            />
-        </div>
-    )
-}
 
 // ---------------------------------------------------------------------------
 // Expandable description — 2-line clamp with inline "see more" / "see less"
@@ -264,7 +169,7 @@ function IntegrationsView({onSelect}: {onSelect: (integration: IntegrationItem) 
             {/* Sticky header */}
             <div className="flex flex-col gap-3 px-6 pt-4 pb-3 shrink-0">
                 <Input
-                    placeholder="Search integrations..."
+                    placeholder="Search integrations…"
                     prefix={<MagnifyingGlass size={16} />}
                     value={search.value}
                     onChange={(e) => search.onChange(e.target.value)}
@@ -279,7 +184,10 @@ function IntegrationsView({onSelect}: {onSelect: (integration: IntegrationItem) 
             <Divider className="!m-0" />
 
             {/* Scrollable content */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-3 relative">
+            <div
+                ref={scrollRef}
+                className="flex-1 overflow-y-auto overscroll-contain px-6 py-3 relative"
+            >
                 {integrations.length === 0 ? (
                     <Empty description="No integrations found" />
                 ) : (
@@ -429,6 +337,7 @@ function ActionsView({
                 <div className="flex items-center gap-3">
                     <Button
                         type="text"
+                        aria-label="Go back"
                         icon={<ArrowLeft size={16} />}
                         onClick={onBack}
                         className="shrink-0"
@@ -468,7 +377,7 @@ function ActionsView({
                 {integration.description && <ExpandableText text={integration.description} />}
 
                 <Input
-                    placeholder="Search actions..."
+                    placeholder="Search actions…"
                     prefix={<MagnifyingGlass size={16} />}
                     value={search.value}
                     onChange={(e) => search.onChange(e.target.value)}
@@ -484,7 +393,10 @@ function ActionsView({
             <Divider className="!m-0" />
 
             {/* Scrollable content */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-3 relative">
+            <div
+                ref={scrollRef}
+                className="flex-1 overflow-y-auto overscroll-contain px-6 py-3 relative"
+            >
                 {isLoading && actions.length === 0 ? (
                     <div className="flex items-center justify-center py-8">
                         <Spin />
@@ -515,10 +427,7 @@ function ActionsView({
                                             ))}
                                         </div>
                                         {action.description && (
-                                            <Typography.Text
-                                                type="secondary"
-                                                className="text-xs line-clamp-2"
-                                            >
+                                            <Typography.Text type="secondary" className="text-xs">
                                                 {action.description}
                                             </Typography.Text>
                                         )}

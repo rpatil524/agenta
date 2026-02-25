@@ -23,7 +23,7 @@ export interface GatewayToolPayloadInfo {
 
 interface Props {
     toolPayloads: GatewayToolPayloadInfo[]
-    onUpdateToolResponse: (callId: string | undefined, resultStr: string) => void
+    onUpdateToolResponse: (callId: string | undefined, resultStr: string, toolName?: string) => void
     onExecuteAndSendToChat?: () => void
 }
 
@@ -53,7 +53,7 @@ const GatewayToolExecuteButton: React.FC<Props> = ({
                 })
                 const resultStr =
                     response.call?.data?.content ?? JSON.stringify(response.call?.data, null, 2)
-                onUpdateToolResponse(p.callId, resultStr)
+                onUpdateToolResponse(p.callId, resultStr, p.name)
                 if (sendToChat) {
                     onExecuteAndSendToChat?.()
                 }

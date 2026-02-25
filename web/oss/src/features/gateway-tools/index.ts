@@ -11,6 +11,7 @@ export type {ExecutionDrawerState} from "./state/atoms"
 
 // Hooks
 export {useConnectionsQuery} from "./hooks/useConnectionsQuery"
+export {useConnectionQuery} from "./hooks/useConnectionQuery"
 export {useCatalogIntegrations} from "./hooks/useCatalogIntegrations"
 export {useCatalogActions} from "./hooks/useCatalogActions"
 export {useActionDetail} from "./hooks/useActionDetail"

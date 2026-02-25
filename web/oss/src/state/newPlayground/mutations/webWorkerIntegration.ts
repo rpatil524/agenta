@@ -590,8 +590,21 @@ export const handleWebWorkerResultAtom = atom(
                 draft.assistantMessageByRevision[variantId] = incoming
 
                 if (hasNewToolCalls) {
-                    if (!draft.toolResponsesByRevision) draft.toolResponsesByRevision = {}
-                    draft.toolResponsesByRevision[variantId] = toolMessages
+                    // Tool responses are created lazily only after the user clicks
+                    // "Call tool" / "Call tool and send to chat".
+                    if (
+                        draft?.toolResponsesByRevision &&
+                        variantId in draft.toolResponsesByRevision
+                    ) {
+                        delete draft.toolResponsesByRevision[variantId]
+                    }
+                    if (
+                        hasExistingToolResponses &&
+                        draft?.toolResponsesByRevision &&
+                        Object.keys(draft.toolResponsesByRevision).length === 0
+                    ) {
+                        delete draft.toolResponsesByRevision
+                    }
                 } else if (!hasExistingToolResponses && draft?.toolResponsesByRevision) {
                     if (variantId in draft.toolResponsesByRevision) {
                         delete draft.toolResponsesByRevision[variantId]

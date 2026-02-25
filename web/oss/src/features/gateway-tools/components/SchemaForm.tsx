@@ -92,7 +92,7 @@ const SchemaForm = forwardRef<SchemaFormHandle, Props>(
         if (jsonMode) {
             return (
                 <div className="flex flex-col gap-1">
-                    <div className="rounded-lg border border-solid border-[#d9d9d9] overflow-hidden">
+                    <div className="rounded-lg border border-solid border-gray-300 dark:border-gray-700 overflow-hidden">
                         <Editor
                             initialValue={lastFormSnapshot.current}
                             onChange={handleJsonChange}
@@ -427,6 +427,7 @@ function ArrayField({
                                     </Form.Item>
                                     <Button
                                         type="text"
+                                        aria-label="Remove item"
                                         icon={<MinusCircle size={16} />}
                                         onClick={() => remove(name)}
                                         className="mt-0.5 opacity-50 hover:opacity-100"
@@ -486,6 +487,7 @@ function ArrayObjectItem({
                         <Button
                             type="text"
                             size="small"
+                            aria-label="Remove object item"
                             icon={<MinusCircle size={14} />}
                             onClick={(e) => {
                                 e.stopPropagation()
@@ -642,7 +644,7 @@ function JsonFieldEditor({
     )
 
     return (
-        <div className="rounded-lg border border-solid border-[#d9d9d9] overflow-hidden">
+        <div className="rounded-lg border border-solid border-gray-300 dark:border-gray-700 overflow-hidden">
             <Editor
                 initialValue={value || placeholder || "{}"}
                 onChange={handleChange}

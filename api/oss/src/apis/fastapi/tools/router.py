@@ -2,9 +2,12 @@ import html as html_lib
 import json
 import re
 from datetime import datetime, timezone
+from functools import wraps
 from typing import List, Optional
+from urllib.parse import urlsplit
 from uuid import UUID, uuid4
 
+import httpx
 from fastapi import APIRouter, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse, JSONResponse
 
@@ -39,6 +42,7 @@ from oss.src.core.tools.dtos import (
     ToolResultData,
 )
 from oss.src.core.tools.exceptions import (
+    AdapterError,
     ConnectionInactiveError,
     ConnectionInvalidError,
     ConnectionNotFoundError,
@@ -56,6 +60,33 @@ if is_ee():
     from ee.src.utils.permissions import check_action_access, FORBIDDEN_EXCEPTION
 
 log = get_module_logger(__name__)
+
+
+def handle_adapter_exceptions():
+    """Convert only upstream 401 AdapterError failures to 424 Failed Dependency."""
+
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            try:
+                return await func(*args, **kwargs)
+            except AdapterError as e:
+                cause = e.__cause__
+                if not (
+                    isinstance(cause, httpx.HTTPStatusError)
+                    and cause.response is not None
+                    and cause.response.status_code == status.HTTP_401_UNAUTHORIZED
+                ):
+                    raise
+
+                raise HTTPException(
+                    status_code=status.HTTP_424_FAILED_DEPENDENCY,
+                    detail=e.message,
+                ) from e
+
+        return wrapper
+
+    return decorator
 
 
 class ToolsRouter:
@@ -188,6 +219,7 @@ class ToolsRouter:
     # -----------------------------------------------------------------------
 
     @intercept_exceptions()
+    @handle_adapter_exceptions()
     async def list_providers(
         self,
         request: Request,
@@ -234,6 +266,7 @@ class ToolsRouter:
         return response
 
     @intercept_exceptions()
+    @handle_adapter_exceptions()
     async def get_provider(
         self,
         request: Request,
@@ -288,6 +321,7 @@ class ToolsRouter:
         return response
 
     @intercept_exceptions()
+    @handle_adapter_exceptions()
     async def list_integrations(
         self,
         request: Request,
@@ -352,6 +386,7 @@ class ToolsRouter:
         return response
 
     @intercept_exceptions()
+    @handle_adapter_exceptions()
     async def get_integration(
         self,
         request: Request,
@@ -409,6 +444,7 @@ class ToolsRouter:
         return response
 
     @intercept_exceptions()
+    @handle_adapter_exceptions()
     async def list_actions(
         self,
         request: Request,
@@ -492,6 +528,7 @@ class ToolsRouter:
         return response
 
     @intercept_exceptions()
+    @handle_adapter_exceptions()
     async def get_action(
         self,
         request: Request,
@@ -844,6 +881,7 @@ class ToolsRouter:
     # -----------------------------------------------------------------------
 
     @intercept_exceptions()
+    @handle_adapter_exceptions()
     async def call_tool(
         self,
         request: Request,
@@ -945,8 +983,9 @@ class ToolsRouter:
             arguments = {}
 
         # Execute the tool via the adapter.
-        # AdapterError propagates → @intercept_exceptions → 500.
-        # ToolExecutionResponse.successful=False is a provider error → 200.
+        # Upstream 401 AdapterError (e.g. bad API key) → @handle_adapter_exceptions → 424.
+        # Other adapter errors are treated as internal failures; unsuccessful tool
+        # execution responses remain business-level errors → 200.
         execution_result = await self.tools_service.execute_tool(
             provider_key=provider_key,
             integration_key=integration_key,
@@ -994,6 +1033,12 @@ def _oauth_card(
     safe_url = html_lib.escape(integration_url) if integration_url else None
     safe_agenta_url = html_lib.escape(agenta_url) if agenta_url else None
     safe_error = html_lib.escape(error) if error else None
+    agenta_origin = None
+    if agenta_url:
+        parsed_agenta_url = urlsplit(agenta_url)
+        if parsed_agenta_url.scheme and parsed_agenta_url.netloc:
+            agenta_origin = f"{parsed_agenta_url.scheme}://{parsed_agenta_url.netloc}"
+    agenta_post_message_origin_js = json.dumps(agenta_origin)
 
     accent = "#16a34a" if success else "#dc2626"
     agenta_favicon = (
@@ -1174,14 +1219,16 @@ def _oauth_card(
     {button_html}
   </div>
   <script>
+    const AGENTA_POST_MESSAGE_ORIGIN = {agenta_post_message_origin_js};
+
     function returnToAgenta(event) {{
       if (event) {{
         event.preventDefault();
       }}
 
       try {{
-        if (window.opener && !window.opener.closed) {{
-          window.opener.postMessage({{type: "tools:oauth:complete"}}, "*");
+        if (window.opener && !window.opener.closed && AGENTA_POST_MESSAGE_ORIGIN) {{
+          window.opener.postMessage({{type: "tools:oauth:complete"}}, AGENTA_POST_MESSAGE_ORIGIN);
           window.opener.focus();
         }}
       }} catch (_e) {{
@@ -1196,8 +1243,8 @@ def _oauth_card(
       return false;
     }}
 
-    if (window.opener) {{
-      window.opener.postMessage({{type: "tools:oauth:complete"}}, "*");
+    if (window.opener && AGENTA_POST_MESSAGE_ORIGIN) {{
+      window.opener.postMessage({{type: "tools:oauth:complete"}}, AGENTA_POST_MESSAGE_ORIGIN);
     }}
 
     const countdownEl = document.getElementById("auto-return-text");

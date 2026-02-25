@@ -1,4 +1,4 @@
-import React, {ComponentProps, useCallback, useMemo, useRef, useState} from "react"
+import React, {ComponentProps, useCallback, useEffect, useMemo, useRef, useState} from "react"
 
 import clsx from "clsx"
 import {useAtomValue, useSetAtom} from "jotai"
@@ -82,7 +82,8 @@ const TurnMessageAdapter: React.FC<Props> = ({
             [rowId, variantId],
         ),
     )
-    const [minimized, setMinimized] = useState(false)
+    const [minimized, setMinimized] = useState(() => kind === "tool")
+    const autoMinimizedRef = useRef(false)
     const isToolKind = kind === "tool"
     const toolMessage = useMemo(() => {
         if (!turn) return null
@@ -401,6 +402,13 @@ const TurnMessageAdapter: React.FC<Props> = ({
         if (kind !== "assistant") return []
         return createToolCallPayloads(msg?.toolCalls?.value)
     }, [kind, msg])
+
+    useEffect(() => {
+        const shouldAutoMinimize = isToolKind || (kind === "assistant" && toolPayloads.length > 0)
+        if (!shouldAutoMinimize || autoMinimizedRef.current) return
+        setMinimized(true)
+        autoMinimizedRef.current = true
+    }, [isToolKind, kind, toolPayloads.length])
 
     return toolPayloads?.length ? (
         toolPayloads.map((p) => (

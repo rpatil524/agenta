@@ -2,24 +2,11 @@ import {useAtomValue} from "jotai"
 import {atomFamily} from "jotai/utils"
 import {atomWithQuery} from "jotai-tanstack-query"
 
-import {fetchIntegrationDetail, fetchActions, queryConnections} from "@/oss/services/tools/api"
-import type {
-    IntegrationDetailResponse,
-    ActionsListResponse,
-    ConnectionsQueryResponse,
-} from "@/oss/services/tools/api/types"
+import {integrationDetailQueryFamily} from "@/oss/features/gateway-tools/hooks/useIntegrationDetail"
+import {fetchActions, queryConnections} from "@/oss/services/tools/api"
+import type {ActionsListResponse, ConnectionsQueryResponse} from "@/oss/services/tools/api/types"
 
 const DEFAULT_PROVIDER = "composio"
-
-export const integrationDetailQueryFamily = atomFamily((integrationKey: string) =>
-    atomWithQuery<IntegrationDetailResponse>(() => ({
-        queryKey: ["tools", "integrationDetail", DEFAULT_PROVIDER, integrationKey],
-        queryFn: () => fetchIntegrationDetail(DEFAULT_PROVIDER, integrationKey),
-        staleTime: 60_000,
-        refetchOnWindowFocus: false,
-        enabled: !!integrationKey,
-    })),
-)
 
 export const integrationActionsQueryFamily = atomFamily((integrationKey: string) =>
     atomWithQuery<ActionsListResponse>(() => ({
