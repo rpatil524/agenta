@@ -241,6 +241,7 @@ def build_replacements(
             unresolved.add(expr)
     return replacements, unresolved
 
+
 def missing_lib_hints(unreplaced: set) -> Optional[str]:
     """Suggest installing python-jsonpath if placeholders indicate json-path or json-pointer usage."""
     if any(expr.startswith("$") or expr.startswith("/") for expr in unreplaced):

@@ -520,7 +520,6 @@ class TemplateFormatError(PromptTemplateError):
         super().__init__(message)
 
 
-import re  # noqa: E402
 from typing import Any, Dict, Iterable, Tuple, Optional  # noqa: E402
 
 from agenta.sdk.utils.lazy import _load_jinja2, _load_jsonpath  # noqa: E402
