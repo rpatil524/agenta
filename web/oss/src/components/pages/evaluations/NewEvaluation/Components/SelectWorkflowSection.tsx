@@ -247,6 +247,13 @@ const SelectWorkflowSection = ({
                             value={typeFilter}
                             onChange={(value) => setTypeFilter(value)}
                             options={typeOptions}
+                            // Antd's grouped options ship an extra left
+                            // indent (`.ant-select-item-option-grouped`) on
+                            // top of the regular item padding. With only one
+                            // or two groups visible the indent reads as
+                            // accidental — flatten it so subitems align with
+                            // the ungrouped "All types" entry.
+                            popupClassName="[&_.ant-select-item-option-grouped]:!ps-3"
                         />
                     )}
                     <Input.Search
