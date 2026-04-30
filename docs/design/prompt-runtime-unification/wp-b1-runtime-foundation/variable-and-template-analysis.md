@@ -61,10 +61,19 @@ This document captures what data each runtime handler receives, what variables p
 - Renders through `SandboxedEnvironment`.
 - Chat/completion raise template errors through `PromptTemplate`. Judge's local helper currently logs Jinja template errors and returns the original content for Jinja-specific `TemplateError`, which is a behavioral difference to decide on before full unification.
 
-## Decisions Needed for Unification
+## What WP-B1 changes here
 
-- Phase 1 should not broaden the judge config. It should reuse provider resolution and preferably reuse the same message-rendering semantics while preserving the flat `prompt_template` input and existing output parser.
-- The shared render helper should accept arbitrary JSON-like context values, not only strings, because current inputs and judge variables can be dicts/lists and `curly` mode intentionally stringifies them only at substitution time.
-- The helper should separate message rendering from response-format rendering. Chat/completion currently render `llm_config.response_format`; judge currently does not render `json_schema`. Changing that for judge would be a feature change and should be explicit.
-- The helper should not inject temperature or other optional model parameters for judge. Optional kwargs should only be sent when they come from an existing supported config path.
-- If we want judge and chat/completion to handle Jinja errors identically, that should be called out as a behavior change and covered by tests. The safer Phase 1 path is to preserve judge's current error behavior unless switching fully to `PromptTemplate` is accepted.
+- The judge backend patch (Phase 1) does not broaden the judge config. It reuses provider resolution and keeps the existing message-rendering path (`_format_with_template`), the flat `prompt_template` input, and the existing output parser.
+- The judge LLM call stops sending `temperature`. Optional kwargs are only sent when they come from an existing supported config path.
+- The low-level rendering helper (Phase 2) accepts arbitrary JSON-like context values, not only strings, because current inputs and judge variables can be dicts/lists and `curly` intentionally stringifies them only at substitution time.
+
+## What WP-B1 does **not** change here
+
+The following are out of scope for WP-B1 and tracked in the RFC's WP-B2 / WP-B3:
+
+- Aligning message rendering across services so judge, chat, and completion share one renderer (WP-B2).
+- Rendering variables inside `json_schema` / `response_format` (WP-B2).
+- Aligning Jinja error behavior across services (WP-B2 — the RFC decides on raise across all services).
+- Adding `mustache` as a new template format (WP-B3).
+
+The helper boundary (described in `implementation-notes.md`) is deliberately narrow so these later WPs can layer on top without re-litigating WP-B1's scope.
