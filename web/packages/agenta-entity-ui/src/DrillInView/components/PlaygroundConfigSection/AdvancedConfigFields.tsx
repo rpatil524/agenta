@@ -148,9 +148,15 @@ const AdvancedJsonField = memo(function AdvancedJsonField({
             <div className="flex flex-col gap-0.5">
                 <Typography.Text className="font-medium">{label}</Typography.Text>
                 <Typography.Text type="secondary" className="text-xs leading-snug">
-                    Provider specific addition options sent with the model request in JSON format.
-                    <a href="" target="_blank" rel="noopener noreferrer">
-                        See docs
+                    Provider-specific chat template options sent with the model request in JSON
+                    format.{" "}
+                    <a
+                        href="https://agenta.ai/docs/prompt-engineering/playground/chat-template-kwargs"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-500"
+                    >
+                        Learn more
                     </a>
                 </Typography.Text>
             </div>
