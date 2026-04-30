@@ -291,6 +291,7 @@ All configuration data must be nested under the `prompt` key.
 | prompt.llm_config.frequency_penalty | number or null | Penalty for token frequency (-2.0 to 2.0) |
 | prompt.llm_config.presence_penalty | number or null | Penalty for token presence (-2.0 to 2.0) |
 | prompt.llm_config.reasoning_effort | string or null | Controls reasoning effort for thinking models. Options: `none` (cost-optimized, 0 tokens), `low` (1024 tokens), `medium` (2048 tokens), `high` (4096 tokens) |
+| prompt.llm_config.chat_template_kwargs | object or null | Provider-specific chat template options passed through unchanged. Omitted when `null` |
 | prompt.llm_config.response_format | object or null | Output format specification |
 | prompt.llm_config.response_format.type | string | Format type: `text`, `json_object`, or `json_schema` |
 | prompt.llm_config.response_format.json_schema | object | Schema definition (required when type is `json_schema`) |
@@ -328,6 +329,9 @@ All configuration data must be nested under the `prompt` key.
       "temperature": 0.7,
       "max_tokens": 150,
       "top_p": 1.0,
+      "chat_template_kwargs": {
+        "enable_thinking": false
+      },
       "frequency_penalty": 0.0,
       "presence_penalty": 0.0
     },
