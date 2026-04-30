@@ -118,16 +118,16 @@ const SelectWorkflowSection = ({
     const [showEvaluators, setShowEvaluators] = useState<boolean>(
         disabled ? false : initialShowEvaluators,
     )
-    // `null` means "all types" — encoded as the placeholder option in the
-    // Select. Keeping it nullable (rather than overloading "all") avoids the
-    // value colliding with `WorkflowTypeFilter`'s "all" semantics.
-    const [typeFilter, setTypeFilter] = useState<WorkflowSubtype | null>(null)
+    // "all" means no subtype filter — surfaced as an explicit first option in
+    // the Select rather than relying on a placeholder + clear button so the
+    // reset path is always visible.
+    const [typeFilter, setTypeFilter] = useState<WorkflowSubtype | "all">("all")
 
     // Toggling evaluators off should drop any active evaluator-subtype filter
     // — otherwise the picker would silently render an empty list.
     useEffect(() => {
-        if (!showEvaluators && typeFilter && EVALUATOR_SUBTYPES.has(typeFilter)) {
-            setTypeFilter(null)
+        if (!showEvaluators && typeFilter !== "all" && EVALUATOR_SUBTYPES.has(typeFilter)) {
+            setTypeFilter("all")
         }
     }, [showEvaluators, typeFilter])
 
@@ -135,7 +135,7 @@ const SelectWorkflowSection = ({
     // when set; otherwise fall back to the kind dictated by the toggle.
     const effectiveFilter: WorkflowTypeFilter = useMemo(() => {
         if (disabled) return "app"
-        if (typeFilter) return typeFilter
+        if (typeFilter !== "all") return typeFilter
         return showEvaluators ? "all" : "app"
     }, [disabled, showEvaluators, typeFilter])
 
@@ -199,16 +199,21 @@ const SelectWorkflowSection = ({
         [selectedWorkflowId, onSelectRow, disabled],
     )
 
-    // Evaluator-side options only appear when the toggle is on. Apps are
-    // always available since they're the default kind.
+    // "All types" sits ungrouped at the top so the reset path is always one
+    // click away. App types are always present; evaluator types only appear
+    // when the toggle is on.
     const typeOptions = useMemo(() => {
-        const groups: {label: string; options: {label: string; value: WorkflowSubtype}[]}[] = [
+        const items: (
+            | {label: string; value: WorkflowSubtype | "all"}
+            | {label: string; options: {label: string; value: WorkflowSubtype}[]}
+        )[] = [
+            {label: "All types", value: "all"},
             {label: "Applications", options: APP_TYPE_OPTIONS},
         ]
         if (showEvaluators) {
-            groups.push({label: "Evaluators", options: EVALUATOR_TYPE_OPTIONS})
+            items.push({label: "Evaluators", options: EVALUATOR_TYPE_OPTIONS})
         }
-        return groups
+        return items
     }, [showEvaluators])
 
     const emptyDescription = disabled
@@ -237,12 +242,10 @@ const SelectWorkflowSection = ({
                 )}
                 <div className="flex items-center gap-2 shrink-0">
                     {!disabled && (
-                        <Select<WorkflowSubtype | null>
+                        <Select<WorkflowSubtype | "all">
                             className="w-[180px]"
                             value={typeFilter}
                             onChange={(value) => setTypeFilter(value)}
-                            placeholder="All types"
-                            allowClear
                             options={typeOptions}
                         />
                     )}
