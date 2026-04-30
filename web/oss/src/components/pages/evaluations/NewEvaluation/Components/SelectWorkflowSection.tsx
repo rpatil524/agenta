@@ -1,9 +1,10 @@
-import {memo, useCallback, useEffect, useMemo, useState, type CSSProperties} from "react"
+import {memo, useCallback, useEffect, useMemo, useState} from "react"
 
 import {WorkflowKindTag, WorkflowTypeTag} from "@agenta/entity-ui/workflow"
 import {InfiniteVirtualTableFeatureShell, useTableManager} from "@agenta/ui/table"
 import {createStandardColumns} from "@agenta/ui/table"
-import {Input, Tabs} from "antd"
+import {InfoCircleOutlined} from "@ant-design/icons"
+import {Input, Select, Switch, Tooltip, Typography} from "antd"
 import clsx from "clsx"
 import {useSetAtom} from "jotai"
 import dynamic from "next/dynamic"
@@ -33,8 +34,9 @@ interface SelectWorkflowSectionProps {
     onSelectWorkflow: (value: string, meta?: {label?: string; isEvaluator?: boolean}) => void
     /** When true, locks the picker to apps-only (used on app-scoped evaluation page) */
     disabled?: boolean
-    /** Initial tab selection — defaults to "all"; set to "app" for app-scoped pages. */
-    initialTypeFilter?: WorkflowTypeFilter
+    /** Whether evaluators are visible by default. Off (apps-only) is the right
+     *  default everywhere except a context that explicitly wants both kinds. */
+    initialShowEvaluators?: boolean
     className?: string
 }
 
@@ -79,52 +81,67 @@ const createSelectWorkflowColumns = () =>
         },
     ])
 
-// Unified subcategory tabs for both applications (chat/completion/custom)
-// and evaluators (LLM-as-judge, matchers, custom code, webhooks).
-// Mirrors the subcategory groupings shown on the dedicated app and evaluator
-// creation surfaces, so users see one consistent taxonomy here.
-const TAB_ITEMS: {key: WorkflowTypeFilter; label: string}[] = [
-    {key: "all", label: "All"},
-    {key: "chat", label: "Chat"},
-    {key: "completion", label: "Completion"},
-    {key: "custom", label: "Custom"},
-    {key: "llm", label: "LLM as Judge"},
-    {key: "match", label: "Matchers"},
-    {key: "code", label: "Custom Code"},
-    {key: "hook", label: "Webhooks"},
+const EVALUATOR_TOOLTIP = "Run evaluations on evaluators"
+
+// Subtypes the user can pick in the type filter. Maps 1:1 to the subset of
+// `WorkflowTypeFilter` values that name a concrete workflow type. "all" is
+// modelled separately so it doesn't have to live inside this list.
+type WorkflowSubtype = "chat" | "completion" | "custom" | "llm" | "match" | "code" | "hook"
+
+const APP_TYPE_OPTIONS: {label: string; value: WorkflowSubtype}[] = [
+    {label: "Chat", value: "chat"},
+    {label: "Completion", value: "completion"},
+    {label: "Custom", value: "custom"},
 ]
 
-const TAB_COLOR_MAP: Partial<Record<WorkflowTypeFilter, string>> = {
-    all: "#e0f2fe",
-    chat: "#dbeafe",
-    completion: "#dbeafe",
-    custom: "#dbeafe",
-    llm: "#ede9fe",
-    match: "#ede9fe",
-    code: "#ede9fe",
-    hook: "#ede9fe",
-}
+const EVALUATOR_TYPE_OPTIONS: {label: string; value: WorkflowSubtype}[] = [
+    {label: "LLM as judge", value: "llm"},
+    {label: "Matchers", value: "match"},
+    {label: "Custom code", value: "code"},
+    {label: "Webhooks", value: "hook"},
+]
+
+const EVALUATOR_SUBTYPES: ReadonlySet<WorkflowSubtype> = new Set(["llm", "match", "code", "hook"])
 
 const SelectWorkflowSection = ({
     selectedWorkflowId,
     onSelectWorkflow,
     disabled,
-    initialTypeFilter = "all",
+    initialShowEvaluators = false,
     className,
 }: SelectWorkflowSectionProps) => {
     const [searchTerm, setSearchTerm] = useState("")
     const setStoreSearchTerm = useSetAtom(appWorkflowSearchTermAtom)
     const setWorkflowTypeFilter = useSetAtom(workflowTypeFilterAtom)
     const setWorkflowInvokableOnly = useSetAtom(workflowInvokableOnlyAtom)
-    const [activeTab, setActiveTab] = useState<WorkflowTypeFilter>(
-        disabled ? "app" : initialTypeFilter,
-    )
 
-    // Keep the shared filter atom in sync with the active tab while the section is mounted.
+    const [showEvaluators, setShowEvaluators] = useState<boolean>(
+        disabled ? false : initialShowEvaluators,
+    )
+    // `null` means "all types" — encoded as the placeholder option in the
+    // Select. Keeping it nullable (rather than overloading "all") avoids the
+    // value colliding with `WorkflowTypeFilter`'s "all" semantics.
+    const [typeFilter, setTypeFilter] = useState<WorkflowSubtype | null>(null)
+
+    // Toggling evaluators off should drop any active evaluator-subtype filter
+    // — otherwise the picker would silently render an empty list.
     useEffect(() => {
-        const effective: WorkflowTypeFilter = disabled ? "app" : activeTab
-        setWorkflowTypeFilter(effective)
-    }, [activeTab, disabled, setWorkflowTypeFilter])
+        if (!showEvaluators && typeFilter && EVALUATOR_SUBTYPES.has(typeFilter)) {
+            setTypeFilter(null)
+        }
+    }, [showEvaluators, typeFilter])
+
+    // Effective filter pushed to the shared store atom. Subtype always wins
+    // when set; otherwise fall back to the kind dictated by the toggle.
+    const effectiveFilter: WorkflowTypeFilter = useMemo(() => {
+        if (disabled) return "app"
+        if (typeFilter) return typeFilter
+        return showEvaluators ? "all" : "app"
+    }, [disabled, showEvaluators, typeFilter])
+
+    useEffect(() => {
+        setWorkflowTypeFilter(effectiveFilter)
+    }, [effectiveFilter, setWorkflowTypeFilter])
 
     // The evaluation subject must be auto-invokable (has service URL, not a
     // human evaluator). App-management resets this to false on its own mount.
@@ -143,15 +160,11 @@ const SelectWorkflowSection = ({
         [setStoreSearchTerm],
     )
 
-    const handleTabChange = useCallback((key: string) => {
-        setActiveTab(key as WorkflowTypeFilter)
-    }, [])
-
     const table = useTableManager<AppWorkflowRow>({
         datasetStore: workflowPaginatedStore.store as never,
         scopeId: "evaluation-workflow-selector",
         pageSize: 50,
-        searchDeps: [searchTerm, activeTab],
+        searchDeps: [searchTerm, effectiveFilter],
         rowClassName: "variant-table-row",
     })
 
@@ -186,20 +199,23 @@ const SelectWorkflowSection = ({
         [selectedWorkflowId, onSelectRow, disabled],
     )
 
-    const tabItems = useMemo(
-        () =>
-            TAB_ITEMS.map((item) => ({
-                key: item.key,
-                label: item.label,
-            })),
-        [],
-    )
-
-    const tabIndicatorColor = TAB_COLOR_MAP[activeTab] ?? TAB_COLOR_MAP.all
+    // Evaluator-side options only appear when the toggle is on. Apps are
+    // always available since they're the default kind.
+    const typeOptions = useMemo(() => {
+        const groups: {label: string; options: {label: string; value: WorkflowSubtype}[]}[] = [
+            {label: "Applications", options: APP_TYPE_OPTIONS},
+        ]
+        if (showEvaluators) {
+            groups.push({label: "Evaluators", options: EVALUATOR_TYPE_OPTIONS})
+        }
+        return groups
+    }, [showEvaluators])
 
     const emptyDescription = disabled
         ? "Application selection is locked in app scope"
-        : "No applications available"
+        : showEvaluators
+          ? "No applications or evaluators available"
+          : "No applications available"
 
     return (
         <div className={clsx(className)}>
@@ -207,60 +223,36 @@ const SelectWorkflowSection = ({
                 {disabled ? (
                     <span />
                 ) : (
-                    <div
-                        // The outer modal's Tabs (tabPlacement="left") ships JSS rules
-                        // via descendant selectors (.ant-tabs-ink-bar:none,
-                        // .ant-tabs-tab-active:borderRight/bg, .ant-tabs-tab:hover:bg)
-                        // that cascade into nested tabs. These !important overrides
-                        // restore a standard horizontal, ink-bar-under style.
-                        //
-                        // `min-w-0` on this flex item is critical: without it, the
-                        // nested Tabs width forces overflow to the left, clipping
-                        // the first tab when the tab row is wider than available space.
-                        className={clsx(
-                            "min-w-0 flex-1",
-                            "[&_.ant-tabs]:!block",
-                            "[&_.ant-tabs]:!w-full",
-                            "[&_.ant-tabs]:!min-h-0",
-                            "[&_.ant-tabs]:!grow-0",
-                            "[&_.ant-tabs-nav]:!mb-0",
-                            "[&_.ant-tabs-nav]:!w-full",
-                            "[&_.ant-tabs-ink-bar]:!block",
-                            "[&_.ant-tabs-ink-bar]:!bg-[var(--tab-indicator-color)]",
-                            "[&_.ant-tabs-content]:!hidden",
-                            "[&_.ant-tabs-tab]:!p-0",
-                            "[&_.ant-tabs-tab]:!mt-0",
-                            "[&_.ant-tabs-tab]:!mr-6",
-                            "[&_.ant-tabs-tab:hover]:!bg-transparent",
-                            "[&_.ant-tabs-tab-active]:!bg-transparent",
-                            "[&_.ant-tabs-tab-active]:!border-r-0",
-                            "[&_.ant-tabs-tab-btn]:!py-2",
-                            "[&_.ant-tabs-tab-btn]:!font-medium",
-                            "[&_.ant-tabs-tab-btn]:!text-[14px]",
-                            "[&_.ant-tabs-tab-btn]:!leading-[1.5714285714]",
-                            "[&_.ant-tabs-tab-btn]:!inline-flex",
-                            "[&_.ant-tabs-tab-btn]:!items-center",
-                        )}
-                        style={
-                            {
-                                "--tab-indicator-color": tabIndicatorColor,
-                            } as CSSProperties
-                        }
-                    >
-                        <Tabs
-                            activeKey={activeTab}
-                            onChange={handleTabChange}
-                            items={tabItems}
-                            destroyOnHidden
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                        <Switch
+                            size="small"
+                            checked={showEvaluators}
+                            onChange={setShowEvaluators}
                         />
-                    </div>
+                        <Typography.Text>Show evaluators</Typography.Text>
+                        <Tooltip title={EVALUATOR_TOOLTIP}>
+                            <InfoCircleOutlined className="text-gray-400" />
+                        </Tooltip>
+                    </label>
                 )}
-                <Input.Search
-                    placeholder="Search"
-                    className="w-[300px] shrink-0 [&_input]:!py-[3.1px]"
-                    value={searchTerm}
-                    onChange={(e) => handleSearch(e.target.value)}
-                />
+                <div className="flex items-center gap-2 shrink-0">
+                    {!disabled && (
+                        <Select<WorkflowSubtype | null>
+                            className="w-[180px]"
+                            value={typeFilter}
+                            onChange={(value) => setTypeFilter(value)}
+                            placeholder="All types"
+                            allowClear
+                            options={typeOptions}
+                        />
+                    )}
+                    <Input.Search
+                        placeholder="Search"
+                        className="w-[300px] [&_input]:!py-[3.1px]"
+                        value={searchTerm}
+                        onChange={(e) => handleSearch(e.target.value)}
+                    />
+                </div>
             </div>
             <div className="h-[455px]">
                 <InfiniteVirtualTableFeatureShell<AppWorkflowRow>

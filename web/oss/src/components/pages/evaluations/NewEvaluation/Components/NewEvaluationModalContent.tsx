@@ -149,7 +149,6 @@ const NewEvaluationModalContent: FC<NewEvaluationModalContentProps> = ({
                             selectedWorkflowId={selectedAppId}
                             onSelectWorkflow={onSelectApp}
                             disabled={appSelectionDisabled}
-                            initialTypeFilter={appSelectionDisabled ? "app" : "all"}
                         />
                         {!appSelectionComplete && !appSelectionDisabled ? (
                             <Typography.Text type="secondary">
