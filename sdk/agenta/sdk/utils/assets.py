@@ -5,6 +5,7 @@ from litellm import cost_calculator
 
 supported_llm_models = {
     "anthropic": [
+        "anthropic/claude-opus-4-7",
         "anthropic/claude-opus-4-6",
         "anthropic/claude-sonnet-4-6",
         "anthropic/claude-opus-4-5",
@@ -52,8 +53,10 @@ supported_llm_models = {
         "gemini/gemini-2.0-flash",
         "gemini/gemini-2.0-flash-001",
         "gemini/gemini-2.0-flash-lite",
+        "gemini/gemini-1.5-flash",
     ],
     "groq": [
+        "groq/moonshotai/kimi-k2-instruct-0905",
         "groq/meta-llama/llama-4-maverick-17b-128e-instruct",
         "groq/meta-llama/llama-4-scout-17b-16e-instruct",
         "groq/llama-3.3-70b-versatile",
@@ -69,7 +72,12 @@ supported_llm_models = {
         "mistral/mistral-large-latest",
     ],
     "openai": [
+        "gpt-5.5-pro",
+        "gpt-5.5",
+        "gpt-5.4-pro",
         "gpt-5.4",
+        "gpt-5.4-mini",
+        "gpt-5.4-nano",
         "gpt-5.2-pro",
         "gpt-5.2-chat-latest",
         "gpt-5.2",
