@@ -709,8 +709,9 @@ const waitForHumanAnnotationForm = async ({
             /Generate output to annotate|Generating output|Run the invocation to generate output/i,
         )
         .first()
-    // Separate locator for the in-progress auto-run state so we can distinguish it from
-    // "Generate output to annotate" (not started) and avoid interrupting an active LLM call.
+    // Separate locator for the auto-run "currently generating" state. We must NOT
+    // interrupt with a reload while auto-run is actively calling the LLM — doing so
+    // restarts the cycle and causes a 90 s timeout. Wait it out instead.
     const isGeneratingMessage = annotationsCard.getByText(/Generating output/i).first()
     let seededInvocationOutput = false
 
@@ -732,7 +733,8 @@ const waitForHumanAnnotationForm = async ({
                 // Seed the invocation result and re-navigate to the annotate view so that
                 // TanStack Query fetches fresh data with the seeded success status.
                 // Use an explicit URL with view=focus so the annotate tab is always active.
-                // Only do this once — on subsequent iterations just wait for the form.
+                // page.reload() is avoided here because it can re-trigger auto-run and loop.
+                // Only seed once — on subsequent iterations just wait for the form to appear.
                 if (!seededInvocationOutput) {
                     seededInvocationOutput = true
                     await seedHumanInvocationResult(page)
