@@ -33,13 +33,13 @@ The current system makes those answers difficult because runtime behavior and fr
 **Chat and completion** share the same prompt runtime.
 
 - Config lives under `parameters.prompt`: `messages`, `template_format`, `input_keys`, and `llm_config`.
-- Rendering goes through `PromptTemplate.format(**inputs)` in `api/sdk/agenta/sdk/types.py`, which supports `curly`, `fstring`, and `jinja2`.
+- Rendering goes through `PromptTemplate.format(**inputs)` in `sdk/agenta/sdk/utils/types.py`, which supports `curly`, `fstring`, and `jinja2`.
 - Completion exposes top-level `inputs` keys as variables. Chat exposes the same keys except `messages`, which is appended as typed messages after rendering (not exposed as a template variable).
 
 **LLM-as-a-judge** is close in behavior but uses a separate runtime path.
 
 - Config is a flat evaluator shape: `prompt_template`, `model`, `response_type`, `json_schema`, `correct_answer_key`, `threshold`, `version`, optional `template_format`.
-- Renders messages through `_format_with_template` in `api/sdk/agenta/sdk/workflows/handlers.py`. It supports the same three formats as `PromptTemplate.format`; the default depends on evaluator `version` — `fstring` for v2, `curly` for v3+.
+- Renders messages through `_format_with_template` in `sdk/agenta/sdk/engines/running/handlers.py`. It supports the same three formats as `PromptTemplate.format`; the default depends on evaluator `version` — `fstring` for v2, `curly` for v3+.
 - Render context combines the testcase row, app outputs, ground-truth aliases, trace, and evaluator parameters. See [Variable Matrix](#variable-matrix) for the full list with types and availability.
 
 ### Runtime gaps
