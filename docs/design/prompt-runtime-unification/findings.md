@@ -61,8 +61,8 @@
 - Category: `Correctness`, `Security`, `Compatibility`
 - Summary: `auto_ai_critique_v0` wraps `await mockllm.acompletion(...)` inside `mockllm.user_aws_credentials_from(provider_settings)`, and that context manager rewrites `os.environ`. This PR path intentionally does not fix that risk and defers the work to GitHub issue `#4244`.
 - Evidence:
-  - [handlers.py](/Users/junaway/Agenta/github/vibes.worktrees/llm-workflow-unification/sdk/agenta/sdk/engines/running/handlers.py:1020) keeps the credential-mutation context open across the awaited completion call.
-  - [mockllm.py](/Users/junaway/Agenta/github/vibes.worktrees/llm-workflow-unification/sdk/agenta/sdk/litellm/mockllm.py:42) mutates process-global environment variables in `user_aws_credentials_from`.
+  - [handlers.py](sdk/agenta/sdk/engines/running/handlers.py:1020) keeps the credential-mutation context open across the awaited completion call.
+  - [mockllm.py](sdk/agenta/sdk/litellm/mockllm.py:42) mutates process-global environment variables in `user_aws_credentials_from`.
   - PR review comment `3172964744` raised the same risk.
   - GitHub issue `#4244` documents the same concurrency hazard, scope, and acceptance criteria for the follow-up fix.
 - Files:
@@ -116,8 +116,8 @@
 - Category: `Documentation`, `Maintainability`
 - Summary: The stale SDK path references in the RFC were updated to the current `sdk/agenta/sdk/...` locations in this branch.
 - Evidence:
-  - [README.md](/Users/junaway/Agenta/github/vibes.worktrees/llm-workflow-unification/docs/design/prompt-runtime-unification/README.md:36) now points to `sdk/agenta/sdk/utils/types.py`.
-  - [README.md](/Users/junaway/Agenta/github/vibes.worktrees/llm-workflow-unification/docs/design/prompt-runtime-unification/README.md:42) now points to `sdk/agenta/sdk/engines/running/handlers.py`.
+  - [README.md](docs/design/prompt-runtime-unification/README.md:36) now points to `sdk/agenta/sdk/utils/types.py`.
+  - [README.md](docs/design/prompt-runtime-unification/README.md:42) now points to `sdk/agenta/sdk/engines/running/handlers.py`.
 - Files:
   - `docs/design/prompt-runtime-unification/README.md`
 - Cause: The RFC text had not been updated after the SDK/runtime code moved to the current repo layout.
@@ -140,7 +140,7 @@
 - Category: `Correctness`, `Robustness`
 - Summary: The earlier PR review concern that `_load_jinja2()` could mask the original formatting exception is already fixed in this branch.
 - Evidence:
-  - [types.py](/Users/junaway/Agenta/github/vibes.worktrees/llm-workflow-unification/sdk/agenta/sdk/utils/types.py:732) now wraps `_load_jinja2()` in `try/except ImportError` before checking `TemplateError`.
+  - [types.py](sdk/agenta/sdk/utils/types.py:732) now wraps `_load_jinja2()` in `try/except ImportError` before checking `TemplateError`.
   - `git log --grep='Guard _load_jinja2'` shows commit `477ee62f4`.
 - Files:
   - `sdk/agenta/sdk/utils/types.py`
