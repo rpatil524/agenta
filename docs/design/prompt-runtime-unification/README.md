@@ -271,6 +271,11 @@ Builds on WP-B1.
 
 - Add `mustache` as a new template-format option in the runtime. Semantics: `{{variable}}` substitution; `{{a.b}}` is nested access only (no literal-key-first); JSONPath and JSON Pointer supported.
 - `mustache` becomes the runtime default for new apps. Existing apps continue to use the format they declared.
+- **Brace escaping.** `mustache` ships with an explicit escape mechanism so users can include literal `{{` / `}}` in prompts (e.g., few-shot examples that show LLM output formatting). `curly` and `fstring` keep their current escape semantics:
+  - `fstring` already escapes via `{{` → `{` and `}}` → `}` (Python `str.format` rule).
+  - `jinja2` already supports `{% raw %}…{% endraw %}` blocks.
+  - `curly` has no escape today. Adding one to `curly` is non-trivial because the existing `\{\{\s*(.*?)\s*\}\}` regex captures the inner braces of `{{{{x}}}}` as part of the variable name. We document the gap in the rendering appendix and recommend `jinja2` for prompts that need literal braces; the cleanest place to land a real fix is `mustache`, which is greenfield. Whether to also retrofit an escape into `curly` is an open question for WP-B3 (decision factor: how many existing apps need literal `{{` in their prompts).
+- See [appendix-rendering-edge-cases.md](appendix-rendering-edge-cases.md) for the current escape behavior of every mode and the expected behavior for `mustache`.
 
 ### Frontend
 
@@ -424,3 +429,7 @@ Each work package gets its own subfolder with research, plan, implementation not
 - [`wp-b1-runtime-foundation/`](wp-b1-runtime-foundation/README.md) — judge backend patch (provider/secret resolution + temperature removal) and the low-level rendering helper extraction.
 
 Subfolders for the remaining work packages will be added as each is picked up.
+
+## Appendices
+
+- [`appendix-rendering-edge-cases.md`](appendix-rendering-edge-cases.md) — operational reference for special characters, escape sequences, ambiguous placeholders, and the template/value boundary across all four modes (`curly`, `fstring`, `jinja2`, `mustache`).

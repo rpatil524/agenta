@@ -96,9 +96,10 @@ def _render_curly(template: str, context: Mapping[str, Any]) -> str:
             value = resolve_any(expr, context)
         except Exception:
             continue
-        # Escape backslashes so the replacement is treated literally by the
-        # underlying ``re.sub`` in ``apply_replacements_with_tracking``.
-        replacements[expr] = _coerce_to_str(value).replace("\\", "\\\\")
+        # ``apply_replacements_with_tracking`` calls ``re.sub`` with a function
+        # callable, which uses the return value verbatim — no backslash-escape
+        # processing — so the replacement string can be passed through as-is.
+        replacements[expr] = _coerce_to_str(value)
 
     result, successfully_replaced = apply_replacements_with_tracking(
         template, replacements
