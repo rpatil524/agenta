@@ -154,18 +154,9 @@ const EvaluatorsRegistry = ({scope = "project", mode = "active"}: EvaluatorsRegi
             const revisionId = record.revisionId || record.workflowId
             if (!revisionId) return
 
-            if (isArchived) {
-                const params = new URLSearchParams({
-                    tab: "automatic",
-                    revisionId,
-                })
-                router.push(`${projectURL}/evaluators?${params.toString()}`)
-                return
-            }
-
             setQueryRevision(revisionId, {shallow: true})
         },
-        [isArchived, projectURL, router, setQueryRevision],
+        [setQueryRevision],
     )
 
     const openHumanEvaluator = useCallback(
