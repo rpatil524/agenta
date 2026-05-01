@@ -792,7 +792,10 @@ class PromptTemplate(AgSchemaMixin):
                 f"Missing required variable '{key}' in template: '{content}'"
             )
         except Exception as e:
-            _, TemplateError = _load_jinja2()
+            try:
+                _, TemplateError = _load_jinja2()
+            except ImportError:
+                TemplateError = None
             if TemplateError is not None and isinstance(e, TemplateError):
                 raise TemplateFormatError(
                     f"Jinja2 template error in content: '{content}'. Error: {str(e)}",
