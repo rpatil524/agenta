@@ -25,8 +25,9 @@
 ## Sync Summary
 
 - Re-checked the PR against the local branch on `2026-05-01`.
-- One runtime risk called out in PR review is still present in code and is now tracked explicitly by GitHub issue `#4244`: the judge path mutates process-global AWS environment variables across an awaited LLM call.
-- Two documentation issues remain open in the prompt-runtime-unification docs: a malformed Markdown table row and stale `api/sdk/...` code-path references.
+- The AWS credential-mutation risk remains present in code, but this PR path now defers that work to GitHub issue `#4244` while preserving the original PR-review provenance.
+- The stale `api/sdk/...` code-path references in the RFC are fixed in this branch.
+- The rendering-appendix table complaint is being treated as a false positive for this findings record.
 - One previously reported runtime finding is already fixed in this branch: the guarded `_load_jinja2()` handling in `PromptTemplate._format_with_template`.
 
 ## Rules
@@ -37,7 +38,7 @@
 
 ## Notes
 
-- A GitHub review reply says an external issue was created for the AWS credential-mutation risk, but the risk is still present in this PR branch and remains an open finding here until the code path changes.
+- A GitHub review reply says an external issue was created for the AWS credential-mutation risk. Per user direction, this synced record keeps the PR-thread provenance and closes the PR-path finding as deferred to issue `#4244`.
 - Issue `#4244` captures the intended long-term resolution for the AWS path: remove `os.environ` mutation and pass request-scoped AWS session/client state into the Bedrock/Sagemaker integration.
 - I did not include low-value newline-only review comments as findings.
 
@@ -47,90 +48,86 @@
 
 ## Open Findings
 
-### [OPEN] F1. Judge runtime mutates process-global AWS credentials across an awaited LLM call
+## Closed Findings
+
+### [CLOSED] F1. Judge runtime mutates process-global AWS credentials across an awaited LLM call
 
 - ID: `F1`
 - Origin: `sync`
 - Lens: `verification`
 - Severity: `P1`
 - Confidence: `high`
-- Status: `open`
+- Status: `wontfix`
 - Category: `Correctness`, `Security`, `Compatibility`
-- Summary: `auto_ai_critique_v0` wraps `await mockllm.acompletion(...)` inside `mockllm.user_aws_credentials_from(provider_settings)`, and that context manager rewrites `os.environ`. In an async worker, concurrent judge calls can observe or overwrite each other's AWS credentials.
+- Summary: `auto_ai_critique_v0` wraps `await mockllm.acompletion(...)` inside `mockllm.user_aws_credentials_from(provider_settings)`, and that context manager rewrites `os.environ`. This PR path intentionally does not fix that risk and defers the work to GitHub issue `#4244`.
 - Evidence:
   - [handlers.py](/Users/junaway/Agenta/github/vibes.worktrees/llm-workflow-unification/sdk/agenta/sdk/engines/running/handlers.py:1020) keeps the credential-mutation context open across the awaited completion call.
   - [mockllm.py](/Users/junaway/Agenta/github/vibes.worktrees/llm-workflow-unification/sdk/agenta/sdk/litellm/mockllm.py:42) mutates process-global environment variables in `user_aws_credentials_from`.
-  - PR review comment `3172964744` raised the same risk, and the follow-up only notes that an issue was filed rather than a branch fix.
-  - GitHub issue `#4244` documents the same concurrency hazard, scope, and acceptance criteria for removing `user_aws_credentials_from`.
+  - PR review comment `3172964744` raised the same risk.
+  - GitHub issue `#4244` documents the same concurrency hazard, scope, and acceptance criteria for the follow-up fix.
 - Files:
   - `sdk/agenta/sdk/engines/running/handlers.py`
   - `sdk/agenta/sdk/litellm/mockllm.py`
 - Cause: Provider credentials for AWS-backed custom models are injected through process-global environment variables instead of request-scoped client configuration.
-- Explanation: This is safe only if nothing else can run through the same process while the `await` is suspended. That is not a sound assumption for async workers. The failure mode is cross-request credential bleed for self-hosted/custom AWS providers.
+- Explanation: The risk is real, but per user direction it is deferred out of this PR path and tracked in the dedicated follow-up issue. The synced record keeps both the PR-review provenance and the issue linkage.
 - Suggested Fix:
-  - Remove the env-based credential handoff from the awaited call path.
-  - Prefer request-scoped credential injection into the LiteLLM/client layer.
-  - Align the implementation with issue `#4244` acceptance criteria: no process-global env mutation during LLM calls, remove `user_aws_credentials_from` and related env-key helpers, and preserve Bedrock/Sagemaker behavior under ECS/Lambda role deployments.
-  - If that cannot land in this PR, serialize the AWS credential mutation path as a stopgap and keep the issue open until the durable fix lands.
+  - Resolve via GitHub issue `#4244`.
 - Alternatives:
-  - Leave this PR as-is and track the fix only in the follow-up issue. That reduces branch scope but leaves a real concurrency risk in the merged runtime.
+  - Fix directly in this PR instead of deferring, but that is not the chosen disposition.
 - Sources:
   - GitHub PR comment `3172964744`
   - GitHub PR reply `3173028409`
   - GitHub PR reply `3173029226`
   - GitHub issue `#4244`
 
-### [OPEN] F2. Rendering appendix still has a malformed Markdown table row
+### [CLOSED] F2. Rendering appendix still has a malformed Markdown table row
 
 - ID: `F2`
 - Origin: `sync`
 - Lens: `verification`
 - Severity: `P3`
-- Confidence: `high`
-- Status: `open`
+- Confidence: `low`
+- Status: `stale`
 - Category: `Documentation`, `Completeness`
-- Summary: The final row in the rendering edge-cases table contains an unescaped pipe in Jinja syntax, so the row has the wrong column count and renders incorrectly.
+- Summary: Closed as a false positive per user direction.
 - Evidence:
-  - [appendix-rendering-edge-cases.md](/Users/junaway/Agenta/github/vibes.worktrees/llm-workflow-unification/docs/design/prompt-runtime-unification/appendix-rendering-edge-cases.md:336) contains ``{{ context | tojson }}`` inside a table cell without escaping `|`.
-  - GitHub review comment `4210927738` flagged the same Markdown issue.
+  - GitHub review comment `4210927738`
+  - User disposition: `F2 is false positive`
 - Files:
   - `docs/design/prompt-runtime-unification/appendix-rendering-edge-cases.md`
-- Cause: Markdown table syntax is being used with raw Jinja filter syntax in the cell body.
-- Explanation: This is a doc-only issue, but it breaks the rendered guidance exactly where the document is trying to show escaping and rendering rules.
+- Cause: Review feedback over-called a Markdown formatting concern.
+- Explanation: This synced record no longer treats the appendix row as an actionable finding on this PR path.
 - Suggested Fix:
-  - Escape the pipe in the Jinja example or rewrite the sentence so the row stays at two columns.
+  - None.
 - Alternatives:
-  - Move the Jinja example out of the table into a short fenced snippet below it.
+  - Reopen if the rendered doc or lint output proves the row is actually broken in the target renderer.
 - Sources:
   - GitHub PR review comment `4210927738`
+  - User disposition on `2026-05-01`
 
-### [OPEN] F3. RFC current-state section still points to obsolete `api/sdk/...` paths
+### [CLOSED] F3. RFC current-state section still points to obsolete `api/sdk/...` paths
 
 - ID: `F3`
 - Origin: `sync`
 - Lens: `verification`
 - Severity: `P3`
 - Confidence: `high`
-- Status: `open`
+- Status: `fixed`
 - Category: `Documentation`, `Maintainability`
-- Summary: The main RFC still references SDK runtime files under `api/sdk/...`, but the actual files in this repository live under `sdk/agenta/sdk/...`.
+- Summary: The stale SDK path references in the RFC were updated to the current `sdk/agenta/sdk/...` locations in this branch.
 - Evidence:
-  - [README.md](/Users/junaway/Agenta/github/vibes.worktrees/llm-workflow-unification/docs/design/prompt-runtime-unification/README.md:36) references `api/sdk/agenta/sdk/types.py`.
-  - [README.md](/Users/junaway/Agenta/github/vibes.worktrees/llm-workflow-unification/docs/design/prompt-runtime-unification/README.md:42) references `api/sdk/agenta/sdk/workflows/handlers.py`.
-  - The corresponding live files are [types.py](/Users/junaway/Agenta/github/vibes.worktrees/llm-workflow-unification/sdk/agenta/sdk/utils/types.py) and [handlers.py](/Users/junaway/Agenta/github/vibes.worktrees/llm-workflow-unification/sdk/agenta/sdk/engines/running/handlers.py).
+  - [README.md](/Users/junaway/Agenta/github/vibes.worktrees/llm-workflow-unification/docs/design/prompt-runtime-unification/README.md:36) now points to `sdk/agenta/sdk/utils/types.py`.
+  - [README.md](/Users/junaway/Agenta/github/vibes.worktrees/llm-workflow-unification/docs/design/prompt-runtime-unification/README.md:42) now points to `sdk/agenta/sdk/engines/running/handlers.py`.
 - Files:
   - `docs/design/prompt-runtime-unification/README.md`
-- Cause: The RFC text was not updated after the SDK/runtime code moved to the current repo layout.
-- Explanation: This does not break runtime behavior, but it weakens the RFC as a source-of-truth document because readers are sent to nonexistent or obsolete paths when validating the design against implementation.
+- Cause: The RFC text had not been updated after the SDK/runtime code moved to the current repo layout.
+- Explanation: The references now match the live repository structure, so the RFC is again auditable against the implementation it describes.
 - Suggested Fix:
-  - Update the path references in the RFC to the current `sdk/agenta/sdk/...` locations.
-  - Audit the rest of `docs/design/prompt-runtime-unification` for the same stale path pattern.
+  - None.
 - Alternatives:
-  - Omit file paths from the RFC entirely. That reduces drift risk but also makes the document less auditable.
+  - None.
 - Sources:
   - Local branch inspection on `2026-05-01`
-
-## Closed Findings
 
 ### [CLOSED] F4. `_load_jinja2()` masking in `PromptTemplate._format_with_template`
 
