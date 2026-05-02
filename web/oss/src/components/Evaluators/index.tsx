@@ -34,7 +34,10 @@ import DeleteEvaluatorsModal from "./components/DeleteEvaluatorsModal"
 import EvaluatorTemplateDropdown from "./components/EvaluatorTemplateDropdown"
 import {openHumanEvaluatorDrawerAtom} from "./Drawers/HumanEvaluatorDrawer/store"
 import type {EvaluatorTableRow} from "./store/evaluatorsPaginatedStore"
-import {getEvaluatorsTableState} from "./store/evaluatorsPaginatedStore"
+import {
+    getEvaluatorsTableState,
+    invalidateEvaluatorManagementQueries,
+} from "./store/evaluatorsPaginatedStore"
 import EvaluatorsTable from "./Table/EvaluatorsTable"
 
 const isValidEvaluatorTab = (value: string): value is EvaluatorCategory => {
@@ -219,6 +222,7 @@ const EvaluatorsRegistry = ({scope = "project", mode = "active"}: EvaluatorsRegi
             if (!projectId || !record.workflowId) return
 
             await workflowMolecule.lifecycle.unarchive(record.workflowId, {projectId})
+            invalidateEvaluatorManagementQueries()
             message.success("Evaluator restored")
         } catch (error) {
             message.error(extractApiErrorMessage(error))
@@ -379,7 +383,7 @@ const EvaluatorsRegistry = ({scope = "project", mode = "active"}: EvaluatorsRegi
         <PageLayout
             title={isArchived ? undefined : "Evaluators"}
             headerTabsProps={isArchived ? undefined : headerTabsProps}
-            className={isArchived ? "grow !min-h-0 !pl-0" : "grow min-h-0"}
+            className={isArchived ? "h-full grow !min-h-0 overflow-hidden !pl-0" : "grow min-h-0"}
         >
             <EvaluatorsTable
                 mode={isArchived ? "archived" : "active"}

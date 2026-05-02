@@ -248,6 +248,7 @@ export const clearEvaluatorWorkflowCache = () => {
     // Also remove TanStack Query entries so the paginated store
     // re-fetches from the API instead of returning cached data.
     queryClient.removeQueries({queryKey: ["evaluator-paginated"], exact: false})
+    queryClient.removeQueries({queryKey: ["archived-evaluator-paginated"], exact: false})
 }
 
 /**
@@ -258,6 +259,11 @@ export const clearEvaluatorWorkflowCache = () => {
 export function invalidateEvaluatorsPaginatedStore() {
     clearEvaluatorWorkflowCache()
     evaluatorsPaginatedStore.invalidate()
+}
+
+export function invalidateArchivedEvaluatorsPaginatedStore() {
+    clearEvaluatorWorkflowCache()
+    archivedEvaluatorsPaginatedStore.invalidate()
 }
 
 async function buildArchivedEvaluatorRows(meta: EvaluatorQueryMeta): Promise<EvaluatorTableRow[]> {
@@ -402,7 +408,7 @@ export function getEvaluatorsTableState(mode: EvaluatorsTableMode = "active") {
             categoryAtom: archivedEvaluatorCategoryAtom,
             searchTermAtom: archivedEvaluatorSearchTermAtom,
             paginatedStore: archivedEvaluatorsPaginatedStore,
-            invalidate: archivedEvaluatorsPaginatedStore.invalidate,
+            invalidate: invalidateArchivedEvaluatorsPaginatedStore,
         }
     }
 
