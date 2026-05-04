@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useMemo, useState} from "react"
 
-import {archiveWorkflow, invalidateWorkflowsListCache} from "@agenta/entities/workflow"
+import {workflowMolecule} from "@agenta/entities/workflow"
 import {PageLayout} from "@agenta/ui"
 import type {
     InfiniteVirtualTableRowSelection,
@@ -15,7 +15,6 @@ import {useRouter} from "next/router"
 
 import {timeout} from "@/oss/components/pages/app-management/assets/helpers"
 import useCustomWorkflowConfig from "@/oss/components/pages/app-management/modals/CustomWorkflowModal/hooks/useCustomWorkflowConfig"
-import DeleteAppModal from "@/oss/components/pages/app-management/modals/DeleteAppModal"
 import {openDeleteAppModalAtom} from "@/oss/components/pages/app-management/modals/DeleteAppModal/store/deleteAppModalStore"
 import useURL from "@/oss/hooks/useURL"
 import {useVaultSecret} from "@/oss/hooks/useVaultSecret"
@@ -417,8 +416,9 @@ const PromptsPage = () => {
         if (statusData.appId) {
             setStatusData((prev) => ({...prev, status: "cleanup", details: undefined}))
             const {projectId} = getProjectValues()
-            await archiveWorkflow(projectId, statusData.appId).catch(console.error)
-            invalidateWorkflowsListCache()
+            await workflowMolecule.lifecycle
+                .archive(statusData.appId, {projectId})
+                .catch(console.error)
             refetchWorkflows()
         }
         if (templateKey) {
@@ -666,8 +666,15 @@ const PromptsPage = () => {
         openDeleteAppModal({
             id: selectedRow.workflowId,
             name: selectedRow.name,
+            onArchived: handlePromptArchived,
         })
     }
+
+    const handlePromptArchived = useCallback(() => {
+        refetchWorkflows()
+        setSelectedRowKeys([])
+        setSelectedRow(null)
+    }, [refetchWorkflows, setSelectedRow, setSelectedRowKeys])
 
     const tableScope = useMemo<TableScopeConfig>(
         () => ({
@@ -744,9 +751,12 @@ const PromptsPage = () => {
             onMoveItem: handleOpenMoveModal,
             onOpenAppOverview: handleOpenAppOverview,
             onDeleteApp: (record) => {
+                if (!record.workflowId || typeof record.name !== "string") return
+
                 openDeleteAppModal({
-                    id: record.workflowId,
+                    id: String(record.workflowId),
                     name: record.name,
+                    onArchived: handlePromptArchived,
                 })
             },
         }),
@@ -756,6 +766,7 @@ const PromptsPage = () => {
             handleOpenDeleteModal,
             handleOpenMoveModal,
             handleOpenAppOverview,
+            handlePromptArchived,
             openDeleteAppModal,
         ],
     )
@@ -844,8 +855,6 @@ const PromptsPage = () => {
                 statusData={statusData}
                 appName={appName}
             />
-
-            <DeleteAppModal />
         </PageLayout>
     )
 }
