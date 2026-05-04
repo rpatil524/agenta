@@ -43,9 +43,9 @@ services:
         volumes:
             #
             #
-            - ../../../web/oss/src:/app/oss/src
-            - ../../../web/oss/public:/app/oss/public
-            - ../../../web/packages:/app/packages
+            - ../../../web/oss/src:/web/oss/src
+            - ../../../web/oss/public:/web/oss/public
+            - ../../../web/packages:/web/packages
         # === CONFIGURATION ======================================== #
         env_file:
             - ${ENV_FILE:-./.env.oss.dev}
@@ -86,8 +86,8 @@ services:
         # === STORAGE ============================================== #
         volumes:
             #
-            - ../../../api/oss:/app/oss
-            - ../../../api/entrypoints:/app/entrypoints
+            - ../../../api/oss:/api/oss
+            - ../../../api/entrypoints:/api/entrypoints
             - ../../../sdks/python:/sdks/python
             - ../../../clients/python:/clients/python
         # === CONFIGURATION ======================================== #
@@ -129,13 +129,13 @@ services:
         image: agenta-oss-dev-api:latest
         # === EXECUTION ============================================ #
         command: >
-            watchmedo auto-restart --directory=/app/ --pattern=*.py --recursive --
+            watchmedo auto-restart --directory=/api/ --pattern=*.py --recursive --
             python -m entrypoints.worker_evaluations
         # === STORAGE ============================================== #
         volumes:
             #
-            - ../../../api/oss:/app/oss
-            - ../../../api/entrypoints:/app/entrypoints
+            - ../../../api/oss:/api/oss
+            - ../../../api/entrypoints:/api/entrypoints
             - ../../../sdks/python:/sdks/python
             - ../../../clients/python:/clients/python
         # === CONFIGURATION ======================================== #
@@ -166,13 +166,13 @@ services:
         image: agenta-oss-dev-api:latest
         # === EXECUTION ============================================ #
         command: >
-            watchmedo auto-restart --directory=/app/ --pattern=*.py --recursive --
+            watchmedo auto-restart --directory=/api/ --pattern=*.py --recursive --
             python -m entrypoints.worker_tracing
         # === STORAGE ============================================== #
         volumes:
             #
-            - ../../../api/oss:/app/oss
-            - ../../../api/entrypoints:/app/entrypoints
+            - ../../../api/oss:/api/oss
+            - ../../../api/entrypoints:/api/entrypoints
             - ../../../sdks/python:/sdks/python
             - ../../../clients/python:/clients/python
         # === CONFIGURATION ======================================== #
@@ -203,13 +203,13 @@ services:
         image: agenta-oss-dev-api:latest
         # === EXECUTION ============================================ #
         command: >
-            watchmedo auto-restart --directory=/app/ --pattern=*.py --recursive --
+            watchmedo auto-restart --directory=/api/ --pattern=*.py --recursive --
             python -m entrypoints.worker_webhooks
         # === STORAGE ============================================== #
         volumes:
             #
-            - ../../../api/oss:/app/oss
-            - ../../../api/entrypoints:/app/entrypoints
+            - ../../../api/oss:/api/oss
+            - ../../../api/entrypoints:/api/entrypoints
             - ../../../sdks/python:/sdks/python
             - ../../../clients/python:/clients/python
         # === CONFIGURATION ======================================== #
@@ -246,13 +246,13 @@ services:
         image: agenta-oss-dev-api:latest
         # === EXECUTION ============================================ #
         command: >
-            watchmedo auto-restart --directory=/app/ --pattern=*.py --recursive --
+            watchmedo auto-restart --directory=/api/ --pattern=*.py --recursive --
             python -m entrypoints.worker_events
         # === STORAGE ============================================== #
         volumes:
             #
-            - ../../../api/oss:/app/oss
-            - ../../../api/entrypoints:/app/entrypoints
+            - ../../../api/oss:/api/oss
+            - ../../../api/entrypoints:/api/entrypoints
             - ../../../sdks/python:/sdks/python
             - ../../../clients/python:/clients/python
         # === CONFIGURATION ======================================== #
@@ -289,7 +289,7 @@ services:
         image: agenta-oss-dev-api:latest
         # === EXECUTION ============================================ #
         init: true
-        command: supercronic /app/crontab
+        command: supercronic /api/crontab
         # === STORAGE ============================================== #
         volumes:
             #
@@ -319,8 +319,8 @@ services:
         # === STORAGE ============================================== #
         volumes:
             #
-            - ../../../api/oss:/app/oss
-            - ../../../api/entrypoints:/app/entrypoints
+            - ../../../api/oss:/api/oss
+            - ../../../api/entrypoints:/api/entrypoints
             - ../../../sdks/python:/sdks/python
             - ../../../clients/python:/clients/python
         # === CONFIGURATION ======================================== #
@@ -358,7 +358,7 @@ services:
             ]
         # === STORAGE ============================================== #
         volumes:
-            - ../../../services:/app
+            - ../../../services:/services
             - ../../../sdks/python:/sdks/python
             - ../../../clients/python:/clients/python
         # === CONFIGURATION ======================================== #
