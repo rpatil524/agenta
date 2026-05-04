@@ -892,13 +892,40 @@ function InsertInitialCodeBlockPlugin({
             const currentEditorContent = $getEditorCodeAsString()
             const hasExistingContent = !!currentEditorContent
 
-            if (language === "json" || language === "yaml") {
+            if (language === "json") {
                 const currentParsed = safeJson5Parse(currentEditorContent)
                 const incomingParsed = safeJson5Parse(initialValue)
                 if (!isEqual(currentParsed, incomingParsed)) {
                     needsDispatch = true
                     // Force only when we're replacing real content; on first
                     // populate, the handler should run normally.
+                    forceUpdate = hasExistingContent
+                }
+                return
+            }
+
+            if (language === "yaml") {
+                // YAML must be parsed with a YAML parser. Earlier this branch
+                // shared the JSON5 path, but `safeJson5Parse` returns `null`
+                // for unparseable YAML — two different YAML docs would both
+                // collapse to `null` and `isEqual` would treat them as the
+                // same, skipping the dispatch and dropping external updates.
+                // Fall back to trimmed string compare when parsing fails so a
+                // truly non-YAML payload still triggers the update path.
+                let currentParsed: unknown = currentEditorContent?.trim() ?? ""
+                let incomingParsed: unknown = initialValue?.trim() ?? ""
+                try {
+                    currentParsed = yaml.load(currentEditorContent ?? "")
+                } catch {
+                    /* keep trimmed-string fallback */
+                }
+                try {
+                    incomingParsed = yaml.load(initialValue ?? "")
+                } catch {
+                    /* keep trimmed-string fallback */
+                }
+                if (!isEqual(currentParsed, incomingParsed)) {
+                    needsDispatch = true
                     forceUpdate = hasExistingContent
                 }
                 return
