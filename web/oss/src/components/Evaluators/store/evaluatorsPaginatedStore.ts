@@ -245,6 +245,7 @@ async function ensureEvaluatorWorkflowCache({
 /** Clear caches so the next fetch re-queries the API. */
 export const clearEvaluatorWorkflowCache = () => {
     _evaluatorWorkflowCache.clear()
+    _archivedEvaluatorRowsCache.clear()
     // Also remove TanStack Query entries so the paginated store
     // re-fetches from the API instead of returning cached data.
     queryClient.removeQueries({queryKey: ["evaluator-paginated"], exact: false})
@@ -266,8 +267,22 @@ export function invalidateArchivedEvaluatorsPaginatedStore() {
     archivedEvaluatorsPaginatedStore.invalidate()
 }
 
+const _archivedEvaluatorRowsCache = new Map<string, EvaluatorTableRow[]>()
+
+function getArchivedEvaluatorCacheKey(meta: EvaluatorQueryMeta): string {
+    return JSON.stringify({
+        projectId: meta.projectId ?? null,
+        category: meta.category,
+        searchTerm: meta.searchTerm,
+    })
+}
+
 async function buildArchivedEvaluatorRows(meta: EvaluatorQueryMeta): Promise<EvaluatorTableRow[]> {
     if (!meta.projectId) return []
+
+    const cacheKey = getArchivedEvaluatorCacheKey(meta)
+    const cachedRows = _archivedEvaluatorRowsCache.get(cacheKey)
+    if (cachedRows) return cachedRows
 
     const cache = await ensureEvaluatorWorkflowCache({
         projectId: meta.projectId,
@@ -276,7 +291,7 @@ async function buildArchivedEvaluatorRows(meta: EvaluatorQueryMeta): Promise<Eva
         mode: "archived",
     })
 
-    return cache.entries
+    const rows = cache.entries
         .flatMap(({workflow, latestRevision}) => {
             const revision = latestRevision
             if (!revision) return [] as EvaluatorTableRow[]
@@ -284,6 +299,9 @@ async function buildArchivedEvaluatorRows(meta: EvaluatorQueryMeta): Promise<Eva
             return [toArchivedEvaluatorRow(workflow, revision)]
         })
         .sort(compareDeletedAtDesc)
+
+    _archivedEvaluatorRowsCache.set(cacheKey, rows)
+    return rows
 }
 
 // ============================================================================

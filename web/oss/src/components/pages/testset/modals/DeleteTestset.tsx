@@ -2,7 +2,7 @@ import {Dispatch, SetStateAction, useMemo, useState} from "react"
 
 import {testsetMolecule} from "@agenta/entities/testset"
 import {ArchiveIcon} from "@phosphor-icons/react"
-import {Modal, ModalProps} from "antd"
+import {message, Modal, ModalProps} from "antd"
 import {KeyedMutator} from "swr"
 
 import {checkIfResourceValidForDeletion} from "@/oss/lib/evaluations/legacy"
@@ -78,6 +78,22 @@ const DeleteTestset = ({
             onAfterDelete?.({testsets, revisions})
             setSelectedTestsetToDelete([])
             props.onCancel?.({} as any)
+
+            const archivedCount = testsets.length + revisions.length
+            const archiveLabel =
+                testsets.length > 0 && revisions.length > 0
+                    ? "items"
+                    : revisions.length > 0
+                      ? "revisions"
+                      : "testsets"
+
+            message.success(
+                archivedCount === 1
+                    ? archiveLabel === "revisions"
+                        ? "Revision archived"
+                        : "Testset archived"
+                    : `${archivedCount} ${archiveLabel} archived`,
+            )
         } catch (error) {
             console.error(error)
         } finally {

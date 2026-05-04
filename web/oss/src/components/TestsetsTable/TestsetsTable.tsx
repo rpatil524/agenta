@@ -386,6 +386,11 @@ const TestsetsTable = ({
 
     const handleRestoreTestset = useCallback(
         async (record: TestsetTableRow) => {
+            if (!projectId) {
+                message.error("Missing project id")
+                return
+            }
+
             try {
                 await testsetMolecule.lifecycle.unarchive(record.id, {projectId})
                 invalidateTestsetManagementQueries()
@@ -401,7 +406,7 @@ const TestsetsTable = ({
                 message.error("Failed to restore testset")
             }
         },
-        [table],
+        [projectId, table],
     )
 
     // Build rows with children for tree data (supports nested children)

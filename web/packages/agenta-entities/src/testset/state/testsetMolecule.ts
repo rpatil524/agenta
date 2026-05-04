@@ -495,15 +495,17 @@ export const testsetMolecule = {
     lifecycle: {
         archive: async (testsetIds: string | string[], options?: TestsetLifecycleOptions) => {
             const projectId = getLifecycleProjectId(options)
-            const ids = Array.isArray(testsetIds) ? testsetIds : [testsetIds]
-            if (!projectId || ids.length === 0) return
+            const ids = (Array.isArray(testsetIds) ? testsetIds : [testsetIds]).filter(Boolean)
+            if (!projectId) throw new Error("projectId is required to archive testsets")
+            if (ids.length === 0) throw new Error("At least one testsetId is required")
 
             await archiveTestsets({projectId, testsetIds: ids})
             invalidateTestsetLifecycleCaches(ids)
         },
         unarchive: async (testsetId: string, options?: TestsetLifecycleOptions) => {
             const projectId = getLifecycleProjectId(options)
-            if (!projectId || !testsetId) return
+            if (!testsetId) throw new Error("testsetId is required")
+            if (!projectId) throw new Error("projectId is required to unarchive testset")
 
             await unarchiveTestset({projectId, testsetId})
             invalidateTestsetLifecycleCaches(testsetId)

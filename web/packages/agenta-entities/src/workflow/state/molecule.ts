@@ -1233,14 +1233,16 @@ export const workflowMolecule = {
     lifecycle: {
         archive: async (workflowId: string, options?: WorkflowLifecycleOptions) => {
             const projectId = getLifecycleProjectId(options)
-            if (!projectId || !workflowId) return
+            if (!workflowId) throw new Error("workflowId is required")
+            if (!projectId) throw new Error("projectId is required to archive workflow")
 
             await archiveWorkflow(projectId, workflowId)
             invalidateWorkflowLifecycleCaches(workflowId, options)
         },
         unarchive: async (workflowId: string, options?: WorkflowLifecycleOptions) => {
             const projectId = getLifecycleProjectId(options)
-            if (!projectId || !workflowId) return
+            if (!workflowId) throw new Error("workflowId is required")
+            if (!projectId) throw new Error("projectId is required to unarchive workflow")
 
             await unarchiveWorkflow(projectId, workflowId)
             invalidateWorkflowLifecycleCaches(workflowId, options)

@@ -91,6 +91,18 @@ export interface TestsetPaginatedMeta extends BaseTableMeta {
 export type TestsetTableMode = "active" | "archived"
 
 const ARCHIVED_FETCH_PAGE_SIZE = 50
+
+const _archivedTestsetRowsCache = new Map<string, TestsetApiRow[]>()
+
+function getArchivedTestsetCacheKey(meta: TestsetPaginatedMeta): string {
+    return JSON.stringify({
+        projectId: meta.projectId ?? null,
+        searchTerm: meta.searchTerm,
+        dateCreatedFilter: meta.dateCreatedFilter ?? null,
+        dateModifiedFilter: meta.dateModifiedFilter ?? null,
+    })
+}
+
 const TESTSETS_WINDOW_ORDER = "descending"
 
 const compareDeletedAtDesc = createDateDescComparator<TestsetApiRow>((row) => row.deleted_at)
@@ -276,6 +288,10 @@ async function fetchTestsetsPage({
 }
 
 async function fetchArchivedTestsets(meta: TestsetPaginatedMeta): Promise<TestsetApiRow[]> {
+    const cacheKey = getArchivedTestsetCacheKey(meta)
+    const cachedRows = _archivedTestsetRowsCache.get(cacheKey)
+    if (cachedRows) return cachedRows
+
     const rows: TestsetApiRow[] = []
     let cursor: string | null = null
 
@@ -292,7 +308,9 @@ async function fetchArchivedTestsets(meta: TestsetPaginatedMeta): Promise<Testse
         cursor = page.nextCursor
     } while (cursor)
 
-    return rows.sort(compareDeletedAtDesc)
+    const archivedRows = rows.sort(compareDeletedAtDesc)
+    _archivedTestsetRowsCache.set(cacheKey, archivedRows)
+    return archivedRows
 }
 
 // ============================================================================
@@ -366,6 +384,7 @@ const archivedTestsetPaginatedStore = createPaginatedEntityStore<
 })
 
 export function invalidateTestsetManagementQueries() {
+    _archivedTestsetRowsCache.clear()
     const store = getDefaultStore()
     store.set(testsetPaginatedStore.refreshAtom)
     store.set(archivedTestsetPaginatedStore.refreshAtom)
