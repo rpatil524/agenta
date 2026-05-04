@@ -9,7 +9,7 @@ Draft.
 This RFC describes the frontend-only implementation of testset export from annotation queues. No new backend API endpoints are required; all export operations use the existing `patchRevision` and `createTestset` API functions. The changes are concentrated in two packages:
 
 - `web/packages/agenta-annotation` — new controller actions and state atoms
-- `web/packages/agenta-annotation-ui` — new `AddToTestsetModal` and updates to three existing components
+- `web/packages/agenta-annotation-ui` — updates to three existing components; `EntityCommitModal` is reused as-is for the modal shell
 
 ---
 
@@ -20,15 +20,22 @@ User action (button click)
         │
         ▼
 openAddToTestsetModal({ scope, scenarioIds? })   ← new controller action
+  sets: addToTestsetModalOpenAtom
+        addToTestsetScopeAtom
+        addToTestsetScenarioIdsAtom
+        pendingTestsetSelectionAtom ← seeded from defaultTargetTestsetId
         │
         ▼
-AddToTestsetModal                                 ← new component
-  ├── EntityPicker (adapter="testset")            ← existing, @agenta/entity-ui
-  ├── Testset name field (create-new mode)
-  └── Commit message field
+EntityCommitModal (reused, @agenta/entity-ui)
+  ├── commitModes: ["existing", "new"]
+  ├── renderModeContent → EntityPicker (adapter="testset")
+  │     onSelect → setPendingTestsetSelection action
+  ├── createEntityFields (new testset name/slug, "new" mode only)
+  └── onSubmit → reads pendingTestsetSelectionAtom
         │
         ▼ (on confirm)
-addScenariosToTestset({ scenarioIds, targetTestsetId, commitMessage, ... })  ← new action
+addScenariosToTestset({ scenarioIds, commitMessage, ... })  ← new action
+  reads: pendingTestsetSelectionAtom for targetTestsetId
         │
         ├─ trace queue path ─────────────────────────────────────────────────┐
         │   buildTraceTestsetRows()                                          │
@@ -42,6 +49,9 @@ addScenariosToTestset({ scenarioIds, targetTestsetId, commitMessage, ... })  ←
               buildTestsetSyncPreview() → buildTestsetSyncOperations() → patchRevision()
             if target ≠ source testset:
               buildTestcaseExportRows() → patchRevision() / createTestset()
+        │
+        ▼ (on success)
+  set(lastUsedTestsetIdAtom, targetTestsetId)   ← persist after confirmed write
 ```
 
 ---
@@ -102,7 +112,7 @@ Logic: Same as `buildTestsetSyncPreview` row construction but without the "must 
 const lastUsedTestsetIdAtom = atomWithStorage<string | null>(
   "agenta:annotation:last-testset-id",
   null,
-  stringStorage
+  stringStorage,
 )
 
 // Transient — modal open/close state
@@ -112,14 +122,21 @@ const addToTestsetModalOpenAtom = atom<boolean>(false)
 type AddToTestsetScope = "single" | "selected" | "all"
 const addToTestsetScopeAtom = atom<AddToTestsetScope>("all")
 const addToTestsetScenarioIdsAtom = atom<string[]>([])
+
+// The testset currently selected inside the open modal.
+// Seeded from defaultTargetTestsetId when modal opens; updated by EntityPicker onSelect.
+// Lives here — NOT in component state — so it survives re-renders without data loss.
+const pendingTestsetSelectionAtom = atom<string | null>(null)
 ```
 
 #### New selectors (exposed on `annotationSessionController.selectors`)
 
 | Selector | Returns | Description |
 |----------|---------|-------------|
-| `defaultTargetTestsetId()` | `string \| null` | Heuristic-based default: last used testset if set; otherwise source testset (testcase queues only) |
+| `defaultTargetTestsetId()` | `string \| null` | Heuristic default: last used testset if set; otherwise source testset (testcase queues only) |
 | `sourceTestsetId()` | `string \| null` | The testset the queue was seeded from (testcase queues only, derived from testcase `testset_id`) |
+| `lastUsedTestsetId()` | `string \| null` | Persisted last-used testset ID |
+| `pendingTestsetSelection()` | `string \| null` | The testset currently selected in the open modal |
 | `isAddToTestsetModalOpen()` | `boolean` | Whether the commit modal is open |
 | `addToTestsetScope()` | `AddToTestsetScope` | Current export scope |
 | `addToTestsetScenarioIds()` | `string[]` | Scenario IDs in current export scope |
@@ -129,14 +146,24 @@ const addToTestsetScenarioIdsAtom = atom<string[]>([])
 
 **`openAddToTestsetModal`**
 ```typescript
-// atom setter signature
 openAddToTestsetModal: atom(null, (get, set, payload: {
   scope: AddToTestsetScope,
-  scenarioIds?: string[]      // required when scope === "single" or "selected"
+  scenarioIds?: string[],   // required when scope === "single" or "selected"
 }) => {
   set(addToTestsetScopeAtom, payload.scope)
   set(addToTestsetScenarioIdsAtom, payload.scenarioIds ?? [])
+  // Seed the pending selection from the heuristic default so the picker
+  // opens with the right testset pre-selected without needing component state
+  set(pendingTestsetSelectionAtom, get(defaultTargetTestsetIdAtom))
   set(addToTestsetModalOpenAtom, true)
+})
+```
+
+**`setPendingTestsetSelection`**
+```typescript
+// Called by EntityPicker's onSelect inside renderModeContent
+setPendingTestsetSelection: atom(null, (_get, set, testsetId: string | null) => {
+  set(pendingTestsetSelectionAtom, testsetId)
 })
 ```
 
@@ -144,95 +171,134 @@ openAddToTestsetModal: atom(null, (get, set, payload: {
 ```typescript
 closeAddToTestsetModal: atom(null, (_get, set) => {
   set(addToTestsetModalOpenAtom, false)
+  set(pendingTestsetSelectionAtom, null)
 })
 ```
 
 **`addScenariosToTestset`**
 ```typescript
-// atom setter signature
 addScenariosToTestset: atom(null, async (get, set, payload: {
-  scenarioIds: string[]
-  targetTestsetId: string | null   // null = create new
-  newTestsetName?: string
   commitMessage: string
+  newTestsetName?: string   // only when creating a new testset
+  newTestsetSlug?: string
 }) => Promise<{ testsetId: string, revisionId: string, rowsAdded: number }>)
 ```
 
-Internal logic:
+Note: `targetTestsetId` and `scenarioIds` are **not** passed as payload — the action reads them directly from atoms:
 
 ```
 1. Resolve projectId from projectIdAtom
 2. Resolve queueKind from queueKindAtom
-3. If payload.targetTestsetId is null:
-     createTestset({ name: payload.newTestsetName, testcases: [] })
-     targetTestsetId = created testset id
+3. Resolve scenarioIds from addToTestsetScenarioIdsAtom
+   (if scope === "all", fall back to all scenarioIdsAtom)
+4. Resolve targetTestsetId from pendingTestsetSelectionAtom
+   If null → create new: createTestset({ name: payload.newTestsetName, slug: payload.newTestsetSlug })
+             targetTestsetId = created testset id
 
-4. Fetch latestRevision for targetTestsetId (fetchLatestRevisionsBatch)
+5. Fetch latestRevision for targetTestsetId (fetchLatestRevisionsBatch)
 
-5. If queueKind === "traces":
-     For each scenarioId in payload.scenarioIds:
+6. If queueKind === "traces":
+     For each scenarioId in scenarioIds:
        - get traceRef from scenarioTraceRefAtomFamily(scenarioId)
        - get traceInputs from jotai store (traceInputsAtomFamily)
        - get traceOutputs from jotai store (traceOutputsAtomFamily)
        - query annotations for traceId
      rows = buildTraceTestsetRows(...)
 
-6. If queueKind === "testcases":
+7. If queueKind === "testcases":
      testcaseIds = scenarioIds.map(id => scenarioTestcaseRefAtomFamily(id).testcaseId)
      testcases = fetchTestcasesBatch(projectId, testcaseIds)
      annotations = query annotations by testcaseId (batch)
-     if targetTestsetId === sourceTestsetId:
+     if targetTestsetId === get(sourceTestsetIdAtom):
        use existing buildTestsetSyncPreview + buildTestsetSyncOperations path
      else:
        rows = buildTestcaseExportRows(...)
 
-7. operations = rows.map(row => ({ op: "add", data: row.data }))
-8. patchRevision({ projectId, testsetId: targetTestsetId, baseRevisionId, operations, message: payload.commitMessage })
+8. operations = rows.map(row => ({ op: "add", data: row.data }))
+9. patchRevision({ projectId, testsetId: targetTestsetId, baseRevisionId, operations, message: payload.commitMessage })
 
-9. set(lastUsedTestsetIdAtom, targetTestsetId)
-10. return { testsetId: targetTestsetId, revisionId: ..., rowsAdded: rows.length }
+10. set(lastUsedTestsetIdAtom, targetTestsetId)   ← only after confirmed API success
+11. return { testsetId: targetTestsetId, revisionId: ..., rowsAdded: rows.length }
 ```
 
 ---
 
 ## Package: `agenta-annotation-ui`
 
-### New Component: `AddToTestsetModal`
+### Using `EntityCommitModal` (no new modal component)
 
-**Location**: `src/components/AddToTestsetModal/index.tsx`
+The `EntityCommitModal` from `@agenta/entity-ui` is reused directly. No new modal component is needed. The `EntityPicker` is injected via `renderModeContent`, and the testset selection is tracked in `pendingTestsetSelectionAtom` — not in component `useState`.
 
+```tsx
+// Inside the component that renders the modal (AnnotationSession/index.tsx)
+
+const isOpen = useAtomValue(annotationSessionController.selectors.isAddToTestsetModalOpen())
+const pendingSelection = useAtomValue(annotationSessionController.selectors.pendingTestsetSelection())
+const scope = useAtomValue(annotationSessionController.selectors.addToTestsetScope())
+const scenarioIds = useAtomValue(annotationSessionController.selectors.addToTestsetScenarioIds())
+const setPendingSelection = useSetAtom(annotationSessionController.actions.setPendingTestsetSelection)
+const closeModal = useSetAtom(annotationSessionController.actions.closeAddToTestsetModal)
+const addScenariosToTestset = useSetAtom(annotationSessionController.actions.addScenariosToTestset)
+
+const scopeLabel = scope === "single"
+  ? "1 scenario"
+  : `${scenarioIds.length || "all"} scenarios`
+
+<EntityCommitModal
+  open={isOpen}
+  onClose={closeModal}
+  actionLabel="Add to Testset"
+  submitLabel="Add to Testset"
+  commitModes={[
+    { id: "existing", label: "Add to existing testset" },
+    { id: "new",      label: "Create new testset" },
+  ]}
+  createEntityFields={{ modes: ["new"], nameLabel: "New testset name" }}
+  renderModeContent={({ mode }) =>
+    mode !== "new" ? (
+      <div className="flex flex-col gap-1">
+        <label className="font-medium text-sm">Target testset</label>
+        <EntityPicker
+          adapter="testset"
+          variant="list-popover"
+          value={pendingSelection}
+          onSelect={(result) => setPendingSelection(result.id)}
+        />
+        <Typography.Text type="secondary" className="text-xs">
+          {scopeLabel} will be added as new rows.
+        </Typography.Text>
+      </div>
+    ) : (
+      <Typography.Text type="secondary" className="text-xs">
+        {scopeLabel} will be added to the new testset.
+      </Typography.Text>
+    )
+  }
+  canSubmit={({ mode }) =>
+    mode === "new" ? true : pendingSelection !== null
+  }
+  onSubmit={async ({ mode, message, entityName, entitySlug }) => {
+    try {
+      await addScenariosToTestset({
+        commitMessage: message,
+        ...(mode === "new" && { newTestsetName: entityName, newTestsetSlug: entitySlug }),
+      })
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: err }
+    }
+  }}
+  onAfterSuccess={() => {
+    closeModal()
+  }}
+/>
 ```
-AddToTestsetModal
-  ├── EnhancedModal (title="Add to Testset")
-  │   ├── ModalContent
-  │   │   ├── Scope summary (read-only Text: "X scenarios will be exported")
-  │   │   ├── Mode toggle: "Add to existing" | "Create new"
-  │   │   ├── [Add to existing mode]
-  │   │   │   └── EntityPicker
-  │   │   │         adapter="testset"
-  │   │   │         variant="list-popover"
-  │   │   │         defaultValue={defaultTargetTestsetId}
-  │   │   │         onSelect={setSelectedTestset}
-  │   │   ├── [Create new mode]
-  │   │   │   └── Input (testset name)
-  │   │   └── Input (commit message, pre-filled with default)
-  │   └── ModalFooter
-  │       ├── Button "Cancel"
-  │       └── Button "Add to Testset" (primary, loading state)
-  └── (reads open state from controller selector)
-```
 
-Props:
-```typescript
-interface AddToTestsetModalProps {
-  queueId: string
-  onSuccess?: (result: { testsetId: string, rowsAdded: number }) => void
-}
-```
-
-The component reads `isAddToTestsetModalOpen()`, `addToTestsetScope()`, `addToTestsetScenarioIds()`, `defaultTargetTestsetId()` from `annotationSessionController.selectors` and dispatches `addScenariosToTestset` / `closeAddToTestsetModal` actions.
-
-**Placement**: `AddToTestsetModal` is rendered once at the `AnnotationSession` root (same level as `FocusView`/`ScenarioListView`) so it's always mounted during a session.
+**Why atom over `useState` for `pendingTestsetSelectionAtom`:**
+`useState` is local to the component instance and is re-initialized on unmount/remount. `EntityCommitModal` uses `destroyOnHidden` which unmounts content on close — any `useState` inside the render closure would reset between opens. Using an atom in the controller means:
+- The selection survives re-renders within the open modal
+- The action (`addScenariosToTestset`) can read it imperatively without closure capture
+- `openAddToTestsetModal` can seed it from `lastUsedTestsetIdAtom` in the same dispatch, with no async gap
 
 ---
 
@@ -255,8 +321,8 @@ New footer:
 Logic:
 - "Add to Testset" is always shown (not gated on `queueKind`)
 - On click: `openAddToTestsetModal({ scope: "single", scenarioIds: [scenarioId] })`
-- Disabled state: same as "Mark completed" (when `isSubmitting`)
-- No loading state needed on the button itself — the modal handles async
+- Disabled when `isSubmitting`
+- No loading state on the button — the modal handles async
 
 ---
 
@@ -274,16 +340,16 @@ Trace queue:     [ View previous annotations ]  [ Go to observability ]
 
 New behaviour:
 ```
-Testcase queue:  [ View previous annotations ]  [ Add to Testset ]    ← opens Commit Modal
+Testcase queue:  [ View previous annotations ]  [ Add to Testset ]    ← opens EntityCommitModal
 Trace queue:     [ View previous annotations ]  [ Add to Testset ]  [ Go to observability ]
 ```
 
 Implementation:
-- Remove the `onSyncToTestset` / `isSyncing` prop wiring from `FocusView` (and from `AnnotationSession/index.tsx`)
-- Both queue kinds use `openAddToTestsetModal({ scope: "all" })` on button click
-- `AddToTestsetModal` handles the actual export
+- Remove the `onSyncToTestset` / `isSyncing` props from `FocusView` and `AnnotationSession/index.tsx`
+- Both queue kinds call `openAddToTestsetModal({ scope: "all" })` on button click
+- `EntityCommitModal` (mounted at session root) handles the rest
 
-> **Note**: The existing `syncToTestsetsAtom` / `canSyncToTestsetAtom` can be deprecated once the new flow is fully adopted. Keep them during transition for any callers outside of `agenta-annotation-ui`.
+> **Note**: The existing `syncToTestsetsAtom` / `canSyncToTestsetAtom` are **not removed**. They remain on the `annotationSessionController` API surface during transition.
 
 ---
 
@@ -293,26 +359,36 @@ Implementation:
 
 **Changes**:
 
-1. **Primary action button**: Replace "Save to testset" (which auto-fires `syncToTestsets`) with "Add to Testset" (which opens the Commit Modal).
+1. **Primary action button**: Replace "Save to testset" (auto-fires `syncToTestsets`) with "Add to Testset" (opens `EntityCommitModal`).
 
-2. **Row selection**: `InfiniteVirtualTableFeatureShell` supports row selection via `rowSelection` prop. Enable checkbox selection on the table and track selected row keys in local state.
+2. **Row selection**: Enable checkbox selection on `InfiniteVirtualTableFeatureShell` via `rowSelection` prop. Track selected row keys in an atom (not `useState`) to avoid selection being lost on re-renders:
+
+```typescript
+// In annotationSessionController.ts
+const selectedScenarioIdsAtom = atom<string[]>([])
+
+// Exposed as:
+selectors.selectedScenarioIds()
+actions.setSelectedScenarioIds
+```
 
 3. **Export scope logic**:
-   ```typescript
-   const selectedScenarioIds: string[] = /* from row selection state */
-   
-   const handleAddToTestset = () => {
-     if (selectedScenarioIds.length > 0) {
-       openAddToTestsetModal({ scope: "selected", scenarioIds: selectedScenarioIds })
-     } else {
-       openAddToTestsetModal({ scope: "all" })
-     }
-   }
-   ```
+```typescript
+const selectedIds = useAtomValue(annotationSessionController.selectors.selectedScenarioIds())
+const openModal = useSetAtom(annotationSessionController.actions.openAddToTestsetModal)
 
-4. **Default testset tooltip**: Show the name of `defaultTargetTestsetId()` in the button tooltip (e.g., "Will default to: My Testset"). If no default, tooltip reads "Select a testset in the next step".
+const handleAddToTestset = () => {
+  openModal(
+    selectedIds.length > 0
+      ? { scope: "selected", scenarioIds: selectedIds }
+      : { scope: "all" }
+  )
+}
+```
 
-5. **canAddToTestset gating**: Button enabled when `canAddToTestset()` selector returns true (any queue kind, any data available).
+4. **Default testset tooltip**: Show the name resolved from `defaultTargetTestsetId()` in the button tooltip. If no default, tooltip reads "Select a testset in the next step".
+
+5. **`canAddToTestset` gating**: Button enabled when `canAddToTestset()` returns true (any queue kind).
 
 ---
 
@@ -320,8 +396,8 @@ Implementation:
 
 | Need | Reuse |
 |------|-------|
-| Testset selection UI | `EntityPicker` (adapter="testset", variant="list-popover") from `@agenta/entity-ui` |
-| Modal shell | `EnhancedModal` + `ModalContent` + `ModalFooter` from `@agenta/ui` |
+| Modal shell | `EntityCommitModal` from `@agenta/entity-ui/modals/commit` |
+| Testset selection UI | `EntityPicker` (adapter="testset") from `@agenta/entity-ui`, injected via `renderModeContent` |
 | Testset API | `patchRevision`, `createTestset` from `@agenta/entities/testset/api` |
 | Latest revision lookup | `fetchLatestRevisionsBatch` from `@agenta/entities/testset` |
 | Testcase batch fetch | `fetchTestcasesBatch` from `@agenta/entities/testcase` |
@@ -331,11 +407,24 @@ Implementation:
 
 ---
 
+## State Atom Summary
+
+All transient and persistent state lives in `annotationSessionController.ts`. No `useState` is used for any cross-render or cross-action data in this feature.
+
+| Atom | Persistence | Initialized by | Updated by | Read by |
+|------|-------------|----------------|------------|---------|
+| `lastUsedTestsetIdAtom` | `localStorage` | first export | `addScenariosToTestset` (on success) | `openAddToTestsetModal`, `defaultTargetTestsetId` selector |
+| `pendingTestsetSelectionAtom` | session-only | `openAddToTestsetModal` | `setPendingTestsetSelection` action | `addScenariosToTestset`, `EntityPicker` value prop |
+| `addToTestsetModalOpenAtom` | session-only | `openAddToTestsetModal` | `closeAddToTestsetModal` | `EntityCommitModal` open prop |
+| `addToTestsetScopeAtom` | session-only | `openAddToTestsetModal` | — | scope label in modal |
+| `addToTestsetScenarioIdsAtom` | session-only | `openAddToTestsetModal` | — | `addScenariosToTestset` |
+| `selectedScenarioIdsAtom` | session-only | user row selection | `setSelectedScenarioIds` | `openAddToTestsetModal` |
+
+---
+
 ## Data Mapping Reference
 
 ### Trace Queue → Testset Row
-
-Given a scenario backed by trace `T` with evaluator `E`:
 
 ```
 Trace inputs:   { question: "What is X?", context: "Y" }
@@ -356,7 +445,7 @@ Uses existing `buildTestsetSyncPreview` + `buildTestsetSyncOperations`. Annotati
 
 ### Testcase Queue → Different Testset
 
-Testcase data is re-emitted as new rows (no `testcase_id` merging — the target testset has different rows):
+Testcase data is re-emitted as new rows (no `testcase_id` merging):
 
 ```
 Testcase:    { input: "What is X?", expected: "Z" }
@@ -373,29 +462,28 @@ Annotation:  { correctness: 0.9 }
 
 ## Migration & Compatibility
 
-- The existing `syncToTestsetsAtom` and `canSyncToTestsetAtom` are **not removed** in this change. They remain on the `annotationSessionController` API surface.
-- The `onSyncToTestset` / `isSyncing` props on `FocusView` and `AnnotationSession` are removed as part of this change since `AddToTestsetModal` is self-contained.
+- `syncToTestsetsAtom` / `canSyncToTestsetAtom` are **not removed** — kept for any callers outside `agenta-annotation-ui`.
+- `onSyncToTestset` / `isSyncing` props on `FocusView` and `AnnotationSession` are removed since `EntityCommitModal` is now self-contained at session root.
 - `ScenarioListView`'s `primaryActionsNode` is updated to use the new modal path.
 
 ---
 
 ## Implementation Phases
 
-### Phase 1 — Modal infrastructure + Annotate tab button
+### Phase 1 — Controller atoms + actions + annotate tab button
 Files changed:
 - `agenta-annotation/src/state/testsetSync.ts` — add `buildTraceTestsetRows`, `buildTestcaseExportRows`
-- `agenta-annotation/src/state/controllers/annotationSessionController.ts` — add atoms + actions
-- `agenta-annotation-ui/src/components/AddToTestsetModal/index.tsx` — new component
-- `agenta-annotation-ui/src/components/AnnotationSession/AnnotationPanel.tsx` — add button
-- `agenta-annotation-ui/src/components/AnnotationSession/index.tsx` — mount modal, remove old sync wiring
+- `agenta-annotation/src/state/controllers/annotationSessionController.ts` — add all new atoms + actions
+- `agenta-annotation-ui/src/components/AnnotationSession/index.tsx` — mount `EntityCommitModal`, remove old sync wiring
+- `agenta-annotation-ui/src/components/AnnotationSession/AnnotationPanel.tsx` — add "Add to Testset" button
 
-### Phase 2 — Update AllCaughtUp state + Done screen
+### Phase 2 — Update AllCaughtUp state (done screen)
 Files changed:
-- `agenta-annotation-ui/src/components/AnnotationSession/FocusView.tsx` — AllCaughtUp redesign
+- `agenta-annotation-ui/src/components/AnnotationSession/FocusView.tsx` — AllCaughtUp redesign for both queue kinds
 
 ### Phase 3 — ScenarioListView row selection + upgraded button
 Files changed:
-- `agenta-annotation-ui/src/components/AnnotationSession/ScenarioListView.tsx` — row selection + modal
+- `agenta-annotation-ui/src/components/AnnotationSession/ScenarioListView.tsx` — row selection atom + modal trigger
 
 ---
 
@@ -403,14 +491,15 @@ Files changed:
 
 | Scenario | Steps | Expected |
 |----------|-------|---------|
-| Annotate tab — trace queue | Annotate scenario, click "Add to Testset" | Modal opens with no default testset pre-selected |
-| Annotate tab — testcase queue | Annotate scenario, click "Add to Testset" | Modal opens with source testset pre-selected |
-| Annotate tab — last used persists | Export to testset X, close session, reopen, click "Add to Testset" | Testset X is pre-selected |
+| Annotate tab — trace queue | Annotate scenario, click "Add to Testset" | Modal opens, no testset pre-selected (no last-used yet) |
+| Annotate tab — testcase queue | Annotate scenario, click "Add to Testset" | Modal opens, source testset pre-selected |
+| Last-used persists | Export to testset X, close session, reopen, click "Add to Testset" | Testset X is pre-selected |
+| Picker selection survives re-render | Select testset, trigger a re-render, confirm | Selected testset still shown, correct testset used |
 | Done screen — trace queue | Complete all scenarios | "Add to Testset" button appears |
-| Done screen — testcase queue | Complete all scenarios | "Add to Testset" button opens modal (not auto-fires) |
-| All annotations — no selection | Click "Add to Testset" | Modal scope summary shows all scenarios |
-| All annotations — 2 rows selected | Select 2 rows, click "Add to Testset" | Modal scope summary shows 2 scenarios |
+| Done screen — testcase queue | Complete all scenarios | "Add to Testset" opens modal (no auto-fire) |
+| All annotations — no row selection | Click "Add to Testset" | Modal scope label shows all scenarios |
+| All annotations — 2 rows selected | Select 2 rows, click "Add to Testset" | Modal scope label shows 2 scenarios |
 | Create new testset | Choose "Create new", enter name, confirm | New testset appears in testsets list |
 | Export to different testset | Choose testset B (not source), confirm | New rows appear in testset B |
-| Trace → testset data check | Export trace scenario with inputs `{q, ctx}` and output `ans` | Testset row has `q`, `ctx`, `output` columns |
-| Annotation values in export | Export annotated scenario with evaluator "score" | Testset row has `score` column with annotation value |
+| Trace → testset data check | Export trace with inputs `{q, ctx}` and output `ans` | Row has `q`, `ctx`, `output` columns |
+| Annotation values in export | Export annotated scenario with evaluator "score" | Row has `score` column with annotation value |
