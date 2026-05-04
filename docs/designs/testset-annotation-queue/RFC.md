@@ -66,14 +66,20 @@ Add two new builder functions alongside the existing ones:
 ```typescript
 interface TraceTestsetRowBuilderParams {
   scenarioIds: string[]
+  // traceInputsAtomFamily returns Record<string, unknown> — one entry per input key.
+  // Each key becomes its own testset column.
   traceInputsByScenario: Map<string, Record<string, unknown>>
+  // traceOutputsAtomFamily returns `unknown` (string, object, array, etc.).
+  // Always mapped to a single "output" column regardless of shape.
   traceOutputsByScenario: Map<string, unknown>
+  // One entry per evaluator slug with a submitted annotation value.
   annotationsByScenario: Map<string, Record<string, unknown>>  // { [evaluatorSlug]: value }
 }
 
 interface TraceTestsetRow {
   scenarioId: string
-  data: Record<string, unknown>   // { input keys..., output, [evaluator slugs...] }
+  // Resulting column shape: { ...inputKeys, output: <any>, [evaluatorSlug]: <value>, ... }
+  data: Record<string, unknown>
 }
 
 export function buildTraceTestsetRows(params: TraceTestsetRowBuilderParams): TraceTestsetRow[]
@@ -81,9 +87,9 @@ export function buildTraceTestsetRows(params: TraceTestsetRowBuilderParams): Tra
 
 Logic:
 1. For each `scenarioId` in `params.scenarioIds`:
-   - Spread all trace input key→value pairs into `data`
-   - Add `output` key with the trace output value
-   - For each evaluator slug with an annotation value, add it as a column
+   - **Input columns** — spread the `Record<string, unknown>` from `traceInputsByScenario` directly into `data`. Each key becomes its own column (e.g., `question`, `context`, `prompt`). This matches what `traceInputsAtomFamily` returns via `extractInputs()` → `agData.inputs`.
+   - **Output column** — add a single `"output"` key whose value is the raw `unknown` from `traceOutputsByScenario`. The value is never split or recursed into; it maps to exactly one column regardless of its type (string, object, chat message, etc.). This matches `extractOutputs()` which deliberately treats `agData.outputs` as a leaf.
+   - **Annotation columns** — for each evaluator slug in `annotationsByScenario`, add one column named after the slug. Skip evaluators with no submitted value.
 2. Return the list of `TraceTestsetRow` objects.
 
 #### `buildTestcaseExportRows`
@@ -426,18 +432,29 @@ All transient and persistent state lives in `annotationSessionController.ts`. No
 
 ### Trace Queue → Testset Row
 
+Column rules (derived from `extractInputs` / `extractOutputs` in `trace/utils/selectors.ts`):
+
+| Source | Column(s) | Notes |
+|--------|-----------|-------|
+| `agData.inputs` (`Record<string, unknown>`) | N columns — one per input key | Spread: `question`, `context`, `prompt`, … |
+| `agData.outputs` (`unknown`) | 1 column named `"output"` | Treated as a single leaf value; never recursed into, regardless of shape |
+| Annotation per evaluator | 1 column per evaluator slug | Only included when a value was submitted |
+
+Example:
 ```
-Trace inputs:   { question: "What is X?", context: "Y" }
-Trace output:   "The answer is Z"
-Annotation:     { correctness: 0.9 }   (evaluator slug: "correctness")
+ag.data.inputs:  { question: "What is X?", context: "Y" }
+ag.data.outputs: "The answer is Z"          ← any type; always maps to one "output" column
+Annotation:      evaluator slug "correctness", value 0.9
 
 → Testcase row: {
-    question:    "What is X?",
-    context:     "Y",
-    output:      "The answer is Z",
-    correctness: 0.9
+    question:    "What is X?",   ← from inputs (spread, N columns)
+    context:     "Y",            ← from inputs (spread, N columns)
+    output:      "The answer is Z",  ← single output column
+    correctness: 0.9             ← annotation column per evaluator slug
   }
 ```
+
+The `output` value may be a plain string, a JSON object, a chat message array, or any other type — the column stores it as-is. The single-column treatment matches `collectKeyPaths` in `selectors.ts` which explicitly does not recurse into `outputs`.
 
 ### Testcase Queue → Same Testset (source testset)
 
