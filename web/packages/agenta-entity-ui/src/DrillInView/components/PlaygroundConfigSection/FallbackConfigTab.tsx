@@ -42,7 +42,9 @@ export const FallbackConfigTab = memo(function FallbackConfigTab({
     const policyDescription =
         fallbackPolicySchema?.description ||
         "Choose which failure types should try the fallback model list."
-    const fallbackConfigsTitle = formatLabel(fallbackConfigsSchema?.title || "fallback_configs")
+    const fallbackConfigsTitle = formatLabel(
+        fallbackConfigsSchema?.title?.replace("Configs", "Models") || "fallback_models",
+    )
     const fallbackConfigsDescription =
         fallbackConfigsSchema?.description || "Add fallback models for the selected policy."
     const isModelSelectionEnabled = !disabled && Boolean(fallbackPolicy)

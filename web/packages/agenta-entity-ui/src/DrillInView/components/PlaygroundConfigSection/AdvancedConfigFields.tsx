@@ -1,4 +1,4 @@
-import {memo, useEffect, useRef, useState} from "react"
+import {memo, useCallback, useEffect, useRef, useState} from "react"
 
 import type {EntitySchemaProperty} from "@agenta/entities/shared"
 import {HeightCollapse} from "@agenta/ui"
@@ -95,53 +95,53 @@ const AdvancedJsonField = memo(function AdvancedJsonField({
     disabled?: boolean
 }) {
     const externalEditorValue = value == null ? "" : JSON.stringify(value, null, 2)
-    const [editorValue, setEditorValue] = useState(externalEditorValue)
-    const [parseError, setParseError] = useState<string | null>(null)
-    const isFocusedRef = useRef(false)
 
-    useEffect(() => {
-        if (!isFocusedRef.current || externalEditorValue === "") {
-            setEditorValue(externalEditorValue)
-            setParseError(null)
-        }
-    }, [externalEditorValue])
-
-    const validateAndEmit = (nextEditorValue: string) => {
-        setEditorValue(nextEditorValue)
-
-        const raw = nextEditorValue.trim()
-        if (!raw) {
-            setParseError(null)
-            onChange(fieldKey, null)
-            return
-        }
-
-        let parsed: unknown
-        try {
-            parsed = JSON.parse(raw)
-        } catch (error: unknown) {
-            setParseError(error instanceof Error ? error.message : "Invalid JSON format")
-            return
-        }
-
-        if (parsed === null) {
-            setParseError(null)
-            onChange(fieldKey, null)
-            return
-        }
-
-        const validationResult = validateConfigAgainstSchema(
-            parsed as Record<string, unknown>,
-            schema as Record<string, unknown>,
-        )
-        if (!validationResult.valid) {
-            setParseError(validationResult.errors[0]?.message || "Invalid value")
-            return
-        }
-
-        setParseError(null)
-        onChange(fieldKey, parsed)
+    // Stabilize the schema reference by structural equality. Without this,
+    // every parent re-render (triggered by validateAndEmit → dispatchUpdate)
+    // produces a new schema object from useMemo upstream, which propagates as
+    // a new validationSchema reference to EditorProvider. EditorProvider's
+    // extension useMemo then recomputes, remounting LexicalExtensionComposer
+    // and causing the editor to lose focus and scroll to the top.
+    const schemaJsonRef = useRef("")
+    const stableSchemaRef = useRef(schema)
+    const schemaJson = JSON.stringify(schema)
+    if (schemaJson !== schemaJsonRef.current) {
+        schemaJsonRef.current = schemaJson
+        stableSchemaRef.current = schema
     }
+
+    const validateAndEmit = useCallback(
+        (nextEditorValue: string) => {
+            const raw = nextEditorValue.trim()
+            if (!raw) {
+                onChange(fieldKey, null)
+                return
+            }
+
+            let parsed: unknown
+            try {
+                parsed = JSON.parse(raw)
+            } catch {
+                return
+            }
+
+            if (parsed === null) {
+                onChange(fieldKey, null)
+                return
+            }
+
+            const validationResult = validateConfigAgainstSchema(
+                parsed as Record<string, unknown>,
+                stableSchemaRef.current as Record<string, unknown>,
+            )
+            if (!validationResult.valid) {
+                return
+            }
+
+            onChange(fieldKey, parsed)
+        },
+        [fieldKey, onChange],
+    )
 
     return (
         <div className="flex flex-col gap-1">
@@ -164,9 +164,7 @@ const AdvancedJsonField = memo(function AdvancedJsonField({
                 key={`llm-config-${fieldKey}`}
                 editorType="border"
                 placeholder='{"thinking": true}'
-                initialValue={editorValue}
-                value={editorValue}
-                error={!!parseError}
+                initialValue={externalEditorValue}
                 handleChange={validateAndEmit}
                 disabled={disabled}
                 disableDebounce
@@ -175,20 +173,10 @@ const AdvancedJsonField = memo(function AdvancedJsonField({
                     codeOnly: true,
                     language: "json",
                     showLineNumbers: false,
-                }}
-                onFocusChange={(focused) => {
-                    isFocusedRef.current = focused
-                    if (!focused) {
-                        setEditorValue(externalEditorValue)
-                        setParseError(null)
-                    }
+                    skipScroll: true,
+                    validationSchema: stableSchemaRef.current as Record<string, unknown>,
                 }}
             />
-            {parseError && (
-                <Typography.Text type="danger" className="text-xs mt-1">
-                    {parseError}
-                </Typography.Text>
-            )}
         </div>
     )
 })
