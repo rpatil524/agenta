@@ -164,6 +164,26 @@ from agenta.sdk.utils.resolvers import (  # noqa: E402
 # ========= Placeholder & coercion helpers =========
 
 
+# Top-level keys the dual-access resolver context injects on top of user
+# inputs. A user variable with one of these names would be silently clobbered
+# by the envelope wrapper (`_variables["inputs"] = dict(inputs)`), so we
+# validate up front and raise instead of producing surprising prompt output.
+_ENVELOPE_RESERVED_INPUT_KEYS = frozenset({"inputs"})
+
+
+def _reject_reserved_input_keys(inputs: Optional[Dict[str, Any]]) -> None:
+    """Raise InvalidInputsV0Error if user-supplied inputs collide with
+    envelope slot names that the dual-access pattern injects on top."""
+    if not inputs:
+        return
+    collisions = sorted(_ENVELOPE_RESERVED_INPUT_KEYS.intersection(inputs.keys()))
+    if collisions:
+        raise InvalidInputsV0Error(
+            expected=f"input keys not in {sorted(_ENVELOPE_RESERVED_INPUT_KEYS)} (reserved by the envelope resolver)",
+            got=collisions,
+        )
+
+
 def extract_placeholders(template: str) -> Iterable[str]:
     """Yield the inner text of all {{ ... }} occurrences (trimmed)."""
     for m in _PLACEHOLDER_RE.finditer(template):
@@ -1084,6 +1104,7 @@ async def auto_ai_critique_v0(
         )
 
     if inputs is not None:
+        _reject_reserved_input_keys(inputs)
         context.update(**inputs)
         context.update(
             **{
@@ -2186,6 +2207,8 @@ async def completion_v0(
             got=inputs,
         )
 
+    _reject_reserved_input_keys(inputs)
+
     _variables = dict(inputs or {})
 
     config = SinglePromptConfig(**parameters)
@@ -2255,6 +2278,8 @@ async def chat_v0(
             expected="dict",
             got=inputs,
         )
+
+    _reject_reserved_input_keys(inputs)
 
     _variables = dict(inputs or {})
     _messages = _variables.pop("messages", None)
