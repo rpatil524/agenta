@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react"
 import {useRouter} from "next/router"
 
-import {archiveWorkflow, invalidateWorkflowsListCache} from "@agenta/entities/workflow"
+import {workflowMolecule} from "@agenta/entities/workflow"
 import {PageLayout} from "@agenta/ui"
 import {Typography} from "antd"
 import {useAtomValue, useSetAtom} from "jotai"
@@ -24,7 +24,6 @@ import {waitForAppToStart} from "@/oss/services/api"
 import {createAppWithTemplate} from "@/oss/services/app-selector/api"
 import {useAppsData} from "@/oss/state/app"
 import {appCreationStatusAtom, resetAppCreationAtom} from "@/oss/state/appCreation/status"
-import {useOrgData} from "@/oss/state/org"
 import {useProfileData} from "@/oss/state/profile"
 import {getProjectValues} from "@/oss/state/project"
 
@@ -40,9 +39,6 @@ const CreateAppStatusModal: any = dynamic(
 )
 const AddAppFromTemplatedModal: any = dynamic(
     () => import("@/oss/components/pages/app-management/modals/AddAppFromTemplateModal"),
-)
-const MaxAppModal: any = dynamic(
-    () => import("@/oss/components/pages/app-management/modals/MaxAppModal"),
 )
 
 const SetupTracingModal: any = dynamic(
@@ -65,7 +61,6 @@ const AppManagement: React.FC = () => {
     const posthog = usePostHogAg()
     const {appTheme} = useAppTheme()
     const classes = useStyles({themeMode: appTheme} as StyleProps)
-    const [isMaxAppModalOpen, setIsMaxAppModalOpen] = useState(false)
     const {user} = useProfileData()
     const [templateKey, setTemplateKey] = useState<string | undefined>(undefined)
     const [isAddAppFromTemplatedModal, setIsAddAppFromTemplatedModal] = useState(false)
@@ -77,7 +72,6 @@ const AppManagement: React.FC = () => {
 
 
     const {secrets} = useVaultSecret()
-    const {selectedOrg} = useOrgData()
 
     const handleTemplateCardClick = async (
         templateId: string,
@@ -101,7 +95,7 @@ const AppManagement: React.FC = () => {
             onStatusChange: async (status, details, appId) => {
                 if (["error", "bad_request", "timeout", "success"].includes(status))
                     if (status === "success") {
-                        await mutate()
+                        await mutate?.()
                         await invalidateAppManagementWorkflowQueries()
                         posthog?.capture?.("app_deployment", {
                             properties: {
@@ -147,9 +141,10 @@ const AppManagement: React.FC = () => {
         if (statusData.appId) {
             setStatusData((prev) => ({...prev, status: "cleanup", details: undefined}))
             const {projectId} = getProjectValues()
-            await archiveWorkflow(projectId, statusData.appId!).catch(console.error)
-            invalidateWorkflowsListCache()
-            await mutate()
+            await workflowMolecule.lifecycle
+                .archive(statusData.appId, {projectId})
+                .catch(console.error)
+            await mutate?.()
             await invalidateAppManagementWorkflowQueries()
         }
         handleTemplateCardClick(templateKey as string, appName, appSlug)
@@ -168,7 +163,7 @@ const AppManagement: React.FC = () => {
             }
         }
         setStatusData((prev) => ({...prev, status: "success", details: undefined}))
-        await mutate()
+        await mutate?.()
         await invalidateAppManagementWorkflowQueries()
     }
 
@@ -193,9 +188,7 @@ const AppManagement: React.FC = () => {
                         <ObservabilityDashboardSection />
 
                         <ApplicationManagementSection
-                            selectedOrg={selectedOrg}
                             setIsAddAppFromTemplatedModal={setIsAddAppFromTemplatedModal}
-                            setIsMaxAppModalOpen={setIsMaxAppModalOpen}
                         />
 
                         <HelpAndSupportSection />
@@ -212,13 +205,6 @@ const AppManagement: React.FC = () => {
                 open={isAddAppFromTemplatedModal}
                 onCancel={() => setIsAddAppFromTemplatedModal(false)}
                 handleTemplateCardClick={handleTemplateCardClick}
-            />
-
-            <MaxAppModal
-                open={isMaxAppModalOpen}
-                onCancel={() => {
-                    setIsMaxAppModalOpen(false)
-                }}
             />
 
             <CreateAppStatusModal
