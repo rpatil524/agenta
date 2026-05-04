@@ -162,12 +162,14 @@ export function createTestsetsColumns(
                       title: "Archived by",
                       render: (_value: unknown, record: TestsetTableRow) => (
                           <div className="h-full flex items-center">
-                              <UserAuthorLabel
-                                  userId={record.deletedById}
-                                  showPrefix={false}
-                                  showAvatar
-                                  showYouLabel
-                              />
+                              {record.deletedById ? (
+                                  <UserAuthorLabel
+                                      userId={record.deletedById}
+                                      showPrefix={false}
+                                      showAvatar
+                                      showYouLabel
+                                  />
+                              ) : null}
                           </div>
                       ),
                   },

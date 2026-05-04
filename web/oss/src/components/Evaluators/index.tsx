@@ -222,7 +222,7 @@ const EvaluatorsRegistry = ({scope = "project", mode = "active"}: EvaluatorsRegi
             if (!projectId || !record.workflowId) return
 
             await workflowMolecule.lifecycle.unarchive(record.workflowId, {projectId})
-            invalidateEvaluatorManagementQueries()
+            await invalidateEvaluatorManagementQueries()
             message.success("Evaluator restored")
         } catch (error) {
             message.error(extractApiErrorMessage(error))
@@ -289,7 +289,7 @@ const EvaluatorsRegistry = ({scope = "project", mode = "active"}: EvaluatorsRegi
                       handleDelete: (record: EvaluatorTableRow) => {
                           if (!record.workflowId) return
                           setDeleteTargetIds([record.workflowId])
-                          setDeleteTargetRevisionIds([record.revisionId])
+                          setDeleteTargetRevisionIds(record.revisionId ? [record.revisionId] : [])
                           setIsDeleteModalOpen(true)
                       },
                   },
