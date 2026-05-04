@@ -74,7 +74,7 @@ LangSmith supports all four capabilities; Agenta currently supports none of them
 - When all scenarios in the session are annotated (`progress.remaining === 0`), the `AllCaughtUp` state must offer "Add to Testset" for **both** queue kinds.
   - Testcase queue: upgrade the existing "Save to Testset" button to open the Commit Modal.
   - Trace queue: add a new "Add to Testset" button alongside the existing "Go to observability" button.
-- The Commit Modal scope for this entry point is all completed scenarios.
+- The Commit Modal scope for this entry point is all scenarios in the queue.
 
 ### FR3 — All Annotations Tab (Bulk Export)
 - The "Save to testset" primary action in `ScenarioListView` must open the **Commit Modal** (not auto-fire).
@@ -84,7 +84,7 @@ LangSmith supports all four capabilities; Agenta currently supports none of them
 - Applies to both trace queues and testcase queues.
 
 ### FR4 — Commit Modal
-The Commit Modal is a new reusable modal component with the following elements:
+The Commit Modal is a reusable export modal flow, implemented with the existing entity commit modal shell where possible, with the following elements:
 
 | Element | Description |
 |---------|-------------|
@@ -98,21 +98,21 @@ The modal must:
 - Pre-select the **default target testset** (see FR5) on open.
 - Pre-populate the commit message with a default (see FR5).
 - Update the persisted last-used testset on successful commit.
-- Show a success toast on completion with a summary (e.g., "Added 3 rows to My Testset v12").
-- Show an error state if the export fails, with a retry option.
+- Show a success toast on completion with a summary (e.g., "Added 3 rows to My Testset").
+- If the export fails after the modal has closed, show a persistent error banner or toast at the session root with the failure message (e.g., "Failed to export to My Testset: \<reason\>"). The user can re-open the export flow to retry; the row selection is preserved so no re-selection is needed.
 
 ### FR5 — Default Target Testset & Commit Message Heuristics
 
 #### Default target testset
 | Scenario | Default Target |
 |----------|----------------|
-| Testcase queue, first time | Source testset (the testset from which the queue was created) |
-| Testcase queue, after previous commit | Last committed testset (takes priority over source testset) |
+| Testcase queue, first time | No default — user must select |
+| Testcase queue, after previous commit | Last committed testset |
 | Trace queue, first time | No default — user must select |
 | Trace queue, after previous commit | Last committed testset |
 | Any queue, after previous commit | Last committed testset (persisted via `atomWithStorage`) |
 
-The "source testset" for a testcase queue is the testset whose revision was used to seed the queue. It is accessible from the queue metadata via the testcase `testset_id`.
+Testcase queues may contain scenarios from multiple source testsets. The new export flow does not infer or fan out writes to those source testsets. The user always chooses one target testset in the modal, or creates a new one.
 
 #### Default commit message
 | Entry point | Default message |
@@ -130,20 +130,19 @@ When exporting from a trace queue, the testset rows are built as follows:
 |--------|-----------------|
 | Trace input key (e.g., `question`) | Column named `question` |
 | Additional trace input keys | One column per key |
-| Trace output | Column named `output` (or `answer` if that matches an existing column) |
-| Annotation value per evaluator | Column named after the evaluator slug |
+| Trace output — adding to existing testset | First matching column from `correct_answer`, `output`, `outputs`, `answer`; falls back to `output` if the testset has none of those |
+| Trace output — creating new testset | Column named `outputs` |
+| Annotation output field per evaluator | Column named using the evaluator field key (e.g., `correctness.score`) |
 
 If the target testset already has named columns, new rows adopt the same column schema. Extra source fields that don't match existing columns are added as new columns.
 
 ### FR7 — Testcase Queue Export Data Mapping
 
-#### Exporting to the source testset (same testset the queue came from)
-The existing merge logic applies: annotation values are written as new columns alongside existing testcase data. The `testcase_id` is used to match rows — no duplicate rows are created.
+Testcase queue export always writes to the user-selected target testset, or to the new testset created from the modal. Even if the selected target is one of the queue's original source testsets, the export action is target-driven and creates rows in that selected target; it does not automatically route each testcase back to its own source testset.
 
-#### Exporting to a different testset
-New rows are created in the target testset containing:
+New rows contain:
 - All testcase data fields (`input`, `output`, and any custom fields)
-- Annotation values appended as extra columns
+- Annotation output fields appended as evaluator field key columns (e.g., `correctness.score`)
 
 ---
 
