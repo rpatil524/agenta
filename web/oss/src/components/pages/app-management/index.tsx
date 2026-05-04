@@ -131,6 +131,7 @@ const AppManagement: React.FC = () => {
     }, [onboardingWidgetActivation, setOnboardingWidgetActivation])
 
     useEffect(() => {
+    if (!router.isReady) return
     if (router.query.create_prompt === "true") {
         setIsAddAppFromTemplatedModal(true)
         const {create_prompt, ...restQuery} = router.query
@@ -140,7 +141,7 @@ const AppManagement: React.FC = () => {
             {shallow: true},
         )
     }
-    }, [router.query.create_prompt])
+    }, [router.isReady, router.query.create_prompt])
 
     const onErrorRetry = async () => {
         if (statusData.appId) {
