@@ -145,8 +145,9 @@ const pendingTestsetSelectionAtom = atom<string | null>(null)
 | `pendingTestsetSelection()` | `string \| null` | The testset currently selected in the open modal |
 | `isAddToTestsetModalOpen()` | `boolean` | Whether the commit modal is open |
 | `addToTestsetScope()` | `AddToTestsetScope` | Current export scope |
-| `addToTestsetScenarioIds()` | `string[]` | Scenario IDs in current export scope |
-| `canAddToTestset()` | `boolean` | True when at least one scenario has exportable data (any queue kind) |
+| `addToTestsetScenarioIds()` | `string[]` | Scenario IDs for "single" / "selected" scope; **empty for "all"** — use `scenarioIds()` for total count |
+| `scenarioIds()` | `string[]` | All scenario IDs in the session (existing selector, reused for "all" scope count) |
+| `canAddToTestset()` | `boolean` | True when `scenarioIds().length > 0` for trace queues; at least one completed for testcase queues |
 
 #### New actions (exposed on `annotationSessionController.actions`)
 
@@ -195,8 +196,10 @@ Note: `targetTestsetId` and `scenarioIds` are **not** passed as payload — the 
 ```
 1. Resolve projectId from projectIdAtom
 2. Resolve queueKind from queueKindAtom
-3. Resolve scenarioIds from addToTestsetScenarioIdsAtom
-   (if scope === "all", fall back to all scenarioIdsAtom)
+3. Resolve scope from addToTestsetScopeAtom
+   if scope === "all"  → use get(scenarioIdsAtom)          (all scenarios in session)
+   if scope === "selected" → use get(addToTestsetScenarioIdsAtom)  (checked rows)
+   if scope === "single"   → use get(addToTestsetScenarioIdsAtom)  (one id)
 4. Resolve targetTestsetId from pendingTestsetSelectionAtom
    If null → create new: createTestset({ name: payload.newTestsetName, slug: payload.newTestsetSlug })
              targetTestsetId = created testset id
@@ -205,10 +208,13 @@ Note: `targetTestsetId` and `scenarioIds` are **not** passed as payload — the 
 
 6. If queueKind === "traces":
      For each scenarioId in scenarioIds:
-       - get traceRef from scenarioTraceRefAtomFamily(scenarioId)
-       - get traceInputs from jotai store (traceInputsAtomFamily)
-       - get traceOutputs from jotai store (traceOutputsAtomFamily)
-       - query annotations for traceId
+       - get traceRef from store: scenarioTraceRefAtomFamily(scenarioId)
+       - get traceInputs from store: traceInputsAtomFamily(traceRef.traceId)
+       - get traceOutputs from store: traceOutputsAtomFamily(traceRef.traceId)
+       - get annotations from store: scenarioAnnotationsAtomFamily(scenarioId)
+         ↑ DO NOT query by traceId directly — use this atom which resolves via
+           step-result annotation trace IDs (not invocation trace IDs). Querying
+           by invocation traceId causes cross-queue bleed (removed previously).
      rows = buildTraceTestsetRows(...)
 
 7. If queueKind === "testcases":
@@ -224,7 +230,8 @@ Note: `targetTestsetId` and `scenarioIds` are **not** passed as payload — the 
 9. patchRevision({ projectId, testsetId: targetTestsetId, baseRevisionId, operations, message: payload.commitMessage })
 
 10. set(lastUsedTestsetIdAtom, targetTestsetId)   ← only after confirmed API success
-11. return { testsetId: targetTestsetId, revisionId: ..., rowsAdded: rows.length }
+11. set(selectedScenarioIdsAtom, [])              ← clear row selection after success
+12. return { testsetId: targetTestsetId, revisionId: ..., rowsAdded: rows.length }
 ```
 
 ---
@@ -241,14 +248,17 @@ The `EntityCommitModal` from `@agenta/entity-ui` is reused directly. No new moda
 const isOpen = useAtomValue(annotationSessionController.selectors.isAddToTestsetModalOpen())
 const pendingSelection = useAtomValue(annotationSessionController.selectors.pendingTestsetSelection())
 const scope = useAtomValue(annotationSessionController.selectors.addToTestsetScope())
-const scenarioIds = useAtomValue(annotationSessionController.selectors.addToTestsetScenarioIds())
+const scopedIds = useAtomValue(annotationSessionController.selectors.addToTestsetScenarioIds())
+// For scope="all", addToTestsetScenarioIds() is empty — read total count from scenarioIds instead
+const totalScenarioCount = useAtomValue(annotationSessionController.selectors.scenarioIds()).length
 const setPendingSelection = useSetAtom(annotationSessionController.actions.setPendingTestsetSelection)
 const closeModal = useSetAtom(annotationSessionController.actions.closeAddToTestsetModal)
 const addScenariosToTestset = useSetAtom(annotationSessionController.actions.addScenariosToTestset)
 
-const scopeLabel = scope === "single"
-  ? "1 scenario"
-  : `${scenarioIds.length || "all"} scenarios`
+const scopeLabel =
+  scope === "single"   ? "1 scenario" :
+  scope === "selected" ? `${scopedIds.length} scenarios` :
+  /* "all" */            `${totalScenarioCount} scenarios`
 
 <EntityCommitModal
   open={isOpen}
@@ -422,9 +432,9 @@ All transient and persistent state lives in `annotationSessionController.ts`. No
 | `lastUsedTestsetIdAtom` | `localStorage` | first export | `addScenariosToTestset` (on success) | `openAddToTestsetModal`, `defaultTargetTestsetId` selector |
 | `pendingTestsetSelectionAtom` | session-only | `openAddToTestsetModal` | `setPendingTestsetSelection` action | `addScenariosToTestset`, `EntityPicker` value prop |
 | `addToTestsetModalOpenAtom` | session-only | `openAddToTestsetModal` | `closeAddToTestsetModal` | `EntityCommitModal` open prop |
-| `addToTestsetScopeAtom` | session-only | `openAddToTestsetModal` | — | scope label in modal |
-| `addToTestsetScenarioIdsAtom` | session-only | `openAddToTestsetModal` | — | `addScenariosToTestset` |
-| `selectedScenarioIdsAtom` | session-only | user row selection | `setSelectedScenarioIds` | `openAddToTestsetModal` |
+| `addToTestsetScopeAtom` | session-only | `openAddToTestsetModal` | — | `addScenariosToTestset`, scope label in modal |
+| `addToTestsetScenarioIdsAtom` | session-only | `openAddToTestsetModal` | — | `addScenariosToTestset`; **empty when scope="all"** |
+| `selectedScenarioIdsAtom` | session-only | user row selection | `setSelectedScenarioIds`; cleared by `addScenariosToTestset` on success | `openAddToTestsetModal` |
 
 ---
 
