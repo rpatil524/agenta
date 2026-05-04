@@ -14,7 +14,7 @@ import {annotationFormController, annotationSessionController} from "@agenta/ann
 import {traceRootSpanAtomFamily} from "@agenta/entities/trace"
 import {message} from "@agenta/ui/app-message"
 import {CopyTooltip} from "@agenta/ui/copy-tooltip"
-import {ArrowSquareOut, CaretLeft, CaretRight, Copy} from "@phosphor-icons/react"
+import {ArrowSquareOut, CaretLeft, CaretRight, Copy, Plus} from "@phosphor-icons/react"
 import {Button, Select, Switch, Tag, Typography} from "antd"
 import {useAtomValue, useSetAtom} from "jotai"
 
@@ -76,6 +76,9 @@ const SessionNavigation = ({scenarioId, queueId, onCompleted}: SessionNavigation
     const hasFilledMetrics = useAtomValue(
         annotationFormController.selectors.hasFilledMetrics(scenarioId),
     )
+    const isAddToTestsetExporting = useAtomValue(
+        annotationSessionController.selectors.isAddToTestsetExporting(),
+    )
     const isCompleted = useAtomValue(annotationSessionController.selectors.isCurrentCompleted())
     const submitAnnotations = useSetAtom(annotationFormController.actions.submitAnnotations)
 
@@ -86,6 +89,9 @@ const SessionNavigation = ({scenarioId, queueId, onCompleted}: SessionNavigation
         annotationSessionController.actions.setHideCompletedInFocus,
     )
     const setFocusAutoNext = useSetAtom(annotationSessionController.actions.setFocusAutoNext)
+    const openAddToTestsetModal = useSetAtom(
+        annotationSessionController.actions.openAddToTestsetModal,
+    )
 
     const handleSelect = useCallback(
         (value: number) => {
@@ -121,6 +127,11 @@ const SessionNavigation = ({scenarioId, queueId, onCompleted}: SessionNavigation
             })
         }
     }, [traceRef.traceId, rootSpan?.span_id, navigation])
+
+    const handleAddToTestset = useCallback(() => {
+        if (!scenarioId) return
+        openAddToTestsetModal({scope: "single", scenarioIds: [scenarioId]})
+    }, [openAddToTestsetModal, scenarioId])
 
     const displayId = isTrace ? traceRef.traceId : testcaseRef.testcaseId
 
@@ -212,11 +223,20 @@ const SessionNavigation = ({scenarioId, queueId, onCompleted}: SessionNavigation
                         Next
                     </Button>
                     <Button
+                        size="small"
+                        icon={<Plus size={13} />}
+                        onClick={handleAddToTestset}
+                        disabled={isSubmitting || isAddToTestsetExporting || !scenarioId}
+                    >
+                        Add to Testset
+                    </Button>
+                    <Button
                         type="primary"
                         onClick={handleMarkComplete}
                         disabled={isSubmitting || !hasFilledMetrics}
                         loading={isSubmitting}
                         className="w-[130px]"
+                        size="small"
                     >
                         {isCompleted ? "Update" : "Mark completed"}
                     </Button>

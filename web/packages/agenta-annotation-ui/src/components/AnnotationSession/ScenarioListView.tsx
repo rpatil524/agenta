@@ -8,7 +8,7 @@
  * Follows the same IVT pattern used in AnnotationQueuesView and EvalRunDetails.
  */
 
-import {memo, useCallback, useMemo, useState} from "react"
+import {memo, useCallback, useMemo, useState, type Key} from "react"
 
 import {annotationSessionController, OUTPUT_KEYS} from "@agenta/annotation"
 import type {AnnotationColumnDef, ScenarioListColumnDef, SessionView} from "@agenta/annotation"
@@ -33,6 +33,7 @@ import {
     EXPORT_RESOLVE_SKIP,
     InfiniteVirtualTableFeatureShell,
     createActionsColumn,
+    type InfiniteVirtualTableRowSelection,
     type TableScopeConfig,
     type TableExportColumnContext,
 } from "@agenta/ui/table"
@@ -1406,34 +1407,30 @@ const ScenarioListView = memo(function ScenarioListView({
     const setActiveView = useSetAtom(annotationSessionController.actions.setActiveView)
     const navigateToIndex = useSetAtom(annotationSessionController.actions.navigateToIndex)
     const listColumnDefs = useAtomValue(annotationSessionController.selectors.listColumnDefs())
-    const queueKind = useAtomValue(annotationSessionController.selectors.queueKind())
-    const canSyncToTestset = useAtomValue(annotationSessionController.selectors.canSyncToTestset())
-    const syncToTestsets = useSetAtom(annotationSessionController.actions.syncToTestsets)
+    const canAddToTestset = useAtomValue(annotationSessionController.selectors.canAddToTestset())
+    const isAddToTestsetExporting = useAtomValue(
+        annotationSessionController.selectors.isAddToTestsetExporting(),
+    )
+    const selectedScenarioIds = useAtomValue(
+        annotationSessionController.selectors.selectedScenarioIds(),
+    )
+    const setSelectedScenarioIds = useSetAtom(
+        annotationSessionController.actions.setSelectedScenarioIds,
+    )
+    const openAddToTestsetModal = useSetAtom(
+        annotationSessionController.actions.openAddToTestsetModal,
+    )
 
     const [searchTerm, setSearchTerm] = useState("")
     const [statusFilter, setStatusFilter] = useState<EvaluationStatus | null>(null)
-    const [isSyncing, setIsSyncing] = useState(false)
 
-    const handleSyncToTestset = useCallback(async () => {
-        setIsSyncing(true)
-        try {
-            const result = await syncToTestsets()
-            const summary = `Created ${result.revisionsCreated} revision${result.revisionsCreated === 1 ? "" : "s"}, exported ${result.rowsExported} row${result.rowsExported === 1 ? "" : "s"}`
-            if (result.failedTargets.length > 0) {
-                message.warning(summary)
-            } else {
-                message.success(summary)
-            }
-        } catch (err) {
-            message.error(
-                err instanceof Error && err.message
-                    ? err.message
-                    : "Failed to save annotations to testsets",
-            )
-        } finally {
-            setIsSyncing(false)
+    const handleAddToTestset = useCallback(() => {
+        if (selectedScenarioIds.length > 0) {
+            openAddToTestsetModal({scope: "selected", scenarioIds: selectedScenarioIds})
+            return
         }
-    }, [syncToTestsets])
+        openAddToTestsetModal({scope: "all"})
+    }, [openAddToTestsetModal, selectedScenarioIds])
     const handleViewChange = useCallback(
         (view: SessionView) => {
             if (onViewChange) {
@@ -1495,18 +1492,16 @@ const ScenarioListView = memo(function ScenarioListView({
     }, [scenarios, scenarioStatuses])
 
     const primaryActionsNode = useMemo(
-        () =>
-            queueKind === "testcases" ? (
-                <EnhancedButton
-                    icon={<Plus size={14} />}
-                    onClick={handleSyncToTestset}
-                    loading={isSyncing}
-                    disabled={!canSyncToTestset || isSyncing}
-                    tooltipProps={{title: !canSyncToTestset ? "No scenarios annotated" : ""}}
-                    label="Save to testset"
-                />
-            ) : null,
-        [queueKind, canSyncToTestset, isSyncing, handleSyncToTestset],
+        () => (
+            <EnhancedButton
+                size="small"
+                icon={<Plus size={14} />}
+                onClick={handleAddToTestset}
+                disabled={!canAddToTestset || isAddToTestsetExporting}
+                label="Add to Testset"
+            />
+        ),
+        [canAddToTestset, handleAddToTestset, isAddToTestsetExporting],
     )
 
     // Map column defs to AntD columns (purely presentational mapping)
@@ -1640,6 +1635,18 @@ const ScenarioListView = memo(function ScenarioListView({
         [handleRowClick],
     )
 
+    const rowSelection = useMemo<InfiniteVirtualTableRowSelection<ScenarioTableRow>>(
+        () => ({
+            type: "checkbox",
+            selectedRowKeys: selectedScenarioIds,
+            onChange: (keys: Key[]) => {
+                setSelectedScenarioIds(keys.map(String))
+            },
+            columnWidth: 48,
+        }),
+        [selectedScenarioIds, setSelectedScenarioIds],
+    )
+
     const exportOptions = useMemo(
         () => ({
             filename: "annotation-queue-scenarios.csv",
@@ -1673,6 +1680,7 @@ const ScenarioListView = memo(function ScenarioListView({
                 exportOptions={exportOptions}
                 exportAction={{label: "Export as CSV"}}
                 enableExport={canExportData}
+                rowSelection={rowSelection}
                 filters={filtersNode}
                 primaryActions={primaryActionsNode}
                 store={getDefaultStore()}
