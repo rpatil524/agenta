@@ -167,22 +167,22 @@ const getResettableLLMConfigKeys = (llmConfigProps: Record<string, unknown>) =>
 
 const resetLLMParameterFields = ({
     base,
-    currentModel,
+    resetBase,
     resetKeys,
 }: {
     base: Record<string, unknown> | undefined
-    currentModel?: string
+    resetBase: Record<string, unknown> | undefined
     resetKeys: string[]
 }) => {
     const next = {...(base ?? {})}
-    resetKeys.forEach((key) => {
-        delete next[key]
+    const keysToReset = ["model", ...resetKeys]
+    keysToReset.forEach((key) => {
+        if (resetBase && Object.prototype.hasOwnProperty.call(resetBase, key)) {
+            next[key] = resetBase[key]
+        } else {
+            delete next[key]
+        }
     })
-    if (currentModel) {
-        next.model = currentModel
-    } else {
-        delete next.model
-    }
     return next
 }
 
@@ -1018,13 +1018,25 @@ function PlaygroundConfigSection({
     const handleResetPrimaryModelConfig = useCallback(() => {
         if (disabled || !activeData || !promptModelInfo) return
 
-        const currentModel =
-            typeof promptModelInfo.llmConfigValue?.model === "string"
-                ? promptModelInfo.llmConfigValue.model
-                : undefined
+        const serverParameters = (serverData?.parameters ?? {}) as Record<string, unknown>
+        const getServerLLMConfig = () => {
+            if (Array.isArray(parameters.llms)) {
+                const serverLlms = serverParameters.llms as Record<string, unknown>[] | undefined
+                return serverLlms?.[0]
+            }
+
+            if (promptModelInfo.isRootLevel) {
+                return serverParameters
+            }
+
+            const serverPrompt = serverParameters.prompt as Record<string, unknown> | undefined
+            return getLLMConfigValue(serverPrompt)
+        }
+
+        const resetBase = getServerLLMConfig()
         const resetKeys = getResettableLLMConfigKeys(promptModelInfo.llmConfigProps)
         const resetLLMConfig = (base: Record<string, unknown> | undefined) => {
-            return resetLLMParameterFields({base, currentModel, resetKeys})
+            return resetLLMParameterFields({base, resetBase, resetKeys})
         }
 
         if (Array.isArray(parameters.llms)) {
@@ -1062,7 +1074,7 @@ function PlaygroundConfigSection({
             ...parameters,
             prompt: resetLLMConfig(currentPrompt),
         })
-    }, [activeData, disabled, dispatchUpdate, parameters, promptModelInfo, revisionId])
+    }, [activeData, disabled, dispatchUpdate, parameters, promptModelInfo, revisionId, serverData])
 
     const handleActiveConfigureReset = useCallback(() => {
         if (fallbackDetail || activeConfigureTab === "fallback") {
