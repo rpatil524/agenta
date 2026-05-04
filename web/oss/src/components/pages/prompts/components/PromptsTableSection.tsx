@@ -47,6 +47,8 @@ export const PromptsTableSection = ({
     onOpenNewFolder,
     onSetupWorkflow,
 }: PromptsTableSectionProps) => {
+    const selectedActionLabel = selectedRow?.type === "folder" ? "Delete" : "Archive"
+
     const menuItems: MenuProps["items"] = useMemo(
         () => [
             {
@@ -106,7 +108,7 @@ export const PromptsTableSection = ({
                     disabled={!selectedRow}
                     onClick={onDeleteSelected}
                 >
-                    Delete
+                    {selectedActionLabel}
                 </Button>
 
                 <Dropdown
@@ -121,7 +123,7 @@ export const PromptsTableSection = ({
                 </Dropdown>
             </Space>
         ),
-        [menuItems, selectedRow, onDeleteSelected],
+        [menuItems, selectedActionLabel, selectedRow, onDeleteSelected],
     )
 
     return (

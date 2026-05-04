@@ -118,6 +118,8 @@ export function invalidateEvaluatorsListCache() {
     try {
         const qc = store.get(queryClientAtom)
         qc.invalidateQueries({queryKey: ["workflows", "evaluators"], exact: false})
+        qc.removeQueries({queryKey: ["evaluator-paginated"], exact: false})
+        qc.removeQueries({queryKey: ["archived-evaluator-paginated"], exact: false})
     } catch {
         // queryClientAtom may not be initialized yet
     }

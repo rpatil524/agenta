@@ -1,13 +1,14 @@
 export {
+    getAppWorkflowTableState,
     appWorkflowPaginatedStore,
     workflowPaginatedStore,
+    appWorkflowSearchTermAtom,
     appWorkflowCountAtom,
     appWorkflowTotalCountAtom,
     invalidateAppManagementWorkflowQueries,
     type AppWorkflowRow,
 } from "./appWorkflowStore"
 export {
-    appWorkflowSearchTermAtom,
     workflowInvokableOnlyAtom,
     workflowTypeFilterAtom,
     type WorkflowTypeFilter,
