@@ -308,6 +308,36 @@ export function EntityCommitContent({
                     </div>
                 )}
 
+                {/* Cannot commit warning */}
+                {!canCommit && (
+                    <Alert
+                        type="warning"
+                        title="This entity cannot be committed"
+                        description="Check that there are changes to commit and the entity is in a valid state."
+                        showIcon
+                    />
+                )}
+
+                {/* Commit mode selector (optional) */}
+                {commitModes && commitModes.length > 0 && (
+                    <div className="flex flex-col gap-2">
+                        <label htmlFor="commit-mode" className="font-medium text-gray-700">
+                            Save mode
+                        </label>
+                        <Radio.Group
+                            id="commit-mode"
+                            value={selectedMode}
+                            onChange={(e) => onModeChange?.(e.target.value)}
+                        >
+                            {commitModes.map((mode) => (
+                                <Radio key={mode.id} value={mode.id}>
+                                    {mode.label}
+                                </Radio>
+                            ))}
+                        </Radio.Group>
+                    </div>
+                )}
+
                 {/* Entity name — editable input for Create flows */}
                 {entityNameEditable && (
                     <div className="flex flex-col gap-3">
@@ -388,44 +418,6 @@ export function EntityCommitContent({
                                 )}
                             </div>
                         )}
-                    </div>
-                )}
-
-                {/* Simple entity info — shown when no version info and name is not editable */}
-                {!context?.versionInfo && !entityNameEditable && (
-                    <p className="text-gray-600">
-                        {actionLabel === "Commit" ? "Committing changes to" : `${actionLabel}`}{" "}
-                        <span className="font-medium">{entityName}</span>
-                    </p>
-                )}
-
-                {/* Cannot commit warning */}
-                {!canCommit && (
-                    <Alert
-                        type="warning"
-                        title="This entity cannot be committed"
-                        description="Check that there are changes to commit and the entity is in a valid state."
-                        showIcon
-                    />
-                )}
-
-                {/* Commit mode selector (optional) */}
-                {commitModes && commitModes.length > 0 && (
-                    <div className="flex flex-col gap-2">
-                        <label htmlFor="commit-mode" className="font-medium text-gray-700">
-                            Save mode
-                        </label>
-                        <Radio.Group
-                            id="commit-mode"
-                            value={selectedMode}
-                            onChange={(e) => onModeChange?.(e.target.value)}
-                        >
-                            {commitModes.map((mode) => (
-                                <Radio key={mode.id} value={mode.id}>
-                                    {mode.label}
-                                </Radio>
-                            ))}
-                        </Radio.Group>
                     </div>
                 )}
 
