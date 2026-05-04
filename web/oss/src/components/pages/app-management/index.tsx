@@ -1,4 +1,5 @@
 import {useEffect, useState} from "react"
+import {useRouter} from "next/router"
 
 import {archiveWorkflow, invalidateWorkflowsListCache} from "@agenta/entities/workflow"
 import {PageLayout} from "@agenta/ui"
@@ -72,6 +73,8 @@ const AppManagement: React.FC = () => {
     const [appName, setAppName] = useState("")
     const [appSlug, setAppSlug] = useState<string | undefined>(undefined)
     const {error, mutate} = useAppsData()
+    const router = useRouter()
+
 
     const {secrets} = useVaultSecret()
     const {selectedOrg} = useOrgData()
@@ -127,11 +130,23 @@ const AppManagement: React.FC = () => {
         setOnboardingWidgetActivation(null)
     }, [onboardingWidgetActivation, setOnboardingWidgetActivation])
 
+    useEffect(() => {
+    if (router.query.create_prompt === "true") {
+        setIsAddAppFromTemplatedModal(true)
+        const {create_prompt, ...restQuery} = router.query
+        router.replace(
+            {pathname: router.pathname, query: restQuery},
+            undefined,
+            {shallow: true},
+        )
+    }
+    }, [router.query.create_prompt])
+
     const onErrorRetry = async () => {
         if (statusData.appId) {
             setStatusData((prev) => ({...prev, status: "cleanup", details: undefined}))
             const {projectId} = getProjectValues()
-            await archiveWorkflow(projectId, statusData.appId).catch(console.error)
+            await archiveWorkflow(projectId, statusData.appId!).catch(console.error)
             invalidateWorkflowsListCache()
             await mutate()
             await invalidateAppManagementWorkflowQueries()
