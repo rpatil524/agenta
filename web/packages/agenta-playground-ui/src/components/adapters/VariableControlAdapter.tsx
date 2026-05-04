@@ -165,24 +165,25 @@ const VariableControlAdapter: React.FC<VariableControlAdapterProps> = ({
 
     const setCellValue = useSetAtom(executionItemController.actions.setTestcaseCellValue)
 
-    // For object/array types, provide a sensible default when value is empty.
-    // For grouped envelope-path variables (e.g. `$.inputs.test.country`), the
-    // port carries a synthetic schema listing the known sub-keys — seed the
-    // default JSON with those keys so users see which fields the template
-    // references without having to re-read the prompt.
+    // For object/array types, derive an "expected shape" hint from the port's
+    // synthetic schema. For grouped envelope-path variables (e.g.
+    // `$.inputs.test.country`) the schema lists the known sub-keys; rendered
+    // outside the editor as help text so the user can see which fields the
+    // template references without us pre-filling the editor with content
+    // that won't actually be submitted.
     const isJsonType = portType === "object" || portType === "array"
-    const jsonDefault = useMemo(() => {
-        if (portType === "array") return "[]"
+    const shapeHint = useMemo(() => {
+        if (portType === "array") return null
         const props =
             portSchema && typeof portSchema === "object"
                 ? (portSchema as {properties?: Record<string, unknown>}).properties
                 : null
-        if (!props || typeof props !== "object") return "{}"
+        if (!props || typeof props !== "object") return null
         const keys = Object.keys(props)
-        if (keys.length === 0) return "{}"
+        if (keys.length === 0) return null
         const obj: Record<string, string> = {}
         for (const k of keys) obj[k] = ""
-        return JSON.stringify(obj, null, 2)
+        return JSON.stringify(obj)
     }, [portType, portSchema])
 
     // Detect whether the value looks like JSON. Derived during render (no
@@ -219,7 +220,11 @@ const VariableControlAdapter: React.FC<VariableControlAdapterProps> = ({
 
     const isJsonEditor = isJsonType || detectedAsJson
     const isCellEmpty = !value || value === ""
-    const effectiveValue = isJsonEditor && isJsonType && isCellEmpty ? jsonDefault : value
+    // The editor reflects the actual cell content. Earlier the empty cell was
+    // back-filled with a schema-derived default for display only, but that
+    // looked populated while the run payload stayed empty — surface the
+    // expected shape as a help-text hint instead (see `shapeHint` below).
+    const effectiveValue = value
 
     // Identity key for remounting the editor on SCHEMA changes only.
     // Using `isCellEmpty` here (earlier approach) caused a cursor reset on
@@ -236,17 +241,12 @@ const VariableControlAdapter: React.FC<VariableControlAdapterProps> = ({
         }
     }, [portSchema])
 
-    // `jsonDefault` is a VISUAL hint only — never written back to the cell.
-    // Earlier, we seeded the cell so the payload reflected the displayed shape,
-    // but that broke real-time sync: once the cell held the stale seed, later
-    // schema changes (user typed through a variable name, or added a new
-    // sub-path) wouldn't re-seed. The editor would freeze on the first seed.
-    //
-    // Trade-off: if the user never types and hits Run, the cell is empty and
-    // the payload won't carry the displayed JSON. Acceptable under the current
-    // "UI is honest about shape, payload untouched" scope — runtime resolution
-    // of JSONPath variables is broken either way until path-aware payload
-    // routing lands.
+    // The expected-shape hint is rendered as separate help text (not as the
+    // editor's initial value). Earlier the seed was the editor's content,
+    // which made empty cells look populated while the run payload stayed
+    // empty. Showing the shape outside the editor keeps the editor honest
+    // about what's submitted while still letting the user see which fields
+    // the template references.
 
     const handleChange = useCallback(
         (nextText: unknown) => {
@@ -404,6 +404,11 @@ const VariableControlAdapter: React.FC<VariableControlAdapterProps> = ({
         ? {codeOnly: true, language: "json", enableResize: false, boundWidth: true, ...editorProps}
         : {enableResize: false, boundWidth: true, ...editorProps}
 
+    // Show the schema-derived shape as help text on empty object cells, so
+    // the user knows which fields the template references without us
+    // pre-filling the editor with a value that wouldn't get submitted.
+    const showShapeHint = isJsonType && isCellEmpty && !!shapeHint
+
     return (
         <div
             ref={containerRef}
@@ -466,6 +471,11 @@ const VariableControlAdapter: React.FC<VariableControlAdapterProps> = ({
                     editorProps={mergedEditorProps}
                 />
             </EditorProvider>
+            {showShapeHint && (
+                <Typography.Text type="secondary" className="block mt-1 px-1 text-[11px] font-mono">
+                    Expected shape: <code>{shapeHint}</code>
+                </Typography.Text>
+            )}
         </div>
     )
 }

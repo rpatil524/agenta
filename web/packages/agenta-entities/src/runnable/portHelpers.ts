@@ -7,7 +7,7 @@
  * @packageDocumentation
  */
 
-import {isValidTemplateVariable} from "@agenta/shared/utils"
+import {isValidTemplateVariable, KNOWN_ENVELOPE_SLOTS} from "@agenta/shared/utils"
 
 import type {RunnablePort} from "../shared"
 
@@ -176,6 +176,7 @@ interface ParsedTemplateExpression {
  *   `/outputs/score`            → {envelope: "outputs",   key: "score"}
  *   `country`                   → {envelope: "inputs",    key: "country"}   (default slot)
  *   `inputs.country`            → {envelope: "inputs",    key: "country"}
+ *   `user.name`                 → {envelope: "inputs",    key: "user",    subPath: "name"}
  *
  * Validation is performed upstream in `groupTemplateVariables` via
  * `isValidTemplateVariable`, so this parser can assume the envelope
@@ -214,14 +215,23 @@ function parseTemplateExpression(expr: string): ParsedTemplateExpression {
         }
     }
 
-    // Dot notation (no $/) — also envelope-scoped if the first segment
-    // happens to name a known slot. Otherwise single-segment name →
-    // defaults to the `inputs` slot (most common author intent).
+    // Dot notation (no $/) — envelope-scoped only when the first segment
+    // names a known slot (e.g. `inputs.country`). Plain dotted names like
+    // `user.name` would otherwise be misclassified as `{envelope: "user",
+    // key: "name"}` and get dropped by consumers that materialize only
+    // `envelope === "inputs"`. Treat them as inputs-scoped sub-path
+    // references (`{envelope: "inputs", key: "user", subPath: "name"}`),
+    // matching how `$.inputs.user.name` parses.
     if (expr.includes(".")) {
         const tokens = expr.split(".").filter(Boolean)
         if (tokens.length === 0) return {envelope: "inputs", key: ""}
         if (tokens.length === 1) return {envelope: "inputs", key: tokens[0]}
-        return parseSegments(tokens)
+        if (KNOWN_ENVELOPE_SLOTS.has(tokens[0])) return parseSegments(tokens)
+        return {
+            envelope: "inputs",
+            key: tokens[0],
+            subPath: tokens.slice(1).join("."),
+        }
     }
 
     // Plain name — inputs slot, single field.
