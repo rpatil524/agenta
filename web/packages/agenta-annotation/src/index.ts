@@ -10,6 +10,8 @@
 export {
     annotationSessionController,
     type AnnotationSessionController,
+    type AddToTestsetExportJob,
+    type AddToTestsetScope,
     registerAnnotationCallbacks,
     annotationFormController,
     type AnnotationFormController,

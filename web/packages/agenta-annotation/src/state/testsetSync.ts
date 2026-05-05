@@ -71,6 +71,27 @@ interface BuildTestsetSyncPreviewParams {
     latestRevisionIdsByTestsetId: Map<string, string>
 }
 
+export interface TraceTestsetRowBuilderParams {
+    scenarioIds: string[]
+    traceInputsByScenario: Map<string, Record<string, unknown>>
+    traceOutputsByScenario: Map<string, unknown>
+    annotationsByScenario: Map<string, Record<string, Record<string, unknown>>>
+    outputColumnName: string
+}
+
+export interface TraceTestsetRow {
+    scenarioId: string
+    data: Record<string, unknown>
+}
+
+export interface TestcaseExportRowBuilderParams {
+    scenarioIds: string[]
+    testcasesByScenarioId: Map<string, Testcase>
+    annotationsByTestcaseId: Map<string, Annotation[]>
+    evaluators: TestsetSyncEvaluator[]
+    queueId: string
+}
+
 interface BaseRevisionTestcaseRow {
     id?: string | null
     data?: Record<string, unknown> | null
@@ -123,6 +144,151 @@ function matchesAnnotationEvaluator(params: {
 
     const resolvedSlug = resolveAnnotationEvaluatorSlug(params.annotation, params.slugByEvaluatorId)
     return resolvedSlug === params.evaluatorSlug
+}
+
+function getAnnotationOutputs(annotation: Annotation): Record<string, unknown> {
+    const outputs = annotation.data?.outputs
+    return outputs && typeof outputs === "object" && !Array.isArray(outputs)
+        ? (outputs as Record<string, unknown>)
+        : {}
+}
+
+function buildSlugByEvaluatorId(evaluators: TestsetSyncEvaluator[]): Map<string, string> {
+    const slugByEvaluatorId = new Map<string, string>()
+
+    for (const evaluator of evaluators) {
+        if (evaluator.workflowId) {
+            slugByEvaluatorId.set(evaluator.workflowId, evaluator.slug)
+        }
+    }
+
+    return slugByEvaluatorId
+}
+
+function buildAnnotationOutputEntries(params: {
+    annotations: Annotation[]
+    evaluators: TestsetSyncEvaluator[]
+    queueId: string
+}): {columnKey: string; outputs: Record<string, unknown>}[] {
+    const entries: {columnKey: string; outputs: Record<string, unknown>}[] = []
+    const slugByEvaluatorId = buildSlugByEvaluatorId(params.evaluators)
+
+    for (const evaluator of params.evaluators) {
+        const selection = selectQueueScopedAnnotation({
+            annotations: params.annotations,
+            queueId: params.queueId,
+            evaluatorSlug: evaluator.slug,
+            evaluatorWorkflowId: evaluator.workflowId,
+        })
+
+        if (!selection.annotation || selection.conflictCode) continue
+
+        const outputs = getAnnotationOutputs(selection.annotation)
+        if (Object.keys(outputs).length === 0) continue
+
+        const resolvedSlug =
+            resolveAnnotationEvaluatorSlug(selection.annotation, slugByEvaluatorId) ??
+            evaluator.slug
+
+        entries.push({
+            columnKey: evaluator.name?.trim() || resolvedSlug,
+            outputs,
+        })
+    }
+
+    return entries
+}
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+    return Boolean(value && typeof value === "object" && !Array.isArray(value))
+}
+
+function applyAnnotationOutputEntries(
+    data: Record<string, unknown>,
+    entries: {columnKey: string; outputs: Record<string, unknown>}[],
+): string[] {
+    const evaluatorColumnKeys: string[] = []
+
+    for (const entry of entries) {
+        const existingValue = data[entry.columnKey]
+        data[entry.columnKey] = {
+            ...(isPlainRecord(existingValue) ? existingValue : {}),
+            ...entry.outputs,
+        }
+
+        for (const [fieldKey, fieldValue] of Object.entries(entry.outputs)) {
+            if (fieldValue !== undefined) {
+                evaluatorColumnKeys.push(`${entry.columnKey}.${fieldKey}`)
+            }
+        }
+    }
+
+    return evaluatorColumnKeys
+}
+
+function expandInputsColumn(data: Record<string, unknown>): Record<string, unknown> {
+    const {inputs, ...rest} = data
+
+    if (!isPlainRecord(inputs)) {
+        return {...data}
+    }
+
+    return {
+        ...inputs,
+        ...rest,
+    }
+}
+
+export function buildTraceTestsetRows(params: TraceTestsetRowBuilderParams): TraceTestsetRow[] {
+    return params.scenarioIds.map((scenarioId) => {
+        const data: Record<string, unknown> = expandInputsColumn(
+            params.traceInputsByScenario.get(scenarioId) ?? {},
+        )
+
+        data[params.outputColumnName] = params.traceOutputsByScenario.get(scenarioId)
+
+        const annotationsByEvaluator = params.annotationsByScenario.get(scenarioId) ?? {}
+        applyAnnotationOutputEntries(
+            data,
+            Object.entries(annotationsByEvaluator).map(([columnKey, outputs]) => ({
+                columnKey,
+                outputs,
+            })),
+        )
+
+        return {scenarioId, data}
+    })
+}
+
+export function buildTestcaseExportRows(params: TestcaseExportRowBuilderParams): TestsetSyncRow[] {
+    const rows: TestsetSyncRow[] = []
+
+    for (const scenarioId of params.scenarioIds) {
+        const testcase = params.testcasesByScenarioId.get(scenarioId)
+        if (!testcase) continue
+
+        const data: Record<string, unknown> = expandInputsColumn(testcase.data ?? {})
+        const annotations = params.annotationsByTestcaseId.get(testcase.id) ?? []
+        const entries = buildAnnotationOutputEntries({
+            annotations,
+            evaluators: params.evaluators,
+            queueId: params.queueId,
+        })
+        if (entries.length === 0) continue
+
+        const evaluatorColumnKeys = applyAnnotationOutputEntries(data, entries)
+
+        rows.push({
+            scenarioId,
+            testcaseId: testcase.id,
+            testsetId: testcase.testset_id ?? testcase.set_id ?? "",
+            rowId: testcase.id,
+            evaluatorColumnKeys,
+            data,
+        })
+    }
+
+    return rows
 }
 
 export function mergeTestcaseAnnotationTags(params: {
@@ -194,13 +360,7 @@ export function selectQueueScopedAnnotation(params: {
 export function buildTestsetSyncPreview(params: BuildTestsetSyncPreviewParams): TestsetSyncPreview {
     const conflicts: TestsetSyncConflict[] = []
     const rows: TestsetSyncRow[] = []
-    const slugByEvaluatorId = new Map<string, string>()
-
-    for (const evaluator of params.evaluators) {
-        if (evaluator.workflowId) {
-            slugByEvaluatorId.set(evaluator.workflowId, evaluator.slug)
-        }
-    }
+    const slugByEvaluatorId = buildSlugByEvaluatorId(params.evaluators)
 
     for (const completed of params.completedScenarios) {
         const testcase = params.testcasesById.get(completed.testcaseId)
@@ -259,11 +419,7 @@ export function buildTestsetSyncPreview(params: BuildTestsetSyncPreviewParams): 
             const resolvedSlug =
                 resolveAnnotationEvaluatorSlug(selection.annotation, slugByEvaluatorId) ??
                 evaluator.slug
-            const outputs =
-                selection.annotation.data?.outputs &&
-                typeof selection.annotation.data.outputs === "object"
-                    ? (selection.annotation.data.outputs as Record<string, unknown>)
-                    : {}
+            const outputs = getAnnotationOutputs(selection.annotation)
 
             if (Object.keys(outputs).length === 0) continue
 
@@ -277,16 +433,8 @@ export function buildTestsetSyncPreview(params: BuildTestsetSyncPreviewParams): 
             continue
         }
 
-        const evaluatorColumnKeys: string[] = []
         const data: Record<string, unknown> = {...(testcase.data ?? {})}
-
-        for (const entry of selected) {
-            for (const [fieldKey, fieldValue] of Object.entries(entry.outputs)) {
-                const flatKey = `${entry.columnKey}.${fieldKey}`
-                data[flatKey] = fieldValue
-                evaluatorColumnKeys.push(flatKey)
-            }
-        }
+        const evaluatorColumnKeys = applyAnnotationOutputEntries(data, selected)
 
         rows.push({
             scenarioId: completed.scenarioId,
