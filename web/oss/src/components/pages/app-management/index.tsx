@@ -1,5 +1,4 @@
 import {useEffect, useState} from "react"
-import {useRouter} from "next/router"
 
 import {workflowMolecule} from "@agenta/entities/workflow"
 import {PageLayout} from "@agenta/ui"
@@ -68,8 +67,6 @@ const AppManagement: React.FC = () => {
     const [appName, setAppName] = useState("")
     const [appSlug, setAppSlug] = useState<string | undefined>(undefined)
     const {error, mutate} = useAppsData()
-    const router = useRouter()
-
 
     const {secrets} = useVaultSecret()
 
@@ -123,19 +120,6 @@ const AppManagement: React.FC = () => {
         setIsSetupTracingModal(true)
         setOnboardingWidgetActivation(null)
     }, [onboardingWidgetActivation, setOnboardingWidgetActivation])
-
-    useEffect(() => {
-    if (!router.isReady) return
-    if (router.query.create_prompt === "true") {
-        setIsAddAppFromTemplatedModal(true)
-        const {create_prompt, ...restQuery} = router.query
-        router.replace(
-            {pathname: router.pathname, query: restQuery},
-            undefined,
-            {shallow: true},
-        )
-    }
-    }, [router.isReady, router.query.create_prompt])
 
     const onErrorRetry = async () => {
         if (statusData.appId) {
