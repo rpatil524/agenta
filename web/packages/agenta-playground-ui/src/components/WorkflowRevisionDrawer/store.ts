@@ -36,6 +36,13 @@ export interface OpenDrawerParams {
      * e.g. when opening a span in playground for replay/testing.
      */
     expanded?: boolean
+    /**
+     * When true, render the drawer with a mask (and therefore its own focus
+     * lock). Use when this drawer is opened on top of another drawer (e.g. the
+     * trace drawer) so the underlying drawer's focus lock can't steal focus
+     * from the editor.
+     */
+    stacked?: boolean
 }
 
 // ================================================================
@@ -53,6 +60,9 @@ export const workflowRevisionDrawerContextAtom = atomWithReset<DrawerContext>("v
 
 /** Whether the drawer is expanded (shows full playground with execution panel) */
 export const workflowRevisionDrawerExpandedAtom = atomWithReset<boolean>(false)
+
+/** Whether the drawer is stacked over another drawer (forces mask + focus lock) */
+export const workflowRevisionDrawerStackedAtom = atomWithReset<boolean>(false)
 
 /** Config view mode (form/json/yaml) — persists across expand/collapse */
 export const workflowRevisionDrawerViewModeAtom = atomWithReset<ConfigViewMode>("form")
@@ -92,6 +102,7 @@ export const openWorkflowRevisionDrawerAtom = atom(null, (get, set, params: Open
     set(workflowRevisionDrawerOpenAtom, true)
     set(workflowRevisionDrawerExpandedAtom, opensExpanded)
     set(workflowRevisionDrawerContextAtom, params.context)
+    set(workflowRevisionDrawerStackedAtom, params.stacked ?? false)
     if (params.navigationIds !== undefined) {
         set(workflowRevisionDrawerNavigationIdsAtom, params.navigationIds)
     }
@@ -104,6 +115,7 @@ export const closeWorkflowRevisionDrawerAtom = atom(null, (_get, set) => {
     set(workflowRevisionDrawerEntityIdAtom, RESET)
     set(workflowRevisionDrawerExpandedAtom, RESET)
     set(workflowRevisionDrawerContextAtom, RESET)
+    set(workflowRevisionDrawerStackedAtom, RESET)
     set(workflowRevisionDrawerNavigationIdsAtom, RESET)
     set(workflowRevisionDrawerCallbackAtom, undefined)
     set(workflowRevisionDrawerViewModeAtom, RESET)

@@ -159,6 +159,22 @@ from agenta.sdk.utils.resolvers import (  # noqa: E402
 )
 
 
+_ENVELOPE_RESERVED_INPUT_KEYS = frozenset({"inputs"})
+
+
+def _reject_reserved_input_keys(inputs: Optional[Dict[str, Any]]) -> None:
+    """Raise InvalidInputsV0Error if user-supplied inputs collide with
+    envelope slot names that the dual-access pattern injects on top."""
+    if not inputs:
+        return
+    collisions = sorted(_ENVELOPE_RESERVED_INPUT_KEYS.intersection(inputs.keys()))
+    if collisions:
+        raise InvalidInputsV0Error(
+            expected=f"input keys not in {sorted(_ENVELOPE_RESERVED_INPUT_KEYS)} (reserved by the envelope resolver)",
+            got=collisions,
+        )
+
+
 def _format_with_template(
     content: str,
     format: str,
@@ -984,19 +1000,20 @@ async def auto_ai_critique_v0(
             }
         )
 
+    if inputs is not None:
+        _reject_reserved_input_keys(inputs)
+        context.update(**inputs)
+        context.update(
+            **{
+                "inputs": inputs,
+            }
+        )
+
     if outputs is not None:
         context.update(
             **{
                 "prediction": outputs,
                 "outputs": outputs,
-            }
-        )
-
-    if inputs is not None:
-        context.update(**inputs)
-        context.update(
-            **{
-                "inputs": inputs,
             }
         )
 
@@ -2106,6 +2123,8 @@ async def completion_v0(
             got=inputs,
         )
 
+    _reject_reserved_input_keys(inputs)
+
     _variables = dict(inputs or {})
 
     config = SinglePromptConfig(**parameters)
@@ -2120,7 +2139,21 @@ async def completion_v0(
                 got=sorted(provided_keys),
             )
 
+        # We've already validated required vs provided above. Clear
+        # `input_keys` so `PromptTemplate.format()` doesn't re-validate
+        # and reject the envelope meta-key we inject below as "extra".
+        config.prompt = config.prompt.model_copy(
+            update={"input_keys": None},
+            deep=True,
+        )
+
+    # Dual-access envelope: expose inputs BOTH flattened at the root (so
+    # `{{country}}` resolves via dot-notation) AND nested under `inputs`
+    # (so `{{$.inputs.country}}` resolves via JSONPath). Mirrors the
+    # pattern in `auto_ai_critique_v0` so completion and evaluator prompts
+    # have a consistent resolver context.
     if inputs is not None:
+        _variables["inputs"] = dict(inputs)
         formatted_prompt = config.prompt.format(**_variables)
     else:
         formatted_prompt = config.prompt
@@ -2162,6 +2195,8 @@ async def chat_v0(
             got=inputs,
         )
 
+    _reject_reserved_input_keys(inputs)
+
     _variables = dict(inputs or {})
     _messages = _variables.pop("messages", None)
     _messages = _messages if messages is None else messages
@@ -2178,12 +2213,22 @@ async def chat_v0(
                 got=sorted(provided_keys),
             )
 
+        # We've already validated required vs provided above. Clear
+        # `input_keys` so `PromptTemplate.format()` doesn't re-validate
+        # and reject the envelope meta-key we inject below as "extra".
         config.prompt = config.prompt.model_copy(
-            update={"input_keys": sorted(required_keys)},
+            update={"input_keys": None},
             deep=True,
         )
 
+    # Dual-access envelope: expose inputs BOTH flattened at the root (so
+    # `{{country}}` resolves via dot-notation) AND nested under `inputs`
+    # (so `{{$.inputs.country}}` resolves via JSONPath). Mirrors the
+    # pattern in `auto_ai_critique_v0` so completion and chat prompts
+    # have a consistent resolver context. `messages` is intentionally
+    # excluded from the nested view since it is handled separately below.
     if inputs is not None:
+        _variables["inputs"] = {k: v for k, v in inputs.items() if k != "messages"}
         formatted_prompt = config.prompt.format(**_variables)
     else:
         formatted_prompt = config.prompt
