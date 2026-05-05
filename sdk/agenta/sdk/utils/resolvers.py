@@ -34,6 +34,12 @@ def detect_scheme(expr: str) -> str:
 
 
 def resolve_dot_notation(expr: str, data: dict) -> object:
+    if not expr:
+        # Treat empty ``{{}}`` as an unresolvable reference. Without this the
+        # ``split(".")`` loop would never run and ``cur`` would still be the
+        # whole context dict, so the rendered prompt would silently contain a
+        # JSON dump of every variable the runtime has access to.
+        raise KeyError("Empty variable reference is not allowed (e.g. '{{}}')")
     if "[" in expr or "]" in expr:
         raise ValueError(f"Bracket syntax is not supported in dot-notation: {expr!r}")
 
