@@ -1,6 +1,12 @@
 FROM python:3.11-slim-bookworm
 
+ARG UV_VERSION=0.11.9
+
 WORKDIR /app
+
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
+    UV_LINK_MODE=copy \
+    PATH="/opt/venv/bin:${PATH}"
 
 RUN apt-get update && \
     apt-get install -y curl gnupg2 lsb-release && \
@@ -25,13 +31,11 @@ RUN ARCH=$(dpkg --print-architecture) && \
     echo "${SHA1}  /usr/local/bin/supercronic" | sha1sum -c - && \
     chmod +x /usr/local/bin/supercronic
 
-RUN pip install --upgrade pip \
-    && pip install poetry
+COPY --from=ghcr.io/astral-sh/uv:${UV_VERSION} /uv /uvx /bin/
 
-COPY ./pyproject.toml /app/
+COPY ./pyproject.toml ./uv.lock* /app/
 
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi
+RUN uv sync --locked
 
 #
 RUN groupadd --gid 10001 agenta && \

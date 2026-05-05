@@ -46,9 +46,9 @@ jobs:
         with:
           python-version: 3.11
 
-      - name: Install Poetry
+      - name: Install uv
         run: |
-          curl -sSL https://install.python-poetry.org | python3 -
+          python -m pip install "uv==0.11.9"
 
       - name: Bump versions and compare
         id: bump_versions
@@ -79,18 +79,15 @@ jobs:
           cd ..
 
           cd sdk
-          poetry version $BUMP_TYPE
-          SDK_VERSION=$(poetry version -s)
+          SDK_VERSION=$(uv version --bump "$BUMP_TYPE" --short --frozen)
           cd ..
 
           cd api
-          poetry version $BUMP_TYPE
-          API_VERSION=$(poetry version -s)
+          API_VERSION=$(uv version --bump "$BUMP_TYPE" --short --frozen)
           cd ..
 
           cd services
-          poetry version $BUMP_TYPE
-          SERVICES_VERSION=$(poetry version -s)
+          SERVICES_VERSION=$(uv version --bump "$BUMP_TYPE" --short --frozen)
           cd ..
 
           WEB_VERSION=$(echo "$WEB_VERSION" | tr -d '[:space:]')

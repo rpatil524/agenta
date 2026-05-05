@@ -1,19 +1,19 @@
 FROM python:3.11-slim-bookworm AS builder
 
-ARG POETRY_VERSION=2.3.1
+ARG UV_VERSION=0.11.9
 
 WORKDIR /app
 
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=0 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    UV_PROJECT_ENVIRONMENT=/opt/venv \
+    UV_LINK_MODE=copy
 
-# Install poetry system-level (outside venv) — only used for export
-RUN --mount=type=cache,id=pip-api,target=/root/.cache/pip \
-    pip install --timeout=300 "poetry==${POETRY_VERSION}" "poetry-plugin-export"
+COPY --from=ghcr.io/astral-sh/uv:${UV_VERSION} /uv /uvx /bin/
 
-COPY ./pyproject.toml ./poetry.lock* /app/
+COPY ./pyproject.toml ./uv.lock* /app/
 
 # Create clean venv, install app deps, strip heavy unused deps, add stubs
 # Merged into one layer so stripped files don't persist in a previous layer.
@@ -23,14 +23,9 @@ COPY ./pyproject.toml ./poetry.lock* /app/
 # Kept: litellm + chain (tokenizers, huggingface_hub, tiktoken) — needed by agenta SDK
 # Kept: newrelic — used for observability
 RUN --mount=type=cache,id=pip-api,target=/root/.cache/pip \
-    --mount=type=cache,id=pypoetry-api,target=/root/.cache/pypoetry \
-    python -m venv /opt/venv \
-    && . /opt/venv/bin/activate \
-    && poetry export --only main --without-hashes --format requirements.txt --output /tmp/requirements.txt \
-    && pip install -r /tmp/requirements.txt \
-    && rm -f /tmp/requirements.txt \
-    && (pip uninstall -y pip setuptools 2>/dev/null || true) \
-    && SITE=$(python -c 'import site; print(site.getsitepackages()[0])') \
+    --mount=type=cache,id=uv-api,target=/root/.cache/uv \
+    uv sync --locked --no-dev --no-install-project \
+    && SITE=$(/opt/venv/bin/python -c 'import site; print(site.getsitepackages()[0])') \
     && rm -rf \
         ${SITE}/phonenumbers* \
         ${SITE}/twilio* \
@@ -48,11 +43,9 @@ RUN mkdir -p /app/sdk
 COPY ./sd[k] /app/sdk/
 
 RUN --mount=type=cache,id=pip-api,target=/root/.cache/pip \
+    --mount=type=cache,id=uv-api,target=/root/.cache/uv \
     if [ -f /app/sdk/pyproject.toml ]; then \
-        . /opt/venv/bin/activate && \
-        pip install pip && \
-        pip install --editable /app/sdk && \
-        (pip uninstall -y pip 2>/dev/null || true); \
+        uv pip install --python /opt/venv/bin/python --editable /app/sdk; \
     fi
 
 # Copy app code last (changes more frequently)

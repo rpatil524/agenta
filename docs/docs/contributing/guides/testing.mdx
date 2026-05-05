@@ -48,8 +48,8 @@ export $(grep -v '^#' hosting/docker-compose/ee/.env.ee.dev | xargs)
 Install dependencies first (from `api/`):
 
 ```bash
-poetry install
-poetry run pip install ../sdk
+uv sync
+uv pip install --editable ../sdk
 ```
 
 Then run the acceptance suite or a smaller target:
@@ -67,17 +67,17 @@ python -m pytest oss/tests/pytest/acceptance/workflows/ -v
 Install dependencies first (from `sdk/`):
 
 ```bash
-poetry install
+uv sync
 ```
 
 Then run the relevant pytest targets:
 
 ```bash
-poetry run pytest tests/pytest/ -v
+uv run pytest tests/pytest/ -v
 ```
 
 ```bash
-poetry run pytest oss/tests/pytest/unit/ -v
+uv run pytest oss/tests/pytest/unit/ -v
 ```
 
 ## Services Tests
@@ -85,8 +85,8 @@ poetry run pytest oss/tests/pytest/unit/ -v
 Install dependencies first (from `services/<service>/`):
 
 ```bash
-poetry install
-poetry run pip install ../sdk
+uv sync
+uv pip install --editable ../sdk
 ```
 
 ## Web Tests
