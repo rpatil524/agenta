@@ -695,7 +695,12 @@ export async function createEvaluatorFromTemplate(templateKey: string): Promise<
 
         const props = parametersTemplate!.properties as Record<string, Record<string, unknown>>
         for (const [key, prop] of Object.entries(props)) {
-            // Skip hidden fields — they are managed internally, not user-facing
+            // Hidden fields are managed internally and must not appear in the
+            // form, but they still need to round-trip through `data.parameters`
+            // on save/run. The render path filters them out at nest-time
+            // (`nestEvaluatorConfiguration` in `evaluatorTransforms.ts`), so
+            // keep any catalog-supplied value in the flat source instead of
+            // stripping it.
             const agType = prop?.["x-ag-type"] as string | undefined
             if (agType === "hidden") continue
             if (!(key in parameters)) {
@@ -717,6 +722,9 @@ export async function createEvaluatorFromTemplate(templateKey: string): Promise<
             templateSchema,
             hiddenKeys,
         )
+        // Hidden defaults stay in the flat source for round-tripping; the
+        // render path drops them via `nestEvaluatorConfiguration`'s schema
+        // allowlist.
         parameters = {
             ...extractDefaultValues(parametersTemplate),
             ...parameters,
