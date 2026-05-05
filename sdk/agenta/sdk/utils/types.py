@@ -9,7 +9,7 @@ from pydantic import Field, model_validator, AliasChoices
 
 
 from agenta.sdk.utils.assets import supported_llm_models, model_metadata
-from agenta.sdk.utils.helpers import apply_replacements_with_tracking, _PLACEHOLDER_RE
+from agenta.sdk.utils.helpers import _PLACEHOLDER_RE
 
 
 class AgSchemaMixin(BaseModel):
@@ -786,57 +786,50 @@ class PromptTemplate(AgSchemaMixin):
         return values
 
     def _format_with_template(self, content: str, kwargs: Dict[str, Any]) -> str:
-        """Internal method to format content based on template_format"""
+        """Format content via the shared rendering helper.
+
+        Preserves the chat/completion contract: rendering failures (missing
+        variables, Jinja errors, unsupported formats) raise ``TemplateFormatError``
+        with the same message text the legacy implementation produced.
+        """
+
+        from agenta.sdk.utils.templating import (
+            UnresolvedVariablesError,
+            render_template,
+        )
+
+        if self.template_format not in ("curly", "fstring", "jinja2"):
+            raise TemplateFormatError(
+                f"Unknown template format: {self.template_format}"
+            )
+
         try:
-            if self.template_format == "fstring":
-                return content.format(**kwargs)
-
-            elif self.template_format == "jinja2":
-                SandboxedEnvironment, TemplateError = _load_jinja2()
-                env = SandboxedEnvironment()
-
-                try:
-                    return env.from_string(content).render(**kwargs)
-                except TemplateError as e:
-                    raise TemplateFormatError(
-                        f"Jinja2 template error in content: '{content}'. Error: {str(e)}",
-                        original_error=e,
-                    )
-
-            elif self.template_format == "curly":
-                original_placeholders = set(extract_placeholders(content))
-
-                replacements, _unresolved = build_replacements(
-                    original_placeholders, kwargs
-                )
-
-                result, successfully_replaced = apply_replacements_with_tracking(
-                    content, replacements
-                )
-
-                # Only the placeholders that were NOT successfully replaced are errors
-                # This avoids false positives when substituted values contain {{...}} patterns
-                truly_unreplaced = original_placeholders - successfully_replaced
-                if truly_unreplaced:
-                    hint = missing_lib_hints(truly_unreplaced)
-                    suffix = f" Hint: {hint}" if hint else ""
-                    raise TemplateFormatError(
-                        f"Unreplaced variables in curly template: {sorted(truly_unreplaced)}.{suffix}"
-                    )
-
-                return result
-
-            else:
-                raise TemplateFormatError(
-                    f"Unknown template format: {self.template_format}"
-                )
-
+            return render_template(
+                template=content,
+                mode=self.template_format,
+                context=kwargs,
+            )
+        except UnresolvedVariablesError as e:
+            suffix = f" Hint: {e.hint}" if e.hint else ""
+            raise TemplateFormatError(
+                f"Unreplaced variables in curly template: "
+                f"{sorted(e.unresolved)}.{suffix}"
+            )
         except KeyError as e:
             key = str(e).strip("'")
             raise TemplateFormatError(
                 f"Missing required variable '{key}' in template: '{content}'"
             )
         except Exception as e:
+            try:
+                _, TemplateError = _load_jinja2()
+            except ImportError:
+                TemplateError = None
+            if TemplateError is not None and isinstance(e, TemplateError):
+                raise TemplateFormatError(
+                    f"Jinja2 template error in content: '{content}'. Error: {str(e)}",
+                    original_error=e,
+                )
             raise TemplateFormatError(
                 f"Error formatting template '{content}': {str(e)}",
                 original_error=e,
