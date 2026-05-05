@@ -1,7 +1,7 @@
 ARG UV_VERSION=0.11.9
 FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv
 
-FROM python:3.11-slim-bookworm AS builder
+FROM python:3.13-slim-trixie AS builder
 
 ARG UV_VERSION
 
@@ -50,7 +50,7 @@ COPY ./oss /app/oss/
 COPY ./entrypoints /app/entrypoints/
 
 
-FROM python:3.11-slim-bookworm AS runner
+FROM python:3.13-slim-trixie AS runner
 
 ARG BUILD_DATE
 ARG VCS_REF

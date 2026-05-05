@@ -80,6 +80,10 @@ services:
                 "/sdk",
                 "--root-path",
                 "/api",
+                "--loop",
+                "uvloop",
+                "--http",
+                "httptools",
             ]
         # === STORAGE ============================================== #
         volumes:
@@ -345,6 +349,10 @@ services:
                 "/sdk",
                 "--root-path",
                 "/services",
+                "--loop",
+                "uvloop",
+                "--http",
+                "httptools",
             ]
         # === STORAGE ============================================== #
         volumes:
