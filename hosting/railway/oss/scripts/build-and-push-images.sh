@@ -21,20 +21,22 @@ if ! command -v docker >/dev/null 2>&1; then
 fi
 
 SDKS_SOURCE_DIR="$ROOT_DIR/sdks"
+SDKS_PYTHON_SOURCE_DIR="$SDKS_SOURCE_DIR/python"
 API_SDKS_DIR="$ROOT_DIR/api/sdks"
 SERVICES_SDKS_DIR="$ROOT_DIR/services/sdks"
 
 CLIENTS_SOURCE_DIR="$ROOT_DIR/clients"
+CLIENTS_PYTHON_SOURCE_DIR="$CLIENTS_SOURCE_DIR/python"
 API_CLIENTS_DIR="$ROOT_DIR/api/clients"
 SERVICES_CLIENTS_DIR="$ROOT_DIR/services/clients"
 
-if [ ! -d "$SDKS_SOURCE_DIR" ]; then
-    printf "Missing SDKs directory: %s\n" "$SDKS_SOURCE_DIR" >&2
+if [ ! -d "$SDKS_PYTHON_SOURCE_DIR" ]; then
+    printf "Missing SDK Python directory: %s\n" "$SDKS_PYTHON_SOURCE_DIR" >&2
     exit 1
 fi
 
-if [ ! -d "$CLIENTS_SOURCE_DIR" ]; then
-    printf "Missing clients directory: %s\n" "$CLIENTS_SOURCE_DIR" >&2
+if [ ! -d "$CLIENTS_PYTHON_SOURCE_DIR" ]; then
+    printf "Missing clients Python directory: %s\n" "$CLIENTS_PYTHON_SOURCE_DIR" >&2
     exit 1
 fi
 

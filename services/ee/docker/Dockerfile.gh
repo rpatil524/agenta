@@ -2,7 +2,7 @@ FROM python:3.11-slim-bookworm AS builder
 
 ARG POETRY_VERSION=2.3.1
 
-WORKDIR /services
+WORKDIR /app
 
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=0 \
@@ -13,7 +13,7 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
 RUN --mount=type=cache,id=pip-services,target=/root/.cache/pip \
     pip install --timeout=300 "poetry==${POETRY_VERSION}" "poetry-plugin-export"
 
-COPY ./pyproject.toml ./poetry.lock* /services/
+COPY ./pyproject.toml ./poetry.lock* /app/
 
 # Create clean venv, install app deps, strip heavy unused deps
 # Merged into one layer so stripped files don't persist in a previous layer.
@@ -50,8 +50,8 @@ RUN --mount=type=cache,id=pip-services,target=/root/.cache/pip \
     fi
 
 # Copy app code last (changes more frequently)
-COPY ./oss /services/oss/
-COPY ./entrypoints /services/entrypoints/
+COPY ./oss /app/oss/
+COPY ./entrypoints /app/entrypoints/
 
 
 FROM python:3.11-slim-bookworm AS runner
@@ -60,19 +60,19 @@ ARG BUILD_DATE
 ARG VCS_REF
 ARG VERSION=0.0.0
 
-WORKDIR /services
+WORKDIR /app
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/services:/sdks/python:/clients/python \
+    PYTHONPATH=/app:/sdks/python:/clients/python \
     PATH="/opt/venv/bin:${PATH}"
 
 RUN groupadd --gid 10001 agenta && \
     useradd --uid 10001 --gid 10001 --shell /bin/false --create-home agenta
 
 COPY --from=builder /opt/venv /opt/venv
-COPY --chown=agenta:agenta --from=builder /services/oss /services/oss
-COPY --chown=agenta:agenta --from=builder /services/entrypoints /services/entrypoints
+COPY --chown=agenta:agenta --from=builder /app/oss /app/oss
+COPY --chown=agenta:agenta --from=builder /app/entrypoints /app/entrypoints
 COPY --chown=agenta:agenta --from=builder /sdks/python /sdks/python
 COPY --chown=agenta:agenta --from=builder /clients/python /clients/python
 

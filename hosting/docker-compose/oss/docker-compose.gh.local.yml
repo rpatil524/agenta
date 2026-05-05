@@ -234,7 +234,7 @@ services:
             dockerfile: oss/docker/Dockerfile.gh
         # === EXECUTION ============================================ #
         init: true
-        command: supercronic /api/crontab
+        command: supercronic /app/crontab
         # === CONFIGURATION ======================================== #
         env_file:
             - ${ENV_FILE:-./.env.oss.gh}

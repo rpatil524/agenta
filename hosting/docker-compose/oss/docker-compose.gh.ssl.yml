@@ -247,7 +247,7 @@ services:
             dockerfile: oss/docker/Dockerfile.gh
         # === EXECUTION ============================================ #
         init: true
-        command: supercronic /api/crontab
+        command: supercronic /app/crontab
         # === STORAGE ============================================== #
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
