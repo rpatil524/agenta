@@ -341,19 +341,17 @@ jobs:
       - name: Cache Python dependencies
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-railway-api-pip-${{ hashFiles('api/pyproject.toml', 'api/poetry.lock', 'api/*/tests/requirements.txt', 'sdk/pyproject.toml', 'sdk/poetry.lock') }}
+          path: ~/.cache/uv
+          key: ${{ runner.os }}-railway-api-uv-${{ hashFiles('api/pyproject.toml', 'api/uv.lock', 'api/*/tests/requirements.txt', 'sdk/pyproject.toml', 'sdk/uv.lock') }}
           restore-keys: |
-            ${{ runner.os }}-railway-api-pip-
+            ${{ runner.os }}-railway-api-uv-
 
       - name: Install API dependencies
         run: |
-          pip install "poetry==2.3.1" "poetry-plugin-export"
+          pip install "uv==0.11.9"
           cd api
-          poetry export --without-hashes --format requirements.txt --output /tmp/api-requirements.txt
-          pip install -r /tmp/api-requirements.txt
-          pip install -r oss/tests/requirements.txt
-          pip install -e ../sdk/
+          uv sync --locked --python 3.11
+          uv pip install --python .venv/bin/python -r oss/tests/requirements.txt --editable ../sdk/
 
       - name: Run API tests
         run: |
@@ -379,7 +377,7 @@ jobs:
             exit 0
           fi
 
-          CMD=(python run-tests.py)
+          CMD=(uv run --no-sync python run-tests.py)
 
           if [ -n "${{ inputs.coverage }}" ]; then CMD+=(--coverage "${{ inputs.coverage }}"); fi
           if [ -n "${{ inputs.lens }}" ]; then CMD+=(--lens "${{ inputs.lens }}"); fi
@@ -444,15 +442,17 @@ jobs:
       - name: Cache Python dependencies
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-railway-sdk-pip-${{ hashFiles('sdk/pyproject.toml', 'sdk/poetry.lock', 'sdk/*/tests/requirements.txt') }}
+          path: ~/.cache/uv
+          key: ${{ runner.os }}-railway-sdk-uv-${{ hashFiles('sdk/pyproject.toml', 'sdk/uv.lock', 'sdk/*/tests/requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-railway-sdk-pip-
+            ${{ runner.os }}-railway-sdk-uv-
 
       - name: Install SDK dependencies
         run: |
-          pip install -r sdk/oss/tests/requirements.txt
-          pip install -e sdk/
+          pip install "uv==0.11.9"
+          cd sdk
+          uv sync --locked --python 3.11
+          uv pip install --python .venv/bin/python -r oss/tests/requirements.txt
 
       - name: Run SDK tests
         run: |
@@ -478,7 +478,7 @@ jobs:
             exit 0
           fi
 
-          CMD=(python run-tests.py)
+          CMD=(uv run --no-sync python run-tests.py)
 
           if [ -n "${{ inputs.coverage }}" ]; then CMD+=(--coverage "${{ inputs.coverage }}"); fi
           if [ -n "${{ inputs.lens }}" ]; then CMD+=(--lens "${{ inputs.lens }}"); fi
