@@ -760,6 +760,37 @@ function getAnnotationDisplayTitle(get: Getter, def: AnnotationColumnDef): strin
     )
 }
 
+function getAnnotationGroupKey(get: Getter, def: AnnotationColumnDef): string {
+    return (
+        def.evaluatorId?.trim() ||
+        def.evaluatorSlug?.trim() ||
+        getAnnotationDisplayTitle(get, def).trim().toLowerCase() ||
+        def.stepKey
+    )
+}
+
+function stripOutputPathPrefix(path: string): string {
+    for (const prefix of ["attributes.ag.data.outputs.", "data.outputs.", "outputs."]) {
+        if (path.startsWith(prefix)) {
+            return path.slice(prefix.length)
+        }
+    }
+    return path
+}
+
+function getAnnotationChildTitle(def: AnnotationColumnDef): string {
+    const path = def.path?.trim()
+    if (path) {
+        const stripped = stripOutputPathPrefix(path)
+        if (stripped && stripped !== path) return stripped
+
+        const leaf = stripped.split(".").filter(Boolean).at(-1)
+        if (leaf && leaf !== "outputs") return leaf
+    }
+
+    return def.columnName?.trim() || def.stepKey
+}
+
 /**
  * Analyze scenario records to discover dynamic testcase columns.
  * Returns column definitions grouped by input/output/expected.
@@ -802,68 +833,6 @@ function discoverTestcaseColumns(
         title: key.startsWith("meta.") ? key.slice(5) : key,
         group,
     }))
-}
-
-// ============================================================================
-// EVALUATOR OUTPUT KEY HELPERS
-// ============================================================================
-
-/** Safely access a nested path on an object */
-function getNestedValue(obj: unknown, ...keys: string[]): unknown {
-    let current: unknown = obj
-    for (const key of keys) {
-        if (!current || typeof current !== "object") return undefined
-        current = (current as Record<string, unknown>)[key]
-    }
-    return current
-}
-
-/**
- * Resolve output schema from evaluator data, checking multiple legacy paths.
- * Returns the `properties` keys from the first valid output schema found.
- */
-/**
- * Resolve output schema properties from evaluator data.
- * Returns the full properties object (key → schema) so callers can inspect types.
- */
-function resolveOutputProperties(
-    data: Record<string, unknown> | null | undefined,
-): Record<string, Record<string, unknown>> | null {
-    if (!data) return null
-    const candidates = [
-        getNestedValue(data, "schemas", "outputs"),
-        getNestedValue(data, "service", "format", "properties", "outputs"),
-        getNestedValue(data, "service", "configuration", "outputs"),
-        getNestedValue(data, "configuration", "outputs"),
-        getNestedValue(data, "service", "configuration", "format", "properties", "outputs"),
-        getNestedValue(data, "configuration", "format", "properties", "outputs"),
-    ]
-    for (const candidate of candidates) {
-        if (candidate && typeof candidate === "object") {
-            const properties = (candidate as Record<string, unknown>).properties
-            if (properties && typeof properties === "object") {
-                return properties as Record<string, Record<string, unknown>>
-            }
-        }
-    }
-    return null
-}
-
-/** Output schema types that are not aggregatable in list view (string, free text) */
-const NON_AGGREGATABLE_OUTPUT_TYPES = new Set(["string"])
-
-function isAggregatableOutputProperty(schema: Record<string, unknown>): boolean {
-    const type = schema.type
-    if (typeof type === "string" && NON_AGGREGATABLE_OUTPUT_TYPES.has(type)) return false
-    return true
-}
-
-function resolveOutputKeys(data: Record<string, unknown> | null | undefined): string[] {
-    const properties = resolveOutputProperties(data)
-    if (!properties) return []
-    return Object.entries(properties)
-        .filter(([, schema]) => isAggregatableOutputProperty(schema))
-        .map(([key]) => key)
 }
 
 // ============================================================================
@@ -1022,26 +991,55 @@ const listColumnDefsAtom = atom<ScenarioListColumnDef[]>((get) => {
         }
     }
 
-    // Annotation columns — resolve output keys from evaluator entity data
-    const annotationColumns: ScenarioListColumnDef[] = annotationDefs.map((def) => {
-        let outputKeys: string[] = []
-        if (def.evaluatorId) {
-            const evaluator = get(workflowMolecule.selectors.data(def.evaluatorId))
-            outputKeys = resolveOutputKeys(evaluator?.data as Record<string, unknown> | null)
-        }
+    // Annotation columns — group mapping columns under their evaluator parent.
+    const annotationGroups = new Map<
+        string,
+        {title: string; defs: AnnotationColumnDef[]; fallbackDataKey: string | null}
+    >()
+    for (const def of annotationDefs) {
         const displayTitle = getAnnotationDisplayTitle(get, def)
-        const fallbackDataKey = mergedFallbackKeys.get(displayTitle.trim().toLowerCase()) ?? null
-        const subColumnCount = outputKeys.length > 1 ? outputKeys.length : 1
-        return {
-            columnType: "annotation" as const,
-            key: `__annot_${def.stepKey}`,
-            title: displayTitle || def.columnName || def.evaluatorSlug || def.stepKey,
-            width: 150 * subColumnCount,
-            annotationDef: def,
-            outputKeys,
-            fallbackDataKey,
+        const groupKey = getAnnotationGroupKey(get, def)
+        const existing = annotationGroups.get(groupKey)
+
+        if (existing) {
+            existing.defs.push(def)
+            continue
         }
-    })
+
+        annotationGroups.set(groupKey, {
+            title: displayTitle || def.columnName || def.evaluatorSlug || def.stepKey,
+            defs: [def],
+            fallbackDataKey: mergedFallbackKeys.get(displayTitle.trim().toLowerCase()) ?? null,
+        })
+    }
+
+    const annotationColumns: ScenarioListColumnDef[] = Array.from(annotationGroups.entries()).map(
+        ([groupKey, group]) => {
+            const childTitleCounts = new Map<string, number>()
+            const outputColumns = group.defs.map((def) => {
+                const title = getAnnotationChildTitle(def)
+                const count = childTitleCounts.get(title) ?? 0
+                childTitleCounts.set(title, count + 1)
+
+                return {
+                    key: `__annot_${groupKey}_${title}_${count}`,
+                    title,
+                    annotationDef: def,
+                }
+            })
+
+            return {
+                columnType: "annotation" as const,
+                key: `__annot_${groupKey}`,
+                title: group.title,
+                width: 150 * Math.max(outputColumns.length, 1),
+                annotationDef: group.defs[0],
+                outputKeys: outputColumns.map((column) => column.title),
+                outputColumns,
+                fallbackDataKey: group.fallbackDataKey,
+            }
+        },
+    )
 
     // Trailing: review status + actions
     const trailing: ScenarioListColumnDef[] = [

@@ -239,13 +239,60 @@ function expandInputsColumn(data: Record<string, unknown>): Record<string, unkno
     }
 }
 
+function hasMessageIdentity(value: Record<string, unknown>): boolean {
+    return (
+        typeof value.role === "string" ||
+        typeof value.sender === "string" ||
+        typeof value.author === "string"
+    )
+}
+
+function extractMessageContent(value: unknown): {matched: boolean; content: unknown} {
+    if (!isPlainRecord(value)) {
+        return {matched: false, content: value}
+    }
+
+    if ("content" in value && hasMessageIdentity(value)) {
+        return {matched: true, content: value.content}
+    }
+
+    const nestedMessage = value.message
+    if (isPlainRecord(nestedMessage)) {
+        const nested = extractMessageContent(nestedMessage)
+        if (nested.matched) return nested
+    }
+
+    const choices = value.choices
+    const firstChoice = Array.isArray(choices) ? choices[0] : null
+    if (isPlainRecord(firstChoice)) {
+        const choiceMessage = firstChoice.message ?? firstChoice.delta
+        if (isPlainRecord(choiceMessage)) {
+            const nested = extractMessageContent(choiceMessage)
+            if (nested.matched) return nested
+        }
+    }
+
+    return {matched: false, content: value}
+}
+
+function normalizeTraceOutputForTestset(value: unknown): unknown {
+    if (isPlainRecord(value) && typeof value.error === "string" && value.error.trim()) {
+        return value.error
+    }
+
+    const message = extractMessageContent(value)
+    return message.matched ? message.content : value
+}
+
 export function buildTraceTestsetRows(params: TraceTestsetRowBuilderParams): TraceTestsetRow[] {
     return params.scenarioIds.map((scenarioId) => {
         const data: Record<string, unknown> = expandInputsColumn(
             params.traceInputsByScenario.get(scenarioId) ?? {},
         )
 
-        data[params.outputColumnName] = params.traceOutputsByScenario.get(scenarioId)
+        data[params.outputColumnName] = normalizeTraceOutputForTestset(
+            params.traceOutputsByScenario.get(scenarioId),
+        )
 
         const annotationsByEvaluator = params.annotationsByScenario.get(scenarioId) ?? {}
         applyAnnotationOutputEntries(

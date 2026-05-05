@@ -851,15 +851,21 @@ function mapDefToColumn(
 
         case "annotation": {
             const annotDef = def.annotationDef
-            const outputKeys = def.outputKeys
+            const outputColumns =
+                def.outputColumns ??
+                def.outputKeys.map((outputKey) => ({
+                    key: `${def.key}_${outputKey}`,
+                    title: outputKey,
+                    annotationDef: annotDef,
+                }))
 
-            // Multiple output keys → foldable column group with sub-columns per key
-            if (outputKeys.length > 1) {
+            // Evaluator outputs render as parent evaluator + child metric columns.
+            if (outputColumns.length > 0) {
                 const isCollapsed = collapsedGroups.has(def.key)
                 const groupHeader = (
                     <AnnotationGroupHeader
                         def={annotDef}
-                        childCount={outputKeys.length}
+                        childCount={outputColumns.length}
                         isCollapsed={isCollapsed}
                         onToggle={() => toggleGroupCollapse(def.key)}
                     />
@@ -890,10 +896,10 @@ function mapDefToColumn(
                     title: groupHeader,
                     key: def.key,
                     onHeaderCell: () => ({style: {textAlign: "left" as const}}),
-                    children: outputKeys.map((outputKey) => ({
-                        title: outputKey,
-                        key: `${def.key}_${outputKey}`,
-                        dataIndex: `${def.key}_${outputKey}`,
+                    children: outputColumns.map((outputColumn) => ({
+                        title: outputColumn.title,
+                        key: outputColumn.key,
+                        dataIndex: outputColumn.key,
                         width: 150,
                         minWidth: 150,
                         onHeaderCell: () => ({
@@ -902,28 +908,12 @@ function mapDefToColumn(
                         render: (_value: unknown, record: ScenarioTableRow) => (
                             <AnnotationOutputKeyCell
                                 scenarioId={record.scenarioId}
-                                def={annotDef}
-                                outputKey={outputKey}
+                                def={outputColumn.annotationDef}
+                                outputKey={outputColumn.annotationDef.path ?? outputColumn.title}
                                 fallbackDataKey={def.fallbackDataKey}
                             />
                         ),
                     })),
-                }
-            }
-
-            // Single output key → flat column reading that key directly
-            if (outputKeys.length === 1) {
-                return {
-                    ...base,
-                    title: <AnnotationColumnHeader def={annotDef} />,
-                    render: (_value: unknown, record: ScenarioTableRow) => (
-                        <AnnotationOutputKeyCell
-                            scenarioId={record.scenarioId}
-                            def={annotDef}
-                            outputKey={outputKeys[0]}
-                            fallbackDataKey={def.fallbackDataKey}
-                        />
-                    ),
                 }
             }
 
@@ -1096,7 +1086,12 @@ interface ExportColumnState {
     traceInputKeyByColumnKey: Map<string, string>
     annotationOutputByColumnKey: Map<
         string,
-        {def: Extract<ScenarioListColumnDef, {columnType: "annotation"}>; outputKey: string}
+        {
+            def: Extract<ScenarioListColumnDef, {columnType: "annotation"}>
+            annotationDef: AnnotationColumnDef
+            outputKey: string
+            title: string
+        }
     >
 }
 
@@ -1168,7 +1163,7 @@ function resolveExportColumnLabel(
     if (traceInputKey) return traceInputKey
 
     const annotationOutput = state.annotationOutputByColumnKey.get(columnKey)
-    if (annotationOutput) return annotationOutput.outputKey
+    if (annotationOutput) return annotationOutput.title
 
     return undefined
 }
@@ -1274,16 +1269,16 @@ function resolveExportCellValue(
         const resolved = resolveMetricValue(
             store,
             scenarioId,
-            annotationOutput.def.annotationDef.evaluatorId,
-            annotationOutput.def.annotationDef.evaluatorSlug,
+            annotationOutput.annotationDef.evaluatorId,
+            annotationOutput.annotationDef.evaluatorSlug,
             annotationOutput.outputKey,
-            annotationOutput.def.annotationDef.stepKey,
+            annotationOutput.annotationDef.stepKey,
         )
         if (resolved !== null) return resolved
         if (!annotationOutput.def.fallbackDataKey) return ""
         const fallbackValue = getTestcaseValue(testcase, annotationOutput.def.fallbackDataKey)
         return fallbackValue && typeof fallbackValue === "object" && !Array.isArray(fallbackValue)
-            ? ((fallbackValue as Record<string, unknown>)[annotationOutput.outputKey] ?? "")
+            ? ((fallbackValue as Record<string, unknown>)[annotationOutput.title] ?? "")
             : ""
     }
 
@@ -1528,7 +1523,12 @@ const ScenarioListView = memo(function ScenarioListView({
         const traceInputKeyByColumnKey = new Map<string, string>()
         const annotationOutputByColumnKey = new Map<
             string,
-            {def: Extract<ScenarioListColumnDef, {columnType: "annotation"}>; outputKey: string}
+            {
+                def: Extract<ScenarioListColumnDef, {columnType: "annotation"}>
+                annotationDef: AnnotationColumnDef
+                outputKey: string
+                title: string
+            }
         >()
 
         listColumnDefs.forEach((def) => {
@@ -1538,9 +1538,22 @@ const ScenarioListView = memo(function ScenarioListView({
                     traceInputKeyByColumnKey.set(`__trace_input_${inputKey}`, inputKey)
                 })
             }
-            if (def.columnType === "annotation" && def.outputKeys.length > 1) {
-                def.outputKeys.forEach((outputKey) => {
-                    annotationOutputByColumnKey.set(`${def.key}_${outputKey}`, {def, outputKey})
+            if (def.columnType === "annotation" && def.outputKeys.length > 0) {
+                const outputColumns =
+                    def.outputColumns ??
+                    def.outputKeys.map((outputKey) => ({
+                        key: `${def.key}_${outputKey}`,
+                        title: outputKey,
+                        annotationDef: def.annotationDef,
+                    }))
+
+                outputColumns.forEach((outputColumn) => {
+                    annotationOutputByColumnKey.set(outputColumn.key, {
+                        def,
+                        annotationDef: outputColumn.annotationDef,
+                        outputKey: outputColumn.annotationDef.path ?? outputColumn.title,
+                        title: outputColumn.title,
+                    })
                 })
             }
         })
