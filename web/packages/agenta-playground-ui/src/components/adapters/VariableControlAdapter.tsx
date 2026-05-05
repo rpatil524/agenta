@@ -134,17 +134,24 @@ const VariableControlAdapter: React.FC<VariableControlAdapterProps> = ({
         ),
     ) as string
     const variableKeys = useAtomValue(executionItemController.selectors.variableKeys) as string[]
-    const name = useMemo(
-        () => (variableKeys.includes(variableKey) ? variableKey : undefined),
-        [variableKeys, variableKey],
-    )
 
-    // Schema-aware type detection from input port definitions
+    // Schema-aware type detection from input port definitions — also source of
+    // the display label so path-style variable keys (`$.inputs.country`,
+    // `/inputs/country`, `inputs.country`) render as their last segment instead
+    // of the raw path. The key stays unchanged for request-payload identity.
     const schemaMap = useAtomValue(executionItemController.selectors.inputPortSchemaMap) as Record<
         string,
-        {type: string; schema?: unknown}
+        {type: string; name?: string; schema?: unknown}
     >
     const portType = schemaMap[variableKey]?.type ?? "string"
+    const portSchema = schemaMap[variableKey]?.schema
+    const name = useMemo(
+        () =>
+            variableKeys.includes(variableKey)
+                ? (schemaMap[variableKey]?.name ?? variableKey)
+                : undefined,
+        [variableKeys, variableKey, schemaMap],
+    )
 
     // Custom app variable gating: disable controls for names not in schema keys
     const schemaKeys = useAtomValue(
@@ -158,9 +165,26 @@ const VariableControlAdapter: React.FC<VariableControlAdapterProps> = ({
 
     const setCellValue = useSetAtom(executionItemController.actions.setTestcaseCellValue)
 
-    // For object/array types, provide a sensible default when value is empty
+    // For object/array types, derive an "expected shape" hint from the port's
+    // synthetic schema. For grouped envelope-path variables (e.g.
+    // `$.inputs.test.country`) the schema lists the known sub-keys; rendered
+    // outside the editor as help text so the user can see which fields the
+    // template references without us pre-filling the editor with content
+    // that won't actually be submitted.
     const isJsonType = portType === "object" || portType === "array"
-    const jsonDefault = portType === "array" ? "[]" : "{}"
+    const shapeHint = useMemo(() => {
+        if (portType === "array") return null
+        const props =
+            portSchema && typeof portSchema === "object"
+                ? (portSchema as {properties?: Record<string, unknown>}).properties
+                : null
+        if (!props || typeof props !== "object") return null
+        const keys = Object.keys(props)
+        if (keys.length === 0) return null
+        const obj: Record<string, string> = {}
+        for (const k of keys) obj[k] = ""
+        return JSON.stringify(obj)
+    }, [portType, portSchema])
 
     // Detect whether the value looks like JSON. Derived during render (no
     // useState + useEffect indirection) so the mode is correct on the very
@@ -195,15 +219,34 @@ const VariableControlAdapter: React.FC<VariableControlAdapterProps> = ({
     })
 
     const isJsonEditor = isJsonType || detectedAsJson
-    const effectiveValue =
-        isJsonEditor && isJsonType && (!value || value === "") ? jsonDefault : value
+    const isCellEmpty = !value || value === ""
+    // The editor reflects the actual cell content. Earlier the empty cell was
+    // back-filled with a schema-derived default for display only, but that
+    // looked populated while the run payload stayed empty — surface the
+    // expected shape as a help-text hint instead (see `shapeHint` below).
+    const effectiveValue = value
 
-    // Seed the default back to the store so the execution payload has the correct value
-    useEffect(() => {
-        if (isJsonType && (!value || value === "")) {
-            setCellValue({testcaseId: rowId, column: variableKey, value: jsonDefault})
+    // Identity key for remounting the editor on SCHEMA changes only.
+    // Using `isCellEmpty` here (earlier approach) caused a cursor reset on
+    // the first keystroke: the cell flipped non-empty mid-edit, the editor
+    // key changed, Lexical remounted. Anchoring on the schema instead keeps
+    // the key stable across typing and only flips when the prompt itself
+    // introduces a new shape (different sub-paths, different slot).
+    const schemaKey = useMemo(() => {
+        if (!portSchema) return "no-schema"
+        try {
+            return JSON.stringify(portSchema)
+        } catch {
+            return "schema-err"
         }
-    }, [isJsonType, value, jsonDefault, setCellValue, rowId, variableKey])
+    }, [portSchema])
+
+    // The expected-shape hint is rendered as separate help text (not as the
+    // editor's initial value). Earlier the seed was the editor's content,
+    // which made empty cells look populated while the run payload stayed
+    // empty. Showing the shape outside the editor keeps the editor honest
+    // about what's submitted while still letting the user see which fields
+    // the template references.
 
     const handleChange = useCallback(
         (nextText: unknown) => {
@@ -361,6 +404,11 @@ const VariableControlAdapter: React.FC<VariableControlAdapterProps> = ({
         ? {codeOnly: true, language: "json", enableResize: false, boundWidth: true, ...editorProps}
         : {enableResize: false, boundWidth: true, ...editorProps}
 
+    // Show the schema-derived shape as help text on empty object cells, so
+    // the user knows which fields the template references without us
+    // pre-filling the editor with a value that wouldn't get submitted.
+    const showShapeHint = isJsonType && isCellEmpty && !!shapeHint
+
     return (
         <div
             ref={containerRef}
@@ -370,7 +418,11 @@ const VariableControlAdapter: React.FC<VariableControlAdapterProps> = ({
             onKeyDownCapture={handleKeyDownCapture}
         >
             <EditorProvider
-                key={`${editorId}-${isJsonEditor}`}
+                // Stable across user keystrokes (cell value changes don't
+                // remount — preserves cursor position). Flips only when the
+                // port's schema changes, which happens when the prompt
+                // introduces new sub-paths or a different envelope root.
+                key={`${editorId}-${isJsonEditor}-${schemaKey}`}
                 id={editorId}
                 initialValue={effectiveValue}
                 placeholder={effectivePlaceholder}
@@ -419,6 +471,11 @@ const VariableControlAdapter: React.FC<VariableControlAdapterProps> = ({
                     editorProps={mergedEditorProps}
                 />
             </EditorProvider>
+            {showShapeHint && (
+                <Typography.Text type="secondary" className="block mt-1 px-1 text-[11px] font-mono">
+                    Expected shape: <code>{shapeHint}</code>
+                </Typography.Text>
+            )}
         </div>
     )
 }

@@ -28,6 +28,7 @@ import {
     workflowRevisionDrawerEntityIdAtom,
     workflowRevisionDrawerExpandedAtom,
     workflowRevisionDrawerOpenAtom,
+    workflowRevisionDrawerStackedAtom,
 } from "./store"
 
 interface WorkflowRevisionDrawerProps {
@@ -39,6 +40,7 @@ const WorkflowRevisionDrawer = ({playgroundContent}: WorkflowRevisionDrawerProps
     const isOpen = useAtomValue(workflowRevisionDrawerOpenAtom)
     const entityId = useAtomValue(workflowRevisionDrawerEntityIdAtom)
     const isExpanded = useAtomValue(workflowRevisionDrawerExpandedAtom)
+    const isStacked = useAtomValue(workflowRevisionDrawerStackedAtom)
     const context = useAtomValue(workflowRevisionDrawerContextAtom)
     const closeDrawer = useSetAtom(closeWorkflowRevisionDrawerAtom)
     const [shouldRender, setShouldRender] = useState(!!isOpen)
@@ -99,7 +101,7 @@ const WorkflowRevisionDrawer = ({playgroundContent}: WorkflowRevisionDrawerProps
         <Drawer
             open={isOpen}
             closable={false}
-            mask={isEvaluatorDrawer ? {blur: true} : false}
+            mask={isEvaluatorDrawer || isStacked ? {blur: true} : false}
             destroyOnHidden
             afterOpenChange={handleAfterOpenChange}
             styles={{
