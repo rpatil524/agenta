@@ -69,11 +69,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app:/app/sdk \
     PATH="/opt/venv/bin:${PATH}"
 
-# Hardcode bookworm codename to avoid pulling in lsb-release (+ perl ~56MB).
+# Hardcode trixie codename to avoid pulling in lsb-release (+ perl ~56MB).
 # IMPORTANT: This codename must match the Debian release used in the base image (python:3.13-slim-trixie).
 RUN apt-get update && \
     apt-get install -y --no-install-recommends curl gnupg2 && \
-    echo "deb http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+    echo "deb http://apt.postgresql.org/pub/repos/apt trixie-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
     curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | \
     gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg && \
     apt-get update && \
