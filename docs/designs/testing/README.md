@@ -79,13 +79,13 @@ AGENTA_API_URL=http://localhost:10180/api AGENTA_AUTH_KEY=change-me-auth \
   uv run pytest tests/pytest/ -v
 
 # Run unit tests only (no external deps)
-uv run pytest oss/tests/pytest/unit/ -v
+uv run pytest tests/pytest/unit/ -v
 
 # Run acceptance tests only (requires running API)
-uv run pytest oss/tests/pytest/acceptance/ -v -m acceptance
+uv run pytest tests/pytest/acceptance/ -v -m acceptance
 
 # Run with dimension filters
-uv run pytest oss/tests/pytest/acceptance/ -v -m "coverage_smoke and cost_free"
+uv run pytest tests/pytest/acceptance/ -v -m "coverage_smoke and cost_free"
 ```
 
 ### Web Tests

@@ -13,6 +13,7 @@ Usage:
 from __future__ import annotations
 
 import json
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -98,10 +99,13 @@ def load_pypi_latest(package_names: list[str]) -> dict[str, str]:
     latest: dict[str, str] = {}
 
     for name in package_names:
-        with urllib.request.urlopen(
-            f"https://pypi.org/pypi/{name}/json", timeout=10
-        ) as response:
-            payload = json.loads(response.read().decode("utf-8"))
+        try:
+            with urllib.request.urlopen(
+                f"https://pypi.org/pypi/{name}/json", timeout=10
+            ) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+        except (urllib.error.URLError, TimeoutError):
+            continue
         version = payload.get("info", {}).get("version")
         if not version:
             continue

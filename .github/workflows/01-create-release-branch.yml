@@ -79,15 +79,15 @@ jobs:
           cd ..
 
           cd sdk
-          SDK_VERSION=$(uv version --bump "$BUMP_TYPE" --short --frozen)
+          SDK_VERSION=$(uv version --bump "$BUMP_TYPE" --short)
           cd ..
 
           cd api
-          API_VERSION=$(uv version --bump "$BUMP_TYPE" --short --frozen)
+          API_VERSION=$(uv version --bump "$BUMP_TYPE" --short)
           cd ..
 
           cd services
-          SERVICES_VERSION=$(uv version --bump "$BUMP_TYPE" --short --frozen)
+          SERVICES_VERSION=$(uv version --bump "$BUMP_TYPE" --short)
           cd ..
 
           WEB_VERSION=$(echo "$WEB_VERSION" | tr -d '[:space:]')
