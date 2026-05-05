@@ -8,7 +8,7 @@ import ipaddress
 import traceback
 from difflib import SequenceMatcher
 from json import dumps, loads
-from typing import Any, Dict, List, Optional, Union, Iterable, Tuple
+from typing import Any, Dict, List, Optional, Union, Tuple
 from urllib.parse import urlparse
 
 import httpx
@@ -16,13 +16,12 @@ import httpx
 from pydantic import BaseModel, Field
 
 from agenta.sdk.utils.logging import get_module_logger
-from agenta.sdk.utils.helpers import apply_replacements_with_tracking, _PLACEHOLDER_RE
 from agenta.sdk.utils.lazy import (
     _load_jinja2,
-    _load_jsonpath,
     _load_litellm,
     _load_openai,
 )
+from agenta.sdk.utils.templating import render_template
 
 from agenta.sdk.litellm import mockllm
 from agenta.sdk.utils.types import (  # noqa: F401
@@ -148,26 +147,18 @@ def _compute_similarity(embedding_1: List[float], embedding_2: List[float]) -> f
     return dot / (norm1 * norm2)
 
 
-# ========= Scheme detection =========
-
-
+# Resolvers used by webhook/match evaluators below. Substitution for prompt
+# templates lives in `agenta.sdk.utils.templating.render_template`.
 from agenta.sdk.utils.resolvers import (  # noqa: E402
     detect_scheme,  # noqa: F401
     resolve_dot_notation,  # noqa: F401
-    resolve_json_path,  # noqa: F401
-    resolve_json_pointer,  # noqa: F401
+    resolve_json_path,
+    resolve_json_pointer,
     resolve_json_selector,  # noqa: F401
-    resolve_any,  # noqa: F401
+    resolve_any,
 )
 
 
-# ========= Placeholder & coercion helpers =========
-
-
-# Top-level keys the dual-access resolver context injects on top of user
-# inputs. A user variable with one of these names would be silently clobbered
-# by the envelope wrapper (`_variables["inputs"] = dict(inputs)`), so we
-# validate up front and raise instead of producing surprising prompt output.
 _ENVELOPE_RESERVED_INPUT_KEYS = frozenset({"inputs"})
 
 
@@ -184,62 +175,26 @@ def _reject_reserved_input_keys(inputs: Optional[Dict[str, Any]]) -> None:
         )
 
 
-def extract_placeholders(template: str) -> Iterable[str]:
-    """Yield the inner text of all {{ ... }} occurrences (trimmed)."""
-    for m in _PLACEHOLDER_RE.finditer(template):
-        yield m.group(1).strip()
-
-
-def coerce_to_str(value: Any) -> str:
-    """Pretty stringify values for embedding into templates."""
-    if isinstance(value, (dict, list)):
-        return json.dumps(value, ensure_ascii=False)
-    return str(value)
-
-
-def build_replacements(
-    placeholders: Iterable[str], data: Dict[str, Any]
-) -> Tuple[Dict[str, str], set]:
-    """
-    Resolve all placeholders against data.
-    Returns (replacements, unresolved_placeholders).
-    """
-    replacements: Dict[str, str] = {}
-    unresolved: set = set()
-    for expr in set(placeholders):
-        try:
-            val = resolve_any(expr, data)
-            # Escape backslashes to avoid regex replacement surprises
-            replacements[expr] = coerce_to_str(val).replace("\\", "\\\\")
-        except Exception:
-            unresolved.add(expr)
-    return replacements, unresolved
-
-
-def missing_lib_hints(unreplaced: set) -> Optional[str]:
-    """Suggest installing python-jsonpath if placeholders indicate json-path or json-pointer usage."""
-    if any(expr.startswith("$") or expr.startswith("/") for expr in unreplaced):
-        json_path, json_pointer = _load_jsonpath()
-        if json_path is None or json_pointer is None:
-            return "Install python-jsonpath to enable json-path ($...) and json-pointer (/...)"
-    return None
-
-
 def _format_with_template(
     content: str,
     format: str,
     kwargs: Dict[str, Any],
 ) -> str:
-    """Internal method to format content based on template_format"""
-    if format == "fstring":
-        return content.format(**kwargs)
+    """Format content via the shared rendering helper.
 
-    elif format == "jinja2":
-        SandboxedEnvironment, TemplateError = _load_jinja2()
-        env = SandboxedEnvironment()
+    Preserves the judge's silent-return-on-jinja-error behavior: any Jinja
+    sandbox violation or template error is logged and the original content is
+    returned. Alignment to a consistent raise semantic across services lands in
+    WP-B2.
+    """
 
+    if format not in ("curly", "fstring", "jinja2"):
+        return content
+
+    if format == "jinja2":
+        _SandboxedEnvironment, TemplateError = _load_jinja2()
         try:
-            return env.from_string(content).render(**kwargs)
+            return render_template(template=content, mode=format, context=kwargs)
         except TemplateError as e:
             log.warning(
                 "Jinja2 template rendering failed (possible sandbox violation): %s",
@@ -247,30 +202,7 @@ def _format_with_template(
             )
             return content
 
-    elif format == "curly":
-        original_placeholders = set(extract_placeholders(content))
-
-        replacements, _unresolved = build_replacements(original_placeholders, kwargs)
-
-        result, successfully_replaced = apply_replacements_with_tracking(
-            content, replacements
-        )
-
-        # Only the placeholders that were NOT successfully replaced are errors
-        # This avoids false positives when substituted values contain {{...}} patterns
-        truly_unreplaced = original_placeholders - successfully_replaced
-
-        if truly_unreplaced:
-            hint = missing_lib_hints(truly_unreplaced)
-            suffix = f" Hint: {hint}" if hint else ""
-            raise ValueError(
-                f"Template variables not found or unresolved: "
-                f"{', '.join(sorted(truly_unreplaced))}.{suffix}"
-            )
-
-        return result
-
-    return content
+    return render_template(template=content, mode=format, context=kwargs)
 
 
 def _flatten_json(json_obj: Union[list, dict]) -> Dict[str, Any]:
@@ -1027,39 +959,12 @@ async def auto_ai_critique_v0(
             if correct_answer_key in inputs:
                 correct_answer = inputs[correct_answer_key]
 
-    secrets, _, _ = await SecretsManager.retrieve_secrets()
+    await SecretsManager.ensure_secrets_in_workflow()
 
-    if secrets is None or not isinstance(secrets, list):
-        raise InvalidSecretsV0Error(expected="list", got=secrets)
+    provider_settings = SecretsManager.get_provider_settings_from_workflow(model)
 
-    openai_api_key = None  # secrets.get("OPENAI_API_KEY")
-    anthropic_api_key = None  # secrets.get("ANTHROPIC_API_KEY")
-    openrouter_api_key = None  # secrets.get("OPENROUTER_API_KEY")
-    cohere_api_key = None  # secrets.get("COHERE_API_KEY")
-    azure_api_key = None  # secrets.get("AZURE_API_KEY")
-    groq_api_key = None  # secrets.get("GROQ_API_KEY")
-
-    for secret in secrets:
-        if secret.get("kind") == "provider_key":
-            secret_data = secret.get("data", {})
-            if secret_data.get("kind") == "openai":
-                provider_data = secret_data.get("provider", {})
-                openai_api_key = provider_data.get("key") or openai_api_key
-            if secret_data.get("kind") == "anthropic":
-                provider_data = secret_data.get("provider", {})
-                anthropic_api_key = provider_data.get("key") or anthropic_api_key
-            if secret_data.get("kind") == "openrouter":
-                provider_data = secret_data.get("provider", {})
-                openrouter_api_key = provider_data.get("key") or openrouter_api_key
-            if secret_data.get("kind") == "cohere":
-                provider_data = secret_data.get("provider", {})
-                cohere_api_key = provider_data.get("key") or cohere_api_key
-            if secret_data.get("kind") == "azure":
-                provider_data = secret_data.get("provider", {})
-                azure_api_key = provider_data.get("key") or azure_api_key
-            if secret_data.get("kind") == "groq":
-                provider_data = secret_data.get("provider", {})
-                groq_api_key = provider_data.get("key") or groq_api_key
+    if not provider_settings:
+        raise InvalidSecretsV0Error(expected="dict", got=provider_settings, model=model)
 
     threshold = parameters.get("threshold") or 0.5
 
@@ -1072,18 +977,10 @@ async def auto_ai_critique_v0(
 
     _outputs = None
 
-    # Lazy import litellm (configuration is done automatically in _load_litellm)
+    # Lazy import litellm so AuthenticationError stays exposed for the except below.
     litellm = _load_litellm()
     if not litellm:
         raise ImportError("litellm is required for completion handling.")
-
-    # --------------------------------------------------------------------------
-    litellm.openai_key = openai_api_key
-    litellm.anthropic_key = anthropic_api_key
-    litellm.openrouter_key = openrouter_api_key
-    litellm.cohere_key = cohere_api_key
-    litellm.azure_key = azure_api_key
-    litellm.groq_key = groq_api_key
 
     context: Dict[str, Any] = dict()
 
@@ -1146,12 +1043,12 @@ async def auto_ai_critique_v0(
         ) from e
 
     try:
-        response = await litellm.acompletion(
-            model=model,
-            messages=formatted_prompt_template,
-            temperature=0.01,
-            response_format=response_format,
-        )
+        with mockllm.user_aws_credentials_from(_coerce_credentials(provider_settings)):
+            response = await mockllm.acompletion(
+                messages=formatted_prompt_template,
+                response_format=response_format,
+                **provider_settings,
+            )
 
         _outputs = response.choices[0].message.content.strip()  # type: ignore
 
@@ -1913,6 +1810,23 @@ class SinglePromptConfig(BaseModel):
     )
 
 
+def _coerce_credentials(provider_settings: Dict) -> Dict:
+    return {
+        "AWS_ACCESS_KEY_ID": provider_settings.get("AWS_ACCESS_KEY_ID")
+        or provider_settings.get("aws_access_key_id"),
+        "AWS_SECRET_ACCESS_KEY": provider_settings.get("AWS_SECRET_ACCESS_KEY")
+        or provider_settings.get("aws_secret_access_key"),
+        "AWS_SESSION_TOKEN": provider_settings.get("AWS_SESSION_TOKEN")
+        or provider_settings.get("aws_session_token"),
+        "AWS_REGION": provider_settings.get("AWS_REGION")
+        or provider_settings.get("aws_region")
+        or provider_settings.get("aws_region_name"),
+        "AWS_DEFAULT_REGION": provider_settings.get("AWS_DEFAULT_REGION")
+        or provider_settings.get("aws_default_region")
+        or provider_settings.get("aws_region_name"),
+    }
+
+
 def _apply_responses_bridge_if_needed(
     provider_settings: Dict,
     llm_config: ModelConfig,
@@ -2139,7 +2053,9 @@ async def _run_prompt_llm_config_with_retry(
             if messages is not None:
                 openai_kwargs["messages"] = [*openai_kwargs["messages"], *messages]
 
-            with mockllm.user_aws_credentials_from(provider_settings):
+            with mockllm.user_aws_credentials_from(
+                _coerce_credentials(provider_settings)
+            ):
                 return await mockllm.acompletion(
                     **{k: v for k, v in openai_kwargs.items() if k != "model"},
                     **provider_settings,
