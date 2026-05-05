@@ -49,8 +49,12 @@ def resolve_dot_notation(expr: str, data: dict) -> object:
         return data[expr]
 
     # If not found as a literal key, try to parse as dot-notation path
+    tokens = [p for p in expr.split(".") if p]
+    if not tokens:
+        raise KeyError("Empty variable reference is not allowed (e.g. '{{}}', '{{.}}')")
+
     cur = data
-    for token in (p for p in expr.split(".") if p):
+    for token in tokens:
         if isinstance(cur, list) and token.isdigit():
             idx = int(token)
             if idx >= len(cur):
