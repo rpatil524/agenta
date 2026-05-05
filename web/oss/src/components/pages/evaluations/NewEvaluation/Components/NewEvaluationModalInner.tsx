@@ -260,7 +260,10 @@ const NewEvaluationModalInner = ({
 
     const handleAppSelection = useCallback(
         (value: string, meta?: {label?: string; isEvaluator?: boolean}) => {
-            if (value === selectedAppId) return
+            if (value === selectedAppId) {
+                if (value && meta) setSelectedWorkflowMeta(meta)
+                return
+            }
             setSelectedAppId(value)
             setSelectedWorkflowMeta(value ? (meta ?? null) : null)
             setSelectedTestsetId("")
