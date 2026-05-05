@@ -63,7 +63,6 @@ import {axios, queryClient} from "@agenta/shared/api"
 import {projectIdAtom} from "@agenta/shared/state"
 import {extractApiErrorMessage} from "@agenta/shared/utils"
 import {atom, type Getter, type Setter} from "jotai"
-import {atomWithStorage} from "jotai/utils"
 import {getDefaultStore} from "jotai/vanilla"
 import {atomFamily} from "jotai-family"
 import {atomWithQuery} from "jotai-tanstack-query"
@@ -239,10 +238,7 @@ interface AddScenariosToTestsetPayload {
     newTestsetSlug?: string
 }
 
-const lastUsedTestsetByProjectAtom = atomWithStorage<Record<string, string | null>>(
-    "agenta:annotation:last-testset-by-project",
-    {},
-)
+const lastUsedTestsetByProjectAtom = atom<Record<string, string | null>>({})
 
 const lastUsedTestsetIdAtom = atom(
     (get) => {
