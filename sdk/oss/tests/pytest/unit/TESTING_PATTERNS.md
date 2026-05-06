@@ -55,7 +55,7 @@ mock_ag.tracing = self.mock_tracing
 
 **Run command**:
 ```bash
-poetry run pytest tests/unit/test_tracing_decorators.py::TestExistingFunctionality -v
+uv run pytest tests/unit/test_tracing_decorators.py::TestExistingFunctionality -v
 ```
 
 ### 2. Generator Tests (`TestGeneratorTracing`)
@@ -76,7 +76,7 @@ poetry run pytest tests/unit/test_tracing_decorators.py::TestExistingFunctionali
 
 **Run command**:
 ```bash
-poetry run pytest tests/unit/test_tracing_decorators.py::TestGeneratorTracing -v
+uv run pytest tests/unit/test_tracing_decorators.py::TestGeneratorTracing -v
 ```
 
 ## Test Data Patterns
@@ -149,11 +149,11 @@ mock_ag.tracing = self.mock_tracing  # Don't forget this!
 ### Issue: Import errors during test collection
 
 **Cause**: Missing dependencies or incorrect Python path
-**Solution**: Use Poetry environment
+**Solution**: Use uv environment
 
 ```bash
-# ✅ Always run with Poetry
-poetry run pytest tests/unit/ -v
+# ✅ Always run with uv
+uv run pytest tests/unit/ -v
 ```
 
 ## Extending Tests
@@ -218,28 +218,28 @@ def test_generator_performance(self, mock_ag):
 ### Parallel Execution
 ```bash
 # Run tests in parallel (faster execution)
-poetry run pytest tests/unit/ -n auto
+uv run pytest tests/unit/ -n auto
 ```
 
 ### Coverage Reporting
 ```bash
 # Detailed coverage with HTML report
-poetry run pytest tests/unit/ --cov=agenta.sdk.decorators --cov-report=html
+uv run pytest tests/unit/ --cov=agenta.sdk.decorators --cov-report=html
 
 # XML coverage for CI integration
-poetry run pytest tests/unit/ --cov=agenta.sdk --cov-report=xml
+uv run pytest tests/unit/ --cov=agenta.sdk --cov-report=xml
 ```
 
 ### Debugging
 ```bash
 # Run with pdb debugger on failures
-poetry run pytest tests/unit/ --pdb
+uv run pytest tests/unit/ --pdb
 
 # Detailed traceback
-poetry run pytest tests/unit/ -v --tb=long
+uv run pytest tests/unit/ -v --tb=long
 
 # Stop on first failure
-poetry run pytest tests/unit/ -x
+uv run pytest tests/unit/ -x
 ```
 
 ## CI/CD Integration
@@ -258,12 +258,12 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
+      - name: Install uv
+        run: python -m pip install uv==0.11.9
       - name: Install dependencies
-        run: poetry install
+        run: uv sync --locked
       - name: Run unit tests
-        run: poetry run pytest tests/unit/ -v --cov=agenta.sdk --cov-report=xml
+        run: uv run pytest tests/unit/ -v --cov=agenta.sdk --cov-report=xml
       - name: Upload coverage
         uses: codecov/codecov-action@v3
 ```
@@ -285,6 +285,6 @@ sdk/
 │       ├── TESTING_PATTERNS.md   # This file
 │       ├── conftest.py           # Shared fixtures
 │       └── test_tracing_decorators.py
-├── pyproject.toml                # Poetry configuration with test dependencies
+├── pyproject.toml                # uv project configuration with test dependencies
 └── pytest.ini                   # Pytest configuration
 ```
