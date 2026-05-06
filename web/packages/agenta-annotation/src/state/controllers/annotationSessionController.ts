@@ -233,6 +233,7 @@ export interface AddToTestsetExportJob {
     total: number
     processed: number
     targetTestsetId?: string
+    targetRevisionId?: string
     targetTestsetName?: string
     error?: string
 }
@@ -3015,6 +3016,8 @@ const addScenariosToTestsetAtom = atom(
                     prev.id === jobId ? {...prev, status: "committing"} : prev,
                 )
 
+                let committedRevisionId: string | undefined
+
                 if (payload.targetMode === "new") {
                     const result = await createTestset({
                         projectId,
@@ -3024,6 +3027,7 @@ const addScenariosToTestsetAtom = atom(
                         commitMessage: payload.commitMessage,
                     })
                     committedTestsetId = result?.testset?.id
+                    committedRevisionId = result?.revisionId
                     committedTestsetName = result?.testset?.name ?? committedTestsetName
                 } else {
                     if (!targetTestsetId || !latestRevision) {
@@ -3032,7 +3036,7 @@ const addScenariosToTestsetAtom = atom(
 
                     const rowsForCommit = remapRowsToExistingLeafColumns(rows, existingColumns)
 
-                    await patchRevision({
+                    const patchResult = await patchRevision({
                         projectId,
                         testsetId: targetTestsetId,
                         baseRevisionId: latestRevision.id,
@@ -3043,6 +3047,7 @@ const addScenariosToTestsetAtom = atom(
                         },
                         message: payload.commitMessage,
                     })
+                    committedRevisionId = patchResult?.testset_revision?.id
                 }
 
                 if (committedTestsetId) {
@@ -3061,6 +3066,7 @@ const addScenariosToTestsetAtom = atom(
                     total: scenarioIds.length,
                     processed: rows.length,
                     targetTestsetId: committedTestsetId,
+                    targetRevisionId: committedRevisionId,
                     targetTestsetName: committedTestsetName,
                 })
             } catch (error) {

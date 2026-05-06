@@ -14,6 +14,8 @@ import {message} from "@agenta/ui/app-message"
 import {Spin, Typography} from "antd"
 import {useAtomValue, useSetAtom} from "jotai"
 
+import {useAnnotationNavigation} from "../../context"
+
 import ConfigurationView from "./ConfigurationView"
 import {
     ADD_TO_TESTSET_COMMIT_MODES,
@@ -33,6 +35,8 @@ const AnnotationSession = ({
     onActiveViewChange,
     canExportData = true,
 }: AnnotationSessionProps) => {
+    const navigation = useAnnotationNavigation()
+
     // Queue data from molecule (auto-fetched by queueId)
     const queueQuery = useAtomValue(simpleQueueMolecule.selectors.query(queueId))
     const queue = useAtomValue(simpleQueueMolecule.selectors.data(queueId))
@@ -113,7 +117,7 @@ const AnnotationSession = ({
         message.success("Annotations saved")
     }, [])
 
-    const handleCompleted = useCallback((scenarioId: string) => {
+    const handleCompleted = useCallback((_scenarioId: string) => {
         message.success("Scenario completed")
     }, [])
 
@@ -140,11 +144,17 @@ const AnnotationSession = ({
 
         if (addToTestsetExportJob.status === "success") {
             notifiedExportJobIdRef.current = addToTestsetExportJob.id
-            message.success(
-                `Added ${addToTestsetExportJob.processed} row${
-                    addToTestsetExportJob.processed === 1 ? "" : "s"
-                } to ${addToTestsetExportJob.targetTestsetName ?? "testset"}`,
-            )
+            const {processed, targetRevisionId, targetTestsetName} = addToTestsetExportJob
+            const label = targetTestsetName ?? "testset"
+            message.success({
+                content: `Added ${processed} row${processed === 1 ? "" : "s"} to ${label}.`,
+                onNavigate:
+                    targetRevisionId && navigation.navigateToTestset
+                        ? () => navigation.navigateToTestset!(targetRevisionId)
+                        : undefined,
+                linkText: `View "${label}"`,
+                duration: 5,
+            })
         }
     }, [addToTestsetExportJob])
 
