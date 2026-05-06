@@ -40,20 +40,33 @@ export async function createTestset(params: {
                 name,
                 data: {testcases: formattedTestcases},
             },
-            message: commitMessage || undefined,
         },
         {params: {project_id: projectId}},
     )
 
     const simpleTestset = response.data.testset
     if (simpleTestset) {
+        const message = commitMessage?.trim()
+        let revisionId = simpleTestset.revision_id
+
+        if (message && simpleTestset.id && simpleTestset.variant_id) {
+            const commitResponse = await commitRevision({
+                projectId,
+                testsetId: simpleTestset.id,
+                testsetVariantId: simpleTestset.variant_id,
+                testcases: formattedTestcases,
+                message,
+            })
+            revisionId = commitResponse?.testset_revision?.id ?? revisionId
+        }
+
         return {
             testset: {
                 id: simpleTestset.id,
                 name: simpleTestset.name,
                 slug: simpleTestset.slug,
             },
-            revisionId: simpleTestset.revision_id,
+            revisionId,
         }
     }
 
@@ -240,16 +253,18 @@ export async function patchRevision(params: {
 export async function commitRevision(params: {
     projectId: string
     testsetId: string
+    testsetVariantId?: string
     testcases: {id?: string; data: Record<string, unknown>}[]
     message?: string
 }) {
-    const {projectId, testsetId, testcases, message} = params
+    const {projectId, testsetId, testsetVariantId, testcases, message} = params
 
     const response = await axios.post(
         `${getAgentaApiUrl()}/testsets/revisions/commit`,
         {
             testset_revision_commit: {
                 testset_id: testsetId,
+                testset_variant_id: testsetVariantId,
                 message: message || "Updated testcases",
                 data: {
                     testcases: testcases.map((tc) => ({

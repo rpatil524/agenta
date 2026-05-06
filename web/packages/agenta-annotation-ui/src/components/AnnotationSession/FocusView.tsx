@@ -53,7 +53,6 @@ const AllCaughtUp = memo(function AllCaughtUp({
         annotationSessionController.actions.openAddToTestsetModal,
     )
     const isTraces = queueKind === "traces"
-    const isTestcases = queueKind === "testcases"
 
     const handleGoToObservability = useCallback(() => {
         navigation.navigateToObservability?.()
@@ -81,22 +80,18 @@ const AllCaughtUp = memo(function AllCaughtUp({
             </div>
 
             <div className="flex items-center gap-2">
-                {(isTraces || isTestcases) && (
-                    <Button
-                        size="small"
-                        type={isTestcases ? "primary" : "default"}
-                        icon={<Plus size={14} />}
-                        onClick={handleAddToTestset}
-                        disabled={isAddToTestsetExporting}
-                    >
-                        Add to Testset
-                    </Button>
-                )}
-                {isTraces && navigation.navigateToObservability && (
-                    <Button size="small" type="primary" onClick={handleGoToObservability}>
-                        Go to observability
-                    </Button>
-                )}
+                <Button
+                    size="small"
+                    icon={<Plus size={14} />}
+                    onClick={handleAddToTestset}
+                    disabled={isAddToTestsetExporting}
+                >
+                    Add to Testset
+                </Button>
+
+                <Button size="small" onClick={handleGoToObservability}>
+                    Go to observability
+                </Button>
             </div>
         </div>
     )

@@ -1,198 +1,31 @@
-import {memo, useCallback, useEffect, useMemo, useRef} from "react"
+import {useCallback, useEffect, useMemo, useRef} from "react"
 
 import {annotationFormController, annotationSessionController} from "@agenta/annotation"
 import type {SessionView} from "@agenta/annotation"
 import {simpleQueueMolecule} from "@agenta/entities/simpleQueue"
-import {testsetsListAtom, type Testset} from "@agenta/entities/testset"
 import {
     EntityCommitModal,
     EntityPicker,
     type CommitSubmitParams,
     type CommitSubmitResult,
-    type EntitySelectionAdapter,
-    type EntitySelectionResult,
-    type ListQueryState,
-    type SelectionPathItem,
 } from "@agenta/entity-ui"
 import {PageLayout} from "@agenta/ui"
 import {message} from "@agenta/ui/app-message"
-import {Tray} from "@phosphor-icons/react"
-import {Button, Spin, Tabs, Typography} from "antd"
-import {type Atom, useAtomValue, useSetAtom} from "jotai"
-
-import {useAnnotationNavigation} from "../../context"
+import {Spin, Typography} from "antd"
+import {useAtomValue, useSetAtom} from "jotai"
 
 import ConfigurationView from "./ConfigurationView"
+import {
+    ADD_TO_TESTSET_COMMIT_MODES,
+    ADD_TO_TESTSET_TARGET_ADAPTER,
+    CREATE_TESTSET_FIELDS,
+} from "./constants"
+import EmptyQueueState from "./EmptyQueueState"
 import FocusView from "./FocusView"
 import ScenarioListView from "./ScenarioListView"
-
-// ============================================================================
-// TYPES
-// ============================================================================
-
-interface AnnotationSessionProps {
-    queueId: string
-    routeState: {
-        view: SessionView
-        scenarioId?: string
-    }
-    onActiveViewChange?: (view: SessionView) => void
-    canExportData?: boolean
-}
-
-interface AddToTestsetTargetSelection extends EntitySelectionResult<{
-    testsetId: string
-    testsetName: string
-}> {
-    type: "testset"
-    metadata: {
-        testsetId: string
-        testsetName: string
-    }
-}
-
-// ============================================================================
-// TAB ITEMS
-// ============================================================================
-
-const SESSION_TABS: {key: SessionView; label: string}[] = [
-    {key: "annotate", label: "Annotate"},
-    {key: "list", label: "All Annotations"},
-    {key: "configuration", label: "Configuration"},
-]
-
-const TAB_ITEMS = SESSION_TABS.map((t) => ({key: t.key, label: t.label}))
-
-const ADD_TO_TESTSET_COMMIT_MODES = [
-    {id: "existing", label: "Existing testset"},
-    {id: "new", label: "New testset"},
-]
-
-const CREATE_TESTSET_FIELDS = {
-    modes: ["new"],
-    nameLabel: "Testset name",
-    defaultName: ({entity}: {entity: {name?: string} | null}) => entity?.name ?? "",
-}
-
-const SessionTitle = memo(function SessionTitle({queueName}: {queueName: string}) {
-    return <span className="truncate">{queueName}</span>
-})
-
-const ADD_TO_TESTSET_TARGET_ADAPTER: EntitySelectionAdapter<AddToTestsetTargetSelection> = {
-    name: "annotation-add-to-testset-target",
-    entityType: "testset",
-    hierarchy: {
-        selectableLevel: 0,
-        levels: [
-            {
-                type: "testset",
-                label: "Testset",
-                listAtom: testsetsListAtom as unknown as Atom<ListQueryState<Testset>>,
-                getId: (testset: unknown) => (testset as Testset).id,
-                getLabel: (testset: unknown) => (testset as Testset).name,
-                getDescription: (testset: unknown) => (testset as Testset).description ?? undefined,
-                hasChildren: () => false,
-                isSelectable: () => true,
-            },
-        ],
-    },
-    toSelection: (path: SelectionPathItem[], leafEntity: unknown): AddToTestsetTargetSelection => {
-        const testset = leafEntity as Testset
-        const id = testset.id
-        const name = testset.name
-
-        return {
-            type: "testset",
-            id,
-            label: name,
-            path,
-            metadata: {
-                testsetId: id,
-                testsetName: name,
-            },
-        }
-    },
-    isComplete: (path: SelectionPathItem[]) => Boolean(path[0]?.id),
-    emptyMessage: "No testsets found",
-    loadingMessage: "Loading testsets...",
-}
-
-// ============================================================================
-// HEADER RIGHT SECTION
-// ============================================================================
-
-const SessionHeaderRight = memo(function SessionHeaderRight({
-    activeView,
-    onTabChange,
-}: {
-    activeView: SessionView
-    onTabChange: (key: string) => void
-}) {
-    return (
-        <div className="flex items-center gap-4">
-            <Tabs
-                activeKey={activeView}
-                onChange={onTabChange}
-                items={TAB_ITEMS}
-                className="[&_.ant-tabs-nav]:!mb-0"
-                size="small"
-            />
-        </div>
-    )
-})
-
-// ============================================================================
-// EMPTY QUEUE STATE
-// ============================================================================
-
-const EmptyQueueState = memo(function EmptyQueueState({
-    onViewChange,
-}: {
-    onViewChange: (view: SessionView) => void
-}) {
-    const navigation = useAnnotationNavigation()
-    const queueKind = useAtomValue(annotationSessionController.selectors.queueKind())
-    const isTraces = queueKind === "traces"
-
-    return (
-        <div className="flex flex-col flex-1 items-center justify-center gap-4 min-h-0">
-            <div className="flex items-center justify-center size-20 rounded-full bg-[var(--ant-color-fill-quaternary)]">
-                <Tray size={32} className="text-[var(--ant-color-text-secondary)]" />
-            </div>
-
-            <div className="flex flex-col items-center gap-2 text-center">
-                <Typography.Text strong className="!text-base">
-                    There&apos;s nothing to see here
-                </Typography.Text>
-                <Typography.Text type="secondary" className="text-sm">
-                    Currently there are no runs &amp; annotations in this queue,
-                    <br />
-                    {isTraces ? "please add runs from traces." : "please add items from test sets."}
-                </Typography.Text>
-            </div>
-
-            <div className="flex items-center gap-2">
-                <Button size="small" onClick={() => onViewChange("list")}>
-                    View previous annotations
-                </Button>
-                {isTraces && navigation.navigateToObservability && (
-                    <Button
-                        size="small"
-                        type="primary"
-                        className="!bg-[#051729] !border-[#051729] hover:!bg-[#0a2540] hover:!border-[#0a2540]"
-                        onClick={() => navigation.navigateToObservability?.()}
-                    >
-                        Go to observability
-                    </Button>
-                )}
-            </div>
-        </div>
-    )
-})
-
-// ============================================================================
-// MAIN COMPONENT
-// ============================================================================
+import SessionHeaderRight from "./SessionHeaderRight"
+import SessionTitle from "./SessionTitle"
+import type {AddToTestsetTargetSelection, AnnotationSessionProps} from "./type"
 
 const AnnotationSession = ({
     queueId,
