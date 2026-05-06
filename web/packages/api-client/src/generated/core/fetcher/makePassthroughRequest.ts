@@ -1,10 +1,10 @@
-import { createLogger, type LogConfig, type Logger } from "../logging/logger";
-import { join } from "../url/join";
-import { EndpointSupplier } from "./EndpointSupplier";
-import { getFetchFn } from "./getFetchFn";
-import { makeRequest } from "./makeRequest";
-import { requestWithRetries } from "./requestWithRetries";
-import { Supplier } from "./Supplier";
+import { createLogger, type LogConfig, type Logger } from "../logging/logger.js";
+import { join } from "../url/join.js";
+import { EndpointSupplier } from "./EndpointSupplier.js";
+import { getFetchFn } from "./getFetchFn.js";
+import { makeRequest } from "./makeRequest.js";
+import { requestWithRetries } from "./requestWithRetries.js";
+import { Supplier } from "./Supplier.js";
 
 export declare namespace PassthroughRequest {
     /**

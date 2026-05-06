@@ -1,1 +1,1 @@
-export type { RemoveUserFromWorkspaceRequest } from "./RemoveUserFromWorkspaceRequest";
+export type { RemoveUserFromWorkspaceRequest } from "./RemoveUserFromWorkspaceRequest.js";

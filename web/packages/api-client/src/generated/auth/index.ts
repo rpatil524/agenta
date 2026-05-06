@@ -1,1 +1,1 @@
-export { HeaderAuthProvider } from "./HeaderAuthProvider";
+export { HeaderAuthProvider } from "./HeaderAuthProvider.js";

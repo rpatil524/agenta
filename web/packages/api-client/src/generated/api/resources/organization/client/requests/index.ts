@@ -1,4 +1,4 @@
-export type { FetchOrganizationDetailsRequest } from "./FetchOrganizationDetailsRequest";
-export type { InviteToken } from "./InviteToken";
-export type { InviteUserToWorkspaceRequest } from "./InviteUserToWorkspaceRequest";
-export type { ResendInviteRequest } from "./ResendInviteRequest";
+export type { FetchOrganizationDetailsRequest } from "./FetchOrganizationDetailsRequest.js";
+export type { InviteToken } from "./InviteToken.js";
+export type { InviteUserToWorkspaceRequest } from "./InviteUserToWorkspaceRequest.js";
+export type { ResendInviteRequest } from "./ResendInviteRequest.js";

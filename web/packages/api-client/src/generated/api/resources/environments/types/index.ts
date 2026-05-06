@@ -1,3 +1,3 @@
-export * from "./QueryEnvironmentRevisionsRequestOrder";
-export * from "./QueryEnvironmentsRequestOrder";
-export * from "./QueryEnvironmentVariantsRequestOrder";
+export * from "./QueryEnvironmentRevisionsRequestOrder.js";
+export * from "./QueryEnvironmentsRequestOrder.js";
+export * from "./QueryEnvironmentVariantsRequestOrder.js";

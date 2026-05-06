@@ -1,4 +1,4 @@
-export type { CreateSecretDto } from "./CreateSecretDto";
-export type { DeleteSecretRequest } from "./DeleteSecretRequest";
-export type { ReadSecretRequest } from "./ReadSecretRequest";
-export type { UpdateSecretDto } from "./UpdateSecretDto";
+export type { CreateSecretDto } from "./CreateSecretDto.js";
+export type { DeleteSecretRequest } from "./DeleteSecretRequest.js";
+export type { ReadSecretRequest } from "./ReadSecretRequest.js";
+export type { UpdateSecretDto } from "./UpdateSecretDto.js";

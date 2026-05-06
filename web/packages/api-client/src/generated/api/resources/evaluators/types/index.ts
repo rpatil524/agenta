@@ -1,1 +1,1 @@
-export * from "./QueryEvaluatorVariantsRequestOrder";
+export * from "./QueryEvaluatorVariantsRequestOrder.js";

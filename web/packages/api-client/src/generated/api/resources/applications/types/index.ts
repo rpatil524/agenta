@@ -1,1 +1,1 @@
-export * from "./QueryApplicationVariantsRequestOrder";
+export * from "./QueryApplicationVariantsRequestOrder.js";

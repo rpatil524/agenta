@@ -1,5 +1,5 @@
-export type { DeleteSimpleTraceRequest } from "./DeleteSimpleTraceRequest";
-export type { FetchSimpleTraceRequest } from "./FetchSimpleTraceRequest";
-export type { SimpleTraceCreateRequest } from "./SimpleTraceCreateRequest";
-export type { SimpleTraceEditRequest } from "./SimpleTraceEditRequest";
-export type { SimpleTraceQueryRequest } from "./SimpleTraceQueryRequest";
+export type { DeleteSimpleTraceRequest } from "./DeleteSimpleTraceRequest.js";
+export type { FetchSimpleTraceRequest } from "./FetchSimpleTraceRequest.js";
+export type { SimpleTraceCreateRequest } from "./SimpleTraceCreateRequest.js";
+export type { SimpleTraceEditRequest } from "./SimpleTraceEditRequest.js";
+export type { SimpleTraceQueryRequest } from "./SimpleTraceQueryRequest.js";

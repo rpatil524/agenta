@@ -1,2 +1,2 @@
-export { AgentaApiError } from "./AgentaApiError";
-export { AgentaApiTimeoutError } from "./AgentaApiTimeoutError";
+export { AgentaApiError } from "./AgentaApiError.js";
+export { AgentaApiTimeoutError } from "./AgentaApiTimeoutError.js";

@@ -1,3 +1,3 @@
-export type { FetchTestcaseRequest } from "./FetchTestcaseRequest";
-export type { FetchTestcasesRequest } from "./FetchTestcasesRequest";
-export type { TestcasesQueryRequest } from "./TestcasesQueryRequest";
+export type { FetchTestcaseRequest } from "./FetchTestcaseRequest.js";
+export type { FetchTestcasesRequest } from "./FetchTestcasesRequest.js";
+export type { TestcasesQueryRequest } from "./TestcasesQueryRequest.js";

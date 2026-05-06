@@ -1,3 +1,3 @@
-export { encodePathParam } from "./encodePathParam";
-export { join } from "./join";
-export { toQueryString } from "./qs";
+export { encodePathParam } from "./encodePathParam.js";
+export { join } from "./join.js";
+export { toQueryString } from "./qs.js";

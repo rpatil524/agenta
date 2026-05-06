@@ -1,5 +1,5 @@
-export type { DeleteFolderRequest } from "./DeleteFolderRequest";
-export type { FetchFolderRequest } from "./FetchFolderRequest";
-export type { FolderCreateRequest } from "./FolderCreateRequest";
-export type { FolderEditRequest } from "./FolderEditRequest";
-export type { FolderQueryRequest } from "./FolderQueryRequest";
+export type { DeleteFolderRequest } from "./DeleteFolderRequest.js";
+export type { FetchFolderRequest } from "./FetchFolderRequest.js";
+export type { FolderCreateRequest } from "./FolderCreateRequest.js";
+export type { FolderEditRequest } from "./FolderEditRequest.js";
+export type { FolderQueryRequest } from "./FolderQueryRequest.js";
