@@ -12,6 +12,7 @@ import {useCallback, useMemo} from "react"
 
 import {annotationFormController, annotationSessionController} from "@agenta/annotation"
 import {traceRootSpanAtomFamily} from "@agenta/entities/trace"
+import {useModifierKey} from "@agenta/shared/hooks"
 import {message} from "@agenta/ui/app-message"
 import {CopyTooltip} from "@agenta/ui/copy-tooltip"
 import {ArrowSquareOut, CaretLeft, CaretRight, Copy, Plus} from "@phosphor-icons/react"
@@ -46,6 +47,7 @@ interface SessionNavigationProps {
 
 const SessionNavigation = ({scenarioId, queueId, onCompleted}: SessionNavigationProps) => {
     const navigation = useAnnotationNavigation()
+    const modifierKey = useModifierKey()
 
     const hasNext = useAtomValue(annotationSessionController.selectors.hasNext())
     const hasPrev = useAtomValue(annotationSessionController.selectors.hasPrev())
@@ -211,7 +213,10 @@ const SessionNavigation = ({scenarioId, queueId, onCompleted}: SessionNavigation
                         onClick={() => navigatePrev()}
                         disabled={!hasPrev}
                     >
-                        Prev
+                        Prev{" "}
+                        <kbd className="px-1 rounded border border-solid border-current opacity-50 ml-0.5">
+                            ←
+                        </kbd>
                     </Button>
                     <Button
                         size="small"
@@ -220,7 +225,10 @@ const SessionNavigation = ({scenarioId, queueId, onCompleted}: SessionNavigation
                         iconPosition="end"
                         icon={<CaretRight size={13} />}
                     >
-                        Next
+                        Next{" "}
+                        <kbd className="px-1 rounded border border-solid border-current opacity-50 ml-0.5">
+                            →
+                        </kbd>
                     </Button>
                     <Button
                         size="small"
@@ -235,10 +243,13 @@ const SessionNavigation = ({scenarioId, queueId, onCompleted}: SessionNavigation
                         onClick={handleMarkComplete}
                         disabled={isSubmitting || !hasFilledMetrics}
                         loading={isSubmitting}
-                        className="w-[130px]"
+                        className="w-[160px]"
                         size="small"
                     >
-                        {isCompleted ? "Update" : "Mark completed"}
+                        {isCompleted ? "Update" : "Mark completed"}{" "}
+                        <kbd className="px-1 rounded border border-solid border-current opacity-50 ml-0.5">
+                            {modifierKey}↵
+                        </kbd>
                     </Button>
                 </div>
             </div>
