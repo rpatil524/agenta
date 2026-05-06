@@ -309,8 +309,8 @@ importers:
         specifier: ^3.1.0
         version: 3.1.1(react@19.2.5)
       uuid:
-        specifier: ^11.1.0
-        version: 11.1.0
+        specifier: ^11.1.1
+        version: 11.1.1
       webpack:
         specifier: ^5.104.1
         version: 5.106.2(@swc/core@1.15.26(@swc/helpers@0.5.21))
@@ -652,8 +652,8 @@ importers:
         specifier: ^3.1.1
         version: 3.1.1(react@19.2.5)
       uuid:
-        specifier: ^11.1.0
-        version: 11.1.0
+        specifier: ^11.1.1
+        version: 11.1.1
       uuidjs:
         specifier: ^5.1.0
         version: 5.1.0
@@ -820,8 +820,8 @@ importers:
         specifier: ^0.0.6
         version: 0.0.6
       uuid:
-        specifier: '>=9.0.0'
-        version: 11.1.0
+        specifier: ^11.1.1
+        version: 11.1.1
       zod:
         specifier: ^4.0.0
         version: 4.3.6
@@ -965,8 +965,8 @@ importers:
         specifier: '>=18.0.0'
         version: 19.2.5
       uuid:
-        specifier: '>=9.0.0'
-        version: 11.1.0
+        specifier: ^11.1.1
+        version: 11.1.1
       zod:
         specifier: ^4.0.0
         version: 4.3.6
@@ -1077,8 +1077,8 @@ importers:
         specifier: '>=18.0.0'
         version: 19.2.5
       uuid:
-        specifier: ^11.1.0
-        version: 11.1.0
+        specifier: ^11.1.1
+        version: 11.1.1
     devDependencies:
       '@types/lz-string':
         specifier: ^1.5.0
@@ -1141,8 +1141,8 @@ importers:
         specifier: '>=18.0.0'
         version: 19.2.5(react@19.2.5)
       uuid:
-        specifier: ^11.1.0
-        version: 11.1.0
+        specifier: ^11.1.1
+        version: 11.1.1
     devDependencies:
       '@types/node':
         specifier: ^20.8.10
@@ -1187,8 +1187,8 @@ importers:
         specifier: '>=18.0.0'
         version: 19.2.5
       uuid:
-        specifier: ^11.1.0
-        version: 11.1.0
+        specifier: ^11.1.1
+        version: 11.1.1
     devDependencies:
       '@types/node':
         specifier: ^20.8.10
@@ -1320,8 +1320,8 @@ importers:
         specifier: ^3.0.5
         version: 3.1.3(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       uuid:
-        specifier: '>=9.0.0'
-        version: 11.1.0
+        specifier: ^11.1.1
+        version: 11.1.1
     devDependencies:
       '@floating-ui/react':
         specifier: ^0.26.0
@@ -6343,8 +6343,8 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
-  uuid@11.1.0:
-    resolution: {integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==}
+  uuid@11.1.1:
+    resolution: {integrity: sha512-vIYxrBCC/N/K+Js3qSN88go7kIfNPssr/hHCesKCQNAjmgvYS2oqr69kIufEG+O4+PfezOH4EbIeHCfFov8ZgQ==}
     hasBin: true
 
   uuidjs@5.1.0:
@@ -10616,7 +10616,7 @@ snapshots:
       roughjs: 4.6.6
       stylis: 4.3.6
       ts-dedent: 2.2.0
-      uuid: 11.1.0
+      uuid: 11.1.1
 
   methods@1.1.2: {}
 
@@ -12003,7 +12003,7 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
-  uuid@11.1.0: {}
+  uuid@11.1.1: {}
 
   uuidjs@5.1.0: {}
 

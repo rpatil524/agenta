@@ -123,7 +123,7 @@
         "typescript": "5.8.3",
         "use-animation-frame": "^0.2.1",
         "usehooks-ts": "^3.1.1",
-        "uuid": "^11.1.0",
+        "uuid": "^11.1.1",
         "uuidjs": "^5.1.0",
         "zod": "^4.3.6"
     },
