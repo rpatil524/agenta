@@ -1,6 +1,13 @@
-FROM python:3.11-slim-bookworm
+ARG UV_VERSION=0.11.9
+FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv
+
+FROM python:3.13-slim-trixie
 
 WORKDIR /app
+
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
+    UV_LINK_MODE=copy \
+    PATH="/opt/venv/bin:${PATH}"
 
 RUN apt-get update && \
     apt-get install -y curl gnupg2 lsb-release && \
@@ -8,7 +15,7 @@ RUN apt-get update && \
     curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | \
     gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg && \
     apt-get update && \
-    apt-get install -y postgresql-client-16 && \
+    apt-get install -y postgresql-client-17 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -25,13 +32,11 @@ RUN ARCH=$(dpkg --print-architecture) && \
     echo "${SHA1}  /usr/local/bin/supercronic" | sha1sum -c - && \
     chmod +x /usr/local/bin/supercronic
 
-RUN pip install --upgrade pip \
-    && pip install poetry
+COPY --from=uv /uv /uvx /bin/
 
-COPY ./pyproject.toml /app/
+COPY ./pyproject.toml ./uv.lock* /app/
 
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi
+RUN uv sync --locked
 
 #
 RUN groupadd --gid 10001 agenta && \
@@ -40,7 +45,10 @@ RUN groupadd --gid 10001 agenta && \
 COPY --chown=agenta:agenta ./oss /app/oss/
 COPY --chown=agenta:agenta ./entrypoints /app/entrypoints/
 
-ENV PYTHONPATH=/sdk:$PYTHONPATH
+ENV PYTHONPATH=/sdks/python:/clients/python:$PYTHONPATH
+
+RUN echo "/clients/python" > /usr/local/lib/python3.11/site-packages/agenta_client_path.pth \
+    && echo "/sdks/python" >> /usr/local/lib/python3.11/site-packages/agenta_client_path.pth
 
 COPY ./oss/src/crons/queries.sh /queries.sh
 COPY ./oss/src/crons/queries.txt /etc/cron.d/queries-cron

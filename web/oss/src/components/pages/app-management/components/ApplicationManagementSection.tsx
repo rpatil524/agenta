@@ -1,4 +1,4 @@
-import {type SetStateAction, useCallback, useMemo} from "react"
+import {type SetStateAction, useCallback, useEffect, useMemo} from "react"
 
 import {workflowMolecule} from "@agenta/entities/workflow"
 import {extractApiErrorMessage} from "@agenta/shared/utils"
@@ -15,7 +15,12 @@ import useURL from "@/oss/hooks/useURL"
 import {useAppsData} from "@/oss/state/app"
 import {getProjectValues} from "@/oss/state/project"
 
-import {getAppWorkflowTableState, invalidateAppManagementWorkflowQueries} from "../store"
+import {
+    getAppWorkflowTableState,
+    invalidateAppManagementWorkflowQueries,
+    workflowInvokableOnlyAtom,
+    workflowTypeFilterAtom,
+} from "../store"
 import type {AppWorkflowRow} from "../store"
 
 import {createAppWorkflowColumns, type AppWorkflowColumnActions} from "./appWorkflowColumns"
@@ -39,10 +44,19 @@ const ApplicationManagementSection = ({
     const {baseAppURL} = useURL()
     const {goToPlayground} = usePlaygroundNavigation()
     const openDeleteAppModal = useSetAtom(openDeleteAppModalAtom)
+    const setWorkflowTypeFilter = useSetAtom(workflowTypeFilterAtom)
+    const setWorkflowInvokableOnly = useSetAtom(workflowInvokableOnlyAtom)
     const {mutate: mutateApps} = useAppsData()
     const filteredAppCount = useAtomValue(tableState.countAtom)
     const totalAppCount = useAtomValue(tableState.totalCountAtom)
     const isArchivedCountLoading = useAtomValue(tableState.totalCountIsLoadingAtom)
+
+    // Pin the shared workflow store to apps-only while this page is mounted.
+    // Other consumers (evaluation modal) may leave filters on "all" / invokable-only.
+    useEffect(() => {
+        setWorkflowTypeFilter("app")
+        setWorkflowInvokableOnly(false)
+    }, [setWorkflowTypeFilter, setWorkflowInvokableOnly])
 
     const handleRowClick = useCallback(
         (record: AppWorkflowRow) => {

@@ -938,7 +938,7 @@ export interface CommitWorkflowRevisionPayload {
     slug?: string
     name?: string
     data: NonNullable<UpdateWorkflowPayload["data"]>
-    message?: string
+    message?: string | null
 }
 
 export async function commitWorkflowRevisionApi(
