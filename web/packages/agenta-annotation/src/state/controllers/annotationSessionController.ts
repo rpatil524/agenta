@@ -72,6 +72,7 @@ import {
     buildTraceTestsetRows,
     buildTestsetSyncOperations,
     buildTestsetSyncPreview,
+    getTestsetSyncEvaluatorColumnKey,
     remapTargetRowsToBaseRevision,
     selectQueueScopedAnnotation,
     type CompletedScenarioRef,
@@ -2581,7 +2582,13 @@ function buildTraceAnnotationOutputs(params: {
         const outputs = selection.annotation.data?.outputs
         if (!outputs || typeof outputs !== "object" || Array.isArray(outputs)) continue
 
-        result[evaluator.name?.trim() || evaluator.slug] = outputs as Record<string, unknown>
+        const columnKey = getTestsetSyncEvaluatorColumnKey({
+            evaluator,
+            annotation: selection.annotation,
+        })
+        if (!columnKey) continue
+
+        result[columnKey] = outputs as Record<string, unknown>
     }
 
     return result

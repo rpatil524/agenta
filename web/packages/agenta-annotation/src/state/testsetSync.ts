@@ -163,6 +163,26 @@ function buildSlugByEvaluatorId(evaluators: TestsetSyncEvaluator[]): Map<string,
     return slugByEvaluatorId
 }
 
+export function getTestsetSyncEvaluatorColumnKey(params: {
+    evaluator: TestsetSyncEvaluator
+    annotation?: Annotation | null
+    slugByEvaluatorId?: Map<string, string>
+}): string {
+    const resolvedSlug = params.annotation
+        ? resolveAnnotationEvaluatorSlug(
+              params.annotation,
+              params.slugByEvaluatorId ?? buildSlugByEvaluatorId([params.evaluator]),
+          )
+        : null
+
+    return (
+        resolvedSlug?.trim() ||
+        params.evaluator.slug?.trim() ||
+        params.evaluator.workflowId?.trim() ||
+        ""
+    )
+}
+
 function buildAnnotationOutputEntries(params: {
     annotations: Annotation[]
     evaluators: TestsetSyncEvaluator[]
@@ -184,12 +204,15 @@ function buildAnnotationOutputEntries(params: {
         const outputs = getAnnotationOutputs(selection.annotation)
         if (Object.keys(outputs).length === 0) continue
 
-        const resolvedSlug =
-            resolveAnnotationEvaluatorSlug(selection.annotation, slugByEvaluatorId) ??
-            evaluator.slug
+        const columnKey = getTestsetSyncEvaluatorColumnKey({
+            evaluator,
+            annotation: selection.annotation,
+            slugByEvaluatorId,
+        })
+        if (!columnKey) continue
 
         entries.push({
-            columnKey: evaluator.name?.trim() || resolvedSlug,
+            columnKey,
             outputs,
         })
     }
@@ -301,6 +324,8 @@ export function buildTestcaseExportRows(params: TestcaseExportRowBuilderParams):
     for (const scenarioId of params.scenarioIds) {
         const testcase = params.testcasesByScenarioId.get(scenarioId)
         if (!testcase) continue
+        const testsetId = testcase.testset_id ?? testcase.set_id
+        if (!testsetId) continue
 
         const data: Record<string, unknown> = expandInputsColumn(testcase.data ?? {})
         const annotations = params.annotationsByTestcaseId.get(testcase.id) ?? []
@@ -316,7 +341,7 @@ export function buildTestcaseExportRows(params: TestcaseExportRowBuilderParams):
         rows.push({
             scenarioId,
             testcaseId: testcase.id,
-            testsetId: testcase.testset_id ?? testcase.set_id ?? "",
+            testsetId,
             rowId: testcase.id,
             data,
         })
@@ -450,15 +475,18 @@ export function buildTestsetSyncPreview(params: BuildTestsetSyncPreviewParams): 
 
             if (!selection.annotation) continue
 
-            const resolvedSlug =
-                resolveAnnotationEvaluatorSlug(selection.annotation, slugByEvaluatorId) ??
-                evaluator.slug
             const outputs = getAnnotationOutputs(selection.annotation)
 
             if (Object.keys(outputs).length === 0) continue
+            const columnKey = getTestsetSyncEvaluatorColumnKey({
+                evaluator,
+                annotation: selection.annotation,
+                slugByEvaluatorId,
+            })
+            if (!columnKey) continue
 
             selected.push({
-                columnKey: evaluator.name?.trim() || resolvedSlug,
+                columnKey,
                 outputs,
             })
         }
