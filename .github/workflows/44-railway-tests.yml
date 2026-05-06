@@ -351,7 +351,7 @@ jobs:
           pip install "uv==0.11.9"
           cd api
           uv sync --locked --python 3.11
-          uv pip install --python .venv/bin/python -r oss/tests/requirements.txt --editable ../sdk/
+          uv pip install --python .venv/bin/python --editable ../sdk/
 
       - name: Run API tests
         run: |
@@ -452,7 +452,6 @@ jobs:
           pip install "uv==0.11.9"
           cd sdk
           uv sync --locked --python 3.11
-          uv pip install --python .venv/bin/python -r oss/tests/requirements.txt
 
       - name: Run SDK tests
         run: |
