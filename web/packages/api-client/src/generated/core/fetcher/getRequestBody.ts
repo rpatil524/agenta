@@ -1,5 +1,5 @@
-import { toJson } from "../json.js";
-import { toQueryString } from "../url/qs.js";
+import { toJson } from "../json";
+import { toQueryString } from "../url/qs";
 
 export declare namespace GetRequestBody {
     interface Args {

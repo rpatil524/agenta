@@ -1,8 +1,8 @@
-export * from "./auth/index.js";
-export * from "./base64.js";
-export * from "./fetcher/index.js";
-export * as file from "./file/index.js";
-export * from "./form-data-utils/index.js";
-export * as logging from "./logging/index.js";
-export * from "./runtime/index.js";
-export * as url from "./url/index.js";
+export * from "./auth/index";
+export * from "./base64";
+export * from "./fetcher/index";
+export * as file from "./file/index";
+export * from "./form-data-utils/index";
+export * as logging from "./logging/index";
+export * from "./runtime/index";
+export * as url from "./url/index";

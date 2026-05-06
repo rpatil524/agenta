@@ -1,3 +1,3 @@
-export * from "./QueryWorkflowRevisionsRequestOrder.js";
-export * from "./QueryWorkflowsRequestOrder.js";
-export * from "./QueryWorkflowVariantsRequestOrder.js";
+export * from "./QueryWorkflowRevisionsRequestOrder";
+export * from "./QueryWorkflowsRequestOrder";
+export * from "./QueryWorkflowVariantsRequestOrder";

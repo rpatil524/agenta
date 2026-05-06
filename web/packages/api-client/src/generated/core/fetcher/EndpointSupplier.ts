@@ -1,5 +1,5 @@
-import type { EndpointMetadata } from "./EndpointMetadata.js";
-import type { Supplier } from "./Supplier.js";
+import type { EndpointMetadata } from "./EndpointMetadata";
+import type { Supplier } from "./Supplier";
 
 type EndpointSupplierFn<T> = (arg: { endpointMetadata?: EndpointMetadata }) => T | Promise<T>;
 export type EndpointSupplier<T> = Supplier<T> | EndpointSupplierFn<T>;

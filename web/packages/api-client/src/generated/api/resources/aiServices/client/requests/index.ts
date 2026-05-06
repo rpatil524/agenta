@@ -1,1 +1,1 @@
-export type { ToolCallRequestModel } from "./ToolCallRequestModel.js";
+export type { ToolCallRequestModel } from "./ToolCallRequestModel";

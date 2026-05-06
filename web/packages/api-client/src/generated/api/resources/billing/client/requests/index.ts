@@ -1,2 +1,2 @@
-export type { CreateCheckoutRequest } from "./CreateCheckoutRequest.js";
-export type { SwitchPlansRequest } from "./SwitchPlansRequest.js";
+export type { CreateCheckoutRequest } from "./CreateCheckoutRequest";
+export type { SwitchPlansRequest } from "./SwitchPlansRequest";

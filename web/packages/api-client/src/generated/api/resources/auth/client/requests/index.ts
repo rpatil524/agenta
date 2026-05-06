@@ -1,4 +1,4 @@
-export type { CheckOrganizationAccessAuthAccessGetRequest } from "./CheckOrganizationAccessAuthAccessGetRequest.js";
-export type { DiscoverRequest } from "./DiscoverRequest.js";
-export type { SessionIdentitiesUpdate } from "./SessionIdentitiesUpdate.js";
-export type { SsoCallbackRedirectAuthSsoCallbackOrganizationSlugProviderSlugGetRequest } from "./SsoCallbackRedirectAuthSsoCallbackOrganizationSlugProviderSlugGetRequest.js";
+export type { CheckOrganizationAccessAuthAccessGetRequest } from "./CheckOrganizationAccessAuthAccessGetRequest";
+export type { DiscoverRequest } from "./DiscoverRequest";
+export type { SessionIdentitiesUpdate } from "./SessionIdentitiesUpdate";
+export type { SsoCallbackRedirectAuthSsoCallbackOrganizationSlugProviderSlugGetRequest } from "./SsoCallbackRedirectAuthSsoCallbackOrganizationSlugProviderSlugGetRequest";

@@ -1,5 +1,5 @@
-import { fromJson } from "../json.js";
-import { getBinaryResponse } from "./BinaryResponse.js";
+import { fromJson } from "../json";
+import { getBinaryResponse } from "./BinaryResponse";
 
 export async function getResponseBody(response: Response, responseType?: string): Promise<unknown> {
     switch (responseType) {

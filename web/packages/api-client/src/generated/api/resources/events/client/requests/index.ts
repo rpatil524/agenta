@@ -1,1 +1,1 @@
-export type { EventQueryRequest } from "./EventQueryRequest.js";
+export type { EventQueryRequest } from "./EventQueryRequest";

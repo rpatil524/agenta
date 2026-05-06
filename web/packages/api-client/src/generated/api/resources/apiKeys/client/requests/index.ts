@@ -1,1 +1,1 @@
-export type { DeleteApiKeyRequest } from "./DeleteApiKeyRequest.js";
+export type { DeleteApiKeyRequest } from "./DeleteApiKeyRequest";

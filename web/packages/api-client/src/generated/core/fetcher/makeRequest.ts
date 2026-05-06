@@ -1,4 +1,4 @@
-import { anySignal, getTimeoutSignal } from "./signals.js";
+import { anySignal, getTimeoutSignal } from "./signals";
 
 /**
  * Cached result of checking whether the current runtime supports

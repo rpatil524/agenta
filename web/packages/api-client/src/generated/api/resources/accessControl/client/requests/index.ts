@@ -1,1 +1,1 @@
-export type { VerifyPermissionsRequest } from "./VerifyPermissionsRequest.js";
+export type { VerifyPermissionsRequest } from "./VerifyPermissionsRequest";

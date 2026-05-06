@@ -1,2 +1,2 @@
-export * from "./FetchSimpleTestsetToFileRequestFileType.js";
-export * from "./FetchTestsetRevisionToFileRequestFileType.js";
+export * from "./FetchSimpleTestsetToFileRequestFileType";
+export * from "./FetchTestsetRevisionToFileRequestFileType";

@@ -1,1 +1,1 @@
-export type { BodyConfigsFetch } from "./BodyConfigsFetch.js";
+export type { BodyConfigsFetch } from "./BodyConfigsFetch";

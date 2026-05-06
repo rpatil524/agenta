@@ -1,5 +1,5 @@
-import type { EndpointMetadata } from "../fetcher/EndpointMetadata.js";
-import type { AuthRequest } from "./AuthRequest.js";
+import type { EndpointMetadata } from "../fetcher/EndpointMetadata";
+import type { AuthRequest } from "./AuthRequest";
 
 export interface AuthProvider {
     getAuthRequest(arg?: { endpointMetadata?: EndpointMetadata }): Promise<AuthRequest>;
