@@ -1,33 +1,74 @@
 # Dependabot Vulnerability Triage
 
-Snapshot of Dependabot alerts as of 2026-05-06, split into **Open** (still needs action) and **Closed / `fixed`** (resolved by removing example lockfiles — should auto-close on next Dependabot scan).
+Snapshot of Dependabot alerts verified against the working tree on 2026-05-06.
+
+This file is split into **Open** (still applicable in the current tree) and **Closed / `done`** (the vulnerable version or scanned lockfile is no longer present; Dependabot should auto-close on its next scan).
 
 ## Summary by location
 
-| Lockfile | Alerts | Status |
+| Location | Alerts | Status |
 | --- | --- | --- |
-| [web/pnpm-lock.yaml](web/pnpm-lock.yaml) | 18 (axios cluster, next, postcss, uuid) | open |
-| [docs/pnpm-lock.yaml](docs/pnpm-lock.yaml) + [docs/package-lock.json](docs/package-lock.json) | 6 (lodash, follow-redirects, postcss) | open |
-| [api/](api/), [sdk/](sdk/), [services/](services/) lockfiles | 6 (pytest, python-dotenv) | open |
-| ~~examples/python/RAG_QA_chatbot/frontend/pnpm-lock.yaml~~ | ~~9~~ | **`fixed`** |
-| ~~examples/node/observability-vercel-ai/package-lock.json~~ | ~~1~~ | **`fixed`** |
-| ~~examples/node/observability-opentelemetry/pnpm-lock.yaml~~ | ~~1~~ | **`fixed`** |
+| [api/uv.lock](api/uv.lock), [sdk/uv.lock](sdk/uv.lock), [services/uv.lock](services/uv.lock) - pytest | 3 | open (V007) |
+| ~~[web/pnpm-lock.yaml](web/pnpm-lock.yaml) - Next.js~~ | ~~1~~ | **`done`** (V002) |
+| ~~[web/pnpm-lock.yaml](web/pnpm-lock.yaml) - axios cluster~~ | ~~15~~ | **`done`** (V001) |
+| ~~[web/pnpm-lock.yaml](web/pnpm-lock.yaml) - uuid~~ | ~~1~~ | **`done`** (V006) |
+| ~~[docs/pnpm-lock.yaml](docs/pnpm-lock.yaml) + [docs/package-lock.json](docs/package-lock.json)~~ | ~~6~~ | **`done`** (V003-V005) |
+| ~~`requirements.test.txt` files~~ | ~~2~~ | **`done`** (V008) |
+| ~~api/sdk/services `poetry.lock`~~ | ~~3~~ | **`done`** (V014, lockfiles removed) |
+| ~~example app lockfiles~~ | ~~11~~ | **`done`** (V009-V013, lockfiles removed) |
 
 ---
 
 ## Open
 
-Alerts still requiring code/dependency changes.
+Alerts still requiring dependency or lockfile changes.
 
-### Open — High
+### Open - Moderate
 
-#### V001 — axios cluster — `web/pnpm-lock.yaml` ✅ done
+#### V007 - pytest tmpdir handling - #643, #644, #645
+
+- **Where:** [api/uv.lock](api/uv.lock), [sdk/uv.lock](sdk/uv.lock), and [services/uv.lock](services/uv.lock) all still resolve `pytest 8.4.2`.
+- **Advisory:** GHSA-6w46-j5rx-g56g. Affected: `<9.0.3`. Patched: **9.0.3**.
+- **Current state:** The old poetry-side duplicate alerts (#534, #535, #536) are closed by lockfile removal. The three uv-side alerts remain real.
+- **Caveat:** The current `pyproject.toml` constraints have already been tightened to `pytest>=9,<10`, but the uv locks have not been regenerated and still show `pytest 8.4.2` plus stale `specifier = ">=8,<10"` metadata. Run the relevant test suites after regenerating the locks.
+
+```bash
+# from repo root
+cd application/api      && uv lock --upgrade-package pytest
+cd application/sdk      && uv lock --upgrade-package pytest
+cd application/services && uv lock --upgrade-package pytest
+```
+
+## Recommended action plan
+
+1. **V007 - bump pytest** to `9.0.3` across api/sdk/services uv locks, then run tests. ([#4275](https://github.com/agenta-ai/agenta/issues/4275))
+
+### Process suggestions
+
+- Enable Dependabot grouping. Axios alone produced 15 alerts, and grouping would make future advisory PRs easier to triage.
+- Dev-only alerts (pytest, python-dotenv) inflate the dashboard. Consider Dependabot grouping or auto-merge rules for dev dependency patch bumps when CI passes.
+
+---
+
+## Closed (`done`)
+
+These entries were checked against the current working tree and should no longer be applicable.
+
+### Closed - Fix applied (dependency bumped)
+
+#### V002 - Next.js DoS via Server Components - #529 `done`
+
+- **Where:** [web/pnpm-lock.yaml](web/pnpm-lock.yaml).
+- **Advisory:** GHSA-q4gf-8mx6-v5v3 (CVE-2026-23869). Affected: `>=13.0.0, <15.5.15`. Patched: **15.5.15** (or 16.2.3 on the 16.x line).
+- **Verified current state:** Direct Next.js pins in [web/package.json](web/package.json) and [web/oss/package.json](web/oss/package.json) are `15.5.15`. [web/package.json](web/package.json) also has a `next@<15.5.15` override to `>=15.5.15`, and [web/pnpm-lock.yaml](web/pnpm-lock.yaml) no longer contains `next@15.5.14` or `next: 15.5.14`.
+
+#### V001 - axios cluster - `web/pnpm-lock.yaml` `done`
 
 Alerts (15): #552, #558, #628, #629, #630, #631, #632, #633, #634, #635, #636, #637, #638, #639, #640. Tracked under [#4264](https://github.com/agenta-ai/agenta/issues/4264).
 
-Multiple advisories against the same axios install: prototype-pollution gadgets (response tampering, header injection, credential injection, cloud-metadata exfiltration), NO_PROXY bypass / SSRF, CRLF injection, DoS variants, and null-byte injection.
+Multiple advisories against the same axios install: prototype-pollution gadgets, NO_PROXY bypass / SSRF, CRLF injection, DoS variants, and null-byte injection.
 
-**Per-advisory patched version (verified against github.com/advisories):**
+**Per-advisory patched version:**
 
 | Patched in | Advisories |
 | --- | --- |
@@ -35,162 +76,62 @@ Multiple advisories against the same axios install: prototype-pollution gadgets 
 | 1.15.1 | #628, #631, #632, #633, #634, #635, #636, #637, #638, #639, #640 |
 | 1.15.2 | #629, #630 |
 
-Pinning to **1.16.0** covers all 15.
+**Verified current state:** [web/package.json](web/package.json) overrides axios to `1.16.0`, and [web/pnpm-lock.yaml](web/pnpm-lock.yaml) resolves `axios@1.16.0`. No `axios@1.13.5` entry remains.
 
-**Root cause:** A `pnpm.overrides` block in [web/package.json](web/package.json) forced axios to `1.13.5` despite workspace pins at `1.16.0`.
+#### V003 - lodash `_.template` code injection - #499, #501 `done`
 
-**Fix applied — bump the override and reinstall:**
+- **Where:** [docs/](docs/) lockfiles.
+- **Advisory:** GHSA-r5fr-rjxr-66jc. Affected: `>=4.0.0, <=4.17.23`. Patched: **4.18.0**.
+- **Verified current state:** [docs/package.json](docs/package.json) pins `lodash` to `^4.18.1`, [docs/pnpm-lock.yaml](docs/pnpm-lock.yaml) resolves `lodash@4.18.1`, and [docs/package-lock.json](docs/package-lock.json) has top-level `lodash@4.18.1`.
 
-```bash
-# from repo root
-sed -i '' 's/"axios": "1.13.5"/"axios": "1.16.0"/' application/web/package.json
-cd application/web && pnpm install
-```
+#### V004 - follow-redirects auth header leak - #547, #548 `done`
 
-Lockfile now resolves `axios@1.16.0`. Smoke-test API calls and the XSRF flow before merging.
+- **Where:** [docs/](docs/) lockfiles.
+- **Advisory:** GHSA-r4q5-vmmm-2653. Affected: `<=1.15.11`. Patched: **1.16.0**.
+- **Verified current state:** [docs/pnpm-lock.yaml](docs/pnpm-lock.yaml) and [docs/package-lock.json](docs/package-lock.json) resolve `follow-redirects@1.16.0`.
 
-#### V002 — Next.js DoS via Server Components — #529
+#### V005 - postcss XSS via unescaped `</style>` - #585, #587, #588 `done`
 
-- **Where:** Direct dep in [web/oss/package.json](web/oss/package.json) (currently pinned at `15.5.14`). Tracked in [#4132](https://github.com/agenta-ai/agenta/issues/4132).
-- **Impact:** Crafted RSC payload can hang the server; relevant for the production web app.
-- **Advisory:** GHSA-q4gf-8mx6-v5v3 (CVE-2026-23869). Affected: `>= 13.0.0, < 15.5.15`. Patched: **15.5.15** (or 16.2.3 on the 16.x line).
-- **Fix:** Single patch bump to `15.5.15`. Avoid `next@latest` — it jumps to 16.x major and rewrites `tsconfig.json`.
+- **Where:** [web/](web/) and [docs/](docs/) lockfiles.
+- **Advisory:** GHSA-qx2v-qp2m-jg93. Affected: `<8.5.10`. Patched: **8.5.10**.
+- **Verified current state:** [web/pnpm-lock.yaml](web/pnpm-lock.yaml) resolves `postcss@8.5.10`; [docs/package.json](docs/package.json) pins `postcss` to `^8.5.14`; [docs/pnpm-lock.yaml](docs/pnpm-lock.yaml) and [docs/package-lock.json](docs/package-lock.json) resolve `postcss@8.5.14`.
 
-```bash
-# from repo root
-cd application/web && pnpm up next@15.5.15 --filter @agenta/oss && pnpm install
-pnpm --filter @agenta/oss build
-```
+#### V006 - uuid buffer bounds check - #642 `done`
 
-#### V003 — lodash — `_.template` code injection — #499, #501
+- **Where:** [web/pnpm-lock.yaml](web/pnpm-lock.yaml).
+- **Advisory:** GHSA-w5hq-g745-h8pq. Affected: `11.0.0-11.1.0`, `12.0.0`, `13.0.0`. Patched: **11.1.1** / 12.0.1 / 13.0.1.
+- **Verified current state:** [web/pnpm-lock.yaml](web/pnpm-lock.yaml) resolves `uuid@11.1.1`. No `uuid@11.1.0` entry remains.
 
-- **Where:** [docs/](docs/) lockfiles only.
-- **Impact:** Docs site doesn't appear to use `_.template` with user input, so exploitability is low — but bumping is cheap.
-- **Fix:** Update `lodash` to the patched 4.17.x line. Already covered by a pnpm override in [web/package.json](web/package.json) (`"lodash@<4.17.23": ">=4.17.23"`); replicate in [docs/](docs/) or bump directly.
+#### V008 - python-dotenv symlink-following file overwrite - #562, #563 `done`
 
-```bash
-# from repo root — pnpm side
-cd application/docs && pnpm up lodash@latest -r && pnpm install
-# npm side
-cd application/docs && npm update lodash --save
-```
+- **Where:** [api/oss/tests/legacy/requirements.test.txt](api/oss/tests/legacy/requirements.test.txt) and [sdk/oss/tests/legacy/new_tests/requirements.test.txt](sdk/oss/tests/legacy/new_tests/requirements.test.txt).
+- **Advisory:** GHSA-mf9w-mj56-hr94. Affected: `<1.2.2`. Patched: **1.2.2**.
+- **Verified current state:** Both test requirement files use `python-dotenv>=1.2.2`; no `python-dotenv==1.0.0` test pin remains.
 
-### Open — Moderate
+### Closed - Resolved by lockfile removal
 
-#### V004 — follow-redirects — auth header leak on cross-domain redirect — #547, #548
+These were resolved by removing the scanned lockfiles. The package manifests may remain, but Dependabot has no matching lockfile to scan.
 
-- **Where:** [docs/](docs/) only.
-- **Fix:** Bump to >= 1.15.6.
+#### V009 - protobufjs arbitrary code execution - #559, #560 `done`
 
-```bash
-# from repo root
-cd application/docs && pnpm up follow-redirects@latest -r && pnpm install
-cd application/docs && npm update follow-redirects --save
-```
+Both example lockfiles were removed: [examples/node/observability-vercel-ai/package-lock.json](examples/node/observability-vercel-ai/package-lock.json) and [examples/node/observability-opentelemetry/pnpm-lock.yaml](examples/node/observability-opentelemetry/pnpm-lock.yaml).
 
-#### V005 — postcss — XSS via unescaped `</style>` — #585, #587, #588
+#### V010 - Next.js DoS - #528, #532 `done`
 
-- **Where:** [web/](web/), [docs/](docs/).
-- **Impact:** Only matters if PostCSS output is rendered untrusted; for build-time CSS this is theoretical. Still worth bumping.
-- **Fix:** Bump `postcss` to the patched 8.4.x+ line. Cleanest path: add a pnpm override matching the existing pattern in [web/package.json](web/package.json).
+Both alerts were against removed example lockfiles, including [examples/python/RAG_QA_chatbot/frontend/pnpm-lock.yaml](examples/python/RAG_QA_chatbot/frontend/pnpm-lock.yaml). The production Next.js alert #529 is closed separately as V002.
 
-```bash
-# from repo root — bump in web/ via pnpm override (recommended; matches existing pattern)
-# edit application/web/package.json pnpm.overrides to add:  "postcss@<8.4.31": ">=8.4.31"
-cd application/web && pnpm install
+#### V011 - dompurify cluster - #512, #513, #554, #568, #571, #572 `done`
 
-# bump in docs/
-cd application/docs && pnpm up postcss@latest -r && pnpm install
-cd application/docs && npm update postcss --save
-```
+All six DOMPurify alerts were against removed [examples/python/RAG_QA_chatbot/frontend/pnpm-lock.yaml](examples/python/RAG_QA_chatbot/frontend/pnpm-lock.yaml).
 
-#### V006 — uuid — buffer bounds check — #642
+#### V012 - postcss - #586 `done`
 
-- **Where:** [web/pnpm-lock.yaml](web/pnpm-lock.yaml). Tracked in [#4276](https://github.com/agenta-ai/agenta/issues/4276).
-- **Impact:** Affects `v3/v5/v6` with caller-provided buffer — we don't appear to use those forms. Low real risk.
-- **Fix:** Bump `uuid` to patched release.
+This was the RAG_QA_chatbot example lockfile only, and that lockfile has been removed.
 
-```bash
-# from repo root
-cd application/web && pnpm up uuid@latest -r && pnpm install
-```
+#### V013 - uuid - #641 `done`
 
-#### V007 — pytest — tmpdir handling — #534, #535, #536, #643, #644, #645
+This was the RAG_QA_chatbot example lockfile only, and that lockfile has been removed. The production uuid alert #642 is closed separately as V006.
 
-- **Where:** [api/](api/), [sdk/](sdk/), [services/](services/) — both `poetry.lock` and `uv.lock` carry alerts (incomplete migration). Tracked in [#4275](https://github.com/agenta-ai/agenta/issues/4275).
-- **Impact:** Dev-only dependency, local-only attack surface. Low risk.
-- **Fix:** Bump `pytest` in dev-dependencies. Also: pick poetry XOR uv per project and delete the other lockfile to stop duplicate alerts.
+#### V014 - pytest poetry-side alerts - #534, #535, #536 `done`
 
-```bash
-# from repo root — uv side (forward path)
-cd application/api      && uv lock --upgrade-package pytest
-cd application/sdk      && uv lock --upgrade-package pytest
-cd application/services && uv lock --upgrade-package pytest
-
-# poetry side (delete after migrating off poetry)
-cd application/api      && poetry update pytest
-cd application/sdk      && poetry update pytest
-cd application/services && poetry update pytest
-
-# dedup: once uv is the source of truth, remove poetry.lock
-rm application/api/poetry.lock application/sdk/poetry.lock application/services/poetry.lock
-```
-
-#### V008 — python-dotenv — symlink-following file overwrite — #562, #563
-
-- **Where:** test requirements files for sdk and api. Tracked in [#4204](https://github.com/agenta-ai/agenta/issues/4204).
-- **Impact:** Dev-only, requires attacker-controlled symlink in test workdir. Negligible.
-- **Fix:** Bump pin in the `requirements.test.txt` files (advisory: >= 1.1.1).
-
-```bash
-# from repo root — pin bump (replace with current safe version per advisory)
-sed -i '' 's/^python-dotenv==.*/python-dotenv>=1.1.1/' \
-  application/api/oss/tests/legacy/requirements.test.txt \
-  application/sdk/oss/tests/legacy/new_tests/requirements.test.txt
-```
-
-## Recommended action plan (open items)
-
-1. ~~**V001 — axios bump in [web/](web/)** — clears 15 alerts at once. ([#4264](https://github.com/agenta-ai/agenta/issues/4264))~~ ✅ done — override bumped 1.13.5 → 1.16.0; lockfile resolves cleanly.
-2. **V002 — next.js bump** in [web/oss/package.json](web/oss/package.json). ([#4132](https://github.com/agenta-ai/agenta/issues/4132))
-3. **V005 + V006 — postcss + uuid bump** in [web/](web/) — usually a clean transitive update.
-4. **V003 + V004 — lodash + follow-redirects bump** in [docs/](docs/) — batch into one docs-deps PR.
-5. **V007 — pytest bump + lockfile dedup** ([#4275](https://github.com/agenta-ai/agenta/issues/4275)) — pick poetry XOR uv per project.
-6. **V008 — python-dotenv bump** in `requirements.test.txt` files. ([#4204](https://github.com/agenta-ai/agenta/issues/4204))
-
-### Process suggestions
-
-- Enable Dependabot grouping (axios alone produced 12 alerts). A `dependabot.yml` group config means future advisories land as one PR.
-- Dev-only alerts (pytest, python-dotenv) inflate the dashboard. Consider Dependabot's `vulnerability-alerts` filter to deprioritize `dev` scope, or auto-merge dev-dep patches via CI.
-
----
-
-## Closed (`fixed`)
-
-Resolved by removing the example app lockfiles. The `package.json` files remain, but with no lockfile Dependabot has nothing to scan. These should auto-close on the next scan.
-
-### Closed — Critical
-
-#### V009 — protobufjs — Arbitrary code execution — #559, #560 `fixed`
-
-Both example lockfiles ([examples/node/observability-vercel-ai/package-lock.json](examples/node/observability-vercel-ai/package-lock.json), [examples/node/observability-opentelemetry/pnpm-lock.yaml](examples/node/observability-opentelemetry/pnpm-lock.yaml)) removed.
-
-### Closed — High
-
-#### V010 — Next.js DoS — #528, #532 `fixed`
-
-Both alerts were against example lockfiles (RAG_QA_chatbot frontend and a transitive case). Note: #529 (production [web/oss/](web/oss/)) is still **open** — see above.
-
-### Closed — Moderate
-
-#### V011 — dompurify cluster — #512, #513, #554, #568, #571, #572 `fixed`
-
-All six DOMPurify alerts were against [examples/python/RAG_QA_chatbot/frontend/pnpm-lock.yaml](examples/python/RAG_QA_chatbot/frontend/pnpm-lock.yaml).
-
-#### V012 — postcss — #586 `fixed`
-
-RAG_QA_chatbot example only. Production postcss alerts (#585, #587, #588) are still **open**.
-
-#### V013 — uuid — #641 `fixed`
-
-RAG_QA_chatbot example only. Production uuid alert (#642) is still **open**.
+Resolved by deleting [api/poetry.lock](api/poetry.lock), [sdk/poetry.lock](sdk/poetry.lock), and [services/poetry.lock](services/poetry.lock) as part of the uv migration. Three uv-side pytest alerts (#643, #644, #645) remain open as V007.
