@@ -78,9 +78,9 @@ jobs:
 
           cd ..
 
-          cd sdk
+          cd sdks/python
           SDK_VERSION=$(uv version --bump "$BUMP_TYPE" --short)
-          cd ..
+          cd ../..
 
           cd api
           API_VERSION=$(uv version --bump "$BUMP_TYPE" --short)
@@ -125,7 +125,7 @@ jobs:
             - (web)
             - web/oss
             - web/ee
-            - sdk
+            - sdks/python
             - api
             - services
 

@@ -379,7 +379,7 @@ export function EntityCommitModal({
             try {
                 const result = await onSubmit({
                     entity: currentEntity,
-                    message: commitMessage.trim(),
+                    message: commitMessage.trim() || null,
                     mode: selectedMode,
                     entityName: entityName || undefined,
                     entitySlug: entitySlug || undefined,
