@@ -18,7 +18,7 @@ overrides:
   webpack@>=5.49.0 <=5.104.0: '>=5.104.1'
   yaml@>=2.0.0 <2.8.3: '>=2.8.3'
   flatted: 3.4.2
-  axios: 1.13.5
+  axios: 1.16.0
 
 importers:
 
@@ -206,8 +206,8 @@ importers:
         specifier: 10.4.20
         version: 10.4.20(postcss@8.5.10)
       axios:
-        specifier: 1.13.5
-        version: 1.13.5
+        specifier: 1.16.0
+        version: 1.16.0
       classnames:
         specifier: ^2.3.2
         version: 2.5.1
@@ -513,8 +513,8 @@ importers:
         specifier: 10.4.20
         version: 10.4.20(postcss@8.5.10)
       axios:
-        specifier: 1.13.5
-        version: 1.13.5
+        specifier: 1.16.0
+        version: 1.16.0
       classnames:
         specifier: ^2.3.2
         version: 2.5.1
@@ -783,8 +783,8 @@ importers:
         specifier: '>=5.0.0'
         version: 6.3.6(date-fns@3.6.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       axios:
-        specifier: 1.13.5
-        version: 1.13.5
+        specifier: 1.16.0
+        version: 1.16.0
       clsx:
         specifier: '>=2.0.0'
         version: 2.1.1
@@ -934,8 +934,8 @@ importers:
         specifier: '>=5.0.0'
         version: 6.3.6(date-fns@3.6.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       axios:
-        specifier: 1.13.5
-        version: 1.13.5
+        specifier: 1.16.0
+        version: 1.16.0
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -1165,8 +1165,8 @@ importers:
         specifier: '>=5.0.0'
         version: 5.99.0(react@19.2.5)
       axios:
-        specifier: 1.13.5
-        version: 1.13.5
+        specifier: 1.16.0
+        version: 1.16.0
       dayjs:
         specifier: ^1.11.20
         version: 1.11.20
@@ -1362,8 +1362,8 @@ importers:
   tests:
     dependencies:
       axios:
-        specifier: 1.13.5
-        version: 1.13.5
+        specifier: 1.16.0
+        version: 1.16.0
     devDependencies:
       '@playwright/test':
         specifier: ^1.57.0
@@ -3597,8 +3597,8 @@ packages:
     resolution: {integrity: sha512-zBQouZixDTbo3jMGqHKyePxYxr1e5W8UdTmBQ7sNtaA9M2bE32daxxPLS/jojhKOHxQ7LWwPjfiwf/fhaJWzlg==}
     engines: {node: '>=4'}
 
-  axios@1.13.5:
-    resolution: {integrity: sha512-cz4ur7Vb0xS4/KUN0tPWe44eqxrIu31me+fbang3ijiNscE129POzipJJA6zniq2C/Z6sJCjMimjS8Lc/GAs8Q==}
+  axios@1.16.0:
+    resolution: {integrity: sha512-6hp5CwvTPlN2A31g5dxnwAX0orzM7pmCRDLnZSX772mv8WDqICwFjowHuPs04Mc8deIld1+ejhtaMn5vp6b+1w==}
 
   axobject-query@4.1.0:
     resolution: {integrity: sha512-qIj0G9wZbMGNLjLmg1PT6v2mE9AH2zlnADJD/2tC6E00hgmhUOfEB6greHPAfLRSufHqROIUTkw6E+M3lH0PTQ==}
@@ -5605,8 +5605,9 @@ packages:
     resolution: {integrity: sha512-3wY1AxV+VBNW8Yypfd1yQY9pXnqTAN+KwQxL8iYm3/BjKYMNg4i0owhEe26PWDOMaIrzeeF98Lqd5NGz4omiIg==}
     engines: {node: '>=12.0.0'}
 
-  proxy-from-env@1.1.0:
-    resolution: {integrity: sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==}
+  proxy-from-env@2.1.0:
+    resolution: {integrity: sha512-cJ+oHTW1VAEa8cJslgmUZrc+sjRKgAKl3Zyse6+PV38hZe/V6Z14TbCuXcan9F9ghlz4QrFr2c92TNF82UkYHA==}
+    engines: {node: '>=10'}
 
   punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
@@ -8837,11 +8838,11 @@ snapshots:
 
   axe-core@4.11.3: {}
 
-  axios@1.13.5:
+  axios@1.16.0:
     dependencies:
       follow-redirects: 1.16.0
       form-data: 4.0.5
-      proxy-from-env: 1.1.0
+      proxy-from-env: 2.1.0
     transitivePeerDependencies:
       - debug
 
@@ -11071,7 +11072,7 @@ snapshots:
       '@types/node': 20.19.39
       long: 5.3.2
 
-  proxy-from-env@1.1.0: {}
+  proxy-from-env@2.1.0: {}
 
   punycode@2.3.1: {}
 
