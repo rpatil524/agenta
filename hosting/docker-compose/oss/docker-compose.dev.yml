@@ -82,6 +82,10 @@ services:
                 "/clients/python",
                 "--root-path",
                 "/api",
+                "--loop",
+                "uvloop",
+                "--http",
+                "httptools",
             ]
         # === STORAGE ============================================== #
         volumes:
@@ -355,6 +359,10 @@ services:
                 "/clients/python",
                 "--root-path",
                 "/services",
+                "--loop",
+                "uvloop",
+                "--http",
+                "httptools",
             ]
         # === STORAGE ============================================== #
         volumes:

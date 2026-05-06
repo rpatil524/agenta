@@ -1,8 +1,8 @@
 import {UserAuthorLabel} from "@agenta/entities/shared/user"
 import {workflowAppTypeAtomFamily} from "@agenta/entities/workflow"
+import {WorkflowTypeTag} from "@agenta/entity-ui/workflow"
 import {createStandardColumns} from "@agenta/ui/table"
 import {ArrowCounterClockwise, Note, Rocket, Trash} from "@phosphor-icons/react"
-import {Tag} from "antd"
 import {useAtomValue} from "jotai"
 import {getDefaultStore} from "jotai/vanilla"
 
@@ -25,7 +25,7 @@ const useWorkflowAppType = (workflowId: string) => {
 export const AppTypeCell = ({workflowId}: {workflowId: string}) => {
     const appType = useWorkflowAppType(workflowId)
 
-    return <Tag variant="filled">{appType}</Tag>
+    return <WorkflowTypeTag isEvaluator={false} workflowType={appType} />
 }
 
 export const AppNameCell = ({workflowId, name}: {workflowId: string; name: string}) => {
@@ -93,7 +93,7 @@ export function createAppWorkflowColumns(
                       type: "text",
                       key: "deletedById",
                       title: "Archived By",
-                      render: (_, record) => (
+                      render: (_: unknown, record: AppWorkflowRow) => (
                           <div className="h-full flex items-center">
                               <UserAuthorLabel
                                   userId={record.deletedById}
