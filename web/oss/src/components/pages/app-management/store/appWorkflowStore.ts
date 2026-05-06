@@ -18,7 +18,7 @@ import {
 import type {Workflow, WorkflowType} from "@agenta/entities/workflow"
 import {queryClient} from "@agenta/shared/api"
 import {projectIdAtom} from "@agenta/shared/state"
-import {atom, type Atom} from "jotai"
+import {atom} from "jotai"
 import {atomWithQuery} from "jotai-tanstack-query"
 
 import {
@@ -185,6 +185,7 @@ type EnrichedWorkflow = Workflow & {
     _workflowKey?: string | null
 }
 
+const APP_WORKFLOW_FLAGS = {is_evaluator: false} as const
 const COUNT_QUERY_STALE_TIME = 30_000
 
 const isArchivedWorkflow = (workflow: Workflow) => Boolean(workflow.deleted_at)
@@ -197,7 +198,7 @@ async function fetchArchivedAppWorkflows(meta: AppWorkflowQueryMeta) {
     const response = await queryWorkflows({
         projectId: meta.projectId,
         name: meta.searchTerm,
-        flags: {is_evaluator: false},
+        flags: APP_WORKFLOW_FLAGS,
         includeArchived: true,
     })
 
@@ -230,15 +231,12 @@ const transformWorkflowRow = (apiRow: EnrichedWorkflow): AppWorkflowRow => ({
     deletedById: apiRow.deleted_by_id ?? null,
 })
 
-const createAppWorkflowMetaAtom = (searchTermAtom: Atom<string>) =>
-    atom<AppWorkflowQueryMeta>((get) => ({
-        projectId: get(projectIdAtom),
-        searchTerm: get(searchTermAtom).trim() || undefined,
-        typeFilter: get(workflowTypeFilterAtom),
-        invokableOnly: get(workflowInvokableOnlyAtom),
-    }))
-
-const appWorkflowMetaAtom = createAppWorkflowMetaAtom(appWorkflowSearchTermAtom)
+const appWorkflowMetaAtom = atom<AppWorkflowQueryMeta>((get) => ({
+    projectId: get(projectIdAtom),
+    searchTerm: get(appWorkflowSearchTermAtom).trim() || undefined,
+    typeFilter: get(workflowTypeFilterAtom),
+    invokableOnly: get(workflowInvokableOnlyAtom),
+}))
 
 export const appWorkflowPaginatedStore = createPaginatedEntityStore<
     AppWorkflowRow,
@@ -428,7 +426,12 @@ export const appWorkflowCountAtom = atom((get) => {
 
 const archivedAppWorkflowSearchTermAtom = atom("")
 
-const archivedAppWorkflowMetaAtom = createAppWorkflowMetaAtom(archivedAppWorkflowSearchTermAtom)
+const archivedAppWorkflowMetaAtom = atom<AppWorkflowQueryMeta>((get) => ({
+    projectId: get(projectIdAtom),
+    searchTerm: get(archivedAppWorkflowSearchTermAtom).trim() || undefined,
+    typeFilter: "app",
+    invokableOnly: false,
+}))
 
 const archivedAppWorkflowPaginatedStore = createPaginatedEntityStore<
     AppWorkflowRow,

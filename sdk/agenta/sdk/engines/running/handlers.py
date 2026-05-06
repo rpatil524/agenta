@@ -159,6 +159,22 @@ from agenta.sdk.utils.resolvers import (  # noqa: E402
 )
 
 
+_ENVELOPE_RESERVED_INPUT_KEYS = frozenset({"inputs"})
+
+
+def _reject_reserved_input_keys(inputs: Optional[Dict[str, Any]]) -> None:
+    """Raise InvalidInputsV0Error if user-supplied inputs collide with
+    envelope slot names that the dual-access pattern injects on top."""
+    if not inputs:
+        return
+    collisions = sorted(_ENVELOPE_RESERVED_INPUT_KEYS.intersection(inputs.keys()))
+    if collisions:
+        raise InvalidInputsV0Error(
+            expected=f"input keys not in {sorted(_ENVELOPE_RESERVED_INPUT_KEYS)} (reserved by the envelope resolver)",
+            got=collisions,
+        )
+
+
 def _format_with_template(
     content: str,
     format: str,
@@ -985,6 +1001,7 @@ async def auto_ai_critique_v0(
         )
 
     if inputs is not None:
+        _reject_reserved_input_keys(inputs)
         context.update(**inputs)
         context.update(
             **{
@@ -2106,6 +2123,8 @@ async def completion_v0(
             got=inputs,
         )
 
+    _reject_reserved_input_keys(inputs)
+
     _variables = dict(inputs or {})
 
     config = SinglePromptConfig(**parameters)
@@ -2175,6 +2194,8 @@ async def chat_v0(
             expected="dict",
             got=inputs,
         )
+
+    _reject_reserved_input_keys(inputs)
 
     _variables = dict(inputs or {})
     _messages = _variables.pop("messages", None)

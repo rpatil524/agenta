@@ -880,48 +880,74 @@ function InsertInitialCodeBlockPlugin({
         const languageChanged =
             prevLanguageRef.current !== undefined && prevLanguageRef.current !== language
 
-        // For JSON content, use semantic comparison. YAML should be treated as raw text.
-        // Always proceed if the language itself changed (re-tokenization needed).
-        if (prevInitialRef.current && !languageChanged) {
+        // Compare the new prop value against the editor's CURRENT content (not the
+        // previous prop value). The editor state is the source of truth — if it
+        // already matches the incoming value, nothing to do; if it differs, we
+        // need to update regardless of what the previous prop was. This catches
+        // external updates (preset loads) where prevInitialRef-based tracking
+        // would race with React Strict Mode double-invokes or stale closures.
+        let needsDispatch = languageChanged
+        let forceUpdate = false
+        editor.getEditorState().read(() => {
+            const currentEditorContent = $getEditorCodeAsString()
+            const hasExistingContent = !!currentEditorContent
+
             if (language === "json") {
-                if (
-                    isEqual(
-                        safeJson5Parse(prevInitialRef.current as string),
-                        safeJson5Parse(initialValue),
-                    )
-                ) {
-                    return // no semantic change
+                const currentParsed = safeJson5Parse(currentEditorContent)
+                const incomingParsed = safeJson5Parse(initialValue)
+                if (!isEqual(currentParsed, incomingParsed)) {
+                    needsDispatch = true
+                    // Force only when we're replacing real content; on first
+                    // populate, the handler should run normally.
+                    forceUpdate = hasExistingContent
                 }
-            } else if (prevInitialRef.current === initialValue) {
                 return
             }
+
+            if (language === "yaml") {
+                // YAML must be parsed with a YAML parser. Earlier this branch
+                // shared the JSON5 path, but `safeJson5Parse` returns `null`
+                // for unparseable YAML — two different YAML docs would both
+                // collapse to `null` and `isEqual` would treat them as the
+                // same, skipping the dispatch and dropping external updates.
+                // Fall back to trimmed string compare when parsing fails so a
+                // truly non-YAML payload still triggers the update path.
+                let currentParsed: unknown = currentEditorContent?.trim() ?? ""
+                let incomingParsed: unknown = initialValue?.trim() ?? ""
+                try {
+                    currentParsed = yaml.load(currentEditorContent ?? "")
+                } catch {
+                    /* keep trimmed-string fallback */
+                }
+                try {
+                    incomingParsed = yaml.load(initialValue ?? "")
+                } catch {
+                    /* keep trimmed-string fallback */
+                }
+                if (!isEqual(currentParsed, incomingParsed)) {
+                    needsDispatch = true
+                    forceUpdate = hasExistingContent
+                }
+                return
+            }
+
+            // Code languages (python/javascript/typescript/etc.): plain string compare.
+            if ((currentEditorContent ?? "").trim() !== (initialValue ?? "").trim()) {
+                needsDispatch = true
+                forceUpdate = hasExistingContent
+            }
+        })
+
+        if (!needsDispatch) {
+            // Even when skipping the dispatch, keep refs current so subsequent
+            // language-change checks work correctly.
+            prevInitialRef.current = initialValue
+            prevLanguageRef.current = language
+            return
         }
 
         prevInitialRef.current = initialValue
         prevLanguageRef.current = language
-
-        // Check if this is an external update (undo/redo) by comparing with current editor content
-        // If the incoming value differs from what's in the editor, force the update
-        let forceUpdate = false
-        editor.getEditorState().read(() => {
-            const currentEditorContent = $getEditorCodeAsString()
-            // console.log("currentEditorContent", currentEditorContent)
-            if (currentEditorContent) {
-                try {
-                    const currentParsed = safeJson5Parse(currentEditorContent)
-                    const incomingParsed = safeJson5Parse(initialValue)
-                    // If editor content differs from incoming value, this is an external update
-                    if (!isEqual(currentParsed, incomingParsed)) {
-                        forceUpdate = true
-                    }
-                } catch {
-                    // If parsing fails, compare as strings
-                    if (currentEditorContent.trim() !== initialValue.trim()) {
-                        forceUpdate = true
-                    }
-                }
-            }
-        })
 
         // Dispatch event to allow other plugins to handle the content
         let defaultPrevented = false
