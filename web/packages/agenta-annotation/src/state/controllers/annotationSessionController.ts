@@ -2881,17 +2881,12 @@ const addScenariosToTestsetAtom = atom(
                     }
 
                     const rowsForCommit = remapRowsToExistingLeafColumns(rows, existingColumns)
-                    const exportedColumns = collectRowColumns(rowsForCommit)
-                    const newColumnNames = Array.from(exportedColumns).filter(
-                        (columnName) => !existingColumns.has(columnName),
-                    )
 
                     await patchRevision({
                         projectId,
                         testsetId: targetTestsetId,
                         baseRevisionId: latestRevision.id,
                         operations: {
-                            columns: newColumnNames.length > 0 ? {add: newColumnNames} : undefined,
                             rows: {
                                 add: rowsForCommit.map((row) => ({data: row.data})),
                             },

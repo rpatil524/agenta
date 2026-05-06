@@ -23,7 +23,6 @@ export interface TestsetSyncRow {
     testcaseId: string
     testsetId: string
     rowId: string
-    evaluatorColumnKeys: string[]
     data: Record<string, unknown>
 }
 
@@ -31,7 +30,6 @@ export interface TestsetSyncTarget {
     testsetId: string
     baseRevisionId: string
     rowCount: number
-    columns: string[]
     rows: TestsetSyncRow[]
 }
 
@@ -206,24 +204,14 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
 function applyAnnotationOutputEntries(
     data: Record<string, unknown>,
     entries: {columnKey: string; outputs: Record<string, unknown>}[],
-): string[] {
-    const evaluatorColumnKeys: string[] = []
-
+): void {
     for (const entry of entries) {
         const existingValue = data[entry.columnKey]
         data[entry.columnKey] = {
             ...(isPlainRecord(existingValue) ? existingValue : {}),
             ...entry.outputs,
         }
-
-        for (const [fieldKey, fieldValue] of Object.entries(entry.outputs)) {
-            if (fieldValue !== undefined) {
-                evaluatorColumnKeys.push(`${entry.columnKey}.${fieldKey}`)
-            }
-        }
     }
-
-    return evaluatorColumnKeys
 }
 
 function expandInputsColumn(data: Record<string, unknown>): Record<string, unknown> {
@@ -323,14 +311,13 @@ export function buildTestcaseExportRows(params: TestcaseExportRowBuilderParams):
         })
         if (entries.length === 0) continue
 
-        const evaluatorColumnKeys = applyAnnotationOutputEntries(data, entries)
+        applyAnnotationOutputEntries(data, entries)
 
         rows.push({
             scenarioId,
             testcaseId: testcase.id,
             testsetId: testcase.testset_id ?? testcase.set_id ?? "",
             rowId: testcase.id,
-            evaluatorColumnKeys,
             data,
         })
     }
@@ -481,14 +468,13 @@ export function buildTestsetSyncPreview(params: BuildTestsetSyncPreviewParams): 
         }
 
         const data: Record<string, unknown> = {...(testcase.data ?? {})}
-        const evaluatorColumnKeys = applyAnnotationOutputEntries(data, selected)
+        applyAnnotationOutputEntries(data, selected)
 
         rows.push({
             scenarioId: completed.scenarioId,
             testcaseId: completed.testcaseId,
             testsetId,
             rowId: testcase.id,
-            evaluatorColumnKeys,
             data,
         })
     }
@@ -498,7 +484,6 @@ export function buildTestsetSyncPreview(params: BuildTestsetSyncPreviewParams): 
         {
             testsetId: string
             rowCount: number
-            columns: Set<string>
             rows: TestsetSyncRow[]
         }
     >()
@@ -507,13 +492,11 @@ export function buildTestsetSyncPreview(params: BuildTestsetSyncPreviewParams): 
         const target = targetsByTestsetId.get(row.testsetId) ?? {
             testsetId: row.testsetId,
             rowCount: 0,
-            columns: new Set<string>(),
             rows: [],
         }
 
         target.rowCount += 1
         target.rows.push(row)
-        row.evaluatorColumnKeys.forEach((columnKey) => target.columns.add(columnKey))
         targetsByTestsetId.set(row.testsetId, target)
     }
 
@@ -536,7 +519,6 @@ export function buildTestsetSyncPreview(params: BuildTestsetSyncPreviewParams): 
             testsetId: target.testsetId,
             baseRevisionId,
             rowCount: target.rowCount,
-            columns: Array.from(target.columns),
             rows: target.rows,
         })
     }
@@ -554,7 +536,6 @@ export function buildTestsetSyncPreview(params: BuildTestsetSyncPreviewParams): 
 
 export function buildTestsetSyncOperations(target: TestsetSyncTarget): TestsetRevisionDelta {
     return {
-        columns: target.columns.length > 0 ? {add: target.columns} : undefined,
         rows: {
             replace: target.rows.map((row) => ({
                 id: row.rowId,
