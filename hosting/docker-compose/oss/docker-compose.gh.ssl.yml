@@ -314,7 +314,8 @@ services:
         # === STORAGE ============================================== #
         volumes:
             - ../../../services:/app
-            - ../../../sdk:/sdk
+            - ../../../sdks/python:/sdks/python
+            - ../../../clients/python:/clients/python
         # === CONFIGURATION ======================================== #
         env_file:
             - ${ENV_FILE:-./.env.oss.gh}

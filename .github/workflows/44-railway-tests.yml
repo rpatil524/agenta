@@ -342,7 +342,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/uv
-          key: ${{ runner.os }}-railway-api-uv-${{ hashFiles('api/pyproject.toml', 'api/uv.lock', 'sdk/pyproject.toml', 'sdk/uv.lock') }}
+          key: ${{ runner.os }}-railway-api-uv-${{ hashFiles('api/pyproject.toml', 'api/uv.lock', 'sdks/python/pyproject.toml', 'sdks/python/uv.lock') }}
           restore-keys: |
             ${{ runner.os }}-railway-api-uv-
 
@@ -351,7 +351,7 @@ jobs:
           pip install "uv==0.11.9"
           cd api
           uv sync --locked --python 3.11
-          uv pip install --python .venv/bin/python --editable ../sdk/
+          uv pip install --python .venv/bin/python --editable ../sdks/python/
 
       - name: Run API tests
         run: |
@@ -443,19 +443,19 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/uv
-          key: ${{ runner.os }}-railway-sdk-uv-${{ hashFiles('sdk/pyproject.toml', 'sdk/uv.lock') }}
+          key: ${{ runner.os }}-railway-sdk-uv-${{ hashFiles('sdks/python/pyproject.toml', 'sdks/python/uv.lock') }}
           restore-keys: |
             ${{ runner.os }}-railway-sdk-uv-
 
       - name: Install SDK dependencies
         run: |
           pip install "uv==0.11.9"
-          cd sdk
+          cd sdks/python
           uv sync --locked --python 3.11
 
       - name: Run SDK tests
         run: |
-          cd sdk
+          cd sdks/python
 
           case "${{ matrix.layer }}" in
             acceptance) TARGET_PATH="oss/tests/pytest/acceptance" ;;
@@ -496,7 +496,7 @@ jobs:
         if: always()
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
-          files: sdk/oss/tests/results/junit.xml
+          files: sdks/python/oss/tests/results/junit.xml
           check_name: Railway SDK Test Results
           comment_mode: off
 
@@ -506,8 +506,8 @@ jobs:
         with:
           name: railway-sdk-test-results-${{ matrix.layer }}
           path: |
-            sdk/oss/tests/results/
-            sdk/pytest*.log
+            sdks/python/oss/tests/results/
+            sdks/python/pytest*.log
           retention-days: 14
 
   run-services-tests:
