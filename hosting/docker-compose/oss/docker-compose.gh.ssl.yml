@@ -311,11 +311,6 @@ services:
             --log-level info
             --access-logfile -
             --error-logfile -
-        # === STORAGE ============================================== #
-        volumes:
-            - ../../../services:/app
-            - ../../../sdks/python:/sdks/python
-            - ../../../clients/python:/clients/python
         # === CONFIGURATION ======================================== #
         env_file:
             - ${ENV_FILE:-./.env.oss.gh}
