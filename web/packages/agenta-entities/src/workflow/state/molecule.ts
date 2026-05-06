@@ -52,6 +52,7 @@ import {normalizeWorkflowResponse} from "../../runnable/responseHelpers"
 import {extractVariablesFromConfig} from "../../runnable/utils"
 import type {RunnablePort, StoreOptions} from "../../shared"
 import {isLocalDraftId, isPlaceholderId} from "../../shared"
+import {archiveWorkflow, unarchiveWorkflow} from "../api"
 import type {Workflow} from "../core"
 import {
     toEvaluatorDefinitionFromWorkflow,
@@ -66,7 +67,7 @@ import {
 } from "../core/schema"
 
 import {workflowsListDataAtom, nonArchivedWorkflowsAtom} from "./allWorkflows"
-import {evaluatorTemplatesDataAtom} from "./evaluatorUtils"
+import {evaluatorTemplatesDataAtom, invalidateEvaluatorsListCache} from "./evaluatorUtils"
 import {
     executionModeAtomFamily as runnableExecutionModeAtomFamily,
     invocationUrlAtomFamily as runnableInvocationUrlAtomFamily,
@@ -92,6 +93,8 @@ import {
     discardWorkflowDraftAtom,
     invalidateWorkflowsListCache,
     invalidateWorkflowCache,
+    invalidateWorkflowVariantsCache,
+    invalidateWorkflowRevisionsByWorkflowCache,
     agTypeSchemaAtomFamily,
 } from "./store"
 
@@ -101,6 +104,22 @@ import {
 
 function getStore(options?: StoreOptions) {
     return options?.store ?? getDefaultStore()
+}
+
+type WorkflowLifecycleOptions = StoreOptions & {
+    projectId?: string | null
+}
+
+function getLifecycleProjectId(options?: WorkflowLifecycleOptions) {
+    return options?.projectId ?? getStore(options).get(workflowProjectIdAtom)
+}
+
+function invalidateWorkflowLifecycleCaches(workflowId: string, options?: StoreOptions) {
+    invalidateWorkflowsListCache(options)
+    invalidateEvaluatorsListCache()
+    invalidateWorkflowCache(workflowId, options)
+    invalidateWorkflowVariantsCache(workflowId, options)
+    invalidateWorkflowRevisionsByWorkflowCache(workflowId, options)
 }
 
 // ============================================================================
@@ -1257,6 +1276,28 @@ export const workflowMolecule = {
     cache: {
         invalidateList: invalidateWorkflowsListCache,
         invalidateDetail: invalidateWorkflowCache,
+    },
+
+    // ========================================================================
+    // LIFECYCLE (thin API mutation layer)
+    // ========================================================================
+    lifecycle: {
+        archive: async (workflowId: string, options?: WorkflowLifecycleOptions) => {
+            const projectId = getLifecycleProjectId(options)
+            if (!workflowId) throw new Error("workflowId is required")
+            if (!projectId) throw new Error("projectId is required to archive workflow")
+
+            await archiveWorkflow(projectId, workflowId)
+            invalidateWorkflowLifecycleCaches(workflowId, options)
+        },
+        unarchive: async (workflowId: string, options?: WorkflowLifecycleOptions) => {
+            const projectId = getLifecycleProjectId(options)
+            if (!workflowId) throw new Error("workflowId is required")
+            if (!projectId) throw new Error("projectId is required to unarchive workflow")
+
+            await unarchiveWorkflow(projectId, workflowId)
+            invalidateWorkflowLifecycleCaches(workflowId, options)
+        },
     },
 
     // ========================================================================

@@ -1,3 +1,4 @@
+import asyncio
 import json
 import math
 import os
@@ -7,7 +8,7 @@ import ipaddress
 import traceback
 from difflib import SequenceMatcher
 from json import dumps, loads
-from typing import Any, Dict, List, Optional, Union, Iterable, Tuple
+from typing import Any, Dict, List, Optional, Union, Tuple
 from urllib.parse import urlparse
 
 import httpx
@@ -15,16 +16,23 @@ import httpx
 from pydantic import BaseModel, Field
 
 from agenta.sdk.utils.logging import get_module_logger
-from agenta.sdk.utils.helpers import apply_replacements_with_tracking, _PLACEHOLDER_RE
 from agenta.sdk.utils.lazy import (
     _load_jinja2,
-    _load_jsonpath,
     _load_litellm,
     _load_openai,
 )
+from agenta.sdk.utils.templating import render_template
 
 from agenta.sdk.litellm import mockllm
-from agenta.sdk.utils.types import PromptTemplate, Message, Messages  # noqa: F401
+from agenta.sdk.utils.types import (  # noqa: F401
+    FallbackPolicy,
+    Message,
+    Messages,
+    ModelConfig,
+    PromptTemplate,
+    RetryConfig,
+    RetryPolicy,
+)
 from agenta.sdk.managers.secrets import SecretsManager
 from agenta.sdk.decorators.tracing import instrument
 from agenta.sdk.models.shared import Data
@@ -139,61 +147,16 @@ def _compute_similarity(embedding_1: List[float], embedding_2: List[float]) -> f
     return dot / (norm1 * norm2)
 
 
-# ========= Scheme detection =========
-
-
+# Resolvers used by webhook/match evaluators below. Substitution for prompt
+# templates lives in `agenta.sdk.utils.templating.render_template`.
 from agenta.sdk.utils.resolvers import (  # noqa: E402
     detect_scheme,  # noqa: F401
     resolve_dot_notation,  # noqa: F401
-    resolve_json_path,  # noqa: F401
-    resolve_json_pointer,  # noqa: F401
+    resolve_json_path,
+    resolve_json_pointer,
     resolve_json_selector,  # noqa: F401
-    resolve_any,  # noqa: F401
+    resolve_any,
 )
-
-
-# ========= Placeholder & coercion helpers =========
-
-
-def extract_placeholders(template: str) -> Iterable[str]:
-    """Yield the inner text of all {{ ... }} occurrences (trimmed)."""
-    for m in _PLACEHOLDER_RE.finditer(template):
-        yield m.group(1).strip()
-
-
-def coerce_to_str(value: Any) -> str:
-    """Pretty stringify values for embedding into templates."""
-    if isinstance(value, (dict, list)):
-        return json.dumps(value, ensure_ascii=False)
-    return str(value)
-
-
-def build_replacements(
-    placeholders: Iterable[str], data: Dict[str, Any]
-) -> Tuple[Dict[str, str], set]:
-    """
-    Resolve all placeholders against data.
-    Returns (replacements, unresolved_placeholders).
-    """
-    replacements: Dict[str, str] = {}
-    unresolved: set = set()
-    for expr in set(placeholders):
-        try:
-            val = resolve_any(expr, data)
-            # Escape backslashes to avoid regex replacement surprises
-            replacements[expr] = coerce_to_str(val).replace("\\", "\\\\")
-        except Exception:
-            unresolved.add(expr)
-    return replacements, unresolved
-
-
-def missing_lib_hints(unreplaced: set) -> Optional[str]:
-    """Suggest installing python-jsonpath if placeholders indicate json-path or json-pointer usage."""
-    if any(expr.startswith("$") or expr.startswith("/") for expr in unreplaced):
-        json_path, json_pointer = _load_jsonpath()
-        if json_path is None or json_pointer is None:
-            return "Install python-jsonpath to enable json-path ($...) and json-pointer (/...)"
-    return None
 
 
 def _format_with_template(
@@ -201,16 +164,21 @@ def _format_with_template(
     format: str,
     kwargs: Dict[str, Any],
 ) -> str:
-    """Internal method to format content based on template_format"""
-    if format == "fstring":
-        return content.format(**kwargs)
+    """Format content via the shared rendering helper.
 
-    elif format == "jinja2":
-        SandboxedEnvironment, TemplateError = _load_jinja2()
-        env = SandboxedEnvironment()
+    Preserves the judge's silent-return-on-jinja-error behavior: any Jinja
+    sandbox violation or template error is logged and the original content is
+    returned. Alignment to a consistent raise semantic across services lands in
+    WP-B2.
+    """
 
+    if format not in ("curly", "fstring", "jinja2"):
+        return content
+
+    if format == "jinja2":
+        _SandboxedEnvironment, TemplateError = _load_jinja2()
         try:
-            return env.from_string(content).render(**kwargs)
+            return render_template(template=content, mode=format, context=kwargs)
         except TemplateError as e:
             log.warning(
                 "Jinja2 template rendering failed (possible sandbox violation): %s",
@@ -218,30 +186,7 @@ def _format_with_template(
             )
             return content
 
-    elif format == "curly":
-        original_placeholders = set(extract_placeholders(content))
-
-        replacements, _unresolved = build_replacements(original_placeholders, kwargs)
-
-        result, successfully_replaced = apply_replacements_with_tracking(
-            content, replacements
-        )
-
-        # Only the placeholders that were NOT successfully replaced are errors
-        # This avoids false positives when substituted values contain {{...}} patterns
-        truly_unreplaced = original_placeholders - successfully_replaced
-
-        if truly_unreplaced:
-            hint = missing_lib_hints(truly_unreplaced)
-            suffix = f" Hint: {hint}" if hint else ""
-            raise ValueError(
-                f"Template variables not found or unresolved: "
-                f"{', '.join(sorted(truly_unreplaced))}.{suffix}"
-            )
-
-        return result
-
-    return content
+    return render_template(template=content, mode=format, context=kwargs)
 
 
 def _flatten_json(json_obj: Union[list, dict]) -> Dict[str, Any]:
@@ -998,39 +943,12 @@ async def auto_ai_critique_v0(
             if correct_answer_key in inputs:
                 correct_answer = inputs[correct_answer_key]
 
-    secrets, _, _ = await SecretsManager.retrieve_secrets()
+    await SecretsManager.ensure_secrets_in_workflow()
 
-    if secrets is None or not isinstance(secrets, list):
-        raise InvalidSecretsV0Error(expected="list", got=secrets)
+    provider_settings = SecretsManager.get_provider_settings_from_workflow(model)
 
-    openai_api_key = None  # secrets.get("OPENAI_API_KEY")
-    anthropic_api_key = None  # secrets.get("ANTHROPIC_API_KEY")
-    openrouter_api_key = None  # secrets.get("OPENROUTER_API_KEY")
-    cohere_api_key = None  # secrets.get("COHERE_API_KEY")
-    azure_api_key = None  # secrets.get("AZURE_API_KEY")
-    groq_api_key = None  # secrets.get("GROQ_API_KEY")
-
-    for secret in secrets:
-        if secret.get("kind") == "provider_key":
-            secret_data = secret.get("data", {})
-            if secret_data.get("kind") == "openai":
-                provider_data = secret_data.get("provider", {})
-                openai_api_key = provider_data.get("key") or openai_api_key
-            if secret_data.get("kind") == "anthropic":
-                provider_data = secret_data.get("provider", {})
-                anthropic_api_key = provider_data.get("key") or anthropic_api_key
-            if secret_data.get("kind") == "openrouter":
-                provider_data = secret_data.get("provider", {})
-                openrouter_api_key = provider_data.get("key") or openrouter_api_key
-            if secret_data.get("kind") == "cohere":
-                provider_data = secret_data.get("provider", {})
-                cohere_api_key = provider_data.get("key") or cohere_api_key
-            if secret_data.get("kind") == "azure":
-                provider_data = secret_data.get("provider", {})
-                azure_api_key = provider_data.get("key") or azure_api_key
-            if secret_data.get("kind") == "groq":
-                provider_data = secret_data.get("provider", {})
-                groq_api_key = provider_data.get("key") or groq_api_key
+    if not provider_settings:
+        raise InvalidSecretsV0Error(expected="dict", got=provider_settings, model=model)
 
     threshold = parameters.get("threshold") or 0.5
 
@@ -1043,18 +961,10 @@ async def auto_ai_critique_v0(
 
     _outputs = None
 
-    # Lazy import litellm (configuration is done automatically in _load_litellm)
+    # Lazy import litellm so AuthenticationError stays exposed for the except below.
     litellm = _load_litellm()
     if not litellm:
         raise ImportError("litellm is required for completion handling.")
-
-    # --------------------------------------------------------------------------
-    litellm.openai_key = openai_api_key
-    litellm.anthropic_key = anthropic_api_key
-    litellm.openrouter_key = openrouter_api_key
-    litellm.cohere_key = cohere_api_key
-    litellm.azure_key = azure_api_key
-    litellm.groq_key = groq_api_key
 
     context: Dict[str, Any] = dict()
 
@@ -1116,12 +1026,12 @@ async def auto_ai_critique_v0(
         ) from e
 
     try:
-        response = await litellm.acompletion(
-            model=model,
-            messages=formatted_prompt_template,
-            temperature=0.01,
-            response_format=response_format,
-        )
+        with mockllm.user_aws_credentials_from(_coerce_credentials(provider_settings)):
+            response = await mockllm.acompletion(
+                messages=formatted_prompt_template,
+                response_format=response_format,
+                **provider_settings,
+            )
 
         _outputs = response.choices[0].message.content.strip()  # type: ignore
 
@@ -1883,8 +1793,26 @@ class SinglePromptConfig(BaseModel):
     )
 
 
+def _coerce_credentials(provider_settings: Dict) -> Dict:
+    return {
+        "AWS_ACCESS_KEY_ID": provider_settings.get("AWS_ACCESS_KEY_ID")
+        or provider_settings.get("aws_access_key_id"),
+        "AWS_SECRET_ACCESS_KEY": provider_settings.get("AWS_SECRET_ACCESS_KEY")
+        or provider_settings.get("aws_secret_access_key"),
+        "AWS_SESSION_TOKEN": provider_settings.get("AWS_SESSION_TOKEN")
+        or provider_settings.get("aws_session_token"),
+        "AWS_REGION": provider_settings.get("AWS_REGION")
+        or provider_settings.get("aws_region")
+        or provider_settings.get("aws_region_name"),
+        "AWS_DEFAULT_REGION": provider_settings.get("AWS_DEFAULT_REGION")
+        or provider_settings.get("aws_default_region")
+        or provider_settings.get("aws_region_name"),
+    }
+
+
 def _apply_responses_bridge_if_needed(
-    formatted_prompt: PromptTemplate, provider_settings: Dict
+    provider_settings: Dict,
+    llm_config: ModelConfig,
 ) -> Dict:
     """
     Checks if web_search_preview tool is present and applies responses bridge if needed.
@@ -1894,13 +1822,13 @@ def _apply_responses_bridge_if_needed(
     'openai/responses/' to the model name.
 
     Args:
-        formatted_prompt: The formatted prompt template containing LLM config and tools
         provider_settings: The provider settings dictionary that may be modified
+        llm_config: The LLM config containing tool definitions
 
     Returns:
         The provider_settings dictionary, potentially modified to use responses bridge
     """
-    tools = formatted_prompt.llm_config.tools
+    tools = llm_config.tools
     if tools:
         for tool in tools:
             if isinstance(tool, dict) and tool.get("type") in [
@@ -1912,6 +1840,249 @@ def _apply_responses_bridge_if_needed(
                 if model_val and "/" not in model_val:
                     provider_settings["model"] = f"openai/responses/{model_val}"
     return provider_settings
+
+
+def _coerce_retry_config(
+    retry_config: Optional[RetryConfig],
+    retry_policy: Optional[RetryPolicy] = None,
+) -> RetryConfig:
+    policy = _coerce_retry_policy(retry_policy)
+    config = retry_config or RetryConfig()
+    if policy != RetryPolicy.OFF:
+        return RetryConfig(
+            max_retries=config.max_retries if config.max_retries is not None else 1,
+            base_delay=config.base_delay if config.base_delay is not None else 1000,
+        )
+    return config
+
+
+def _coerce_retry_policy(retry_policy: Optional[RetryPolicy]) -> RetryPolicy:
+    return retry_policy or RetryPolicy.OFF
+
+
+def _coerce_fallback_policy(
+    fallback_policy: Optional[FallbackPolicy],
+) -> FallbackPolicy:
+    return fallback_policy or FallbackPolicy.OFF
+
+
+def _prompt_llm_configs(prompt: PromptTemplate) -> List[ModelConfig]:
+    return [prompt.llm_config, *(prompt.fallback_configs or [])]
+
+
+def _error_status_code(error: Exception) -> Optional[int]:
+    status_code = getattr(error, "status_code", None)
+    if isinstance(status_code, int):
+        return status_code
+
+    response = getattr(error, "response", None)
+    status_code = getattr(response, "status_code", None)
+    if isinstance(status_code, int):
+        return status_code
+
+    return None
+
+
+def _error_text(error: Exception) -> str:
+    return f"{type(error).__name__} {str(error)}".lower()
+
+
+def _is_context_window_error(error: Exception) -> bool:
+    error_text = _error_text(error)
+    return any(
+        marker in error_text
+        for marker in (
+            "context length",
+            "context window",
+            "context limit",
+            "maximum context",
+            "max context",
+            "token limit",
+            "too many tokens",
+            "input is too long",
+        )
+    )
+
+
+def _classify_fallback_error(error: Exception) -> Optional[str]:
+    if isinstance(error, InvalidSecretsV0Error):
+        return "access"
+
+    if isinstance(error, (TimeoutError, httpx.TimeoutException)):
+        return "availability"
+
+    if isinstance(error, httpx.RequestError):
+        return "availability"
+
+    status_code = _error_status_code(error)
+    if status_code in (401, 403):
+        return "access"
+    if status_code == 429:
+        return "capacity"
+    if status_code == 503 or (status_code is not None and 500 <= status_code <= 599):
+        return "availability"
+    if status_code in (400, 422) and _is_context_window_error(error):
+        return "context"
+    if status_code in (400, 404, 422):
+        return "any"
+
+    return None
+
+
+def _classify_retry_error(error: Exception) -> Optional[str]:
+    if isinstance(error, (TimeoutError, httpx.TimeoutException)):
+        return "availability"
+
+    if isinstance(error, httpx.RequestError):
+        return "availability"
+
+    status_code = _error_status_code(error)
+    if status_code == 429:
+        return "capacity"
+    if status_code == 503 or (status_code is not None and 500 <= status_code <= 599):
+        return "availability"
+    if status_code in (409, 423):
+        return "transient"
+
+    if status_code is not None:
+        return "any"
+
+    return None
+
+
+def _should_retry(
+    error: Exception,
+    retry_config: Optional[RetryConfig],
+    retry_policy: Optional[RetryPolicy],
+) -> bool:
+    config = _coerce_retry_config(retry_config, retry_policy)
+    policy = _coerce_retry_policy(retry_policy)
+    if not config.max_retries or policy == RetryPolicy.OFF:
+        return False
+
+    category = _classify_retry_error(error)
+    if category is None:
+        return False
+
+    allowed_categories = {
+        RetryPolicy.AVAILABILITY: {"availability"},
+        RetryPolicy.CAPACITY: {"availability", "capacity"},
+        RetryPolicy.TRANSIENT: {"availability", "capacity", "transient"},
+        RetryPolicy.ANY: {"availability", "capacity", "transient", "any"},
+    }
+    return category in allowed_categories.get(policy, set())
+
+
+def _should_fallback(
+    error: Exception, fallback_policy: Optional[FallbackPolicy]
+) -> bool:
+    policy = _coerce_fallback_policy(fallback_policy)
+    if policy == FallbackPolicy.OFF:
+        return False
+
+    category = _classify_fallback_error(error)
+    if category is None:
+        return False
+
+    allowed_categories = {
+        FallbackPolicy.AVAILABILITY: {"availability"},
+        FallbackPolicy.CAPACITY: {"availability", "capacity"},
+        FallbackPolicy.ACCESS: {"availability", "capacity", "access"},
+        FallbackPolicy.CONTEXT: {
+            "availability",
+            "capacity",
+            "access",
+            "context",
+        },
+        FallbackPolicy.ANY: {
+            "availability",
+            "capacity",
+            "access",
+            "context",
+            "any",
+        },
+    }
+    return category in allowed_categories.get(policy, set())
+
+
+async def _run_prompt_llm_config_with_retry(
+    formatted_prompt: PromptTemplate,
+    llm_config: ModelConfig,
+    retry_config: Optional[RetryConfig],
+    retry_policy: Optional[RetryPolicy],
+    messages: Optional[List[Message]] = None,
+):
+    config = _coerce_retry_config(retry_config, retry_policy)
+    attempts = (config.max_retries or 0) + 1
+    last_error = None
+
+    for attempt in range(attempts):
+        try:
+            provider_settings = SecretsManager.get_provider_settings_from_workflow(
+                llm_config.model
+            )
+
+            if not provider_settings:
+                raise InvalidSecretsV0Error(
+                    expected="dict", got=provider_settings, model=llm_config.model
+                )
+
+            provider_settings = _apply_responses_bridge_if_needed(
+                dict(provider_settings),
+                llm_config=llm_config,
+            )
+            openai_kwargs = formatted_prompt.to_openai_kwargs(llm_config)
+
+            if messages is not None:
+                openai_kwargs["messages"] = [*openai_kwargs["messages"], *messages]
+
+            with mockllm.user_aws_credentials_from(
+                _coerce_credentials(provider_settings)
+            ):
+                return await mockllm.acompletion(
+                    **{k: v for k, v in openai_kwargs.items() if k != "model"},
+                    **provider_settings,
+                )
+        except Exception as exc:
+            last_error = exc
+            if attempt >= attempts - 1 or not _should_retry(
+                exc,
+                retry_config=config,
+                retry_policy=retry_policy,
+            ):
+                break
+            if config.base_delay is not None:
+                await asyncio.sleep((config.base_delay / 1000) * (2**attempt))
+
+    raise last_error  # type: ignore[misc]
+
+
+async def _run_prompt_with_fallback(
+    formatted_prompt: PromptTemplate,
+    messages: Optional[List[Message]] = None,
+):
+    llm_configs = _prompt_llm_configs(formatted_prompt)
+    last_error = None
+
+    for index, current_llm_config in enumerate(llm_configs):
+        try:
+            return await _run_prompt_llm_config_with_retry(
+                formatted_prompt=formatted_prompt,
+                llm_config=current_llm_config,
+                retry_config=formatted_prompt.retry_config,
+                retry_policy=formatted_prompt.retry_policy,
+                messages=messages,
+            )
+        except Exception as exc:
+            last_error = exc
+            has_next_config = index < len(llm_configs) - 1
+            if has_next_config and _should_fallback(
+                exc, formatted_prompt.fallback_policy
+            ):
+                continue
+            raise
+
+    raise last_error  # type: ignore[misc]
 
 
 @instrument(ignore_inputs=["parameters"])
@@ -1968,35 +2139,9 @@ async def completion_v0(
     else:
         formatted_prompt = config.prompt
 
-    openai_kwargs = formatted_prompt.to_openai_kwargs()
-
     await SecretsManager.ensure_secrets_in_workflow()
 
-    provider_settings = SecretsManager.get_provider_settings_from_workflow(
-        config.prompt.llm_config.model
-    )
-
-    if not provider_settings:
-        model = getattr(
-            getattr(getattr(config, "prompt", None), "llm_config", None), "model", None
-        )
-        raise InvalidSecretsV0Error(
-            expected="dict",
-            got=provider_settings,
-            model=model,
-        )
-
-    provider_settings = _apply_responses_bridge_if_needed(
-        formatted_prompt, provider_settings
-    )
-
-    with mockllm.user_aws_credentials_from(provider_settings):
-        response = await mockllm.acompletion(
-            **{
-                k: v for k, v in openai_kwargs.items() if k != "model"
-            },  # we should use the model_name from provider_settings
-            **provider_settings,
-        )
+    response = await _run_prompt_with_fallback(formatted_prompt)
 
     message = response.choices[0].message  # type: ignore
 
@@ -2067,38 +2212,9 @@ async def chat_v0(
     else:
         formatted_prompt = config.prompt
 
-    openai_kwargs = formatted_prompt.to_openai_kwargs()
-
-    if _messages is not None:
-        openai_kwargs["messages"].extend(_messages)
-
     await SecretsManager.ensure_secrets_in_workflow()
 
-    provider_settings = SecretsManager.get_provider_settings_from_workflow(
-        config.prompt.llm_config.model
-    )
-
-    if not provider_settings:
-        model = getattr(
-            getattr(getattr(config, "prompt", None), "llm_config", None), "model", None
-        )
-        raise InvalidSecretsV0Error(
-            expected="dict",
-            got=provider_settings,
-            model=model,
-        )
-
-    provider_settings = _apply_responses_bridge_if_needed(
-        formatted_prompt, provider_settings
-    )
-
-    with mockllm.user_aws_credentials_from(provider_settings):
-        response = await mockllm.acompletion(
-            **{
-                k: v for k, v in openai_kwargs.items() if k != "model"
-            },  # we should use the model_name from provider_settings
-            **provider_settings,
-        )
+    response = await _run_prompt_with_fallback(formatted_prompt, messages=_messages)
 
     message = response.choices[0].message  # type: ignore
 
@@ -3236,6 +3352,7 @@ async def _call_llm_with_fallback(
             "frequency_penalty",
             "presence_penalty",
             "reasoning_effort",
+            "chat_template_kwargs",
         ):
             val = llm_config.get(field)
             if val is not None:
