@@ -144,9 +144,13 @@ export async function createEphemeralAppFromTemplate({
 
     if (signal?.aborted) return null
 
-    const uri = template.data?.uri ?? buildWorkflowUri(template.key)
+    // Fall back to building the URI from the requested `type` (e.g. "chat",
+    // "completion") rather than `template.key`. The catalog can return keys
+    // like `SERVICE:chat` (matched via `matchTemplateForType`) which would
+    // produce an invalid builtin URI when fed straight into `buildWorkflowUri`.
+    const uri = template.data?.uri ?? buildWorkflowUri(type)
     const localId = generateLocalId("local")
-    const resolvedName = defaultName ?? `Untitled ${capitalize(type)} App`
+    const resolvedName = defaultName ?? `${capitalize(type)} prompt`
 
     const catalogSchemas = template.data?.schemas as
         | Record<string, Record<string, unknown> | null | undefined>

@@ -164,7 +164,12 @@ const AppCreateNameInput = memo(({entityId}: {entityId: string}) => {
 
     const handleBlur = useCallback(() => {
         const trimmed = localValue.trim()
-        if (trimmed && trimmed !== currentName) {
+        // Persist the trimmed value whenever it differs from the current
+        // (also-trimmed) name — including the empty-string case. Without
+        // this, deleting the name and blurring would leave the workflow
+        // entity holding the previous name silently while the input
+        // appears blank.
+        if (trimmed !== (currentName ?? "").trim()) {
             updateWorkflow(entityId, {name: trimmed})
         }
     }, [localValue, currentName, updateWorkflow, entityId])

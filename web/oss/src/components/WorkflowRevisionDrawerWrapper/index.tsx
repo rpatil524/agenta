@@ -542,7 +542,16 @@ const useDrawerCloseCleanup = () => {
     const isOpen = useAtomValue(workflowRevisionDrawerOpenAtom)
     const entityIdRef = useRef<string | null>(null)
     const entityId = useAtomValue(workflowRevisionDrawerEntityIdAtom)
-    entityIdRef.current = entityId
+
+    // `closeWorkflowRevisionDrawerAtom` resets `isOpen` and `entityId`
+    // atomically in one Jotai write. React batches both updates into the
+    // same render, so a naive `entityIdRef.current = entityId` during
+    // render would clobber the ref with `null` BEFORE the cleanup effect
+    // fires. Only update the ref while the drawer is open, so we keep
+    // the last truthy ID around to discard on close.
+    if (isOpen && entityId && entityIdRef.current !== entityId) {
+        entityIdRef.current = entityId
+    }
 
     const discard = useSetAtom(discardLocalServerDataAtom)
     const discardRef = useRef(discard)
@@ -553,9 +562,10 @@ const useDrawerCloseCleanup = () => {
         if (prevOpenRef.current && !isOpen) {
             // Drawer just closed — release the entity that was open.
             // Read from the ref captured BEFORE the close (since close
-            // resets entityId to null).
+            // resets entityId to null in the same render).
             const id = entityIdRef.current
             if (id) discardRef.current(id)
+            entityIdRef.current = null
         }
         prevOpenRef.current = isOpen
     }, [isOpen])
