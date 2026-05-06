@@ -35,7 +35,6 @@
     "docusaurus-plugin-openapi-docs": "^4.5.1",
     "docusaurus-theme-openapi-docs": "^4.5.1",
     "dotenv": "^16.4.5",
-    "lodash": "^4.18.1",
     "postcss": "^8.5.14",
     "posthog-docusaurus": "^2.0.1",
     "prism-react-renderer": "^2.3.0",
@@ -53,7 +52,7 @@
     "path-to-regexp": "^3.3.0",
     "ajv@^8.0.0": "^8.18.0",
     "minimatch@<10.2.1": ">=10.2.1",
-    "lodash@<4.18.0": ">=4.18.0",
+    "lodash": ">=4.18.0",
     "follow-redirects@<1.16.0": ">=1.16.0",
     "postcss@<8.5.10": ">=8.5.10"
   },
@@ -62,7 +61,7 @@
       "path-to-regexp@<3.3.0": ">=3.3.0",
       "ajv@^8.0.0": "^8.18.0",
       "minimatch@<10.2.1": ">=10.2.1",
-      "lodash@<4.18.0": ">=4.18.0",
+      "lodash": ">=4.18.0",
       "follow-redirects@<1.16.0": ">=1.16.0",
       "postcss@<8.5.10": ">=8.5.10"
     },
