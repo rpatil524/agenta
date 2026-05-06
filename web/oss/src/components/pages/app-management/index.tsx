@@ -18,7 +18,6 @@ import {
 } from "@/oss/lib/onboarding"
 import {StyleProps} from "@/oss/lib/Types"
 import {useAppsData} from "@/oss/state/app"
-import {useOrgData} from "@/oss/state/org"
 
 import {useStyles} from "./assets/styles"
 import ApplicationManagementSection from "./components/ApplicationManagementSection"
@@ -46,7 +45,6 @@ const AppManagement: React.FC = () => {
     const [isMaxAppModalOpen, setIsMaxAppModalOpen] = useState(false)
     const [isSetupTracingModal, setIsSetupTracingModal] = useState(false)
     const {error} = useAppsData()
-    const {selectedOrg} = useOrgData()
 
     const router = useRouter()
     const {baseAppURL} = useURL()
@@ -111,10 +109,7 @@ const AppManagement: React.FC = () => {
 
                         <ObservabilityDashboardSection />
 
-                        <ApplicationManagementSection
-                            selectedOrg={selectedOrg}
-                            setIsMaxAppModalOpen={setIsMaxAppModalOpen}
-                        />
+                        <ApplicationManagementSection />
 
                         <HelpAndSupportSection />
                     </>

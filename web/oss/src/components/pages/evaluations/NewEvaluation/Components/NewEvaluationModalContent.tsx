@@ -129,7 +129,7 @@ const NewEvaluationModalContent: FC<NewEvaluationModalContentProps> = ({
             {
                 key: "appPanel",
                 label: (
-                    <TabLabel tabTitle="Applications" completed={appSelectionComplete}>
+                    <TabLabel tabTitle="Application" completed={appSelectionComplete}>
                         {appSelectionComplete && (
                             <Tag
                                 closeIcon={<CloseCircleOutlined />}
@@ -149,7 +149,6 @@ const NewEvaluationModalContent: FC<NewEvaluationModalContentProps> = ({
                             selectedWorkflowId={selectedAppId}
                             onSelectWorkflow={onSelectApp}
                             disabled={appSelectionDisabled}
-                            initialTypeFilter={appSelectionDisabled ? "app" : "all"}
                         />
                         {!appSelectionComplete && !appSelectionDisabled ? (
                             <Typography.Text type="secondary">

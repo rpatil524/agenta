@@ -116,7 +116,7 @@ const testAutoEval = () => {
                 .first()
                 .fill(`e2e-auto-mismatch-${Date.now()}`)
 
-            await goToAutoEvaluationStep(modal, "Variant")
+            await goToAutoEvaluationStep(modal, "Revision")
             await selectAutoEvaluationModalTableInput({
                 modal,
                 rowText: variantName,
@@ -129,7 +129,9 @@ const testAutoEval = () => {
                 .locator(".ant-tabs-tabpane-active")
                 .last()
                 .locator("div")
-                .filter({hasText: /Expected input variables for selected variant\(s\):/})
+                .filter({
+                    hasText: /Expected input variables for selected (variant|revision)\(s\):/i,
+                })
                 .first()
             await expect(expectedInputsNote).toBeVisible()
             await expect(expectedInputsNote).not.toContainText(mismatchedColumnName)

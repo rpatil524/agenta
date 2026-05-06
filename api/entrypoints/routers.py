@@ -2,6 +2,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import ORJSONResponse
 from supertokens_python import get_all_cors_headers as get_all_supertokens_cors_headers
 from supertokens_python.framework.fastapi import (
     get_middleware as get_supertokens_middleware,
@@ -10,8 +12,6 @@ from supertokens_python.framework.fastapi import (
 from oss.src.utils.common import is_ee
 from oss.src.utils.logging import get_module_logger
 from oss.src.utils.helpers import warn_deprecated_env_vars, validate_required_env_vars
-
-from oss.src.open_api import open_api_tags_metadata
 
 from oss.databases.postgres.migrations.core.utils import (
     check_for_new_migrations as check_for_new_core_migrations,
@@ -181,10 +181,123 @@ async def lifespan(*args, **kwargs):
         await adapter.close()
 
 
+_OPENAPI_TAGS = [
+    {
+        "name": "Status",
+        "description": "API server liveness and readiness status.",
+    },
+    # --
+    {
+        "name": "Organizations",
+        "description": "Manage organizations, workspaces, SSO domains, and identity providers.",
+    },
+    {
+        "name": "Workspaces",
+        "description": "Manage workspaces within an organization and their members.",
+    },
+    {
+        "name": "Projects",
+        "description": "Manage projects within a workspace.",
+    },
+    # --
+    {
+        "name": "Users",
+        "description": "User profile and account management — view profile, update username, reset password.",
+    },
+    # --
+    {
+        "name": "Keys",
+        "description": "Create and revoke API keys used to authenticate programmatic requests.",
+    },
+    # --
+    {
+        "name": "Workflows",
+        "description": "Workflow definitions — the runnable pipelines that back an application.",
+    },
+    {
+        "name": "Applications",
+        "description": "LLM applications — create, update, list, and delete apps.",
+    },
+    {
+        "name": "Evaluators",
+        "description": "Evaluator definitions — the metrics and judges used in evaluation runs.",
+    },
+    # --
+    {
+        "name": "Testsets",
+        "description": "Test datasets — collections of input/output pairs used in evaluations.",
+    },
+    {
+        "name": "Testcases",
+        "description": "Individual test cases within a testset.",
+    },
+    # --
+    {
+        "name": "Queries",
+        "description": "Saved query definitions used to filter and retrieve trace data.",
+    },
+    {
+        "name": "Traces",
+        "description": "Ingest and query traces, spans, and metrics from running applications.",
+    },
+    # --
+    {
+        "name": "Evaluations",
+        "description": "Evaluation runs — execute evaluators against variants and testsets.",
+    },
+    # --
+    {
+        "name": "Environments",
+        "description": "Deployment environments (e.g. production, staging) and their active variants.",
+    },
+    # --
+    {
+        "name": "Secrets",
+        "description": "Manage provider credentials and secret values stored in the vault.",
+    },
+    # --
+    {
+        "name": "Tools",
+        "description": "External tool connections and OAuth integrations available to applications.",
+    },
+    # --
+    {
+        "name": "Folders",
+        "description": "Organize applications and other resources into folder hierarchies.",
+    },
+    # --
+    {
+        "name": "Events",
+        "description": "Structured event ingestion for analytics and audit purposes.",
+    },
+    {
+        "name": "Webhooks",
+        "description": "Register and manage webhooks that fire on platform events.",
+    },
+    # --
+    {
+        "name": "OpenTelemetry",
+        "description": "OTLP-compatible endpoints for ingesting traces directly from OpenTelemetry-instrumented services.",
+    },
+    # --
+    # Billing inserted here by EE (extend_app_schema)
+    # --
+    {
+        "name": "Admin",
+        "description": "Internal administration endpoints — restricted to platform operators.",
+    },
+    # --
+    {
+        "name": "Deprecated",
+        "description": "Legacy endpoints kept for backwards compatibility — avoid in new integrations.",
+    },
+]
+
 app = FastAPI(
     lifespan=lifespan,
-    openapi_tags=open_api_tags_metadata,
+    openapi_tags=_OPENAPI_TAGS,
     root_path="/api",
+    default_response_class=ORJSONResponse,
 )
 # MIDDLEWARE -------------------------------------------------------------------
 
@@ -196,6 +309,8 @@ if is_ee():
 
 app.middleware("http")(authentication_middleware)
 app.middleware("http")(analytics_middleware)
+
+app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=5)
 
 app.add_middleware(
     get_supertokens_middleware(),
@@ -553,13 +668,13 @@ app.include_router(
 app.include_router(
     router=otlp.router,
     prefix="/otlp/v1",
-    tags=["Observability"],
+    tags=["OpenTelemetry"],
 )
 
 app.include_router(
     router=auth_router,
     prefix="/auth",
-    tags=["Auth"],
+    include_in_schema=False,
 )
 
 ## DEPRECATED
@@ -574,32 +689,32 @@ app.include_router(
 app.include_router(
     router=tracing.router,
     prefix="/tracing",
-    tags=["Observability"],
+    tags=["Traces"],
 )
 
 app.include_router(
     router=traces.router,
     prefix="/traces",
-    tags=["Observability"],
+    tags=["Traces"],
 )
 
 app.include_router(
     router=traces.router,
     prefix="/preview/traces",
-    tags=["Observability"],
+    tags=["Traces"],
     include_in_schema=False,
 )
 
 app.include_router(
     router=spans.router,
     prefix="/spans",
-    tags=["Observability"],
+    tags=["Traces"],
 )
 
 app.include_router(
     router=spans.router,
     prefix="/preview/spans",
-    tags=["Observability"],
+    tags=["Traces"],
     include_in_schema=False,
 )
 
@@ -612,13 +727,13 @@ app.include_router(
 app.include_router(
     router=simple_traces.router,
     prefix="/simple/traces",
-    tags=["Simple Traces"],
+    tags=["Traces"],
 )
 
 app.include_router(
     router=simple_traces.router,
     prefix="/preview/simple/traces",
-    tags=["Simple Traces"],
+    tags=["Traces"],
     include_in_schema=False,
 )
 
@@ -748,7 +863,7 @@ app.include_router(
 app.include_router(
     router=ai_services.router,
     prefix="/ai/services",
-    tags=["AI Services"],
+    include_in_schema=False,
 )
 
 app.include_router(
@@ -806,7 +921,7 @@ app.include_router(
 app.include_router(
     router=legacy_variants.router,
     prefix="/variants",
-    tags=["Variants"],
+    tags=["Deprecated"],
 )
 
 app.include_router(
@@ -882,41 +997,44 @@ app.include_router(
 app.include_router(
     health_router.router,
     prefix="/health",
+    tags=["Status"],
 )
 
 app.include_router(
     permissions_router.router,
     prefix="/permissions",
     tags=["Access Control"],
+    include_in_schema=False,
 )
 
 app.include_router(
     projects_router.router,
     prefix="/projects",
-    tags=["Scopes"],
+    tags=["Projects"],
 )
 
 app.include_router(
     user_profile.router,
     prefix="/profile",
+    tags=["Users"],
 )
 
 app.include_router(
     api_key_router.router,
     prefix="/keys",
-    tags=["Api Keys"],
+    tags=["Keys"],
 )
 
 app.include_router(
     organization_router.router,
     prefix="/organizations",
-    tags=["Organization"],
+    tags=["Organizations"],
 )
 
 app.include_router(
     workspace_router.router,
     prefix="/workspaces",
-    tags=["Workspace"],
+    tags=["Workspaces"],
 )
 
 # ------------------------------------------------------------------------------
