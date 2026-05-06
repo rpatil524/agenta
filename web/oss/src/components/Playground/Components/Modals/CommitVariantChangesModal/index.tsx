@@ -77,7 +77,7 @@ const CommitVariantChangesModal: React.FC<CommitVariantChangesModalProps> = ({
             if (isEphemeral) {
                 const result = await createFromEphemeral({
                     revisionId: variantId,
-                    commitMessage,
+                    commitMessage: commitMessage ?? undefined,
                     name: editedName,
                     slug: editedSlug,
                 })
@@ -102,7 +102,7 @@ const CommitVariantChangesModal: React.FC<CommitVariantChangesModalProps> = ({
             }
 
             const selectedMode = mode === "variant" ? "variant" : "version"
-            const note = commitMessage
+            const note = commitMessage ?? undefined
 
             if (selectedMode === "variant") {
                 const variantNameToCreate = editedName?.trim()

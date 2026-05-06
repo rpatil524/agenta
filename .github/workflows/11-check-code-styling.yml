@@ -25,7 +25,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install Ruff
-        run: pip install ruff==0.14.0
+        run: pip install ruff==0.15.12
 
       - name: Run Ruff formatting check
         run: ruff format --check
@@ -42,7 +42,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install Ruff
-        run: pip install ruff==0.14.0
+        run: pip install ruff==0.15.12
 
       - name: Run Ruff linting check
         run: ruff check

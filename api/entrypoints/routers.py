@@ -2,6 +2,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import ORJSONResponse
 from supertokens_python import get_all_cors_headers as get_all_supertokens_cors_headers
 from supertokens_python.framework.fastapi import (
     get_middleware as get_supertokens_middleware,
@@ -295,6 +297,7 @@ app = FastAPI(
     lifespan=lifespan,
     openapi_tags=_OPENAPI_TAGS,
     root_path="/api",
+    default_response_class=ORJSONResponse,
 )
 # MIDDLEWARE -------------------------------------------------------------------
 
@@ -306,6 +309,8 @@ if is_ee():
 
 app.middleware("http")(authentication_middleware)
 app.middleware("http")(analytics_middleware)
+
+app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=5)
 
 app.add_middleware(
     get_supertokens_middleware(),

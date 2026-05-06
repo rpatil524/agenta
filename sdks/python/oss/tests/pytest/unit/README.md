@@ -6,13 +6,13 @@ This directory contains unit tests for the Agenta SDK components.
 
 ```bash
 # Run all tests
-poetry run pytest tests/unit/ -v
+uv run pytest tests/unit/ -v
 
 # Run specific test file
-poetry run pytest tests/unit/test_tracing_decorators.py -v
+uv run pytest tests/unit/test_tracing_decorators.py -v
 
 # Run specific test class
-poetry run pytest tests/unit/test_tracing_decorators.py::TestGeneratorTracing -v
+uv run pytest tests/unit/test_tracing_decorators.py::TestGeneratorTracing -v
 ```
 
 ## Test Organization
@@ -25,24 +25,24 @@ poetry run pytest tests/unit/test_tracing_decorators.py::TestGeneratorTracing -v
 
 ```bash
 # Install dependencies
-poetry install
+uv sync
 ```
 
 ## Running Tests
 
 ### Basic Execution
 ```bash
-poetry run pytest tests/unit/ -v
+uv run pytest tests/unit/ -v
 ```
 
 ### With Coverage
 ```bash
-poetry run pytest tests/unit/ --cov=agenta.sdk --cov-report=html
+uv run pytest tests/unit/ --cov=agenta.sdk --cov-report=html
 ```
 
 ### Debug Mode
 ```bash
-poetry run pytest tests/unit/ --pdb
+uv run pytest tests/unit/ --pdb
 ```
 
 ## Adding New Tests
