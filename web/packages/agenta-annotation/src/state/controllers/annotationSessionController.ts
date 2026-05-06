@@ -37,7 +37,12 @@
 
 import type {Annotation} from "@agenta/entities/annotation"
 import {queryAnnotations} from "@agenta/entities/annotation"
-import {evaluationRunMolecule} from "@agenta/entities/evaluationRun"
+import {
+    evaluationRunMolecule,
+    queryEvaluationResults,
+    type EvaluationResult,
+    type EvaluationRunDataStep,
+} from "@agenta/entities/evaluationRun"
 import type {QueueType} from "@agenta/entities/queue"
 import {registerQueueTypeHint, clearQueueTypeHint} from "@agenta/entities/queue"
 import {simpleQueueMolecule} from "@agenta/entities/simpleQueue"
@@ -1139,88 +1144,82 @@ const scenarioRootSpanAtomFamily = atomFamily((scenarioId: string) =>
 const scenarioAnnotationTraceIdsAtomFamily = atomFamily((scenarioId: string) =>
     atom<string[]>((get) => {
         const runId = get(activeRunIdAtom)
-        if (!runId || !scenarioId) {
-            console.log(
-                `[annot-debug] traceIds(${scenarioId?.slice(0, 8)}): no runId or scenarioId`,
-            )
-            return []
-        }
+        if (!runId || !scenarioId) return []
 
         // Get annotation step info from the run definition
         const annotationSteps = get(evaluationRunMolecule.selectors.annotationSteps(runId))
-        if (annotationSteps.length === 0) {
-            console.log(
-                `[annot-debug] traceIds(${scenarioId.slice(0, 8)}): no annotation steps in run definition`,
-            )
-            return []
-        }
-
-        // Build matchers for step result keys.
-        // Step results can be keyed as:
-        //   - The annotation step's own key (e.g., "evaluator-dcd4d73d6fab")
-        //   - Or "{invocationStepKey}.{idSuffix}" (e.g., "query-direct.dcd4d73d6fab")
-        // The id suffix can be the evaluator slug ("quality-rating"), the short hash
-        // ("dcd4d73d6fab"), or the suffix from the annotation step key itself.
-        const annotationStepKeys = new Set(annotationSteps.map((s) => s.key))
-        const suffixMatchers = new Set<string>()
-        for (const step of annotationSteps) {
-            // Add evaluator slug (e.g., "quality-rating")
-            const slug = step.references?.evaluator?.slug
-            if (slug) suffixMatchers.add(slug)
-            // Add suffix from the annotation step key itself (e.g., "dcd4d73d6fab" from "evaluator-dcd4d73d6fab")
-            if (step.key) {
-                const dashIdx = step.key.indexOf("-")
-                if (dashIdx >= 0) suffixMatchers.add(step.key.slice(dashIdx + 1))
-            }
-        }
+        if (annotationSteps.length === 0) return []
 
         // Get scenario step results (evaluation results)
         const stepsQuery = get(evaluationRunMolecule.selectors.scenarioSteps({runId, scenarioId}))
         const steps = stepsQuery.data ?? []
 
-        console.log(
-            `[annot-debug] traceIds(${scenarioId.slice(0, 8)}): stepKeys=[${[...annotationStepKeys]}], suffixes=[${[...suffixMatchers]}], isPending=${stepsQuery.isPending}, steps=`,
-            steps.map((s) => ({step_key: s.step_key, trace_id: s.trace_id?.slice(0, 8)})),
-        )
-
-        // Extract trace_ids from annotation step results
-        const traceIds: string[] = []
-        for (const step of steps) {
-            if (!step.step_key || !step.trace_id) continue
-
-            // Match by exact annotation step key
-            if (annotationStepKeys.has(step.step_key)) {
-                console.log(
-                    `[annot-debug]   matched exact: ${step.step_key} → ${step.trace_id.slice(0, 8)}`,
-                )
-                traceIds.push(step.trace_id)
-                continue
-            }
-
-            // Match by "{anything}.{suffix}" where suffix is evaluator slug or ID hash
-            const dotIdx = step.step_key.lastIndexOf(".")
-            if (dotIdx >= 0) {
-                const suffix = step.step_key.slice(dotIdx + 1)
-                if (suffixMatchers.has(suffix)) {
-                    console.log(
-                        `[annot-debug]   matched suffix: ${step.step_key} (suffix=${suffix}) → ${step.trace_id.slice(0, 8)}`,
-                    )
-                    traceIds.push(step.trace_id)
-                } else {
-                    console.log(
-                        `[annot-debug]   no match: ${step.step_key} (suffix=${suffix} not in [${[...suffixMatchers]}])`,
-                    )
-                }
-            } else {
-                console.log(`[annot-debug]   no match: ${step.step_key} (no dot, not in stepKeys)`)
-            }
-        }
-        console.log(
-            `[annot-debug] traceIds(${scenarioId.slice(0, 8)}): result=[${traceIds.map((t) => t.slice(0, 8))}]`,
-        )
-        return traceIds
+        return extractAnnotationTraceIdsFromSteps({annotationSteps, steps})
     }),
 )
+
+function buildAnnotationStepMatchers(annotationSteps: EvaluationRunDataStep[]) {
+    const stepKeys = new Set<string>()
+    const suffixes = new Set<string>()
+
+    for (const step of annotationSteps) {
+        if (step.key) {
+            stepKeys.add(step.key)
+
+            const dashIdx = step.key.indexOf("-")
+            if (dashIdx >= 0) suffixes.add(step.key.slice(dashIdx + 1))
+        }
+
+        const evaluatorSlug = step.references?.evaluator?.slug
+        if (evaluatorSlug) suffixes.add(evaluatorSlug)
+    }
+
+    return {stepKeys, suffixes}
+}
+
+function extractAnnotationTraceIdsFromSteps({
+    annotationSteps,
+    steps,
+}: {
+    annotationSteps: EvaluationRunDataStep[]
+    steps: EvaluationResult[]
+}): string[] {
+    const {stepKeys, suffixes} = buildAnnotationStepMatchers(annotationSteps)
+    const traceIds = new Set<string>()
+
+    for (const step of steps) {
+        if (!step.step_key || !step.trace_id) continue
+
+        if (stepKeys.has(step.step_key)) {
+            traceIds.add(step.trace_id)
+            continue
+        }
+
+        const dotIdx = step.step_key.lastIndexOf(".")
+        if (dotIdx < 0) continue
+
+        const suffix = step.step_key.slice(dotIdx + 1)
+        if (suffixes.has(suffix)) {
+            traceIds.add(step.trace_id)
+        }
+    }
+
+    return Array.from(traceIds)
+}
+
+function mergeAnnotationsByTraceSpan(
+    primary: Annotation[],
+    fallback: Annotation[] = [],
+): Annotation[] {
+    const byKey = new Map<string, Annotation>()
+
+    for (const annotation of [...primary, ...fallback]) {
+        if (!annotation?.trace_id || !annotation?.span_id) continue
+        byKey.set(`${annotation.trace_id}:${annotation.span_id}`, annotation)
+    }
+
+    return Array.from(byKey.values())
+}
 
 interface ScenarioAnnotationsKey {
     scenarioId: string
@@ -1884,21 +1883,40 @@ const scenarioMetricForEvaluatorAtomFamily = atomFamily(
  * 2. Refetch annotation queries (awaited) — uses fresh trace_ids from step 1
  * 3. Refresh metrics (fire-and-forget) — independent, can run in background
  */
-async function invalidateScenarioAnnotations(scenarioId: string) {
+async function invalidateScenarioAnnotations(
+    scenarioId: string,
+    fallbackAnnotations: Annotation[] = [],
+) {
     const store = getStore()
     const runId = store.get(activeRunIdAtom)
+    const projectId = store.get(projectIdAtom)
+    let freshSteps: EvaluationResult[] | null = null
 
     // Step 1: Refetch scenario steps FIRST (awaited).
     // The new annotation creates a new step result with the annotation's trace_id.
     // We must wait for this to complete so scenarioAnnotationTraceIdsAtomFamily
     // derives the correct trace IDs for step 2.
-    if (runId) {
+    if (projectId && runId) {
+        try {
+            freshSteps = await queryEvaluationResults({
+                projectId,
+                runId,
+                scenarioIds: [scenarioId],
+            })
+            queryClient.setQueryData(["scenarioSteps", runId, scenarioId], freshSteps)
+        } catch {
+            freshSteps = null
+        }
+    }
+
+    if (runId && !freshSteps) {
         const stepsQuery = store.get(
             evaluationRunMolecule.selectors.scenarioSteps({runId, scenarioId}),
         )
         if (stepsQuery?.refetch) {
             try {
-                await stepsQuery.refetch()
+                const result = await stepsQuery.refetch()
+                freshSteps = Array.isArray(result.data) ? result.data : null
             } catch {
                 // Non-critical — fallback link-based query will catch these
             }
@@ -1907,23 +1925,80 @@ async function invalidateScenarioAnnotations(scenarioId: string) {
 
     // Step 2: Refetch annotation queries (awaited).
     // Now that steps are updated, scenarioAnnotationTraceIdsAtomFamily has fresh data.
-    const traceIds = store.get(scenarioAnnotationTraceIdsAtomFamily(scenarioId))
-    if (traceIds.length > 0) {
+    const annotationSteps = runId
+        ? store.get(evaluationRunMolecule.selectors.annotationSteps(runId))
+        : []
+    const traceIds =
+        freshSteps && annotationSteps.length > 0
+            ? extractAnnotationTraceIdsFromSteps({annotationSteps, steps: freshSteps})
+            : store.get(scenarioAnnotationTraceIdsAtomFamily(scenarioId))
+
+    if (projectId && traceIds.length > 0) {
         const annotationTraceIds = traceIds.join("|")
-        const query = store.get(
-            scenarioAnnotationsQueryAtomFamily({scenarioId, annotationTraceIds}),
-        )
-        if (query?.refetch) {
+        try {
+            const response = await queryAnnotations({
+                projectId,
+                annotationLinks: traceIds.map((traceId) => ({trace_id: traceId})),
+            })
+            const annotations = mergeAnnotationsByTraceSpan(
+                response.annotations ?? [],
+                fallbackAnnotations,
+            )
+            queryClient.setQueryData(
+                ["scenarioAnnotations", scenarioId, annotationTraceIds],
+                annotations,
+            )
+        } catch {
+            const query = store.get(
+                scenarioAnnotationsQueryAtomFamily({scenarioId, annotationTraceIds}),
+            )
+            if (query?.refetch) {
+                try {
+                    await query.refetch()
+                } catch {
+                    // Will fall through to link-based query
+                }
+            }
+        }
+    } else if (projectId) {
+        const testcaseRef = store.get(scenarioTestcaseRefAtomFamily(scenarioId))
+        if (testcaseRef.testcaseId) {
             try {
-                await query.refetch()
+                const response = await queryAnnotations({
+                    projectId,
+                    annotation: {
+                        references: {
+                            testcase: {id: testcaseRef.testcaseId},
+                        },
+                    },
+                })
+                const annotations = mergeAnnotationsByTraceSpan(
+                    response.annotations ?? [],
+                    fallbackAnnotations,
+                )
+                queryClient.setQueryData(
+                    ["scenarioAnnotationsByTestcase", scenarioId, testcaseRef.testcaseId],
+                    annotations,
+                )
             } catch {
-                // Will fall through to link-based query
+                const query = store.get(
+                    scenarioAnnotationsByTestcaseQueryAtomFamily({
+                        scenarioId,
+                        testcaseId: testcaseRef.testcaseId,
+                    }),
+                )
+                if (query?.refetch) {
+                    try {
+                        await query.refetch()
+                    } catch {
+                        // Non-critical — callers still invalidate broader annotation caches.
+                    }
+                }
             }
         }
     }
 
     // Step 3: Trigger metrics refresh then refetch (fire-and-forget, independent)
-    const projectId = store.get(projectIdAtom)
     if (projectId && runId) {
         axios
             .post(
@@ -2381,6 +2456,15 @@ function resolveScenarioIdsForAddToTestset(get: Getter): string[] {
     return get(addToTestsetScenarioIdsAtom)
 }
 
+function resolveCompletedScenarioIdsForAnnotationExport(
+    get: Getter,
+    scenarioIds: string[],
+): Set<string> {
+    const completed = get(completedScenarioIdsAtom)
+    const records = get(scenarioRecordsAtom)
+    return new Set(scenarioIds.filter((id) => isScenarioCompleted(id, completed, records)))
+}
+
 function extractExistingColumns(
     rows: {data?: Record<string, unknown> | null}[] | null | undefined,
 ): Set<string> {
@@ -2594,11 +2678,57 @@ function buildTraceAnnotationOutputs(params: {
     return result
 }
 
+async function fetchTraceAnnotationOutputsForExport(params: {
+    projectId: string
+    scenarioId: string
+    queueId: string
+    evaluators: TestsetSyncEvaluator[]
+}): Promise<Record<string, Record<string, unknown>>> {
+    const store = getStore()
+    const runId = store.get(activeRunIdAtom)
+
+    if (runId) {
+        const annotationSteps = store.get(evaluationRunMolecule.selectors.annotationSteps(runId))
+        if (annotationSteps.length > 0) {
+            const steps = await queryEvaluationResults({
+                projectId: params.projectId,
+                runId,
+                scenarioIds: [params.scenarioId],
+            })
+            const annotationTraceIds = extractAnnotationTraceIdsFromSteps({
+                annotationSteps,
+                steps,
+            })
+
+            if (annotationTraceIds.length > 0) {
+                const response = await queryAnnotations({
+                    projectId: params.projectId,
+                    annotationLinks: annotationTraceIds.map((traceId) => ({trace_id: traceId})),
+                })
+
+                return buildTraceAnnotationOutputs({
+                    annotations: response.annotations ?? [],
+                    evaluators: params.evaluators,
+                    queueId: params.queueId,
+                })
+            }
+        }
+    }
+
+    return buildTraceAnnotationOutputs({
+        annotations: store.get(scenarioAnnotationsAtomFamily(params.scenarioId)),
+        evaluators: params.evaluators,
+        queueId: params.queueId,
+    })
+}
+
 async function prepareTraceExportRows(params: {
+    projectId: string
     scenarioIds: string[]
     outputColumnName: string
     queueId: string
     evaluators: TestsetSyncEvaluator[]
+    requireAnnotationOutputScenarioIds: Set<string>
     setProcessed: (processed: number) => void
 }) {
     const traceInputsByScenario = new Map<string, Record<string, unknown>>()
@@ -2650,14 +2780,24 @@ async function prepareTraceExportRows(params: {
             2500,
         )
 
-        annotationsByScenario.set(
+        const annotationOutputs = await fetchTraceAnnotationOutputsForExport({
+            projectId: params.projectId,
             scenarioId,
-            buildTraceAnnotationOutputs({
-                annotations: getStore().get(scenarioAnnotationsAtomFamily(scenarioId)),
-                evaluators: params.evaluators,
-                queueId: params.queueId,
-            }),
-        )
+            queueId: params.queueId,
+            evaluators: params.evaluators,
+        })
+
+        if (
+            params.requireAnnotationOutputScenarioIds.has(scenarioId) &&
+            params.evaluators.length > 0 &&
+            Object.keys(annotationOutputs).length === 0
+        ) {
+            throw new Error(
+                "Could not load annotation data for one or more completed scenarios. Please try again.",
+            )
+        }
+
+        annotationsByScenario.set(scenarioId, annotationOutputs)
 
         processed += 1
         params.setProcessed(processed)
@@ -2847,6 +2987,7 @@ const addScenariosToTestsetAtom = atom(
                 const rows =
                     queueKind === "traces"
                         ? await prepareTraceExportRows({
+                              projectId,
                               scenarioIds,
                               outputColumnName: resolveTraceOutputColumnName({
                                   targetMode: payload.targetMode,
@@ -2854,6 +2995,8 @@ const addScenariosToTestsetAtom = atom(
                               }),
                               queueId,
                               evaluators,
+                              requireAnnotationOutputScenarioIds:
+                                  resolveCompletedScenarioIdsForAnnotationExport(get, scenarioIds),
                               setProcessed,
                           })
                         : await prepareTestcaseExportRows({

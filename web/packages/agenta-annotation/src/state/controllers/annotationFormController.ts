@@ -1232,6 +1232,15 @@ function buildSubmittedEntries({
     return entries
 }
 
+function isAnnotationResponse(value: unknown): value is Annotation {
+    return Boolean(
+        value &&
+        typeof value === "object" &&
+        typeof (value as Annotation).trace_id === "string" &&
+        typeof (value as Annotation).span_id === "string",
+    )
+}
+
 /**
  * Fire-and-forget post-submit operations: upsert step results and metrics.
  * These are best-effort — the link-based annotation fallback ensures data
@@ -1598,11 +1607,13 @@ const submitAnnotationsAtom = atom(null, async (get, set, payload: SubmitAnnotat
                 runId,
                 scenarioId,
             })
-
-            annotationSessionController.cache.invalidateScenarioAnnotations(scenarioId)
-        } else {
-            annotationSessionController.cache.invalidateScenarioAnnotations(scenarioId)
         }
+
+        const submittedAnnotations = responses.filter(isAnnotationResponse)
+        await annotationSessionController.cache.invalidateScenarioAnnotations(
+            scenarioId,
+            submittedAnnotations,
+        )
 
         // Phase 7: Invalidate caches
         if (traceId) {
