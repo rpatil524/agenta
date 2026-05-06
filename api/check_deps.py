@@ -90,10 +90,37 @@ def load_pyproject_constraints() -> dict[str, str]:
 def load_locked_versions() -> dict[str, str]:
     """
     Read package versions from poetry.lock.
+
+    A package can appear multiple times when Poetry resolves different
+    versions per environment marker (e.g. `python_version == "3.11"` vs
+    `python_version >= "3.12"`). Pick the entry whose marker matches the
+    current interpreter so we report the version that's actually installed.
     """
+    import sys
+    from packaging.markers import Marker, InvalidMarker
+
     data = tomllib.loads(LOCKFILE.read_text())
     pkgs = data.get("package", [])
-    return {pkg["name"].lower(): pkg["version"] for pkg in pkgs}
+
+    py_env = {
+        "python_version": f"{sys.version_info.major}.{sys.version_info.minor}",
+        "python_full_version": ".".join(str(p) for p in sys.version_info[:3]),
+    }
+
+    locked: dict[str, str] = {}
+    for pkg in pkgs:
+        name = pkg["name"].lower()
+        marker = pkg.get("markers")
+        if isinstance(marker, str) and marker:
+            try:
+                if not Marker(marker).evaluate(py_env):
+                    if name not in locked:
+                        locked[name] = pkg["version"]
+                    continue
+            except InvalidMarker:
+                pass
+        locked[name] = pkg["version"]
+    return locked
 
 
 def load_poetry_latest() -> dict[str, tuple[str, str]]:

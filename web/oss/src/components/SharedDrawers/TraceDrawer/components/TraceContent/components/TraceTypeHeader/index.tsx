@@ -176,10 +176,17 @@ const TraceTypeHeader = ({
         // `expanded: true` opens the drawer in test mode (full playground
         // with execution panel) instead of the collapsed config+metadata
         // view — span replay is fundamentally a "run it and see" interaction.
+        //
+        // `stacked: true` forces the drawer to render with a mask + focus
+        // lock so the trace drawer behind can't steal focus from the prompt
+        // editor. Without this, the editor is unfocusable in either expanded
+        // or collapsed mode because the trace drawer's focus trap pulls
+        // focus back on every click.
         openWorkflowRevisionDrawer({
             entityId: result.entityId,
             context: "variant",
             expanded: true,
+            stacked: true,
         })
     }, [
         activeTrace,
