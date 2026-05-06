@@ -51,9 +51,16 @@ Lockfile now resolves `axios@1.16.0`. Smoke-test API calls and the XSRF flow bef
 
 #### V002 — Next.js DoS via Server Components — #529
 
-- **Where:** Direct dep in [web/oss/package.json](web/oss/package.json). Tracked in [#4132](https://github.com/agenta-ai/agenta/issues/4132).
+- **Where:** Direct dep in [web/oss/package.json](web/oss/package.json) (currently pinned at `15.5.14`). Tracked in [#4132](https://github.com/agenta-ai/agenta/issues/4132).
 - **Impact:** Crafted RSC payload can hang the server; relevant for the production web app.
-- **Fix:** Bump `next` to the patched minor. Verify build.
+- **Advisory:** GHSA-q4gf-8mx6-v5v3 (CVE-2026-23869). Affected: `>= 13.0.0, < 15.5.15`. Patched: **15.5.15** (or 16.2.3 on the 16.x line).
+- **Fix:** Single patch bump to `15.5.15`. Avoid `next@latest` — it jumps to 16.x major and rewrites `tsconfig.json`.
+
+```bash
+# from repo root
+cd application/web && pnpm up next@15.5.15 --filter @agenta/oss && pnpm install
+pnpm --filter @agenta/oss build
+```
 
 #### V003 — lodash — `_.template` code injection — #499, #501
 
