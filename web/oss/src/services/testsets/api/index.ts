@@ -26,7 +26,7 @@ export const fetchPreviewTestsets = async (payload: PreviewTestsetsQueryPayload 
 export async function createNewTestset(
     testsetName: string,
     testsetData?: any,
-    commitMessage?: string,
+    commitMessage?: string | null,
 ) {
     const {projectId} = getProjectValues()
 
