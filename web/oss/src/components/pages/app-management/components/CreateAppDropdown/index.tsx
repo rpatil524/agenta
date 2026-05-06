@@ -11,9 +11,6 @@ import {PlusOutlined} from "@ant-design/icons"
 import {ArrowRight} from "@phosphor-icons/react"
 import {Button, Popover, Typography, message} from "antd"
 import {useAtomValue, useSetAtom} from "jotai"
-import {useRouter} from "next/router"
-
-import useURL from "@/oss/hooks/useURL"
 
 import {getAppTypeIcon} from "../../../prompts/assets/iconHelpers"
 
@@ -66,8 +63,6 @@ const CreateAppDropdown = ({trigger, className}: CreateAppDropdownProps) => {
     const [isPending, startTransition] = useTransition()
     const inflightRef = useRef<AbortController | null>(null)
 
-    const router = useRouter()
-    const {baseAppURL} = useURL()
     const setOpenDrawer = useSetAtom(openWorkflowRevisionDrawerAtom)
 
     // Pre-fetch the catalog templates as soon as the dropdown mounts so the
@@ -98,33 +93,21 @@ const CreateAppDropdown = ({trigger, className}: CreateAppDropdownProps) => {
                         message.error("Couldn't start app creation — please retry")
                         return
                     }
+                    // The drawer wrapper owns navigation for `app-create`
+                    // (see `useDrawerCreateCommitCallback`) — it closes the
+                    // drawer and pushes to /apps/<id>/playground in one
+                    // transition. Avoid passing `onWorkflowCreated` here so
+                    // we don't double-navigate.
                     setOpenDrawer({
                         entityId,
                         context: "app-create",
-                        // Default the destructure to `{}` — the wrapper passes
-                        // {newAppId, newRevisionId} on success but a stale or
-                        // legacy handler may fire with no arg. Bail out
-                        // cleanly instead of throwing.
-                        onWorkflowCreated: ({newAppId, newRevisionId} = {}) => {
-                            // The wrapper closes the drawer FIRST (sync atom resets)
-                            // before invoking this callback, so the drawer DOM is
-                            // gone by the time we navigate. Wrapping push in a
-                            // transition keeps the page responsive during the
-                            // async App Router transition.
-                            if (!newAppId || !newRevisionId) return
-                            startTransition(() => {
-                                router.push(
-                                    `${baseAppURL}/${newAppId}/playground?revisions=${newRevisionId}`,
-                                )
-                            })
-                        },
                     })
                 } finally {
                     if (inflightRef.current === controller) inflightRef.current = null
                 }
             })
         },
-        [baseAppURL, isPending, router, setOpenDrawer],
+        [isPending, setOpenDrawer],
     )
 
     const popoverContent = useMemo(
@@ -139,20 +122,23 @@ const CreateAppDropdown = ({trigger, className}: CreateAppDropdownProps) => {
                     {ITEMS.map((item) => {
                         const disabled = isPending
                         return (
-                            <div
+                            <button
                                 key={item.type}
+                                type="button"
                                 onClick={() => !disabled && handleSelect(item)}
+                                disabled={disabled}
                                 className={cn(
+                                    "appearance-none bg-transparent text-left w-full",
                                     "border-0 border-b border-solid last:border-b-0",
                                     borderColors.secondary,
                                     "min-h-[56px] flex items-center gap-3 py-2 px-4",
                                     "group transition-colors",
+                                    "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
                                     disabled
                                         ? "cursor-not-allowed opacity-50"
                                         : cn("cursor-pointer", bgColors.hoverState),
                                 )}
                                 data-testid={item.testId}
-                                aria-disabled={disabled}
                             >
                                 <span
                                     className={cn(
@@ -185,7 +171,7 @@ const CreateAppDropdown = ({trigger, className}: CreateAppDropdownProps) => {
                                         {item.description}
                                     </Typography.Text>
                                 </div>
-                            </div>
+                            </button>
                         )
                     })}
                 </div>

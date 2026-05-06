@@ -79,7 +79,7 @@ const CommitVariantChangesModal: React.FC<CommitVariantChangesModalProps> = ({
             if (isEphemeral) {
                 const result = await createFromEphemeral({
                     revisionId: variantId,
-                    commitMessage,
+                    commitMessage: commitMessage ?? undefined,
                     name: editedName,
                     slug: editedSlug,
                 })
@@ -104,7 +104,7 @@ const CommitVariantChangesModal: React.FC<CommitVariantChangesModalProps> = ({
             }
 
             const selectedMode = mode === "variant" ? "variant" : "version"
-            const note = commitMessage
+            const note = commitMessage ?? undefined
 
             if (selectedMode === "variant") {
                 const variantNameToCreate = editedName?.trim()
@@ -238,11 +238,13 @@ const CommitVariantChangesModal: React.FC<CommitVariantChangesModalProps> = ({
             : isApplication
               ? APP_CREATE_FIELDS
               : EVALUATOR_CREATE_FIELDS
-        const successMessage = isEvaluator
-            ? "Evaluator created successfully"
-            : isApplication
-              ? "App created successfully"
-              : "Created successfully"
+        // The drawer wrapper (`useDrawerCreateCommitCallback`) toasts
+        // "App created successfully" / "Evaluator created successfully"
+        // on its `onNewRevision` hook. Letting the modal also toast
+        // would surface two identical notifications. For unrecognized
+        // ephemeral flows (no evaluator / no application flag) we keep
+        // the modal toast as a fallback.
+        const successMessage = isEvaluator || isApplication ? null : "Created successfully"
         return (
             <EntityCommitModal
                 open={open}

@@ -1,17 +1,14 @@
 import {useCallback, useEffect, useState} from "react"
 
-import {appTemplatesQueryAtom, createEphemeralAppFromTemplate} from "@agenta/entities/workflow"
-import {openWorkflowRevisionDrawerAtom} from "@agenta/playground-ui/workflow-revision-drawer"
+import {appTemplatesQueryAtom} from "@agenta/entities/workflow"
 import {PageLayout} from "@agenta/ui"
-import {Typography, message} from "antd"
+import {Typography} from "antd"
 import {useAtomValue, useSetAtom} from "jotai"
 import dynamic from "next/dynamic"
-import {useRouter} from "next/router"
 
 import {useAppTheme} from "@/oss/components/Layout/ThemeContextProvider"
 import {welcomeCardsDismissedAtom} from "@/oss/components/pages/app-management/components/WelcomeCardsSection/assets/store/welcomeCards"
 import ResultComponent from "@/oss/components/ResultComponent/ResultComponent"
-import useURL from "@/oss/hooks/useURL"
 import {
     onboardingWidgetActivationAtom,
     setOnboardingWidgetActivationAtom,
@@ -24,8 +21,8 @@ import ApplicationManagementSection from "./components/ApplicationManagementSect
 import HelpAndSupportSection from "./components/HelpAndSupportSection"
 import WelcomeCardsSection from "./components/WelcomeCardsSection"
 
-const MaxAppModal: any = dynamic(
-    () => import("@/oss/components/pages/app-management/modals/MaxAppModal"),
+const CreateAppTypeModal: any = dynamic(
+    () => import("@/oss/components/pages/app-management/modals/CreateAppTypeModal"),
 )
 
 const SetupTracingModal: any = dynamic(
@@ -42,13 +39,9 @@ const AppManagement: React.FC = () => {
     const welcomeCardsDismissed = useAtomValue(welcomeCardsDismissedAtom)
     const {appTheme} = useAppTheme()
     const classes = useStyles({themeMode: appTheme} as StyleProps)
-    const [isMaxAppModalOpen, setIsMaxAppModalOpen] = useState(false)
+    const [isCreateAppTypeModalOpen, setIsCreateAppTypeModalOpen] = useState(false)
     const [isSetupTracingModal, setIsSetupTracingModal] = useState(false)
     const {error} = useAppsData()
-
-    const router = useRouter()
-    const {baseAppURL} = useURL()
-    const setOpenDrawer = useSetAtom(openWorkflowRevisionDrawerAtom)
 
     // Pre-fetch the catalog templates on page mount so the welcome-card
     // "Create a prompt" shortcut and the apps-table dropdown both have
@@ -57,29 +50,18 @@ const AppManagement: React.FC = () => {
     useAtomValue(appTemplatesQueryAtom)
 
     /**
-     * "Create a prompt" welcome-card shortcut: defaults to a Chat app
-     * (the most common case). Users who want Completion / Custom go through
-     * the dropdown next to the apps table for full type selection.
+     * "Create a prompt" welcome-card shortcut: opens the CreateAppTypeModal
+     * so the user explicitly picks Chat or Completion before we mint the
+     * ephemeral app. The modal handles drawer navigation; we only own
+     * opening the modal here.
      */
-    const handleCreatePrompt = useCallback(async () => {
-        const entityId = await createEphemeralAppFromTemplate({type: "chat"})
-        if (!entityId) {
-            message.error("Couldn't start app creation — please retry")
-            return
-        }
-        setOpenDrawer({
-            entityId,
-            context: "app-create",
-            onWorkflowCreated: ({newAppId, newRevisionId} = {}) => {
-                if (!newAppId || !newRevisionId) return
-                router.push(`${baseAppURL}/${newAppId}/playground?revisions=${newRevisionId}`)
-            },
-        })
-    }, [baseAppURL, router, setOpenDrawer])
+    const handleCreatePrompt = useCallback(() => {
+        setIsCreateAppTypeModalOpen(true)
+    }, [])
 
     useEffect(() => {
         if (onboardingWidgetActivation !== "open-create-prompt") return
-        void handleCreatePrompt()
+        handleCreatePrompt()
         setOnboardingWidgetActivation(null)
     }, [handleCreatePrompt, onboardingWidgetActivation, setOnboardingWidgetActivation])
 
@@ -121,11 +103,9 @@ const AppManagement: React.FC = () => {
                 onCancel={() => setIsSetupTracingModal(false)}
             />
 
-            <MaxAppModal
-                open={isMaxAppModalOpen}
-                onCancel={() => {
-                    setIsMaxAppModalOpen(false)
-                }}
+            <CreateAppTypeModal
+                open={isCreateAppTypeModalOpen}
+                onCancel={() => setIsCreateAppTypeModalOpen(false)}
             />
         </>
     )

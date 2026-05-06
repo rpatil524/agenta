@@ -380,16 +380,16 @@ const PromptsPage = () => {
                 message.error("Couldn't start prompt creation — please retry")
                 return
             }
+            // Navigation is owned by the drawer wrapper for `app-create`
+            // (see `useDrawerCreateCommitCallback`). Don't pass
+            // `onWorkflowCreated` — it would push to the same URL the
+            // wrapper already pushes to.
             setOpenDrawer({
                 entityId,
                 context: "app-create",
-                onWorkflowCreated: ({newAppId, newRevisionId} = {}) => {
-                    if (!newAppId || !newRevisionId) return
-                    router.push(`${baseAppURL}/${newAppId}/playground?revisions=${newRevisionId}`)
-                },
             })
         },
-        [baseAppURL, router, setOpenDrawer],
+        [setOpenDrawer],
     )
 
     const handleSetupWorkflow = () => {
