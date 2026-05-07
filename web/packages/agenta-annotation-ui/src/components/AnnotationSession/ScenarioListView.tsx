@@ -10,7 +10,12 @@
 
 import {memo, useCallback, useMemo, useState, type Key} from "react"
 
-import {annotationSessionController, OUTPUT_KEYS} from "@agenta/annotation"
+import {
+    annotationSessionController,
+    getTraceInputDisplayKeys,
+    getTraceInputDisplayValue,
+    OUTPUT_KEYS,
+} from "@agenta/annotation"
 import type {AnnotationColumnDef, ScenarioListColumnDef, SessionView} from "@agenta/annotation"
 import type {EvaluationStatus} from "@agenta/entities/simpleQueue"
 import {
@@ -257,7 +262,7 @@ const TraceInputKeyCell = memo(function TraceInputKeyCell({
     const effectiveTraceId = directTraceId || traceRef.traceId || ""
 
     const inputs = useAtomValue(traceInputsAtomFamily(effectiveTraceId || null))
-    const value = inputs?.[inputKey] ?? null
+    const value = getTraceInputDisplayValue(inputs, inputKey)
 
     if (!effectiveTraceId || value === null || value === undefined) {
         return <Typography.Text type="secondary">—</Typography.Text>
@@ -269,6 +274,8 @@ const TraceInputKeyCell = memo(function TraceInputKeyCell({
             keyPrefix={`trace-input-${inputKey}-${scenarioId}`}
             maxLines={3}
             chatPreference="input"
+            chatPreviewStrategy="last-user"
+            beautifyJson
         />
     )
 })
@@ -288,11 +295,31 @@ const TraceInputCell = memo(function TraceInputCell({
 
     const inputs = useAtomValue(traceInputsAtomFamily(effectiveTraceId || null))
 
-    if (!effectiveTraceId || !inputs || Object.keys(inputs).length === 0) {
+    const displayInputs = getTraceInputDisplayKeys(inputs).reduce<Record<string, unknown>>(
+        (acc, inputKey) => {
+            const value = getTraceInputDisplayValue(inputs, inputKey)
+            if (value !== null) {
+                acc[inputKey] = value
+            }
+            return acc
+        },
+        {},
+    )
+
+    if (!effectiveTraceId || Object.keys(displayInputs).length === 0) {
         return <Typography.Text type="secondary">—</Typography.Text>
     }
 
-    return <SmartCellContent value={inputs} keyPrefix={`trace-input-${scenarioId}`} maxLines={3} />
+    return (
+        <SmartCellContent
+            value={displayInputs}
+            keyPrefix={`trace-input-${scenarioId}`}
+            maxLines={3}
+            chatPreference="input"
+            chatPreviewStrategy="last-user"
+            beautifyJson
+        />
+    )
 })
 
 const TraceOutputCell = memo(function TraceOutputCell({
@@ -1222,8 +1249,20 @@ function resolveExportCellValue(
             case "trace-input-group": {
                 if (!effectiveTraceId) return ""
                 const inputs = store.get(traceInputsAtomFamily(effectiveTraceId))
-                if (def.inputKeys.length === 1) return inputs?.[def.inputKeys[0]] ?? ""
-                return inputs ?? ""
+                if (def.inputKeys.length === 1) {
+                    return getTraceInputDisplayValue(inputs, def.inputKeys[0]) ?? ""
+                }
+
+                return getTraceInputDisplayKeys(inputs).reduce<Record<string, unknown>>(
+                    (acc, inputKey) => {
+                        const value = getTraceInputDisplayValue(inputs, inputKey)
+                        if (value !== null) {
+                            acc[inputKey] = value
+                        }
+                        return acc
+                    },
+                    {},
+                )
             }
             case "trace-output":
                 return effectiveTraceId
@@ -1260,7 +1299,12 @@ function resolveExportCellValue(
     const traceInputKey = state.traceInputKeyByColumnKey.get(columnKey)
     if (traceInputKey) {
         if (!effectiveTraceId) return ""
-        return store.get(traceInputsAtomFamily(effectiveTraceId))?.[traceInputKey] ?? ""
+        return (
+            getTraceInputDisplayValue(
+                store.get(traceInputsAtomFamily(effectiveTraceId)),
+                traceInputKey,
+            ) ?? ""
+        )
     }
 
     // Expanded sub-columns for multi-key annotation outputs

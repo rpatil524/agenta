@@ -13,6 +13,8 @@ export {
     OUTPUT_KEYS,
 } from "./controllers"
 
+export {getTraceInputDisplayKeys, getTraceInputDisplayValue} from "./traceInputDisplay"
+
 export type {
     OpenQueuePayload,
     AnnotationProgress,

@@ -20,6 +20,8 @@ export {
     getMetricsFromAnnotation,
     isEmptyValue,
     OUTPUT_KEYS,
+    getTraceInputDisplayKeys,
+    getTraceInputDisplayValue,
 } from "./state"
 
 export type {

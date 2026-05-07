@@ -83,6 +83,7 @@ import {
     type CompletedScenarioRef,
     type TestsetSyncEvaluator,
 } from "../testsetSync"
+import {getTraceInputDisplayKeys} from "../traceInputDisplay"
 import type {
     AnnotationColumnDef,
     ScenarioListColumnDef,
@@ -600,7 +601,7 @@ const traceInputKeysAtom = atom<string[]>((get) => {
     const inputs = get(traceInputsAtomFamily(traceId))
     if (!inputs) return []
 
-    return Object.keys(inputs)
+    return getTraceInputDisplayKeys(inputs)
 })
 
 /**
