@@ -310,18 +310,29 @@ _SUPPORTED_IDENTITY_METHODS = ("email:password", "email:otp")
 
 
 def _identity_method_supported(requested: str) -> bool:
-    """Return True if the requested identity method matches what the
-    deployment's auth config can provision via `_create_st_email_identity`.
+    """Return True if the requested identity method can be provisioned via
+    `_create_st_email_identity` on this deployment.
 
-    "email:password" is allowed when `env.auth.email_method == "password"`.
-    "email:otp" is allowed when `env.auth.email_method == "otp"`.
-    Anything else is rejected (including the disabled `""` deployment mode).
+    The deployment's effective auth recipe is `env.auth.email_method` —
+    "password", "otp", or "" (disabled). We accept:
+
+    - "email:password" on either "password" or "otp" deployments. On "otp",
+      `_create_st_email_identity` falls through to passwordless and silently
+      drops the password — preserving historical behavior where clients can
+      send a password-shaped request and get whatever identity the
+      deployment supports.
+    - "email:otp" only on "otp" deployments (the password recipe cannot
+      provision an OTP identity).
+
+    Both methods are rejected when email auth is disabled.
     """
     if requested not in _SUPPORTED_IDENTITY_METHODS:
         return False
     configured = env.auth.email_method
+    if configured == "":
+        return False
     if requested == "email:password":
-        return configured == "password"
+        return True
     if requested == "email:otp":
         return configured == "otp"
     return False
@@ -1722,12 +1733,7 @@ class PlatformAdminAccountsService:
         3. Call ``update_email_or_password`` with the new password.
         """
         tenant_id = "public"
-
-        # Under OTP-only deployments there is no password to reset; the call
-        # is a documented no-op so callers can run the same flow against any
-        # auth-method configuration.
-        if env.auth.email_method != "password":
-            return
+        password_recipe_active = env.auth.email_method == "password"
 
         for identity in dto.user_identities:
             if identity.method != "email:password":
@@ -1744,7 +1750,11 @@ class PlatformAdminAccountsService:
                     "on every user_identity entry."
                 )
 
-            # Look up the ST user by email.
+            # Look up the ST user by email. We do this regardless of the
+            # configured email_method so that unknown identities return a
+            # deterministic 404 even on OTP-only deployments — only the
+            # password-update step itself is skipped when there is no
+            # password recipe to update.
             st_users = await _st_list_users_by_account_info(
                 tenant_id=tenant_id,
                 account_info=_StAccountInfoInput(email=email),
@@ -1766,6 +1776,11 @@ class PlatformAdminAccountsService:
 
             if not recipe_user_id:
                 raise AdminUserNotFoundError(email)
+
+            # On OTP-only deployments the user exists but has no password
+            # recipe to update; treat the call as a no-op for that identity.
+            if not password_recipe_active:
+                continue
 
             result = await _ep.update_email_or_password(
                 recipe_user_id=_StRecipeUserId(recipe_user_id),
