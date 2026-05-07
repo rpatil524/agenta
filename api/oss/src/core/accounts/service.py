@@ -42,8 +42,7 @@ from oss.src.services.db_manager import (
     get_oss_organization as _db_get_oss_organization,
     setup_oss_organization_for_first_user as _db_setup_oss_organization_for_first_user,
     _assign_user_to_organization_oss as _db_assign_user_to_organization_oss,
-    get_default_project_id_from_workspace as _db_get_default_project_id_from_workspace,
-    get_workspaces as _db_get_workspaces,
+    get_project_by_organization_id as _db_get_project_by_organization_id,
 )
 from oss.src.core.environments.defaults import (
     create_default_environments as _create_default_environments,
@@ -897,8 +896,13 @@ class PlatformAdminAccountsService:
                 or entry.organization_memberships
                 or entry.workspace_memberships
                 or entry.project_memberships
+                or entry.api_keys
             ):
-                raise OssMultiOrgNotSupportedError()
+                raise OssMultiOrgNotSupportedError(
+                    "OSS is single-tenant: organization, workspace, project, subscription, "
+                    "explicit memberships, and explicit api_keys cannot be specified. "
+                    "Use options.create_api_keys to request a default API key on the singleton project."
+                )
             return await self._create_one_simple_account_oss(
                 entry=entry,
                 options=effective_options,
@@ -1019,20 +1023,16 @@ class PlatformAdminAccountsService:
             email=entry.user.email,
         )
 
-        workspaces = await _db_get_workspaces(organization_id=str(org_db.id))
-        if not workspaces:
-            raise AdminValidationError(
-                "OSS singleton is in an inconsistent state: no workspace found."
-            )
-        ws_db = workspaces[0]
-
-        default_project_id = await _db_get_default_project_id_from_workspace(
-            str(ws_db.id)
-        )
-        proj_db = await _db_get_project_by_id(_uuid_mod.UUID(default_project_id))
+        proj_db = await _db_get_project_by_organization_id(str(org_db.id))
         if proj_db is None:
             raise AdminValidationError(
-                "OSS singleton is in an inconsistent state: no default project found."
+                "OSS singleton is in an inconsistent state: no default project found for organization."
+            )
+
+        ws_db = await _db_get_workspace_by_id(proj_db.workspace_id)
+        if ws_db is None:
+            raise AdminValidationError(
+                "OSS singleton is in an inconsistent state: project's workspace not found."
             )
 
         account.organizations["org"] = _org_db_to_read_dto(org_db)
