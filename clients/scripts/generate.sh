@@ -213,15 +213,15 @@ groups:
 
           # Serde stays OFF for now (default). Turning it on with this Fern
           # version (3.63.7) emits ~200 type errors against our spec:
-          #   - 189 × TS2322 — broken codegen for Record<string, T | null>
-          #     (e.g. `tags`, `meta` fields) where the serializer expects
+          #   - 189 x TS2322 — broken codegen for Record<string, T | null>
+          #     (e.g. tags, meta fields) where the serializer expects
           #     non-null values
-          #   - 4 × TS2456 — circular type aliases for FullJson{Input,Output}
+          #   - 4 x TS2456 — circular type aliases for FullJson{Input,Output}
           #     and LabelJson{Input,Output} (the same recursive-types issue
           #     the Python generator patches in this script via sed)
-          #   - 4 × TS2393 — duplicate function implementations in admin/client
+          #   - 4 x TS2393 — duplicate function implementations in admin/client
           # Re-evaluate when Fern ships fixes; in the meantime, the convenience
-          # layer's Zod boundary handles `extra="allow"` at the entity level.
+          # layer's Zod boundary handles extra="allow" at the entity level.
           # noSerdeLayer: false
           # allowExtraFields: true
           # skipResponseValidation: true
