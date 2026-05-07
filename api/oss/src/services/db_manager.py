@@ -772,9 +772,20 @@ async def create_or_update_default_project(values_to_update: Dict[str, Any]):
         values_to_update (Dict[str, Any]): The values to update in the project
     """
 
+    organization_id = values_to_update.get("organization_id")
+    if organization_id is None:
+        raise ValueError(
+            "create_or_update_default_project requires 'organization_id' in values_to_update"
+        )
+
     async with engine.core_session() as session:
-        result = await session.execute(select(ProjectDB).filter_by(is_default=True))
-        project = result.scalar()
+        result = await session.execute(
+            select(ProjectDB).filter_by(
+                organization_id=organization_id,
+                is_default=True,
+            )
+        )
+        project = result.scalars().first()
 
         if project is None:
             project = ProjectDB(project_name="Default", is_default=True)

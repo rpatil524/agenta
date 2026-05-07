@@ -926,6 +926,7 @@ async function globalSetup() {
 
     console.log("[global-setup] Launching browser")
     const browser = await chromium.launch(getChromiumLaunchOptions())
+    console.log("[global-setup] Browser launched OK")
     let authenticatedContext: BrowserContext | null = null
     let authenticatedPage: Page | null = null
 
@@ -934,8 +935,11 @@ async function globalSetup() {
             let ownerContext: BrowserContext | null = null
 
             try {
+                console.log("[global-setup] Creating owner context")
                 ownerContext = await browser.newContext()
+                console.log("[global-setup] Owner context created, opening page")
                 const ownerPage = await ownerContext.newPage()
+                console.log("[global-setup] Owner page opened")
 
                 console.log(`[global-setup] Authenticating OSS owner: ${ownerEmail}`)
                 await authenticateUser({
