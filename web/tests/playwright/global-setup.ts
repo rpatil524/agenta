@@ -10,6 +10,7 @@ import {generateRuntimeTestEmail, getTestmailClient, isTestmailInboxEmail} from 
 
 import {
     getChromiumLaunchOptions,
+    getOutputDir,
     getProjectMetadataPath,
     getStorageStatePath,
 } from "./config/runtime.ts"
@@ -398,7 +399,106 @@ async function getVisibleAuthFeedback(page: Page): Promise<string | null> {
     return null
 }
 
+async function captureAuthFailure(page: Page, label: string, err: unknown): Promise<void> {
+    const ts = new Date().toISOString().replace(/[:.]/g, "-")
+    const baseName = `auth-failure-${label}-${ts}`
+    const outDir = getOutputDir()
+    try {
+        if (!existsSync(outDir)) mkdirSync(outDir, {recursive: true})
+    } catch {}
+
+    console.log(`[global-setup] ===== AUTH FAILURE DEBUG (${label}) =====`)
+    try {
+        console.log(
+            `[global-setup] error: ${err instanceof Error ? err.stack || err.message : String(err)}`,
+        )
+    } catch {}
+    try {
+        console.log(`[global-setup] url: ${page.url()}`)
+    } catch (e) {
+        console.log(`[global-setup] url: <unavailable> (${e})`)
+    }
+    try {
+        console.log(`[global-setup] title: ${await page.title()}`)
+    } catch (e) {
+        console.log(`[global-setup] title: <unavailable> (${e})`)
+    }
+    try {
+        const screenshotPath = `${outDir}/${baseName}.png`
+        await page.screenshot({path: screenshotPath, fullPage: true})
+        console.log(`[global-setup] screenshot: ${screenshotPath}`)
+    } catch (e) {
+        console.log(`[global-setup] screenshot failed: ${e}`)
+    }
+    try {
+        const html = await page.content()
+        const htmlPath = `${outDir}/${baseName}.html`
+        writeFileSync(htmlPath, html)
+        console.log(`[global-setup] html: ${htmlPath}`)
+    } catch (e) {
+        console.log(`[global-setup] html capture failed: ${e}`)
+    }
+    try {
+        const text = await page.locator("body").innerText({timeout: 5000})
+        console.log(`[global-setup] visible text:\n${text}`)
+    } catch (e) {
+        console.log(`[global-setup] text capture failed: ${e}`)
+    }
+    console.log(`[global-setup] ===== END AUTH FAILURE DEBUG =====`)
+}
+
 async function authenticateUser({
+    page,
+    entryUrl,
+    email,
+    password,
+    authMode,
+    timeout,
+    inputDelay,
+    testmail,
+}: {
+    page: Page
+    entryUrl: string
+    email: string
+    password: string
+    authMode: AuthMode
+    timeout: number
+    inputDelay: number
+    testmail: TestmailClient | null
+}): Promise<void> {
+    const consoleLogs: string[] = []
+    page.on("console", (msg) => {
+        consoleLogs.push(`[${msg.type()}] ${msg.text()}`)
+    })
+    page.on("pageerror", (err) => {
+        consoleLogs.push(`[pageerror] ${err.message}`)
+    })
+    page.on("requestfailed", (req) => {
+        consoleLogs.push(
+            `[requestfailed] ${req.method()} ${req.url()} — ${req.failure()?.errorText}`,
+        )
+    })
+
+    try {
+        await authenticateUserImpl({
+            page,
+            entryUrl,
+            email,
+            password,
+            authMode,
+            timeout,
+            inputDelay,
+            testmail,
+        })
+    } catch (err) {
+        console.log(`[global-setup] page console log dump (${consoleLogs.length} entries):`)
+        for (const line of consoleLogs) console.log(`  ${line}`)
+        await captureAuthFailure(page, "authenticateUser", err)
+        throw err
+    }
+}
+
+async function authenticateUserImpl({
     page,
     entryUrl,
     email,
