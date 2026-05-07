@@ -127,7 +127,6 @@ from oss.src.apis.fastapi.tools.router import ToolsRouter
 
 
 from oss.src.routers import (
-    admin_router,
     user_profile,
     health_router,
     permissions_router,
@@ -980,12 +979,6 @@ app.include_router(
     prefix="/preview/simple/queues",
     tags=["Evaluations"],
     include_in_schema=False,
-)
-
-app.include_router(
-    admin_router.router,
-    prefix="/admin",
-    tags=["Admin"],
 )
 
 app.include_router(

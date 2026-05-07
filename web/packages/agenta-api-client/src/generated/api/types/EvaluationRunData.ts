@@ -2,7 +2,7 @@
 
 import type * as AgentaApi from "../index.js";
 
-export interface EvaluationRunDataInput {
+export interface EvaluationRunData {
     steps?: (AgentaApi.EvaluationRunDataStep[] | null) | undefined;
     repeats?: (number | null) | undefined;
     mappings?: (AgentaApi.EvaluationRunDataMapping[] | null) | undefined;

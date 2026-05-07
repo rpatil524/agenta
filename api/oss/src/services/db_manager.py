@@ -397,10 +397,17 @@ async def setup_oss_organization_for_first_user(
     )
 
     # OSS is single-tenant: reuse the workspace already attached to the
-    # singleton org if one exists. This makes concurrent first-user
-    # signups idempotent under the unique-slug org guarantee — the second
-    # caller observes the org row created by the first and adopts its
-    # workspace instead of creating a duplicate.
+    # singleton org if one exists.
+    #
+    # Concurrency note: the org-row insert is race-free thanks to the
+    # unique slug index, but the workspaces table has no equivalent
+    # constraint, so two callers that both observe an empty workspace
+    # list can both end up calling create_workspace. The losing caller's
+    # workspace then becomes an orphan (it doesn't break the singleton
+    # invariant — there's still exactly one org — and downstream code
+    # uses .first(), so subsequent reads are stable). A unique constraint
+    # like (organization_id, name) would close the race entirely; until
+    # that migration lands, accept the small leak as a follow-up.
     async with engine.core_session() as session:
         existing_workspaces = await session.execute(
             select(WorkspaceDB).filter_by(organization_id=organization_db.id)

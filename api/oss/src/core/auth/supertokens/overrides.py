@@ -211,10 +211,11 @@ async def _create_account(email: str, uid: str) -> bool:
             # This avoids the FK violation where org.owner_id references non-existent user
             user_db = await create_accounts(payload)
 
-            # Now create organization with the real user ID. Use the
-            # advisory-lock-guarded helper so concurrent first-user signups
-            # serialize on bootstrap and the losers read the singleton
-            # rather than racing setup_oss_organization_for_first_user.
+            # Now create organization with the real user ID. The bootstrap
+            # is race-free at the org level: create_organization performs an
+            # INSERT ... ON CONFLICT (slug) DO NOTHING against the
+            # deterministic OSS singleton slug, so concurrent first-user
+            # signups all converge on the same org row.
             organization_db = await get_or_bootstrap_oss_organization(
                 user_id=user_db.id,
                 user_email=auth_info.email,

@@ -4,8 +4,6 @@ import typing
 
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
-from ..types.account_request import AccountRequest
-from ..types.account_response import AccountResponse
 from ..types.admin_account_create_options_dto import AdminAccountCreateOptionsDto
 from ..types.admin_accounts_delete_target_dto import AdminAccountsDeleteTargetDto
 from ..types.admin_accounts_response_dto import AdminAccountsResponseDto
@@ -244,34 +242,6 @@ class AdminClient:
         client.admin.flush_usage()
         """
         _response = self._raw_client.flush_usage(request_options=request_options)
-        return _response.data
-    
-    def create_account(self, *, request: typing.Optional[AccountRequest] = None, request_options: typing.Optional[RequestOptions] = None) -> AccountResponse:
-        """
-        Parameters
-        ----------
-        request : typing.Optional[AccountRequest]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        AccountResponse
-            Successful Response
-        
-        Examples
-        --------
-        from agenta import AccountRequest, AgentaApi
-        
-        client = AgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        client.admin.create_account(
-            request=AccountRequest(),
-        )
-        """
-        _response = self._raw_client.create_account(request=request, request_options=request_options)
         return _response.data
     
     def create_accounts(self, *, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, users: typing.Optional[typing.Dict[str, typing.Optional[AdminUserCreateDto]]] = OMIT, user_identities: typing.Optional[typing.Dict[str, typing.Optional[AdminUserIdentityCreateDto]]] = OMIT, organizations: typing.Optional[typing.Dict[str, typing.Optional[AdminOrganizationCreateDto]]] = OMIT, workspaces: typing.Optional[typing.Dict[str, typing.Optional[AdminWorkspaceCreateDto]]] = OMIT, projects: typing.Optional[typing.Dict[str, typing.Optional[AdminProjectCreateDto]]] = OMIT, organization_memberships: typing.Optional[typing.Dict[str, typing.Optional[AdminOrganizationMembershipCreateDto]]] = OMIT, workspace_memberships: typing.Optional[typing.Dict[str, typing.Optional[AdminWorkspaceMembershipCreateDto]]] = OMIT, project_memberships: typing.Optional[typing.Dict[str, typing.Optional[AdminProjectMembershipCreateDto]]] = OMIT, api_keys: typing.Optional[typing.Dict[str, typing.Optional[AdminApiKeyCreateDto]]] = OMIT, subscriptions: typing.Optional[typing.Dict[str, typing.Optional[AdminSubscriptionCreateDto]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminAccountsResponseDto:
@@ -1298,42 +1268,6 @@ class AsyncAdminClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.flush_usage(request_options=request_options)
-        return _response.data
-    
-    async def create_account(self, *, request: typing.Optional[AccountRequest] = None, request_options: typing.Optional[RequestOptions] = None) -> AccountResponse:
-        """
-        Parameters
-        ----------
-        request : typing.Optional[AccountRequest]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        AccountResponse
-            Successful Response
-        
-        Examples
-        --------
-        import asyncio
-        
-        from agenta import AccountRequest, AsyncAgentaApi
-        
-        client = AsyncAgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        
-        
-        async def main() -> None:
-            await client.admin.create_account(
-                request=AccountRequest(),
-            )
-        
-        
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.create_account(request=request, request_options=request_options)
         return _response.data
     
     async def create_accounts(self, *, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, users: typing.Optional[typing.Dict[str, typing.Optional[AdminUserCreateDto]]] = OMIT, user_identities: typing.Optional[typing.Dict[str, typing.Optional[AdminUserIdentityCreateDto]]] = OMIT, organizations: typing.Optional[typing.Dict[str, typing.Optional[AdminOrganizationCreateDto]]] = OMIT, workspaces: typing.Optional[typing.Dict[str, typing.Optional[AdminWorkspaceCreateDto]]] = OMIT, projects: typing.Optional[typing.Dict[str, typing.Optional[AdminProjectCreateDto]]] = OMIT, organization_memberships: typing.Optional[typing.Dict[str, typing.Optional[AdminOrganizationMembershipCreateDto]]] = OMIT, workspace_memberships: typing.Optional[typing.Dict[str, typing.Optional[AdminWorkspaceMembershipCreateDto]]] = OMIT, project_memberships: typing.Optional[typing.Dict[str, typing.Optional[AdminProjectMembershipCreateDto]]] = OMIT, api_keys: typing.Optional[typing.Dict[str, typing.Optional[AdminApiKeyCreateDto]]] = OMIT, subscriptions: typing.Optional[typing.Dict[str, typing.Optional[AdminSubscriptionCreateDto]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminAccountsResponseDto:
