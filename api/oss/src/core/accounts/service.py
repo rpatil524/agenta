@@ -1252,7 +1252,8 @@ class PlatformAdminAccountsService:
                     status="created",
                 )
 
-        # 4. API key on the default project.
+        # 4. API key on this account's per-account project (proj_db is the
+        # ephemeral project minted above, not the singleton default).
         if options.create_api_keys:
             raw_key = await _create_raw_api_key(
                 user_id=str(user_db.id),

@@ -449,9 +449,13 @@ async def setup_oss_organization_for_first_user(
 async def check_if_user_invitation_exists(email: str, organization_id: str):
     """Check if a user invitation with the given email and organization_id exists."""
 
-    project_db = await get_project_by_organization_id(organization_id=organization_id)
+    project_db = await get_default_project_by_organization_id(
+        organization_id=organization_id
+    )
     if not project_db:
-        raise NoResultFound("Project not found for user invitation in organization.")
+        raise NoResultFound(
+            "Default project not found for user invitation in organization."
+        )
 
     async with engine.core_session() as session:
         result = await session.execute(
@@ -539,8 +543,13 @@ async def _assign_user_to_organization_oss(
             organization_id=organization_id, values_to_update={"owner_id": user_db.id}
         )
 
-    # Get project belonging to organization
-    project_db = await get_project_by_organization_id(organization_id=organization_id)
+    # Get the singleton default project belonging to organization. We must
+    # filter by is_default=True because OSS now mints per-account ephemeral
+    # projects under the same singleton workspace; the unfiltered lookup
+    # would non-deterministically attach invitations to the wrong project.
+    project_db = await get_default_project_by_organization_id(
+        organization_id=organization_id
+    )
     if project_db is None:
         raise NoResultFound(
             f"No default project found for organization_id {organization_id} "
