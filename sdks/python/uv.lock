@@ -81,7 +81,7 @@ dev = [
 
 [[package]]
 name = "agenta-client"
-version = "0.0.0.dev0"
+version = "0.99.3"
 source = { editable = "../../clients/python" }
 dependencies = [
     { name = "httpx" },
