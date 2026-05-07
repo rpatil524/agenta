@@ -11,8 +11,6 @@ from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
 from ..core.serialization import convert_and_respect_annotation_metadata
 from ..errors.unprocessable_entity_error import UnprocessableEntityError
-from ..types.account_request import AccountRequest
-from ..types.account_response import AccountResponse
 from ..types.admin_account_create_options_dto import AdminAccountCreateOptionsDto
 from ..types.admin_accounts_delete_target_dto import AdminAccountsDeleteTargetDto
 from ..types.admin_accounts_response_dto import AdminAccountsResponseDto
@@ -322,50 +320,6 @@ class RawAdminClient:
                     )
                 )
                 return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-    
-    def create_account(self, *, request: typing.Optional[AccountRequest] = None, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AccountResponse]:
-        """
-        Parameters
-        ----------
-        request : typing.Optional[AccountRequest]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        HttpResponse[AccountResponse]
-            Successful Response
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "admin/account",method="POST",
-            json=convert_and_respect_annotation_metadata(object_=request, annotation=typing.Optional[AccountRequest], direction="write"),
-            headers={"content-type": "application/json", }
-            ,
-            request_options=request_options,omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    AccountResponse,
-                    parse_obj_as(
-                        type_ =AccountResponse,  # type: ignore
-                        object_ =_response.json()
-                    )
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 422:
-                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
-                    HttpValidationError,
-                    parse_obj_as(
-                        type_ =HttpValidationError,  # type: ignore
-                        object_ =_response.json()
-                    )
-                ))
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1765,50 +1719,6 @@ class AsyncRawAdminClient:
                     )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-    
-    async def create_account(self, *, request: typing.Optional[AccountRequest] = None, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AccountResponse]:
-        """
-        Parameters
-        ----------
-        request : typing.Optional[AccountRequest]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        AsyncHttpResponse[AccountResponse]
-            Successful Response
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "admin/account",method="POST",
-            json=convert_and_respect_annotation_metadata(object_=request, annotation=typing.Optional[AccountRequest], direction="write"),
-            headers={"content-type": "application/json", }
-            ,
-            request_options=request_options,omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    AccountResponse,
-                    parse_obj_as(
-                        type_ =AccountResponse,  # type: ignore
-                        object_ =_response.json()
-                    )
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 422:
-                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
-                    HttpValidationError,
-                    parse_obj_as(
-                        type_ =HttpValidationError,  # type: ignore
-                        object_ =_response.json()
-                    )
-                ))
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)

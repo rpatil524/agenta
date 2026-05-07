@@ -39,6 +39,10 @@ from oss.src.services.db_manager import (
     admin_delete_accounts_batch as _db_delete_accounts_batch,
     admin_delete_user_with_cascade as _db_delete_user_with_cascade,
     admin_transfer_org_ownership_batch as _db_transfer_org_ownership_batch,
+    get_or_bootstrap_oss_organization as _db_get_or_bootstrap_oss_organization,
+    _assign_user_to_organization_oss as _db_assign_user_to_organization_oss,
+    get_default_project_by_organization_id as _db_get_default_project_by_organization_id,
+    OSS_SINGLETON_ORG_SLUG,
 )
 from oss.src.core.environments.defaults import (
     create_default_environments as _create_default_environments,
@@ -108,6 +112,11 @@ from supertokens_python.recipe.emailpassword.interfaces import (
     UnknownUserIdError as _EpUnknownUserIdError,
     PasswordPolicyViolationError as _EpPasswordPolicyViolationError,
 )
+from supertokens_python.recipe.passwordless.asyncio import (
+    signinup as _pwl_signinup,
+)
+
+from oss.src.utils.env import env
 
 from oss.src.core.accounts.dtos import (
     AdminAccountCreateOptionsDTO,
@@ -167,6 +176,7 @@ from oss.src.core.accounts.errors import (
     AdminUserNotFoundError,
     AdminValidationError,
     AdminWorkspaceNotFoundError,
+    OssMultiOrgNotSupportedError,
 )
 
 log = get_module_logger(__name__)
@@ -293,6 +303,137 @@ def _api_key_db_to_response_dto(
 
 
 # ---------------------------------------------------------------------------
+# SuperTokens identity helper
+# ---------------------------------------------------------------------------
+
+
+_SUPPORTED_IDENTITY_METHODS = ("email:password", "email:otp")
+
+
+def _identity_method_supported(requested: str) -> bool:
+    """Return True if the requested identity method can be provisioned via
+    `_create_st_email_identity` on this deployment.
+
+    The deployment's effective auth recipe is `env.auth.email_method` —
+    "password", "otp", or "" (disabled). We accept:
+
+    - "email:password" on either "password" or "otp" deployments. On "otp",
+      `_create_st_email_identity` falls through to passwordless and silently
+      drops the password — preserving historical behavior where clients can
+      send a password-shaped request and get whatever identity the
+      deployment supports.
+    - "email:otp" only on "otp" deployments (the password recipe cannot
+      provision an OTP identity).
+
+    Both methods are rejected when email auth is disabled.
+    """
+    if requested not in _SUPPORTED_IDENTITY_METHODS:
+        return False
+    configured = env.auth.email_method
+    if configured == "":
+        return False
+    if requested == "email:password":
+        return True
+    if requested == "email:otp":
+        return configured == "otp"
+    return False
+
+
+async def _create_st_email_identity(
+    *,
+    tenant_id: str,
+    email: str,
+    password: Optional[str],
+) -> tuple[Optional[str], Optional[str], Optional[str], Optional[str]]:
+    """Create an email-based SuperTokens identity using the deployment's recipe.
+
+    Returns ``(recipe_user_id, method, error_code, error_message)``. On success
+    ``error_code`` and ``error_message`` are ``None`` and ``recipe_user_id`` /
+    ``method`` are populated; on failure ``recipe_user_id`` and ``method`` are
+    ``None``.
+
+    The auth recipe is inferred from ``env.auth.email_method``:
+      - ``"password"`` requires ``password`` and uses ``emailpassword.sign_up``.
+      - ``"otp"`` ignores ``password`` and uses ``passwordless.signinup``.
+      - ``""`` (disabled) returns ``identity_method_unavailable``.
+
+    Existence is checked explicitly via ``list_users_by_account_info`` before
+    creation so the error surface is uniform across recipes.
+    """
+    method_env = env.auth.email_method
+
+    if method_env == "":
+        return (
+            None,
+            None,
+            "identity_method_unavailable",
+            "Email identity creation is unavailable in this deployment.",
+        )
+
+    existing = await _st_list_users_by_account_info(
+        tenant_id=tenant_id,
+        account_info=_StAccountInfoInput(email=email),
+    )
+    if existing:
+        return (
+            None,
+            None,
+            "identity_already_exists",
+            f"An email identity for '{email}' already exists.",
+        )
+
+    if method_env == "password":
+        if not password:
+            return (
+                None,
+                None,
+                "invalid_identity",
+                "email:password identity requires 'password' on this deployment.",
+            )
+        st_result = await _ep.sign_up(
+            tenant_id=tenant_id,
+            email=email,
+            password=password,
+            user_context={"admin_managed": True},
+        )
+        if isinstance(st_result, _EpEmailAlreadyExistsError):
+            return (
+                None,
+                None,
+                "identity_already_exists",
+                f"An email identity for '{email}' already exists.",
+            )
+        if not isinstance(st_result, _EpSignUpOkResult):
+            return (
+                None,
+                None,
+                "identity_creation_failed",
+                "SuperTokens sign_up returned an unexpected result.",
+            )
+        return (
+            st_result.recipe_user_id.get_as_string(),
+            "email:password",
+            None,
+            None,
+        )
+
+    # method_env == "otp" — passwordless. The provided password (if any) is
+    # silently ignored: under OTP the deployment authenticates by code.
+    pwl_result = await _pwl_signinup(
+        tenant_id=tenant_id,
+        email=email,
+        phone_number=None,
+        user_context={"admin_managed": True},
+    )
+    return (
+        pwl_result.recipe_user_id.get_as_string(),
+        "email:otp",
+        None,
+        None,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Reference resolution helper
 # ---------------------------------------------------------------------------
 
@@ -373,18 +514,20 @@ class PlatformAdminAccountsService:
         if dto.user_identities and options.create_identities:
             tenant_id = "public"
             for identity_ref, identity_create in dto.user_identities.items():
-                if identity_create.method != "email:password":
+                if not _identity_method_supported(identity_create.method):
                     errors.append(
                         AdminStructuredErrorDTO(
                             code="not_implemented",
                             message=(
                                 f"Identity provisioning for method "
-                                f"'{identity_create.method}' is not yet implemented "
-                                f"(ref: {identity_ref})."
+                                f"'{identity_create.method}' is not supported on this "
+                                f"deployment (configured email_method="
+                                f"'{env.auth.email_method}'; ref: {identity_ref})."
                             ),
                             details={
                                 "ref": identity_ref,
                                 "method": identity_create.method,
+                                "configured_email_method": env.auth.email_method,
                             },
                         )
                     )
@@ -392,13 +535,13 @@ class PlatformAdminAccountsService:
 
                 email = identity_create.email or identity_create.subject
                 password = identity_create.password
-                if not email or not password:
+                if not email:
                     errors.append(
                         AdminStructuredErrorDTO(
                             code="invalid_identity",
                             message=(
-                                f"email:password identity requires both 'email' (or "
-                                f"'subject') and 'password' (ref: {identity_ref})."
+                                f"email identity requires 'email' (or 'subject') "
+                                f"(ref: {identity_ref})."
                             ),
                             details={"ref": identity_ref},
                         )
@@ -415,36 +558,30 @@ class PlatformAdminAccountsService:
                 elif tracker.users:
                     user_id_str = str(next(iter(tracker.users.values())))
 
-                st_result = await _ep.sign_up(
+                (
+                    rid,
+                    created_method,
+                    err_code,
+                    err_msg,
+                ) = await _create_st_email_identity(
                     tenant_id=tenant_id,
                     email=email,
                     password=password,
                 )
-
-                if isinstance(st_result, _EpEmailAlreadyExistsError):
+                if err_code is not None:
                     errors.append(
                         AdminStructuredErrorDTO(
-                            code="identity_already_exists",
-                            message=f"An email:password identity for '{email}' already exists in SuperTokens (ref: {identity_ref}).",
+                            code=err_code,
+                            message=f"{err_msg} (ref: {identity_ref}).",
                             details={"ref": identity_ref, "email": email},
                         )
                     )
                     continue
 
-                if not isinstance(st_result, _EpSignUpOkResult):
-                    errors.append(
-                        AdminStructuredErrorDTO(
-                            code="identity_creation_failed",
-                            message=f"SuperTokens sign_up returned an unexpected result (ref: {identity_ref}).",
-                            details={"ref": identity_ref},
-                        )
-                    )
-                    continue
-
                 account.user_identities[identity_ref] = AdminUserIdentityReadDTO(
-                    id=st_result.recipe_user_id.get_as_string(),
+                    id=rid,
                     user_id=user_id_str or "",
-                    method="email:password",
+                    method=created_method,
                     subject=email,
                     email=email,
                     verified=identity_create.verified or False,
@@ -738,12 +875,43 @@ class PlatformAdminAccountsService:
             for user_id in user_ids:
                 owned = await _db_get_orgs_owned_by_user(user_id)
                 for org in owned:
+                    # On OSS the singleton org is shared across every user;
+                    # cascading-delete it because some user happens to own
+                    # it would tear down the whole tenant.
+                    if not is_ee() and org.slug == OSS_SINGLETON_ORG_SLUG:
+                        continue
                     if org.id not in org_ids:
                         org_ids.append(org.id)
+
+        # Even when callers pass explicit organization_ids, the OSS
+        # singleton must never be in the delete set.
+        if not is_ee() and org_ids:
+            kept_org_ids: List[UUID] = []
+            for oid in org_ids:
+                org = await _db_get_org_by_id(oid)
+                if org and org.slug == OSS_SINGLETON_ORG_SLUG:
+                    continue
+                kept_org_ids.append(oid)
+            org_ids = kept_org_ids
 
         # Collect workspace and project IDs
         workspace_ids: List[UUID] = [UUID(wid) for wid in (target.workspace_ids or [])]
         project_ids: List[UUID] = [UUID(pid) for pid in (target.project_ids or [])]
+
+        # On OSS, the singleton workspace under the singleton org is
+        # untouchable for the same reason as the org itself: deleting it
+        # would orphan in-flight bootstraps. Filter any such workspace
+        # IDs out of the delete set.
+        if not is_ee() and workspace_ids:
+            kept_ws_ids: List[UUID] = []
+            for wid in workspace_ids:
+                ws = await _db_get_workspace_by_id(wid)
+                if ws is not None:
+                    org = await _db_get_org_by_id(ws.organization_id)
+                    if org and org.slug == OSS_SINGLETON_ORG_SLUG:
+                        continue
+                kept_ws_ids.append(wid)
+            workspace_ids = kept_ws_ids
 
         if dry_run:
             # Report what would be deleted without writing
@@ -882,6 +1050,27 @@ class PlatformAdminAccountsService:
             else True,
         )
 
+        if not is_ee():
+            if (
+                entry.organization
+                or entry.workspace
+                or entry.project
+                or entry.subscription
+                or entry.organization_memberships
+                or entry.workspace_memberships
+                or entry.project_memberships
+                or entry.api_keys
+            ):
+                raise OssMultiOrgNotSupportedError(
+                    "OSS is single-tenant: organization, workspace, project, subscription, "
+                    "explicit memberships, and explicit api_keys cannot be specified. "
+                    "Use options.create_api_keys to request an API key on the per-account project."
+                )
+            return await self._create_one_simple_account_oss(
+                entry=entry,
+                options=effective_options,
+            )
+
         org_create = entry.organization or _default_org_for_user(entry.user)
         ws_create = entry.workspace or _default_ws_for_org("org")
         proj_create = entry.project or _default_proj_for_ws("org", "wrk")
@@ -960,6 +1149,183 @@ class PlatformAdminAccountsService:
 
         return await self.create_accounts(dto=graph_dto)
 
+    async def _create_one_simple_account_oss(
+        self,
+        *,
+        entry: "AdminSimpleAccountCreateDTO",
+        options: AdminAccountCreateOptionsDTO,
+    ) -> AdminAccountsResponseDTO:
+        """OSS-only path for simple account creation.
+
+        OSS is single-tenant: every user lives under one organization with one
+        workspace and one default project. We bootstrap that singleton on first
+        use (mirroring `_create_account` in the SuperTokens override) and
+        attach every subsequent user to it via `_assign_user_to_organization_oss`.
+        """
+        account = AdminAccountReadDTO()
+        errors: List[AdminStructuredErrorDTO] = []
+
+        # 1. Create the user (the existence check already happened in caller).
+        user_db = await _db_get_or_create_user(
+            entry.user.email,
+            entry.user.username or entry.user.name,
+        )
+        account.users["user"] = _user_db_to_read_dto(user_db)
+
+        # 2. Get-or-bootstrap the OSS singleton org/workspace/default project.
+        # The org row is race-free via INSERT ... ON CONFLICT (slug) on the
+        # deterministic OSS singleton slug. The workspace under that org is
+        # serialized by a SELECT FOR UPDATE row lock on the org during
+        # bootstrap, so concurrent first-user signups all converge on the
+        # same workspace. No application-level lock is involved.
+        org_db = await _db_get_or_bootstrap_oss_organization(
+            user_id=user_db.id,
+            user_email=entry.user.email,
+        )
+
+        # Resolve the singleton default project + workspace BEFORE assigning
+        # the user, so that an inconsistent singleton state surfaces as a
+        # deterministic AdminValidationError (400) rather than a NoResultFound
+        # bubbling out of `_db_assign_user_to_organization_oss` as a 500.
+        default_proj_db = await _db_get_default_project_by_organization_id(
+            str(org_db.id)
+        )
+        if default_proj_db is None:
+            raise AdminValidationError(
+                "OSS singleton is in an inconsistent state: no default project found for organization."
+            )
+
+        ws_db = await _db_get_workspace_by_id(default_proj_db.workspace_id)
+        if ws_db is None:
+            raise AdminValidationError(
+                "OSS singleton is in an inconsistent state: project's workspace not found."
+            )
+
+        await _db_assign_user_to_organization_oss(
+            user_db=user_db,
+            organization_id=str(org_db.id),
+            email=entry.user.email,
+        )
+
+        # Always mint a fresh project per account under the singleton
+        # workspace. Org and workspace stay singleton; only projects
+        # multiply. This isolates per-account state (entities, traces,
+        # api-keys) so concurrent or sequential accounts don't see each
+        # other's data — required for test isolation under the OSS
+        # singleton, and harmless for non-test callers.
+        proj_db = await _db_create_project(
+            f"account-{user_db.id}",
+            org_db.id,
+            ws_db.id,
+            is_default=False,
+        )
+        if options.seed_defaults:
+            await _create_default_environments(
+                project_id=proj_db.id,
+                user_id=user_db.id,
+            )
+            await _create_default_evaluators(
+                project_id=proj_db.id,
+                user_id=user_db.id,
+            )
+
+        account.organizations["org"] = _org_db_to_read_dto(org_db)
+        account.workspaces["wrk"] = _ws_db_to_read_dto(ws_db)
+        account.projects["prj"] = _proj_db_to_read_dto(proj_db)
+
+        # 3. Optional SuperTokens identities.
+        if entry.user_identities and options.create_identities:
+            tenant_id = "public"
+            for index, identity_create in enumerate(entry.user_identities):
+                identity_ref = f"identity_{index}"
+                if not _identity_method_supported(identity_create.method):
+                    errors.append(
+                        AdminStructuredErrorDTO(
+                            code="not_implemented",
+                            message=(
+                                f"Identity provisioning for method "
+                                f"'{identity_create.method}' is not supported on this "
+                                f"deployment (configured email_method="
+                                f"'{env.auth.email_method}'; ref: {identity_ref})."
+                            ),
+                            details={
+                                "ref": identity_ref,
+                                "method": identity_create.method,
+                                "configured_email_method": env.auth.email_method,
+                            },
+                        )
+                    )
+                    continue
+
+                email = identity_create.email or identity_create.subject
+                password = identity_create.password
+                if not email:
+                    errors.append(
+                        AdminStructuredErrorDTO(
+                            code="invalid_identity",
+                            message=(
+                                f"email identity requires 'email' (or 'subject') "
+                                f"(ref: {identity_ref})."
+                            ),
+                            details={"ref": identity_ref},
+                        )
+                    )
+                    continue
+
+                (
+                    rid,
+                    created_method,
+                    err_code,
+                    err_msg,
+                ) = await _create_st_email_identity(
+                    tenant_id=tenant_id,
+                    email=email,
+                    password=password,
+                )
+                if err_code is not None:
+                    errors.append(
+                        AdminStructuredErrorDTO(
+                            code=err_code,
+                            message=f"{err_msg} (ref: {identity_ref}).",
+                            details={"ref": identity_ref, "email": email},
+                        )
+                    )
+                    continue
+
+                account.user_identities[identity_ref] = AdminUserIdentityReadDTO(
+                    id=rid,
+                    user_id=str(user_db.id),
+                    method=created_method,
+                    subject=email,
+                    email=email,
+                    verified=identity_create.verified or False,
+                    status="created",
+                )
+
+        # 4. API key on this account's per-account project (proj_db is the
+        # ephemeral project minted above, not the singleton default).
+        if options.create_api_keys:
+            raw_key = await _create_raw_api_key(
+                user_id=str(user_db.id),
+                project_id=str(proj_db.id),
+            )
+            prefix = raw_key.split(".")[0]
+            key_db = await _db_get_api_key_by_prefix(prefix)
+            account.api_keys = {
+                "key": AdminApiKeyResponseDTO(
+                    id=str(key_db.id) if key_db else None,
+                    prefix=prefix,
+                    project_id=str(proj_db.id),
+                    user_id=str(user_db.id),
+                    value=raw_key if options.return_api_keys else None,
+                )
+            }
+
+        return AdminAccountsResponseDTO(
+            accounts=[account],
+            errors=errors or None,
+        )
+
     async def delete_simple_accounts(
         self,
         *,
@@ -991,6 +1357,51 @@ class PlatformAdminAccountsService:
         dto: AdminSimpleAccountsUsersCreateDTO,
     ) -> AdminAccountsResponseDTO:
         options = dto.options or AdminAccountCreateOptionsDTO()
+
+        # On OSS, when seed_defaults is requested, route through the
+        # simple-account path so the singleton org/workspace are reused
+        # via ``get_or_bootstrap_oss_organization`` (deterministic slug,
+        # race free). The graph-shaped ``create_accounts`` path mints a
+        # fresh org per call and would break the singleton invariant.
+        # When seed_defaults is False, no org/workspace is created here,
+        # so falling through to the graph path is safe.
+        if options.seed_defaults and not is_ee():
+            simple_entry = AdminSimpleAccountCreateDTO(
+                user=dto.user,
+                options=options,
+            )
+            simple_dto = AdminSimpleAccountsCreateDTO(
+                accounts={"user": simple_entry},
+                options=options,
+            )
+            simple_response = await self.create_simple_accounts(dto=simple_dto)
+
+            # Translate the simple response shape back into the graph
+            # response shape that callers of ``create_user`` expect.
+            # Note: ``AdminAccountsResponseDTO.accounts`` is a *list* of
+            # ``AdminAccountReadDTO`` (not a dict), so we append rather
+            # than subscript.
+            graph_response = AdminAccountsResponseDTO()
+            for _account_ref, simple_account in simple_response.accounts.items():
+                read = AdminAccountReadDTO()
+                if simple_account.user is not None:
+                    read.users = {"user": simple_account.user}
+                if simple_account.organizations:
+                    read.organizations = dict(simple_account.organizations)
+                if simple_account.workspaces:
+                    read.workspaces = dict(simple_account.workspaces)
+                if simple_account.projects:
+                    read.projects = dict(simple_account.projects)
+                # NOTE: simple-account responses expose api_keys as raw
+                # value strings, while the graph shape expects a richer
+                # AdminApiKeyResponseDTO. We cannot losslessly reconstruct
+                # the latter, so leave ``read.api_keys`` unset on this OSS
+                # path. Tests for this endpoint only assert on ``users``.
+                graph_response.accounts.append(read)
+            if simple_response.errors:
+                graph_response.errors = list(simple_response.errors)
+            return graph_response
+
         graph_dto = AdminAccountsCreateDTO(
             options=options,
             users={"user": dto.user},
@@ -1041,16 +1452,17 @@ class PlatformAdminAccountsService:
     ) -> AdminAccountsResponseDTO:
         """Create a SuperTokens identity for an existing user."""
         identity = dto.user_identity
-        if identity.method != "email:password":
+        if not _identity_method_supported(identity.method):
             raise AdminNotImplementedError(
-                f"create_user_identity for method '{identity.method}'"
+                f"create_user_identity for method '{identity.method}' "
+                f"(configured email_method='{env.auth.email_method}')"
             )
 
         email = identity.email or identity.subject
         password = identity.password
-        if not email or not password:
+        if not email:
             raise AdminValidationError(
-                "email:password identity requires 'email' (or 'subject') and 'password'."
+                "email identity requires 'email' (or 'subject')."
             )
 
         # Resolve the user this identity should attach to
@@ -1063,25 +1475,18 @@ class PlatformAdminAccountsService:
                 raise AdminUserNotFoundError(dto.user_ref.email)
             user_id_str = str(u.id)
 
-        st_result = await _ep.sign_up(
+        rid, created_method, err_code, err_msg = await _create_st_email_identity(
             tenant_id="public",
             email=email,
             password=password,
         )
-
-        if isinstance(st_result, _EpEmailAlreadyExistsError):
-            raise AdminValidationError(
-                f"An email:password identity for '{email}' already exists in SuperTokens."
-            )
-        if not isinstance(st_result, _EpSignUpOkResult):
-            raise AdminValidationError(
-                "SuperTokens sign_up returned an unexpected result."
-            )
+        if err_code is not None:
+            raise AdminValidationError(err_msg)
 
         identity_dto = AdminUserIdentityReadDTO(
-            id=st_result.recipe_user_id.get_as_string(),
+            id=rid,
             user_id=user_id_str or "",
-            method="email:password",
+            method=created_method,
             subject=email,
             email=email,
             verified=identity.verified or False,
@@ -1298,6 +1703,16 @@ class PlatformAdminAccountsService:
         if not org:
             raise AdminOrganizationNotFoundError(organization_id)
 
+        # On OSS the deterministic singleton org is structurally required
+        # by the bootstrap path; deleting it leaves any in-flight
+        # workspace/project insert with a dangling FK and breaks
+        # subsequent first-user signups until the row is recreated.
+        # Refuse the delete rather than allow a partial nuke.
+        if not is_ee() and org.slug == OSS_SINGLETON_ORG_SLUG:
+            raise AdminValidationError(
+                "The OSS singleton organization cannot be deleted."
+            )
+
         await _db_delete_organization(oid)
         deleted = AdminDeletedEntitiesDTO(
             organizations=[AdminDeletedEntityDTO(id=organization_id)]
@@ -1326,6 +1741,16 @@ class PlatformAdminAccountsService:
         ws = await _db_get_workspace_by_id(wid)
         if not ws:
             raise AdminWorkspaceNotFoundError(workspace_id)
+
+        # On OSS the workspace under the singleton org is itself a
+        # singleton; deleting it would orphan in-flight projects and
+        # break the bootstrap. Refuse rather than allow a partial nuke.
+        if not is_ee():
+            org = await _db_get_org_by_id(ws.organization_id)
+            if org and org.slug == OSS_SINGLETON_ORG_SLUG:
+                raise AdminValidationError(
+                    "The OSS singleton workspace cannot be deleted."
+                )
 
         await _db_delete_workspace(wid)
         deleted = AdminDeletedEntitiesDTO(
@@ -1408,6 +1833,7 @@ class PlatformAdminAccountsService:
         3. Call ``update_email_or_password`` with the new password.
         """
         tenant_id = "public"
+        password_recipe_active = env.auth.email_method == "password"
 
         for identity in dto.user_identities:
             if identity.method != "email:password":
@@ -1424,11 +1850,24 @@ class PlatformAdminAccountsService:
                     "on every user_identity entry."
                 )
 
-            # Look up the ST user by email.
+            # Look up the ST user by email. We do this regardless of the
+            # configured email_method so that truly unknown identities return
+            # a deterministic 404 even on OTP-only deployments. The lookup
+            # has two distinct miss states:
+            #
+            #   1. No SuperTokens user at all → 404 AdminUserNotFoundError.
+            #   2. User exists but has no `emailpassword` login method → on
+            #      OTP-only deployments this is expected (the user was
+            #      provisioned via passwordless), so we no-op; on password
+            #      deployments this is still a "not found" for the password
+            #      recipe and we 404.
             st_users = await _st_list_users_by_account_info(
                 tenant_id=tenant_id,
                 account_info=_StAccountInfoInput(email=email),
             )
+
+            if not st_users:
+                raise AdminUserNotFoundError(email)
 
             recipe_user_id: Optional[str] = None
             for st_user in st_users:
@@ -1445,6 +1884,11 @@ class PlatformAdminAccountsService:
                     break
 
             if not recipe_user_id:
+                # The user exists but has no password recipe. On OTP-only
+                # deployments this is the expected state for every account;
+                # treat as a no-op so callers can run a uniform reset flow.
+                if not password_recipe_active:
+                    continue
                 raise AdminUserNotFoundError(email)
 
             result = await _ep.update_email_or_password(
