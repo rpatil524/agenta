@@ -42,6 +42,7 @@ from oss.src.services.db_manager import (
     get_or_bootstrap_oss_organization as _db_get_or_bootstrap_oss_organization,
     _assign_user_to_organization_oss as _db_assign_user_to_organization_oss,
     get_default_project_by_organization_id as _db_get_default_project_by_organization_id,
+    OSS_SINGLETON_ORG_SLUG,
 )
 from oss.src.core.environments.defaults import (
     create_default_environments as _create_default_environments,
@@ -874,8 +875,24 @@ class PlatformAdminAccountsService:
             for user_id in user_ids:
                 owned = await _db_get_orgs_owned_by_user(user_id)
                 for org in owned:
+                    # On OSS the singleton org is shared across every user;
+                    # cascading-delete it because some user happens to own
+                    # it would tear down the whole tenant.
+                    if not is_ee() and org.slug == OSS_SINGLETON_ORG_SLUG:
+                        continue
                     if org.id not in org_ids:
                         org_ids.append(org.id)
+
+        # Even when callers pass explicit organization_ids, the OSS
+        # singleton must never be in the delete set.
+        if not is_ee() and org_ids:
+            kept_org_ids: List[UUID] = []
+            for oid in org_ids:
+                org = await _db_get_org_by_id(oid)
+                if org and org.slug == OSS_SINGLETON_ORG_SLUG:
+                    continue
+                kept_org_ids.append(oid)
+            org_ids = kept_org_ids
 
         # Collect workspace and project IDs
         workspace_ids: List[UUID] = [UUID(wid) for wid in (target.workspace_ids or [])]
@@ -1141,8 +1158,11 @@ class PlatformAdminAccountsService:
         account.users["user"] = _user_db_to_read_dto(user_db)
 
         # 2. Get-or-bootstrap the OSS singleton org/workspace/default project.
-        # Serialized via a Postgres advisory lock so concurrent first-time
-        # callers don't clobber each other's bootstrap.
+        # The org row is race-free via INSERT ... ON CONFLICT (slug) on the
+        # deterministic OSS singleton slug. The workspace under that org is
+        # serialized by a SELECT FOR UPDATE row lock on the org during
+        # bootstrap, so concurrent first-user signups all converge on the
+        # same workspace. No application-level lock is involved.
         org_db = await _db_get_or_bootstrap_oss_organization(
             user_id=user_db.id,
             user_email=entry.user.email,
@@ -1323,11 +1343,13 @@ class PlatformAdminAccountsService:
     ) -> AdminAccountsResponseDTO:
         options = dto.options or AdminAccountCreateOptionsDTO()
 
-        # On OSS we must route through the simple-account path so the
-        # singleton org/workspace are reused via
-        # ``get_or_bootstrap_oss_organization`` (deterministic slug, race
-        # free). The graph-shaped ``create_accounts`` path mints a fresh
-        # org per call and would break the singleton invariant.
+        # On OSS, when seed_defaults is requested, route through the
+        # simple-account path so the singleton org/workspace are reused
+        # via ``get_or_bootstrap_oss_organization`` (deterministic slug,
+        # race free). The graph-shaped ``create_accounts`` path mints a
+        # fresh org per call and would break the singleton invariant.
+        # When seed_defaults is False, no org/workspace is created here,
+        # so falling through to the graph path is safe.
         if options.seed_defaults and not is_ee():
             simple_entry = AdminSimpleAccountCreateDTO(
                 user=dto.user,
@@ -1665,6 +1687,16 @@ class PlatformAdminAccountsService:
         org = await _db_get_org_by_id(oid)
         if not org:
             raise AdminOrganizationNotFoundError(organization_id)
+
+        # On OSS the deterministic singleton org is structurally required
+        # by the bootstrap path; deleting it leaves any in-flight
+        # workspace/project insert with a dangling FK and breaks
+        # subsequent first-user signups until the row is recreated.
+        # Refuse the delete rather than allow a partial nuke.
+        if not is_ee() and org.slug == OSS_SINGLETON_ORG_SLUG:
+            raise AdminValidationError(
+                "The OSS singleton organization cannot be deleted."
+            )
 
         await _db_delete_organization(oid)
         deleted = AdminDeletedEntitiesDTO(
