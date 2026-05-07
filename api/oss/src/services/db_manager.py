@@ -397,28 +397,35 @@ async def setup_oss_organization_for_first_user(
     )
 
     # OSS is single-tenant: reuse the workspace already attached to the
-    # singleton org if one exists.
-    #
-    # Concurrency note: the org-row insert is race-free thanks to the
-    # unique slug index, but the workspaces table has no equivalent
-    # constraint, so two callers that both observe an empty workspace
-    # list can both end up calling create_workspace. The losing caller's
-    # workspace then becomes an orphan (it doesn't break the singleton
-    # invariant — there's still exactly one org — and downstream code
-    # uses .first(), so subsequent reads are stable). A unique constraint
-    # like (organization_id, name) would close the race entirely; until
-    # that migration lands, accept the small leak as a follow-up.
+    # singleton org if one exists, otherwise create it. Concurrent first-
+    # user callers are serialized by taking a row lock on the singleton
+    # org with SELECT ... FOR UPDATE inside a single transaction — the
+    # second caller blocks until the first commits, then sees the
+    # workspace and skips the insert. No schema change required.
     async with engine.core_session() as session:
+        await session.execute(
+            select(OrganizationDB.id).filter_by(id=organization_db.id).with_for_update()
+        )
+
         existing_workspaces = await session.execute(
             select(WorkspaceDB).filter_by(organization_id=organization_db.id)
         )
         workspace_db = existing_workspaces.scalars().first()
 
-    if workspace_db is None:
-        workspace_db = await create_workspace(
-            name="Default",
-            organization_id=str(organization_db.id),
-        )
+        if workspace_db is None:
+            workspace_db = WorkspaceDB(
+                name="Default",
+                organization_id=organization_db.id,
+            )
+            session.add(workspace_db)
+            await session.commit()
+            log.info(
+                "[scopes] workspace created (oss singleton)",
+                workspace_id=workspace_db.id,
+            )
+        else:
+            # Releasing the lock by committing the empty transaction.
+            await session.commit()
 
     # update default project with organization and workspace ids
     await create_or_update_default_project(
@@ -576,20 +583,35 @@ async def _assign_user_to_organization_oss(
 
 async def get_default_workspace_id_oss() -> str:
     """
-    Get the default (and only) workspace ID in OSS.
+    Get the default workspace ID in OSS.
 
-    OSS enforces a single-workspace constraint. This function retrieves that
-    single workspace that was created at first sign-up.
-
-    Returns:
-        str: The workspace ID
-
-    Raises:
-        AssertionError: If more than one workspace exists (should never happen in OSS)
+    New OSS bootstraps create exactly one workspace per singleton org —
+    the FOR UPDATE lock in setup_oss_organization_for_first_user makes
+    that race-free. Pre-fix deployments may have leftover duplicate
+    workspaces; rather than crashing the auth path with an AssertionError
+    (which then gets cached as a deny and locks every user out for the
+    full TTL), we deterministically pick the oldest row and log a warning
+    so the leftover can be cleaned up.
     """
-    workspaces = await get_workspaces()
+    async with engine.core_session() as session:
+        result = await session.execute(
+            select(WorkspaceDB).order_by(WorkspaceDB.created_at.asc())
+        )
+        workspaces = result.scalars().all()
 
-    assert len(workspaces) == 1, "You can only have a single workspace in OSS."
+    if not workspaces:
+        raise NoResultFound(
+            "OSS singleton is in an inconsistent state: no workspace exists."
+        )
+
+    if len(workspaces) > 1:
+        log.warning(
+            "[scopes] multiple OSS workspaces found, using the oldest. "
+            "This indicates leftover duplicates from a pre-singleton-fix "
+            "deployment; manual cleanup recommended.",
+            workspace_count=len(workspaces),
+            chosen_workspace_id=str(workspaces[0].id),
+        )
 
     return str(workspaces[0].id)
 
