@@ -41,7 +41,7 @@ from oss.src.services.db_manager import (
     admin_transfer_org_ownership_batch as _db_transfer_org_ownership_batch,
     get_or_bootstrap_oss_organization as _db_get_or_bootstrap_oss_organization,
     _assign_user_to_organization_oss as _db_assign_user_to_organization_oss,
-    get_project_by_organization_id as _db_get_project_by_organization_id,
+    get_default_project_by_organization_id as _db_get_default_project_by_organization_id,
 )
 from oss.src.core.environments.defaults import (
     create_default_environments as _create_default_environments,
@@ -1119,7 +1119,9 @@ class PlatformAdminAccountsService:
             email=entry.user.email,
         )
 
-        default_proj_db = await _db_get_project_by_organization_id(str(org_db.id))
+        default_proj_db = await _db_get_default_project_by_organization_id(
+            str(org_db.id)
+        )
         if default_proj_db is None:
             raise AdminValidationError(
                 "OSS singleton is in an inconsistent state: no default project found for organization."

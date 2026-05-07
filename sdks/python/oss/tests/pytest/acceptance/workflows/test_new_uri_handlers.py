@@ -43,8 +43,8 @@ pytestmark = [pytest.mark.acceptance]
 
 
 def run(coro):
-    """Run an async coroutine synchronously in the current event loop."""
-    return asyncio.get_event_loop().run_until_complete(coro)
+    """Run an async coroutine synchronously."""
+    return asyncio.run(coro)
 
 
 def evaluate(body: str) -> str:

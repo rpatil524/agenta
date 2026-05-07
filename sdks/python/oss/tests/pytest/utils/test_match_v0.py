@@ -70,7 +70,7 @@ _json_multi_field = json_multi_field_match_v0.__wrapped__
 
 def run(coro):
     """Run an async coroutine synchronously."""
-    return asyncio.get_event_loop().run_until_complete(coro)
+    return asyncio.run(coro)
 
 
 def match(matchers: List[Dict], inputs=None, outputs=None, trace=None) -> Dict:

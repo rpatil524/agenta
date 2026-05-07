@@ -1422,6 +1422,24 @@ async def get_project_by_organization_id(organization_id: str):
         return project
 
 
+async def get_default_project_by_organization_id(organization_id: str):
+    """Get the default project for an organization.
+
+    Unlike `get_project_by_organization_id`, this filters to `is_default=True`
+    so callers that depend on the OSS singleton invariant don't accidentally
+    pick up an ephemeral per-account project.
+    """
+
+    async with engine.core_session() as session:
+        result = await session.execute(
+            select(ProjectDB).filter_by(
+                organization_id=uuid.UUID(organization_id),
+                is_default=True,
+            )
+        )
+        return result.scalars().first()
+
+
 async def get_project_invitation_by_token_and_email(
     project_id: str, token: str, email: str
 ) -> InvitationDB:
