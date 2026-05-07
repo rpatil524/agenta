@@ -1636,7 +1636,43 @@ async def admin_create_organization(
     slug: Optional[str],
     owner_id: uuid.UUID,
 ) -> OrganizationDB:
+    """Create or reuse an organization (admin path).
+
+    On OSS, every org collapses onto the deterministic singleton slug —
+    callers' requested ``name``/``slug`` are ignored and the existing
+    singleton row is returned (creating it on first call). The unique
+    index on ``organizations.slug`` is the source of truth, so concurrent
+    callers are safe and no application lock is needed.
+
+    On EE, behavior is unchanged: a new row is inserted with the supplied
+    ``name``/``slug``.
+    """
     async with engine.core_session() as session:
+        if not is_ee():
+            stmt = (
+                pg_insert(OrganizationDB)
+                .values(
+                    slug=OSS_SINGLETON_ORG_SLUG,
+                    name=name,
+                    flags={"is_demo": False},
+                    owner_id=owner_id,
+                    created_by_id=owner_id,
+                )
+                .on_conflict_do_nothing(index_elements=["slug"])
+            )
+            await session.execute(stmt)
+            await session.commit()
+
+            result = await session.execute(
+                select(OrganizationDB).filter_by(slug=OSS_SINGLETON_ORG_SLUG)
+            )
+            org_db = result.scalars().one()
+            log.info(
+                "[admin] organization ensured (oss singleton)",
+                organization_id=str(org_db.id),
+            )
+            return org_db
+
         org_db = OrganizationDB(
             name=name,
             slug=slug,
