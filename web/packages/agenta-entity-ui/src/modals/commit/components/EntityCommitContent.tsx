@@ -238,15 +238,15 @@ export function EntityCommitContent({
     return (
         <div
             className={cn(
-                "flex gap-4 overflow-hidden h-full",
-                hasDiffData ? "flex-row" : "flex-col",
+                "flex gap-4 overflow-hidden",
+                hasDiffData ? "flex-row h-full" : "flex-col",
             )}
         >
             {/* Form section */}
             <div
                 className={cn(
-                    "flex flex-col gap-4 overflow-y-auto",
-                    hasDiffData ? "w-[320px] shrink-0" : "w-full",
+                    "flex flex-col gap-4",
+                    hasDiffData ? "w-[320px] shrink-0 overflow-y-auto" : "w-full",
                 )}
             >
                 {/* Version info panel — hidden when actionLabel is not "Commit" (e.g., "Create")
