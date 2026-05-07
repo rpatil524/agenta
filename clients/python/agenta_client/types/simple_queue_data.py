@@ -17,13 +17,10 @@ class SimpleQueueData(UniversalBaseModel):
     repeats: typing.Optional[int] = None
     assignments: typing.Optional[typing.List[typing.List[str]]] = None
     settings: typing.Optional[SimpleQueueSettings] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

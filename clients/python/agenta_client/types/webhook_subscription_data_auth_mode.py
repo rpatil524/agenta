@@ -2,6 +2,4 @@
 
 import typing
 
-WebhookSubscriptionDataAuthMode = typing.Union[
-    typing.Literal["signature", "authorization"], typing.Any
-]
+WebhookSubscriptionDataAuthMode = typing.Union[typing.Literal["signature", "authorization"], typing.Any]

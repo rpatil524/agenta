@@ -19,15 +19,11 @@ from ..types.admin_accounts_response_dto import AdminAccountsResponseDto
 from ..types.admin_api_key_create_dto import AdminApiKeyCreateDto
 from ..types.admin_delete_response_dto import AdminDeleteResponseDto
 from ..types.admin_organization_create_dto import AdminOrganizationCreateDto
-from ..types.admin_organization_membership_create_dto import (
-    AdminOrganizationMembershipCreateDto,
-)
+from ..types.admin_organization_membership_create_dto import AdminOrganizationMembershipCreateDto
 from ..types.admin_project_create_dto import AdminProjectCreateDto
 from ..types.admin_project_membership_create_dto import AdminProjectMembershipCreateDto
 from ..types.admin_simple_account_create_dto import AdminSimpleAccountCreateDto
-from ..types.admin_simple_account_delete_entry_dto import (
-    AdminSimpleAccountDeleteEntryDto,
-)
+from ..types.admin_simple_account_delete_entry_dto import AdminSimpleAccountDeleteEntryDto
 from ..types.admin_simple_accounts_organizations_transfer_ownership_response_dto import (
     AdminSimpleAccountsOrganizationsTransferOwnershipResponseDto,
 )
@@ -36,9 +32,7 @@ from ..types.admin_subscription_create_dto import AdminSubscriptionCreateDto
 from ..types.admin_user_create_dto import AdminUserCreateDto
 from ..types.admin_user_identity_create_dto import AdminUserIdentityCreateDto
 from ..types.admin_workspace_create_dto import AdminWorkspaceCreateDto
-from ..types.admin_workspace_membership_create_dto import (
-    AdminWorkspaceMembershipCreateDto,
-)
+from ..types.admin_workspace_membership_create_dto import AdminWorkspaceMembershipCreateDto
 from ..types.entity_ref import EntityRef
 from ..types.http_validation_error import HttpValidationError
 from ..types.plan import Plan
@@ -51,39 +45,29 @@ from .types.admin_simple_accounts_organizations_transfer_ownership_dto_include_w
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
-
-
 class RawAdminClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
-
-    def create_portal(
-        self,
-        *,
-        organization_id: str,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[typing.Any]:
+    
+    def create_portal(self, *, organization_id: str, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[typing.Any]:
         """
         Parameters
         ----------
         organization_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[typing.Any]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "admin/billing/stripe/portals/",
-            method="POST",
-            params={
-                "organization_id": organization_id,
-            },
-            request_options=request_options,
-        )
+            "admin/billing/stripe/portals/",method="POST",
+            params={"organization_id": organization_id, }
+            ,
+            request_options=request_options,)
         try:
             if _response is None or not _response.text.strip():
                 return HttpResponse(response=_response, data=None)
@@ -91,70 +75,47 @@ class RawAdminClient:
                 _data = typing.cast(
                     typing.Any,
                     parse_obj_as(
-                        type_=typing.Any,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =typing.Any,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def create_checkout(
-        self,
-        *,
-        organization_id: str,
-        plan: Plan,
-        success_url: str,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[typing.Any]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def create_checkout(self, *, organization_id: str, plan: Plan, success_url: str, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[typing.Any]:
         """
         Parameters
         ----------
         organization_id : str
-
+        
         plan : Plan
-
+        
         success_url : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[typing.Any]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "admin/billing/stripe/checkouts/",
-            method="POST",
-            params={
-                "organization_id": organization_id,
-                "plan": plan,
-                "success_url": success_url,
-            },
-            request_options=request_options,
-        )
+            "admin/billing/stripe/checkouts/",method="POST",
+            params={"organization_id": organization_id, "plan": plan, "success_url": success_url, }
+            ,
+            request_options=request_options,)
         try:
             if _response is None or not _response.text.strip():
                 return HttpResponse(response=_response, data=None)
@@ -162,66 +123,45 @@ class RawAdminClient:
                 _data = typing.cast(
                     typing.Any,
                     parse_obj_as(
-                        type_=typing.Any,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =typing.Any,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def switch_plans(
-        self,
-        *,
-        organization_id: str,
-        plan: Plan,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[typing.Any]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def switch_plans(self, *, organization_id: str, plan: Plan, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[typing.Any]:
         """
         Parameters
         ----------
         organization_id : str
-
+        
         plan : Plan
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[typing.Any]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "admin/billing/plans/switch",
-            method="POST",
-            params={
-                "organization_id": organization_id,
-                "plan": plan,
-            },
-            request_options=request_options,
-        )
+            "admin/billing/plans/switch",method="POST",
+            params={"organization_id": organization_id, "plan": plan, }
+            ,
+            request_options=request_options,)
         try:
             if _response is None or not _response.text.strip():
                 return HttpResponse(response=_response, data=None)
@@ -229,62 +169,43 @@ class RawAdminClient:
                 _data = typing.cast(
                     typing.Any,
                     parse_obj_as(
-                        type_=typing.Any,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =typing.Any,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def cancel_subscription(
-        self,
-        *,
-        organization_id: str,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[typing.Any]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def cancel_subscription(self, *, organization_id: str, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[typing.Any]:
         """
         Parameters
         ----------
         organization_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[typing.Any]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "admin/billing/subscription/cancel",
-            method="POST",
-            params={
-                "organization_id": organization_id,
-            },
-            request_options=request_options,
-        )
+            "admin/billing/subscription/cancel",method="POST",
+            params={"organization_id": organization_id, }
+            ,
+            request_options=request_options,)
         try:
             if _response is None or not _response.text.strip():
                 return HttpResponse(response=_response, data=None)
@@ -292,54 +213,39 @@ class RawAdminClient:
                 _data = typing.cast(
                     typing.Any,
                     parse_obj_as(
-                        type_=typing.Any,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =typing.Any,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def report_usage(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[typing.Any]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def report_usage(self, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[typing.Any]:
         """
         Parameters
         ----------
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[typing.Any]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "admin/billing/usage/report",
-            method="POST",
-            request_options=request_options,
-        )
+            "admin/billing/usage/report",method="POST",
+            request_options=request_options,)
         try:
             if _response is None or not _response.text.strip():
                 return HttpResponse(response=_response, data=None)
@@ -347,43 +253,31 @@ class RawAdminClient:
                 _data = typing.cast(
                     typing.Any,
                     parse_obj_as(
-                        type_=typing.Any,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =typing.Any,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def unlock_report_usage(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[typing.Any]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def unlock_report_usage(self, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[typing.Any]:
         """
         Parameters
         ----------
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[typing.Any]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "admin/billing/usage/report/unlock",
-            method="POST",
-            request_options=request_options,
-        )
+            "admin/billing/usage/report/unlock",method="POST",
+            request_options=request_options,)
         try:
             if _response is None or not _response.text.strip():
                 return HttpResponse(response=_response, data=None)
@@ -391,43 +285,31 @@ class RawAdminClient:
                 _data = typing.cast(
                     typing.Any,
                     parse_obj_as(
-                        type_=typing.Any,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =typing.Any,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def flush_usage(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[typing.Any]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def flush_usage(self, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[typing.Any]:
         """
         Parameters
         ----------
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[typing.Any]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "admin/billing/usage/flush",
-            method="POST",
-            request_options=request_options,
-        )
+            "admin/billing/usage/flush",method="POST",
+            request_options=request_options,)
         try:
             if _response is None or not _response.text.strip():
                 return HttpResponse(response=_response, data=None)
@@ -435,1904 +317,1200 @@ class RawAdminClient:
                 _data = typing.cast(
                     typing.Any,
                     parse_obj_as(
-                        type_=typing.Any,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =typing.Any,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def create_account(
-        self,
-        *,
-        request: typing.Optional[AccountRequest] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AccountResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def create_account(self, *, request: typing.Optional[AccountRequest] = None, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AccountResponse]:
         """
         Parameters
         ----------
         request : typing.Optional[AccountRequest]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[AccountResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "admin/account",
-            method="POST",
-            json=convert_and_respect_annotation_metadata(
-                object_=request,
-                annotation=typing.Optional[AccountRequest],
-                direction="write",
-            ),
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+            "admin/account",method="POST",
+            json=convert_and_respect_annotation_metadata(object_=request, annotation=typing.Optional[AccountRequest], direction="write"),
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AccountResponse,
                     parse_obj_as(
-                        type_=AccountResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AccountResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def create_accounts(
-        self,
-        *,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        users: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminUserCreateDto]]
-        ] = OMIT,
-        user_identities: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminUserIdentityCreateDto]]
-        ] = OMIT,
-        organizations: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminOrganizationCreateDto]]
-        ] = OMIT,
-        workspaces: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminWorkspaceCreateDto]]
-        ] = OMIT,
-        projects: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminProjectCreateDto]]
-        ] = OMIT,
-        organization_memberships: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminOrganizationMembershipCreateDto]]
-        ] = OMIT,
-        workspace_memberships: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminWorkspaceMembershipCreateDto]]
-        ] = OMIT,
-        project_memberships: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminProjectMembershipCreateDto]]
-        ] = OMIT,
-        api_keys: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminApiKeyCreateDto]]
-        ] = OMIT,
-        subscriptions: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminSubscriptionCreateDto]]
-        ] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AdminAccountsResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def create_accounts(self, *, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, users: typing.Optional[typing.Dict[str, typing.Optional[AdminUserCreateDto]]] = OMIT, user_identities: typing.Optional[typing.Dict[str, typing.Optional[AdminUserIdentityCreateDto]]] = OMIT, organizations: typing.Optional[typing.Dict[str, typing.Optional[AdminOrganizationCreateDto]]] = OMIT, workspaces: typing.Optional[typing.Dict[str, typing.Optional[AdminWorkspaceCreateDto]]] = OMIT, projects: typing.Optional[typing.Dict[str, typing.Optional[AdminProjectCreateDto]]] = OMIT, organization_memberships: typing.Optional[typing.Dict[str, typing.Optional[AdminOrganizationMembershipCreateDto]]] = OMIT, workspace_memberships: typing.Optional[typing.Dict[str, typing.Optional[AdminWorkspaceMembershipCreateDto]]] = OMIT, project_memberships: typing.Optional[typing.Dict[str, typing.Optional[AdminProjectMembershipCreateDto]]] = OMIT, api_keys: typing.Optional[typing.Dict[str, typing.Optional[AdminApiKeyCreateDto]]] = OMIT, subscriptions: typing.Optional[typing.Dict[str, typing.Optional[AdminSubscriptionCreateDto]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AdminAccountsResponseDto]:
         """
         Parameters
         ----------
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         users : typing.Optional[typing.Dict[str, typing.Optional[AdminUserCreateDto]]]
-
+        
         user_identities : typing.Optional[typing.Dict[str, typing.Optional[AdminUserIdentityCreateDto]]]
-
+        
         organizations : typing.Optional[typing.Dict[str, typing.Optional[AdminOrganizationCreateDto]]]
-
+        
         workspaces : typing.Optional[typing.Dict[str, typing.Optional[AdminWorkspaceCreateDto]]]
-
+        
         projects : typing.Optional[typing.Dict[str, typing.Optional[AdminProjectCreateDto]]]
-
+        
         organization_memberships : typing.Optional[typing.Dict[str, typing.Optional[AdminOrganizationMembershipCreateDto]]]
-
+        
         workspace_memberships : typing.Optional[typing.Dict[str, typing.Optional[AdminWorkspaceMembershipCreateDto]]]
-
+        
         project_memberships : typing.Optional[typing.Dict[str, typing.Optional[AdminProjectMembershipCreateDto]]]
-
+        
         api_keys : typing.Optional[typing.Dict[str, typing.Optional[AdminApiKeyCreateDto]]]
-
+        
         subscriptions : typing.Optional[typing.Dict[str, typing.Optional[AdminSubscriptionCreateDto]]]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[AdminAccountsResponseDto]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "admin/accounts/",
-            method="POST",
+            "admin/accounts/",method="POST",
             json={
-                "options": convert_and_respect_annotation_metadata(
-                    object_=options,
-                    annotation=typing.Optional[AdminAccountCreateOptionsDto],
-                    direction="write",
-                ),
-                "users": convert_and_respect_annotation_metadata(
-                    object_=users,
-                    annotation=typing.Optional[
-                        typing.Dict[str, typing.Optional[AdminUserCreateDto]]
-                    ],
-                    direction="write",
-                ),
-                "user_identities": convert_and_respect_annotation_metadata(
-                    object_=user_identities,
-                    annotation=typing.Optional[
-                        typing.Dict[str, typing.Optional[AdminUserIdentityCreateDto]]
-                    ],
-                    direction="write",
-                ),
-                "organizations": convert_and_respect_annotation_metadata(
-                    object_=organizations,
-                    annotation=typing.Optional[
-                        typing.Dict[str, typing.Optional[AdminOrganizationCreateDto]]
-                    ],
-                    direction="write",
-                ),
-                "workspaces": convert_and_respect_annotation_metadata(
-                    object_=workspaces,
-                    annotation=typing.Optional[
-                        typing.Dict[str, typing.Optional[AdminWorkspaceCreateDto]]
-                    ],
-                    direction="write",
-                ),
-                "projects": convert_and_respect_annotation_metadata(
-                    object_=projects,
-                    annotation=typing.Optional[
-                        typing.Dict[str, typing.Optional[AdminProjectCreateDto]]
-                    ],
-                    direction="write",
-                ),
-                "organization_memberships": convert_and_respect_annotation_metadata(
-                    object_=organization_memberships,
-                    annotation=typing.Optional[
-                        typing.Dict[
-                            str, typing.Optional[AdminOrganizationMembershipCreateDto]
-                        ]
-                    ],
-                    direction="write",
-                ),
-                "workspace_memberships": convert_and_respect_annotation_metadata(
-                    object_=workspace_memberships,
-                    annotation=typing.Optional[
-                        typing.Dict[
-                            str, typing.Optional[AdminWorkspaceMembershipCreateDto]
-                        ]
-                    ],
-                    direction="write",
-                ),
-                "project_memberships": convert_and_respect_annotation_metadata(
-                    object_=project_memberships,
-                    annotation=typing.Optional[
-                        typing.Dict[
-                            str, typing.Optional[AdminProjectMembershipCreateDto]
-                        ]
-                    ],
-                    direction="write",
-                ),
-                "api_keys": convert_and_respect_annotation_metadata(
-                    object_=api_keys,
-                    annotation=typing.Optional[
-                        typing.Dict[str, typing.Optional[AdminApiKeyCreateDto]]
-                    ],
-                    direction="write",
-                ),
-                "subscriptions": convert_and_respect_annotation_metadata(
-                    object_=subscriptions,
-                    annotation=typing.Optional[
-                        typing.Dict[str, typing.Optional[AdminSubscriptionCreateDto]]
-                    ],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "options": convert_and_respect_annotation_metadata(object_=options, annotation=typing.Optional[AdminAccountCreateOptionsDto], direction="write"),
+                "users": convert_and_respect_annotation_metadata(object_=users, annotation=typing.Optional[typing.Dict[str, typing.Optional[AdminUserCreateDto]]], direction="write"),
+                "user_identities": convert_and_respect_annotation_metadata(object_=user_identities, annotation=typing.Optional[typing.Dict[str, typing.Optional[AdminUserIdentityCreateDto]]], direction="write"),
+                "organizations": convert_and_respect_annotation_metadata(object_=organizations, annotation=typing.Optional[typing.Dict[str, typing.Optional[AdminOrganizationCreateDto]]], direction="write"),
+                "workspaces": convert_and_respect_annotation_metadata(object_=workspaces, annotation=typing.Optional[typing.Dict[str, typing.Optional[AdminWorkspaceCreateDto]]], direction="write"),
+                "projects": convert_and_respect_annotation_metadata(object_=projects, annotation=typing.Optional[typing.Dict[str, typing.Optional[AdminProjectCreateDto]]], direction="write"),
+                "organization_memberships": convert_and_respect_annotation_metadata(object_=organization_memberships, annotation=typing.Optional[typing.Dict[str, typing.Optional[AdminOrganizationMembershipCreateDto]]], direction="write"),
+                "workspace_memberships": convert_and_respect_annotation_metadata(object_=workspace_memberships, annotation=typing.Optional[typing.Dict[str, typing.Optional[AdminWorkspaceMembershipCreateDto]]], direction="write"),
+                "project_memberships": convert_and_respect_annotation_metadata(object_=project_memberships, annotation=typing.Optional[typing.Dict[str, typing.Optional[AdminProjectMembershipCreateDto]]], direction="write"),
+                "api_keys": convert_and_respect_annotation_metadata(object_=api_keys, annotation=typing.Optional[typing.Dict[str, typing.Optional[AdminApiKeyCreateDto]]], direction="write"),
+                "subscriptions": convert_and_respect_annotation_metadata(object_=subscriptions, annotation=typing.Optional[typing.Dict[str, typing.Optional[AdminSubscriptionCreateDto]]], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminAccountsResponseDto,
                     parse_obj_as(
-                        type_=AdminAccountsResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminAccountsResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def delete_accounts(
-        self,
-        *,
-        target: AdminAccountsDeleteTargetDto,
-        dry_run: typing.Optional[bool] = OMIT,
-        reason: typing.Optional[str] = OMIT,
-        confirm: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AdminDeleteResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def delete_accounts(self, *, target: AdminAccountsDeleteTargetDto, dry_run: typing.Optional[bool] = OMIT, reason: typing.Optional[str] = OMIT, confirm: typing.Optional[str] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AdminDeleteResponseDto]:
         """
         Parameters
         ----------
         target : AdminAccountsDeleteTargetDto
-
+        
         dry_run : typing.Optional[bool]
-
+        
         reason : typing.Optional[str]
-
+        
         confirm : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[AdminDeleteResponseDto]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "admin/accounts/",
-            method="DELETE",
+            "admin/accounts/",method="DELETE",
             json={
-                "target": convert_and_respect_annotation_metadata(
-                    object_=target,
-                    annotation=AdminAccountsDeleteTargetDto,
-                    direction="write",
-                ),
+                "target": convert_and_respect_annotation_metadata(object_=target, annotation=AdminAccountsDeleteTargetDto, direction="write"),
                 "dry_run": dry_run,
                 "reason": reason,
                 "confirm": confirm,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminDeleteResponseDto,
                     parse_obj_as(
-                        type_=AdminDeleteResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminDeleteResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def create_simple_accounts(
-        self,
-        *,
-        accounts: typing.Dict[str, AdminSimpleAccountCreateDto],
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AdminSimpleAccountsResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def create_simple_accounts(self, *, accounts: typing.Dict[str, AdminSimpleAccountCreateDto], options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AdminSimpleAccountsResponseDto]:
         """
         Parameters
         ----------
         accounts : typing.Dict[str, AdminSimpleAccountCreateDto]
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[AdminSimpleAccountsResponseDto]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/",
-            method="POST",
+            "admin/simple/accounts/",method="POST",
             json={
-                "options": convert_and_respect_annotation_metadata(
-                    object_=options,
-                    annotation=typing.Optional[AdminAccountCreateOptionsDto],
-                    direction="write",
-                ),
-                "accounts": convert_and_respect_annotation_metadata(
-                    object_=accounts,
-                    annotation=typing.Dict[str, AdminSimpleAccountCreateDto],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "options": convert_and_respect_annotation_metadata(object_=options, annotation=typing.Optional[AdminAccountCreateOptionsDto], direction="write"),
+                "accounts": convert_and_respect_annotation_metadata(object_=accounts, annotation=typing.Dict[str, AdminSimpleAccountCreateDto], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminSimpleAccountsResponseDto,
                     parse_obj_as(
-                        type_=AdminSimpleAccountsResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminSimpleAccountsResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def delete_simple_accounts(
-        self,
-        *,
-        accounts: typing.Dict[str, AdminSimpleAccountDeleteEntryDto],
-        dry_run: typing.Optional[bool] = OMIT,
-        reason: typing.Optional[str] = OMIT,
-        confirm: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[None]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def delete_simple_accounts(self, *, accounts: typing.Dict[str, AdminSimpleAccountDeleteEntryDto], dry_run: typing.Optional[bool] = OMIT, reason: typing.Optional[str] = OMIT, confirm: typing.Optional[str] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[None]:
         """
         Parameters
         ----------
         accounts : typing.Dict[str, AdminSimpleAccountDeleteEntryDto]
-
+        
         dry_run : typing.Optional[bool]
-
+        
         reason : typing.Optional[str]
-
+        
         confirm : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[None]
         """
         _response = self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/",
-            method="DELETE",
+            "admin/simple/accounts/",method="DELETE",
             json={
-                "accounts": convert_and_respect_annotation_metadata(
-                    object_=accounts,
-                    annotation=typing.Dict[str, AdminSimpleAccountDeleteEntryDto],
-                    direction="write",
-                ),
+                "accounts": convert_and_respect_annotation_metadata(object_=accounts, annotation=typing.Dict[str, AdminSimpleAccountDeleteEntryDto], direction="write"),
                 "dry_run": dry_run,
                 "reason": reason,
                 "confirm": confirm,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 return HttpResponse(response=_response, data=None)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def create_user(
-        self,
-        *,
-        user: AdminUserCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AdminAccountsResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def create_user(self, *, user: AdminUserCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AdminAccountsResponseDto]:
         """
         Parameters
         ----------
         user : AdminUserCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[AdminAccountsResponseDto]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/users/",
-            method="POST",
+            "admin/simple/accounts/users/",method="POST",
             json={
-                "options": convert_and_respect_annotation_metadata(
-                    object_=options,
-                    annotation=typing.Optional[AdminAccountCreateOptionsDto],
-                    direction="write",
-                ),
-                "user": convert_and_respect_annotation_metadata(
-                    object_=user, annotation=AdminUserCreateDto, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "options": convert_and_respect_annotation_metadata(object_=options, annotation=typing.Optional[AdminAccountCreateOptionsDto], direction="write"),
+                "user": convert_and_respect_annotation_metadata(object_=user, annotation=AdminUserCreateDto, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminAccountsResponseDto,
                     parse_obj_as(
-                        type_=AdminAccountsResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminAccountsResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def create_user_identity(
-        self,
-        *,
-        user_ref: EntityRef,
-        user_identity: AdminUserIdentityCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AdminAccountsResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def create_user_identity(self, *, user_ref: EntityRef, user_identity: AdminUserIdentityCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AdminAccountsResponseDto]:
         """
         Parameters
         ----------
         user_ref : EntityRef
-
+        
         user_identity : AdminUserIdentityCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[AdminAccountsResponseDto]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/users/identities/",
-            method="POST",
+            "admin/simple/accounts/users/identities/",method="POST",
             json={
-                "options": convert_and_respect_annotation_metadata(
-                    object_=options,
-                    annotation=typing.Optional[AdminAccountCreateOptionsDto],
-                    direction="write",
-                ),
-                "user_ref": convert_and_respect_annotation_metadata(
-                    object_=user_ref, annotation=EntityRef, direction="write"
-                ),
-                "user_identity": convert_and_respect_annotation_metadata(
-                    object_=user_identity,
-                    annotation=AdminUserIdentityCreateDto,
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "options": convert_and_respect_annotation_metadata(object_=options, annotation=typing.Optional[AdminAccountCreateOptionsDto], direction="write"),
+                "user_ref": convert_and_respect_annotation_metadata(object_=user_ref, annotation=EntityRef, direction="write"),
+                "user_identity": convert_and_respect_annotation_metadata(object_=user_identity, annotation=AdminUserIdentityCreateDto, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminAccountsResponseDto,
                     parse_obj_as(
-                        type_=AdminAccountsResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminAccountsResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def delete_user_identity(
-        self,
-        user_id: str,
-        identity_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AdminDeleteResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def delete_user_identity(self, user_id: str, identity_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AdminDeleteResponseDto]:
         """
         Parameters
         ----------
         user_id : str
-
+        
         identity_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[AdminDeleteResponseDto]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"admin/simple/accounts/users/{jsonable_encoder(user_id)}/identities/{jsonable_encoder(identity_id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
+            f"admin/simple/accounts/users/{jsonable_encoder(user_id)}/identities/{jsonable_encoder(identity_id)}/",method="DELETE",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminDeleteResponseDto,
                     parse_obj_as(
-                        type_=AdminDeleteResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminDeleteResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def create_organization(
-        self,
-        *,
-        organization: AdminOrganizationCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        owner: typing.Optional[AdminUserCreateDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AdminAccountsResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def create_organization(self, *, organization: AdminOrganizationCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, owner: typing.Optional[AdminUserCreateDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AdminAccountsResponseDto]:
         """
         Parameters
         ----------
         organization : AdminOrganizationCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         owner : typing.Optional[AdminUserCreateDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[AdminAccountsResponseDto]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/organizations/",
-            method="POST",
+            "admin/simple/accounts/organizations/",method="POST",
             json={
-                "options": convert_and_respect_annotation_metadata(
-                    object_=options,
-                    annotation=typing.Optional[AdminAccountCreateOptionsDto],
-                    direction="write",
-                ),
-                "organization": convert_and_respect_annotation_metadata(
-                    object_=organization,
-                    annotation=AdminOrganizationCreateDto,
-                    direction="write",
-                ),
-                "owner": convert_and_respect_annotation_metadata(
-                    object_=owner,
-                    annotation=typing.Optional[AdminUserCreateDto],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "options": convert_and_respect_annotation_metadata(object_=options, annotation=typing.Optional[AdminAccountCreateOptionsDto], direction="write"),
+                "organization": convert_and_respect_annotation_metadata(object_=organization, annotation=AdminOrganizationCreateDto, direction="write"),
+                "owner": convert_and_respect_annotation_metadata(object_=owner, annotation=typing.Optional[AdminUserCreateDto], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminAccountsResponseDto,
                     parse_obj_as(
-                        type_=AdminAccountsResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminAccountsResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def delete_organization(
-        self,
-        organization_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AdminDeleteResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def delete_organization(self, organization_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AdminDeleteResponseDto]:
         """
         Parameters
         ----------
         organization_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[AdminDeleteResponseDto]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"admin/simple/accounts/organizations/{jsonable_encoder(organization_id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
+            f"admin/simple/accounts/organizations/{jsonable_encoder(organization_id)}/",method="DELETE",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminDeleteResponseDto,
                     parse_obj_as(
-                        type_=AdminDeleteResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminDeleteResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def create_organization_membership(
-        self,
-        *,
-        membership: AdminOrganizationMembershipCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AdminAccountsResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def create_organization_membership(self, *, membership: AdminOrganizationMembershipCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AdminAccountsResponseDto]:
         """
         Parameters
         ----------
         membership : AdminOrganizationMembershipCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[AdminAccountsResponseDto]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/organizations/memberships/",
-            method="POST",
+            "admin/simple/accounts/organizations/memberships/",method="POST",
             json={
-                "options": convert_and_respect_annotation_metadata(
-                    object_=options,
-                    annotation=typing.Optional[AdminAccountCreateOptionsDto],
-                    direction="write",
-                ),
-                "membership": convert_and_respect_annotation_metadata(
-                    object_=membership,
-                    annotation=AdminOrganizationMembershipCreateDto,
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "options": convert_and_respect_annotation_metadata(object_=options, annotation=typing.Optional[AdminAccountCreateOptionsDto], direction="write"),
+                "membership": convert_and_respect_annotation_metadata(object_=membership, annotation=AdminOrganizationMembershipCreateDto, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminAccountsResponseDto,
                     parse_obj_as(
-                        type_=AdminAccountsResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminAccountsResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def delete_organization_membership(
-        self,
-        organization_id: str,
-        membership_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AdminDeleteResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def delete_organization_membership(self, organization_id: str, membership_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AdminDeleteResponseDto]:
         """
         Parameters
         ----------
         organization_id : str
-
+        
         membership_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[AdminDeleteResponseDto]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"admin/simple/accounts/organizations/{jsonable_encoder(organization_id)}/memberships/{jsonable_encoder(membership_id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
+            f"admin/simple/accounts/organizations/{jsonable_encoder(organization_id)}/memberships/{jsonable_encoder(membership_id)}/",method="DELETE",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminDeleteResponseDto,
                     parse_obj_as(
-                        type_=AdminDeleteResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminDeleteResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def create_workspace(
-        self,
-        *,
-        workspace: AdminWorkspaceCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AdminAccountsResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def create_workspace(self, *, workspace: AdminWorkspaceCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AdminAccountsResponseDto]:
         """
         Parameters
         ----------
         workspace : AdminWorkspaceCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[AdminAccountsResponseDto]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/workspaces/",
-            method="POST",
+            "admin/simple/accounts/workspaces/",method="POST",
             json={
-                "options": convert_and_respect_annotation_metadata(
-                    object_=options,
-                    annotation=typing.Optional[AdminAccountCreateOptionsDto],
-                    direction="write",
-                ),
-                "workspace": convert_and_respect_annotation_metadata(
-                    object_=workspace,
-                    annotation=AdminWorkspaceCreateDto,
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "options": convert_and_respect_annotation_metadata(object_=options, annotation=typing.Optional[AdminAccountCreateOptionsDto], direction="write"),
+                "workspace": convert_and_respect_annotation_metadata(object_=workspace, annotation=AdminWorkspaceCreateDto, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminAccountsResponseDto,
                     parse_obj_as(
-                        type_=AdminAccountsResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminAccountsResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def delete_workspace(
-        self,
-        workspace_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AdminDeleteResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def delete_workspace(self, workspace_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AdminDeleteResponseDto]:
         """
         Parameters
         ----------
         workspace_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[AdminDeleteResponseDto]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"admin/simple/accounts/workspaces/{jsonable_encoder(workspace_id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
+            f"admin/simple/accounts/workspaces/{jsonable_encoder(workspace_id)}/",method="DELETE",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminDeleteResponseDto,
                     parse_obj_as(
-                        type_=AdminDeleteResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminDeleteResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def create_workspace_membership(
-        self,
-        *,
-        membership: AdminWorkspaceMembershipCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AdminAccountsResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def create_workspace_membership(self, *, membership: AdminWorkspaceMembershipCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AdminAccountsResponseDto]:
         """
         Parameters
         ----------
         membership : AdminWorkspaceMembershipCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[AdminAccountsResponseDto]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/workspaces/memberships/",
-            method="POST",
+            "admin/simple/accounts/workspaces/memberships/",method="POST",
             json={
-                "options": convert_and_respect_annotation_metadata(
-                    object_=options,
-                    annotation=typing.Optional[AdminAccountCreateOptionsDto],
-                    direction="write",
-                ),
-                "membership": convert_and_respect_annotation_metadata(
-                    object_=membership,
-                    annotation=AdminWorkspaceMembershipCreateDto,
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "options": convert_and_respect_annotation_metadata(object_=options, annotation=typing.Optional[AdminAccountCreateOptionsDto], direction="write"),
+                "membership": convert_and_respect_annotation_metadata(object_=membership, annotation=AdminWorkspaceMembershipCreateDto, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminAccountsResponseDto,
                     parse_obj_as(
-                        type_=AdminAccountsResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminAccountsResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def delete_workspace_membership(
-        self,
-        workspace_id: str,
-        membership_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AdminDeleteResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def delete_workspace_membership(self, workspace_id: str, membership_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AdminDeleteResponseDto]:
         """
         Parameters
         ----------
         workspace_id : str
-
+        
         membership_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[AdminDeleteResponseDto]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"admin/simple/accounts/workspaces/{jsonable_encoder(workspace_id)}/memberships/{jsonable_encoder(membership_id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
+            f"admin/simple/accounts/workspaces/{jsonable_encoder(workspace_id)}/memberships/{jsonable_encoder(membership_id)}/",method="DELETE",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminDeleteResponseDto,
                     parse_obj_as(
-                        type_=AdminDeleteResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminDeleteResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def create_project(
-        self,
-        *,
-        project: AdminProjectCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AdminAccountsResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def create_project(self, *, project: AdminProjectCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AdminAccountsResponseDto]:
         """
         Parameters
         ----------
         project : AdminProjectCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[AdminAccountsResponseDto]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/projects/",
-            method="POST",
+            "admin/simple/accounts/projects/",method="POST",
             json={
-                "options": convert_and_respect_annotation_metadata(
-                    object_=options,
-                    annotation=typing.Optional[AdminAccountCreateOptionsDto],
-                    direction="write",
-                ),
-                "project": convert_and_respect_annotation_metadata(
-                    object_=project, annotation=AdminProjectCreateDto, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "options": convert_and_respect_annotation_metadata(object_=options, annotation=typing.Optional[AdminAccountCreateOptionsDto], direction="write"),
+                "project": convert_and_respect_annotation_metadata(object_=project, annotation=AdminProjectCreateDto, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminAccountsResponseDto,
                     parse_obj_as(
-                        type_=AdminAccountsResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminAccountsResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def delete_project(
-        self,
-        project_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AdminDeleteResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def delete_project(self, project_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AdminDeleteResponseDto]:
         """
         Parameters
         ----------
         project_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[AdminDeleteResponseDto]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"admin/simple/accounts/projects/{jsonable_encoder(project_id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
+            f"admin/simple/accounts/projects/{jsonable_encoder(project_id)}/",method="DELETE",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminDeleteResponseDto,
                     parse_obj_as(
-                        type_=AdminDeleteResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminDeleteResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def create_project_membership(
-        self,
-        *,
-        membership: AdminProjectMembershipCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AdminAccountsResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def create_project_membership(self, *, membership: AdminProjectMembershipCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AdminAccountsResponseDto]:
         """
         Parameters
         ----------
         membership : AdminProjectMembershipCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[AdminAccountsResponseDto]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/projects/memberships/",
-            method="POST",
+            "admin/simple/accounts/projects/memberships/",method="POST",
             json={
-                "options": convert_and_respect_annotation_metadata(
-                    object_=options,
-                    annotation=typing.Optional[AdminAccountCreateOptionsDto],
-                    direction="write",
-                ),
-                "membership": convert_and_respect_annotation_metadata(
-                    object_=membership,
-                    annotation=AdminProjectMembershipCreateDto,
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "options": convert_and_respect_annotation_metadata(object_=options, annotation=typing.Optional[AdminAccountCreateOptionsDto], direction="write"),
+                "membership": convert_and_respect_annotation_metadata(object_=membership, annotation=AdminProjectMembershipCreateDto, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminAccountsResponseDto,
                     parse_obj_as(
-                        type_=AdminAccountsResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminAccountsResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def delete_project_membership(
-        self,
-        project_id: str,
-        membership_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AdminDeleteResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def delete_project_membership(self, project_id: str, membership_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AdminDeleteResponseDto]:
         """
         Parameters
         ----------
         project_id : str
-
+        
         membership_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[AdminDeleteResponseDto]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"admin/simple/accounts/projects/{jsonable_encoder(project_id)}/memberships/{jsonable_encoder(membership_id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
+            f"admin/simple/accounts/projects/{jsonable_encoder(project_id)}/memberships/{jsonable_encoder(membership_id)}/",method="DELETE",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminDeleteResponseDto,
                     parse_obj_as(
-                        type_=AdminDeleteResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminDeleteResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def create_api_key(
-        self,
-        *,
-        api_key: AdminApiKeyCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AdminAccountsResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def create_api_key(self, *, api_key: AdminApiKeyCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AdminAccountsResponseDto]:
         """
         Parameters
         ----------
         api_key : AdminApiKeyCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[AdminAccountsResponseDto]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/api-keys/",
-            method="POST",
+            "admin/simple/accounts/api-keys/",method="POST",
             json={
-                "options": convert_and_respect_annotation_metadata(
-                    object_=options,
-                    annotation=typing.Optional[AdminAccountCreateOptionsDto],
-                    direction="write",
-                ),
-                "api_key": convert_and_respect_annotation_metadata(
-                    object_=api_key, annotation=AdminApiKeyCreateDto, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "options": convert_and_respect_annotation_metadata(object_=options, annotation=typing.Optional[AdminAccountCreateOptionsDto], direction="write"),
+                "api_key": convert_and_respect_annotation_metadata(object_=api_key, annotation=AdminApiKeyCreateDto, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminAccountsResponseDto,
                     parse_obj_as(
-                        type_=AdminAccountsResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminAccountsResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def delete_api_key(
-        self,
-        api_key_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AdminDeleteResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def delete_api_key(self, api_key_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AdminDeleteResponseDto]:
         """
         Parameters
         ----------
         api_key_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[AdminDeleteResponseDto]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"admin/simple/accounts/api-keys/{jsonable_encoder(api_key_id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
+            f"admin/simple/accounts/api-keys/{jsonable_encoder(api_key_id)}/",method="DELETE",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminDeleteResponseDto,
                     parse_obj_as(
-                        type_=AdminDeleteResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminDeleteResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def reset_password(
-        self,
-        *,
-        user_identities: typing.Sequence[AdminUserIdentityCreateDto],
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[None]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def reset_password(self, *, user_identities: typing.Sequence[AdminUserIdentityCreateDto], request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[None]:
         """
         Parameters
         ----------
         user_identities : typing.Sequence[AdminUserIdentityCreateDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[None]
         """
         _response = self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/reset-password",
-            method="POST",
+            "admin/simple/accounts/reset-password",method="POST",
             json={
-                "user_identities": convert_and_respect_annotation_metadata(
-                    object_=user_identities,
-                    annotation=typing.Sequence[AdminUserIdentityCreateDto],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "user_identities": convert_and_respect_annotation_metadata(object_=user_identities, annotation=typing.Sequence[AdminUserIdentityCreateDto], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 return HttpResponse(response=_response, data=None)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def transfer_ownership(
-        self,
-        *,
-        users: typing.Dict[str, EntityRef],
-        organizations: typing.Optional[
-            typing.Dict[str, typing.Optional[EntityRef]]
-        ] = OMIT,
-        include_workspaces: typing.Optional[
-            AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeWorkspaces
-        ] = OMIT,
-        include_projects: typing.Optional[
-            AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeProjects
-        ] = OMIT,
-        reason: typing.Optional[str] = OMIT,
-        recovery: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[
-        typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipResponseDto]
-    ]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def transfer_ownership(self, *, users: typing.Dict[str, EntityRef], organizations: typing.Optional[typing.Dict[str, typing.Optional[EntityRef]]] = OMIT, include_workspaces: typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeWorkspaces] = OMIT, include_projects: typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeProjects] = OMIT, reason: typing.Optional[str] = OMIT, recovery: typing.Optional[bool] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipResponseDto]]:
         """
         Parameters
         ----------
         users : typing.Dict[str, EntityRef]
-
+        
         organizations : typing.Optional[typing.Dict[str, typing.Optional[EntityRef]]]
-
+        
         include_workspaces : typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeWorkspaces]
-
+        
         include_projects : typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeProjects]
-
+        
         reason : typing.Optional[str]
-
+        
         recovery : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipResponseDto]]
             Partial transfer — some orgs could not be transferred.
         """
         _response = self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/transfer-ownership",
-            method="POST",
+            "admin/simple/accounts/transfer-ownership",method="POST",
             json={
-                "organizations": convert_and_respect_annotation_metadata(
-                    object_=organizations,
-                    annotation=typing.Optional[
-                        typing.Dict[str, typing.Optional[EntityRef]]
-                    ],
-                    direction="write",
-                ),
-                "users": convert_and_respect_annotation_metadata(
-                    object_=users,
-                    annotation=typing.Dict[str, EntityRef],
-                    direction="write",
-                ),
-                "include_workspaces": convert_and_respect_annotation_metadata(
-                    object_=include_workspaces,
-                    annotation=AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeWorkspaces,
-                    direction="write",
-                ),
-                "include_projects": convert_and_respect_annotation_metadata(
-                    object_=include_projects,
-                    annotation=AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeProjects,
-                    direction="write",
-                ),
+                "organizations": convert_and_respect_annotation_metadata(object_=organizations, annotation=typing.Optional[typing.Dict[str, typing.Optional[EntityRef]]], direction="write"),
+                "users": convert_and_respect_annotation_metadata(object_=users, annotation=typing.Dict[str, EntityRef], direction="write"),
+                "include_workspaces": convert_and_respect_annotation_metadata(object_=include_workspaces, annotation=AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeWorkspaces, direction="write"),
+                "include_projects": convert_and_respect_annotation_metadata(object_=include_projects, annotation=AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeProjects, direction="write"),
                 "reason": reason,
                 "recovery": recovery,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if _response is None or not _response.text.strip():
                 return HttpResponse(response=_response, data=None)
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    typing.Optional[
-                        AdminSimpleAccountsOrganizationsTransferOwnershipResponseDto
-                    ],
+                    typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipResponseDto],
                     parse_obj_as(
-                        type_=typing.Optional[
-                            AdminSimpleAccountsOrganizationsTransferOwnershipResponseDto
-                        ],  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipResponseDto],  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 class AsyncRawAdminClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._client_wrapper = client_wrapper
-
-    async def create_portal(
-        self,
-        *,
-        organization_id: str,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[typing.Any]:
+    
+    async def create_portal(self, *, organization_id: str, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[typing.Any]:
         """
         Parameters
         ----------
         organization_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[typing.Any]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "admin/billing/stripe/portals/",
-            method="POST",
-            params={
-                "organization_id": organization_id,
-            },
-            request_options=request_options,
-        )
+            "admin/billing/stripe/portals/",method="POST",
+            params={"organization_id": organization_id, }
+            ,
+            request_options=request_options,)
         try:
             if _response is None or not _response.text.strip():
                 return AsyncHttpResponse(response=_response, data=None)
@@ -2340,70 +1518,47 @@ class AsyncRawAdminClient:
                 _data = typing.cast(
                     typing.Any,
                     parse_obj_as(
-                        type_=typing.Any,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =typing.Any,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def create_checkout(
-        self,
-        *,
-        organization_id: str,
-        plan: Plan,
-        success_url: str,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[typing.Any]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def create_checkout(self, *, organization_id: str, plan: Plan, success_url: str, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[typing.Any]:
         """
         Parameters
         ----------
         organization_id : str
-
+        
         plan : Plan
-
+        
         success_url : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[typing.Any]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "admin/billing/stripe/checkouts/",
-            method="POST",
-            params={
-                "organization_id": organization_id,
-                "plan": plan,
-                "success_url": success_url,
-            },
-            request_options=request_options,
-        )
+            "admin/billing/stripe/checkouts/",method="POST",
+            params={"organization_id": organization_id, "plan": plan, "success_url": success_url, }
+            ,
+            request_options=request_options,)
         try:
             if _response is None or not _response.text.strip():
                 return AsyncHttpResponse(response=_response, data=None)
@@ -2411,66 +1566,45 @@ class AsyncRawAdminClient:
                 _data = typing.cast(
                     typing.Any,
                     parse_obj_as(
-                        type_=typing.Any,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =typing.Any,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def switch_plans(
-        self,
-        *,
-        organization_id: str,
-        plan: Plan,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[typing.Any]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def switch_plans(self, *, organization_id: str, plan: Plan, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[typing.Any]:
         """
         Parameters
         ----------
         organization_id : str
-
+        
         plan : Plan
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[typing.Any]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "admin/billing/plans/switch",
-            method="POST",
-            params={
-                "organization_id": organization_id,
-                "plan": plan,
-            },
-            request_options=request_options,
-        )
+            "admin/billing/plans/switch",method="POST",
+            params={"organization_id": organization_id, "plan": plan, }
+            ,
+            request_options=request_options,)
         try:
             if _response is None or not _response.text.strip():
                 return AsyncHttpResponse(response=_response, data=None)
@@ -2478,62 +1612,43 @@ class AsyncRawAdminClient:
                 _data = typing.cast(
                     typing.Any,
                     parse_obj_as(
-                        type_=typing.Any,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =typing.Any,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def cancel_subscription(
-        self,
-        *,
-        organization_id: str,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[typing.Any]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def cancel_subscription(self, *, organization_id: str, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[typing.Any]:
         """
         Parameters
         ----------
         organization_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[typing.Any]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "admin/billing/subscription/cancel",
-            method="POST",
-            params={
-                "organization_id": organization_id,
-            },
-            request_options=request_options,
-        )
+            "admin/billing/subscription/cancel",method="POST",
+            params={"organization_id": organization_id, }
+            ,
+            request_options=request_options,)
         try:
             if _response is None or not _response.text.strip():
                 return AsyncHttpResponse(response=_response, data=None)
@@ -2541,54 +1656,39 @@ class AsyncRawAdminClient:
                 _data = typing.cast(
                     typing.Any,
                     parse_obj_as(
-                        type_=typing.Any,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =typing.Any,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def report_usage(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[typing.Any]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def report_usage(self, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[typing.Any]:
         """
         Parameters
         ----------
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[typing.Any]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "admin/billing/usage/report",
-            method="POST",
-            request_options=request_options,
-        )
+            "admin/billing/usage/report",method="POST",
+            request_options=request_options,)
         try:
             if _response is None or not _response.text.strip():
                 return AsyncHttpResponse(response=_response, data=None)
@@ -2596,43 +1696,31 @@ class AsyncRawAdminClient:
                 _data = typing.cast(
                     typing.Any,
                     parse_obj_as(
-                        type_=typing.Any,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =typing.Any,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def unlock_report_usage(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[typing.Any]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def unlock_report_usage(self, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[typing.Any]:
         """
         Parameters
         ----------
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[typing.Any]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "admin/billing/usage/report/unlock",
-            method="POST",
-            request_options=request_options,
-        )
+            "admin/billing/usage/report/unlock",method="POST",
+            request_options=request_options,)
         try:
             if _response is None or not _response.text.strip():
                 return AsyncHttpResponse(response=_response, data=None)
@@ -2640,43 +1728,31 @@ class AsyncRawAdminClient:
                 _data = typing.cast(
                     typing.Any,
                     parse_obj_as(
-                        type_=typing.Any,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =typing.Any,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def flush_usage(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[typing.Any]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def flush_usage(self, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[typing.Any]:
         """
         Parameters
         ----------
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[typing.Any]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "admin/billing/usage/flush",
-            method="POST",
-            request_options=request_options,
-        )
+            "admin/billing/usage/flush",method="POST",
+            request_options=request_options,)
         try:
             if _response is None or not _response.text.strip():
                 return AsyncHttpResponse(response=_response, data=None)
@@ -2684,1868 +1760,1174 @@ class AsyncRawAdminClient:
                 _data = typing.cast(
                     typing.Any,
                     parse_obj_as(
-                        type_=typing.Any,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =typing.Any,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def create_account(
-        self,
-        *,
-        request: typing.Optional[AccountRequest] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AccountResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def create_account(self, *, request: typing.Optional[AccountRequest] = None, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AccountResponse]:
         """
         Parameters
         ----------
         request : typing.Optional[AccountRequest]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[AccountResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "admin/account",
-            method="POST",
-            json=convert_and_respect_annotation_metadata(
-                object_=request,
-                annotation=typing.Optional[AccountRequest],
-                direction="write",
-            ),
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+            "admin/account",method="POST",
+            json=convert_and_respect_annotation_metadata(object_=request, annotation=typing.Optional[AccountRequest], direction="write"),
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AccountResponse,
                     parse_obj_as(
-                        type_=AccountResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AccountResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def create_accounts(
-        self,
-        *,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        users: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminUserCreateDto]]
-        ] = OMIT,
-        user_identities: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminUserIdentityCreateDto]]
-        ] = OMIT,
-        organizations: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminOrganizationCreateDto]]
-        ] = OMIT,
-        workspaces: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminWorkspaceCreateDto]]
-        ] = OMIT,
-        projects: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminProjectCreateDto]]
-        ] = OMIT,
-        organization_memberships: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminOrganizationMembershipCreateDto]]
-        ] = OMIT,
-        workspace_memberships: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminWorkspaceMembershipCreateDto]]
-        ] = OMIT,
-        project_memberships: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminProjectMembershipCreateDto]]
-        ] = OMIT,
-        api_keys: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminApiKeyCreateDto]]
-        ] = OMIT,
-        subscriptions: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminSubscriptionCreateDto]]
-        ] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AdminAccountsResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def create_accounts(self, *, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, users: typing.Optional[typing.Dict[str, typing.Optional[AdminUserCreateDto]]] = OMIT, user_identities: typing.Optional[typing.Dict[str, typing.Optional[AdminUserIdentityCreateDto]]] = OMIT, organizations: typing.Optional[typing.Dict[str, typing.Optional[AdminOrganizationCreateDto]]] = OMIT, workspaces: typing.Optional[typing.Dict[str, typing.Optional[AdminWorkspaceCreateDto]]] = OMIT, projects: typing.Optional[typing.Dict[str, typing.Optional[AdminProjectCreateDto]]] = OMIT, organization_memberships: typing.Optional[typing.Dict[str, typing.Optional[AdminOrganizationMembershipCreateDto]]] = OMIT, workspace_memberships: typing.Optional[typing.Dict[str, typing.Optional[AdminWorkspaceMembershipCreateDto]]] = OMIT, project_memberships: typing.Optional[typing.Dict[str, typing.Optional[AdminProjectMembershipCreateDto]]] = OMIT, api_keys: typing.Optional[typing.Dict[str, typing.Optional[AdminApiKeyCreateDto]]] = OMIT, subscriptions: typing.Optional[typing.Dict[str, typing.Optional[AdminSubscriptionCreateDto]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AdminAccountsResponseDto]:
         """
         Parameters
         ----------
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         users : typing.Optional[typing.Dict[str, typing.Optional[AdminUserCreateDto]]]
-
+        
         user_identities : typing.Optional[typing.Dict[str, typing.Optional[AdminUserIdentityCreateDto]]]
-
+        
         organizations : typing.Optional[typing.Dict[str, typing.Optional[AdminOrganizationCreateDto]]]
-
+        
         workspaces : typing.Optional[typing.Dict[str, typing.Optional[AdminWorkspaceCreateDto]]]
-
+        
         projects : typing.Optional[typing.Dict[str, typing.Optional[AdminProjectCreateDto]]]
-
+        
         organization_memberships : typing.Optional[typing.Dict[str, typing.Optional[AdminOrganizationMembershipCreateDto]]]
-
+        
         workspace_memberships : typing.Optional[typing.Dict[str, typing.Optional[AdminWorkspaceMembershipCreateDto]]]
-
+        
         project_memberships : typing.Optional[typing.Dict[str, typing.Optional[AdminProjectMembershipCreateDto]]]
-
+        
         api_keys : typing.Optional[typing.Dict[str, typing.Optional[AdminApiKeyCreateDto]]]
-
+        
         subscriptions : typing.Optional[typing.Dict[str, typing.Optional[AdminSubscriptionCreateDto]]]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[AdminAccountsResponseDto]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "admin/accounts/",
-            method="POST",
+            "admin/accounts/",method="POST",
             json={
-                "options": convert_and_respect_annotation_metadata(
-                    object_=options,
-                    annotation=typing.Optional[AdminAccountCreateOptionsDto],
-                    direction="write",
-                ),
-                "users": convert_and_respect_annotation_metadata(
-                    object_=users,
-                    annotation=typing.Optional[
-                        typing.Dict[str, typing.Optional[AdminUserCreateDto]]
-                    ],
-                    direction="write",
-                ),
-                "user_identities": convert_and_respect_annotation_metadata(
-                    object_=user_identities,
-                    annotation=typing.Optional[
-                        typing.Dict[str, typing.Optional[AdminUserIdentityCreateDto]]
-                    ],
-                    direction="write",
-                ),
-                "organizations": convert_and_respect_annotation_metadata(
-                    object_=organizations,
-                    annotation=typing.Optional[
-                        typing.Dict[str, typing.Optional[AdminOrganizationCreateDto]]
-                    ],
-                    direction="write",
-                ),
-                "workspaces": convert_and_respect_annotation_metadata(
-                    object_=workspaces,
-                    annotation=typing.Optional[
-                        typing.Dict[str, typing.Optional[AdminWorkspaceCreateDto]]
-                    ],
-                    direction="write",
-                ),
-                "projects": convert_and_respect_annotation_metadata(
-                    object_=projects,
-                    annotation=typing.Optional[
-                        typing.Dict[str, typing.Optional[AdminProjectCreateDto]]
-                    ],
-                    direction="write",
-                ),
-                "organization_memberships": convert_and_respect_annotation_metadata(
-                    object_=organization_memberships,
-                    annotation=typing.Optional[
-                        typing.Dict[
-                            str, typing.Optional[AdminOrganizationMembershipCreateDto]
-                        ]
-                    ],
-                    direction="write",
-                ),
-                "workspace_memberships": convert_and_respect_annotation_metadata(
-                    object_=workspace_memberships,
-                    annotation=typing.Optional[
-                        typing.Dict[
-                            str, typing.Optional[AdminWorkspaceMembershipCreateDto]
-                        ]
-                    ],
-                    direction="write",
-                ),
-                "project_memberships": convert_and_respect_annotation_metadata(
-                    object_=project_memberships,
-                    annotation=typing.Optional[
-                        typing.Dict[
-                            str, typing.Optional[AdminProjectMembershipCreateDto]
-                        ]
-                    ],
-                    direction="write",
-                ),
-                "api_keys": convert_and_respect_annotation_metadata(
-                    object_=api_keys,
-                    annotation=typing.Optional[
-                        typing.Dict[str, typing.Optional[AdminApiKeyCreateDto]]
-                    ],
-                    direction="write",
-                ),
-                "subscriptions": convert_and_respect_annotation_metadata(
-                    object_=subscriptions,
-                    annotation=typing.Optional[
-                        typing.Dict[str, typing.Optional[AdminSubscriptionCreateDto]]
-                    ],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "options": convert_and_respect_annotation_metadata(object_=options, annotation=typing.Optional[AdminAccountCreateOptionsDto], direction="write"),
+                "users": convert_and_respect_annotation_metadata(object_=users, annotation=typing.Optional[typing.Dict[str, typing.Optional[AdminUserCreateDto]]], direction="write"),
+                "user_identities": convert_and_respect_annotation_metadata(object_=user_identities, annotation=typing.Optional[typing.Dict[str, typing.Optional[AdminUserIdentityCreateDto]]], direction="write"),
+                "organizations": convert_and_respect_annotation_metadata(object_=organizations, annotation=typing.Optional[typing.Dict[str, typing.Optional[AdminOrganizationCreateDto]]], direction="write"),
+                "workspaces": convert_and_respect_annotation_metadata(object_=workspaces, annotation=typing.Optional[typing.Dict[str, typing.Optional[AdminWorkspaceCreateDto]]], direction="write"),
+                "projects": convert_and_respect_annotation_metadata(object_=projects, annotation=typing.Optional[typing.Dict[str, typing.Optional[AdminProjectCreateDto]]], direction="write"),
+                "organization_memberships": convert_and_respect_annotation_metadata(object_=organization_memberships, annotation=typing.Optional[typing.Dict[str, typing.Optional[AdminOrganizationMembershipCreateDto]]], direction="write"),
+                "workspace_memberships": convert_and_respect_annotation_metadata(object_=workspace_memberships, annotation=typing.Optional[typing.Dict[str, typing.Optional[AdminWorkspaceMembershipCreateDto]]], direction="write"),
+                "project_memberships": convert_and_respect_annotation_metadata(object_=project_memberships, annotation=typing.Optional[typing.Dict[str, typing.Optional[AdminProjectMembershipCreateDto]]], direction="write"),
+                "api_keys": convert_and_respect_annotation_metadata(object_=api_keys, annotation=typing.Optional[typing.Dict[str, typing.Optional[AdminApiKeyCreateDto]]], direction="write"),
+                "subscriptions": convert_and_respect_annotation_metadata(object_=subscriptions, annotation=typing.Optional[typing.Dict[str, typing.Optional[AdminSubscriptionCreateDto]]], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminAccountsResponseDto,
                     parse_obj_as(
-                        type_=AdminAccountsResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminAccountsResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def delete_accounts(
-        self,
-        *,
-        target: AdminAccountsDeleteTargetDto,
-        dry_run: typing.Optional[bool] = OMIT,
-        reason: typing.Optional[str] = OMIT,
-        confirm: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AdminDeleteResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def delete_accounts(self, *, target: AdminAccountsDeleteTargetDto, dry_run: typing.Optional[bool] = OMIT, reason: typing.Optional[str] = OMIT, confirm: typing.Optional[str] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AdminDeleteResponseDto]:
         """
         Parameters
         ----------
         target : AdminAccountsDeleteTargetDto
-
+        
         dry_run : typing.Optional[bool]
-
+        
         reason : typing.Optional[str]
-
+        
         confirm : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[AdminDeleteResponseDto]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "admin/accounts/",
-            method="DELETE",
+            "admin/accounts/",method="DELETE",
             json={
-                "target": convert_and_respect_annotation_metadata(
-                    object_=target,
-                    annotation=AdminAccountsDeleteTargetDto,
-                    direction="write",
-                ),
+                "target": convert_and_respect_annotation_metadata(object_=target, annotation=AdminAccountsDeleteTargetDto, direction="write"),
                 "dry_run": dry_run,
                 "reason": reason,
                 "confirm": confirm,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminDeleteResponseDto,
                     parse_obj_as(
-                        type_=AdminDeleteResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminDeleteResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def create_simple_accounts(
-        self,
-        *,
-        accounts: typing.Dict[str, AdminSimpleAccountCreateDto],
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AdminSimpleAccountsResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def create_simple_accounts(self, *, accounts: typing.Dict[str, AdminSimpleAccountCreateDto], options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AdminSimpleAccountsResponseDto]:
         """
         Parameters
         ----------
         accounts : typing.Dict[str, AdminSimpleAccountCreateDto]
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[AdminSimpleAccountsResponseDto]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/",
-            method="POST",
+            "admin/simple/accounts/",method="POST",
             json={
-                "options": convert_and_respect_annotation_metadata(
-                    object_=options,
-                    annotation=typing.Optional[AdminAccountCreateOptionsDto],
-                    direction="write",
-                ),
-                "accounts": convert_and_respect_annotation_metadata(
-                    object_=accounts,
-                    annotation=typing.Dict[str, AdminSimpleAccountCreateDto],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "options": convert_and_respect_annotation_metadata(object_=options, annotation=typing.Optional[AdminAccountCreateOptionsDto], direction="write"),
+                "accounts": convert_and_respect_annotation_metadata(object_=accounts, annotation=typing.Dict[str, AdminSimpleAccountCreateDto], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminSimpleAccountsResponseDto,
                     parse_obj_as(
-                        type_=AdminSimpleAccountsResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminSimpleAccountsResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def delete_simple_accounts(
-        self,
-        *,
-        accounts: typing.Dict[str, AdminSimpleAccountDeleteEntryDto],
-        dry_run: typing.Optional[bool] = OMIT,
-        reason: typing.Optional[str] = OMIT,
-        confirm: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[None]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def delete_simple_accounts(self, *, accounts: typing.Dict[str, AdminSimpleAccountDeleteEntryDto], dry_run: typing.Optional[bool] = OMIT, reason: typing.Optional[str] = OMIT, confirm: typing.Optional[str] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[None]:
         """
         Parameters
         ----------
         accounts : typing.Dict[str, AdminSimpleAccountDeleteEntryDto]
-
+        
         dry_run : typing.Optional[bool]
-
+        
         reason : typing.Optional[str]
-
+        
         confirm : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[None]
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/",
-            method="DELETE",
+            "admin/simple/accounts/",method="DELETE",
             json={
-                "accounts": convert_and_respect_annotation_metadata(
-                    object_=accounts,
-                    annotation=typing.Dict[str, AdminSimpleAccountDeleteEntryDto],
-                    direction="write",
-                ),
+                "accounts": convert_and_respect_annotation_metadata(object_=accounts, annotation=typing.Dict[str, AdminSimpleAccountDeleteEntryDto], direction="write"),
                 "dry_run": dry_run,
                 "reason": reason,
                 "confirm": confirm,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 return AsyncHttpResponse(response=_response, data=None)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def create_user(
-        self,
-        *,
-        user: AdminUserCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AdminAccountsResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def create_user(self, *, user: AdminUserCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AdminAccountsResponseDto]:
         """
         Parameters
         ----------
         user : AdminUserCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[AdminAccountsResponseDto]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/users/",
-            method="POST",
+            "admin/simple/accounts/users/",method="POST",
             json={
-                "options": convert_and_respect_annotation_metadata(
-                    object_=options,
-                    annotation=typing.Optional[AdminAccountCreateOptionsDto],
-                    direction="write",
-                ),
-                "user": convert_and_respect_annotation_metadata(
-                    object_=user, annotation=AdminUserCreateDto, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "options": convert_and_respect_annotation_metadata(object_=options, annotation=typing.Optional[AdminAccountCreateOptionsDto], direction="write"),
+                "user": convert_and_respect_annotation_metadata(object_=user, annotation=AdminUserCreateDto, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminAccountsResponseDto,
                     parse_obj_as(
-                        type_=AdminAccountsResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminAccountsResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def create_user_identity(
-        self,
-        *,
-        user_ref: EntityRef,
-        user_identity: AdminUserIdentityCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AdminAccountsResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def create_user_identity(self, *, user_ref: EntityRef, user_identity: AdminUserIdentityCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AdminAccountsResponseDto]:
         """
         Parameters
         ----------
         user_ref : EntityRef
-
+        
         user_identity : AdminUserIdentityCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[AdminAccountsResponseDto]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/users/identities/",
-            method="POST",
+            "admin/simple/accounts/users/identities/",method="POST",
             json={
-                "options": convert_and_respect_annotation_metadata(
-                    object_=options,
-                    annotation=typing.Optional[AdminAccountCreateOptionsDto],
-                    direction="write",
-                ),
-                "user_ref": convert_and_respect_annotation_metadata(
-                    object_=user_ref, annotation=EntityRef, direction="write"
-                ),
-                "user_identity": convert_and_respect_annotation_metadata(
-                    object_=user_identity,
-                    annotation=AdminUserIdentityCreateDto,
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "options": convert_and_respect_annotation_metadata(object_=options, annotation=typing.Optional[AdminAccountCreateOptionsDto], direction="write"),
+                "user_ref": convert_and_respect_annotation_metadata(object_=user_ref, annotation=EntityRef, direction="write"),
+                "user_identity": convert_and_respect_annotation_metadata(object_=user_identity, annotation=AdminUserIdentityCreateDto, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminAccountsResponseDto,
                     parse_obj_as(
-                        type_=AdminAccountsResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminAccountsResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def delete_user_identity(
-        self,
-        user_id: str,
-        identity_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AdminDeleteResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def delete_user_identity(self, user_id: str, identity_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AdminDeleteResponseDto]:
         """
         Parameters
         ----------
         user_id : str
-
+        
         identity_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[AdminDeleteResponseDto]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"admin/simple/accounts/users/{jsonable_encoder(user_id)}/identities/{jsonable_encoder(identity_id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
+            f"admin/simple/accounts/users/{jsonable_encoder(user_id)}/identities/{jsonable_encoder(identity_id)}/",method="DELETE",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminDeleteResponseDto,
                     parse_obj_as(
-                        type_=AdminDeleteResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminDeleteResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def create_organization(
-        self,
-        *,
-        organization: AdminOrganizationCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        owner: typing.Optional[AdminUserCreateDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AdminAccountsResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def create_organization(self, *, organization: AdminOrganizationCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, owner: typing.Optional[AdminUserCreateDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AdminAccountsResponseDto]:
         """
         Parameters
         ----------
         organization : AdminOrganizationCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         owner : typing.Optional[AdminUserCreateDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[AdminAccountsResponseDto]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/organizations/",
-            method="POST",
+            "admin/simple/accounts/organizations/",method="POST",
             json={
-                "options": convert_and_respect_annotation_metadata(
-                    object_=options,
-                    annotation=typing.Optional[AdminAccountCreateOptionsDto],
-                    direction="write",
-                ),
-                "organization": convert_and_respect_annotation_metadata(
-                    object_=organization,
-                    annotation=AdminOrganizationCreateDto,
-                    direction="write",
-                ),
-                "owner": convert_and_respect_annotation_metadata(
-                    object_=owner,
-                    annotation=typing.Optional[AdminUserCreateDto],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "options": convert_and_respect_annotation_metadata(object_=options, annotation=typing.Optional[AdminAccountCreateOptionsDto], direction="write"),
+                "organization": convert_and_respect_annotation_metadata(object_=organization, annotation=AdminOrganizationCreateDto, direction="write"),
+                "owner": convert_and_respect_annotation_metadata(object_=owner, annotation=typing.Optional[AdminUserCreateDto], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminAccountsResponseDto,
                     parse_obj_as(
-                        type_=AdminAccountsResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminAccountsResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def delete_organization(
-        self,
-        organization_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AdminDeleteResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def delete_organization(self, organization_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AdminDeleteResponseDto]:
         """
         Parameters
         ----------
         organization_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[AdminDeleteResponseDto]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"admin/simple/accounts/organizations/{jsonable_encoder(organization_id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
+            f"admin/simple/accounts/organizations/{jsonable_encoder(organization_id)}/",method="DELETE",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminDeleteResponseDto,
                     parse_obj_as(
-                        type_=AdminDeleteResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminDeleteResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def create_organization_membership(
-        self,
-        *,
-        membership: AdminOrganizationMembershipCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AdminAccountsResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def create_organization_membership(self, *, membership: AdminOrganizationMembershipCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AdminAccountsResponseDto]:
         """
         Parameters
         ----------
         membership : AdminOrganizationMembershipCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[AdminAccountsResponseDto]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/organizations/memberships/",
-            method="POST",
+            "admin/simple/accounts/organizations/memberships/",method="POST",
             json={
-                "options": convert_and_respect_annotation_metadata(
-                    object_=options,
-                    annotation=typing.Optional[AdminAccountCreateOptionsDto],
-                    direction="write",
-                ),
-                "membership": convert_and_respect_annotation_metadata(
-                    object_=membership,
-                    annotation=AdminOrganizationMembershipCreateDto,
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "options": convert_and_respect_annotation_metadata(object_=options, annotation=typing.Optional[AdminAccountCreateOptionsDto], direction="write"),
+                "membership": convert_and_respect_annotation_metadata(object_=membership, annotation=AdminOrganizationMembershipCreateDto, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminAccountsResponseDto,
                     parse_obj_as(
-                        type_=AdminAccountsResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminAccountsResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def delete_organization_membership(
-        self,
-        organization_id: str,
-        membership_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AdminDeleteResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def delete_organization_membership(self, organization_id: str, membership_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AdminDeleteResponseDto]:
         """
         Parameters
         ----------
         organization_id : str
-
+        
         membership_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[AdminDeleteResponseDto]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"admin/simple/accounts/organizations/{jsonable_encoder(organization_id)}/memberships/{jsonable_encoder(membership_id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
+            f"admin/simple/accounts/organizations/{jsonable_encoder(organization_id)}/memberships/{jsonable_encoder(membership_id)}/",method="DELETE",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminDeleteResponseDto,
                     parse_obj_as(
-                        type_=AdminDeleteResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminDeleteResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def create_workspace(
-        self,
-        *,
-        workspace: AdminWorkspaceCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AdminAccountsResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def create_workspace(self, *, workspace: AdminWorkspaceCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AdminAccountsResponseDto]:
         """
         Parameters
         ----------
         workspace : AdminWorkspaceCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[AdminAccountsResponseDto]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/workspaces/",
-            method="POST",
+            "admin/simple/accounts/workspaces/",method="POST",
             json={
-                "options": convert_and_respect_annotation_metadata(
-                    object_=options,
-                    annotation=typing.Optional[AdminAccountCreateOptionsDto],
-                    direction="write",
-                ),
-                "workspace": convert_and_respect_annotation_metadata(
-                    object_=workspace,
-                    annotation=AdminWorkspaceCreateDto,
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "options": convert_and_respect_annotation_metadata(object_=options, annotation=typing.Optional[AdminAccountCreateOptionsDto], direction="write"),
+                "workspace": convert_and_respect_annotation_metadata(object_=workspace, annotation=AdminWorkspaceCreateDto, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminAccountsResponseDto,
                     parse_obj_as(
-                        type_=AdminAccountsResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminAccountsResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def delete_workspace(
-        self,
-        workspace_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AdminDeleteResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def delete_workspace(self, workspace_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AdminDeleteResponseDto]:
         """
         Parameters
         ----------
         workspace_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[AdminDeleteResponseDto]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"admin/simple/accounts/workspaces/{jsonable_encoder(workspace_id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
+            f"admin/simple/accounts/workspaces/{jsonable_encoder(workspace_id)}/",method="DELETE",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminDeleteResponseDto,
                     parse_obj_as(
-                        type_=AdminDeleteResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminDeleteResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def create_workspace_membership(
-        self,
-        *,
-        membership: AdminWorkspaceMembershipCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AdminAccountsResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def create_workspace_membership(self, *, membership: AdminWorkspaceMembershipCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AdminAccountsResponseDto]:
         """
         Parameters
         ----------
         membership : AdminWorkspaceMembershipCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[AdminAccountsResponseDto]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/workspaces/memberships/",
-            method="POST",
+            "admin/simple/accounts/workspaces/memberships/",method="POST",
             json={
-                "options": convert_and_respect_annotation_metadata(
-                    object_=options,
-                    annotation=typing.Optional[AdminAccountCreateOptionsDto],
-                    direction="write",
-                ),
-                "membership": convert_and_respect_annotation_metadata(
-                    object_=membership,
-                    annotation=AdminWorkspaceMembershipCreateDto,
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "options": convert_and_respect_annotation_metadata(object_=options, annotation=typing.Optional[AdminAccountCreateOptionsDto], direction="write"),
+                "membership": convert_and_respect_annotation_metadata(object_=membership, annotation=AdminWorkspaceMembershipCreateDto, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminAccountsResponseDto,
                     parse_obj_as(
-                        type_=AdminAccountsResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminAccountsResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def delete_workspace_membership(
-        self,
-        workspace_id: str,
-        membership_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AdminDeleteResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def delete_workspace_membership(self, workspace_id: str, membership_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AdminDeleteResponseDto]:
         """
         Parameters
         ----------
         workspace_id : str
-
+        
         membership_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[AdminDeleteResponseDto]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"admin/simple/accounts/workspaces/{jsonable_encoder(workspace_id)}/memberships/{jsonable_encoder(membership_id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
+            f"admin/simple/accounts/workspaces/{jsonable_encoder(workspace_id)}/memberships/{jsonable_encoder(membership_id)}/",method="DELETE",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminDeleteResponseDto,
                     parse_obj_as(
-                        type_=AdminDeleteResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminDeleteResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def create_project(
-        self,
-        *,
-        project: AdminProjectCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AdminAccountsResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def create_project(self, *, project: AdminProjectCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AdminAccountsResponseDto]:
         """
         Parameters
         ----------
         project : AdminProjectCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[AdminAccountsResponseDto]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/projects/",
-            method="POST",
+            "admin/simple/accounts/projects/",method="POST",
             json={
-                "options": convert_and_respect_annotation_metadata(
-                    object_=options,
-                    annotation=typing.Optional[AdminAccountCreateOptionsDto],
-                    direction="write",
-                ),
-                "project": convert_and_respect_annotation_metadata(
-                    object_=project, annotation=AdminProjectCreateDto, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "options": convert_and_respect_annotation_metadata(object_=options, annotation=typing.Optional[AdminAccountCreateOptionsDto], direction="write"),
+                "project": convert_and_respect_annotation_metadata(object_=project, annotation=AdminProjectCreateDto, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminAccountsResponseDto,
                     parse_obj_as(
-                        type_=AdminAccountsResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminAccountsResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def delete_project(
-        self,
-        project_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AdminDeleteResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def delete_project(self, project_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AdminDeleteResponseDto]:
         """
         Parameters
         ----------
         project_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[AdminDeleteResponseDto]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"admin/simple/accounts/projects/{jsonable_encoder(project_id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
+            f"admin/simple/accounts/projects/{jsonable_encoder(project_id)}/",method="DELETE",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminDeleteResponseDto,
                     parse_obj_as(
-                        type_=AdminDeleteResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminDeleteResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def create_project_membership(
-        self,
-        *,
-        membership: AdminProjectMembershipCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AdminAccountsResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def create_project_membership(self, *, membership: AdminProjectMembershipCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AdminAccountsResponseDto]:
         """
         Parameters
         ----------
         membership : AdminProjectMembershipCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[AdminAccountsResponseDto]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/projects/memberships/",
-            method="POST",
+            "admin/simple/accounts/projects/memberships/",method="POST",
             json={
-                "options": convert_and_respect_annotation_metadata(
-                    object_=options,
-                    annotation=typing.Optional[AdminAccountCreateOptionsDto],
-                    direction="write",
-                ),
-                "membership": convert_and_respect_annotation_metadata(
-                    object_=membership,
-                    annotation=AdminProjectMembershipCreateDto,
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "options": convert_and_respect_annotation_metadata(object_=options, annotation=typing.Optional[AdminAccountCreateOptionsDto], direction="write"),
+                "membership": convert_and_respect_annotation_metadata(object_=membership, annotation=AdminProjectMembershipCreateDto, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminAccountsResponseDto,
                     parse_obj_as(
-                        type_=AdminAccountsResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminAccountsResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def delete_project_membership(
-        self,
-        project_id: str,
-        membership_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AdminDeleteResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def delete_project_membership(self, project_id: str, membership_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AdminDeleteResponseDto]:
         """
         Parameters
         ----------
         project_id : str
-
+        
         membership_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[AdminDeleteResponseDto]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"admin/simple/accounts/projects/{jsonable_encoder(project_id)}/memberships/{jsonable_encoder(membership_id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
+            f"admin/simple/accounts/projects/{jsonable_encoder(project_id)}/memberships/{jsonable_encoder(membership_id)}/",method="DELETE",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminDeleteResponseDto,
                     parse_obj_as(
-                        type_=AdminDeleteResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminDeleteResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def create_api_key(
-        self,
-        *,
-        api_key: AdminApiKeyCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AdminAccountsResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def create_api_key(self, *, api_key: AdminApiKeyCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AdminAccountsResponseDto]:
         """
         Parameters
         ----------
         api_key : AdminApiKeyCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[AdminAccountsResponseDto]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/api-keys/",
-            method="POST",
+            "admin/simple/accounts/api-keys/",method="POST",
             json={
-                "options": convert_and_respect_annotation_metadata(
-                    object_=options,
-                    annotation=typing.Optional[AdminAccountCreateOptionsDto],
-                    direction="write",
-                ),
-                "api_key": convert_and_respect_annotation_metadata(
-                    object_=api_key, annotation=AdminApiKeyCreateDto, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "options": convert_and_respect_annotation_metadata(object_=options, annotation=typing.Optional[AdminAccountCreateOptionsDto], direction="write"),
+                "api_key": convert_and_respect_annotation_metadata(object_=api_key, annotation=AdminApiKeyCreateDto, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminAccountsResponseDto,
                     parse_obj_as(
-                        type_=AdminAccountsResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminAccountsResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def delete_api_key(
-        self,
-        api_key_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AdminDeleteResponseDto]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def delete_api_key(self, api_key_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AdminDeleteResponseDto]:
         """
         Parameters
         ----------
         api_key_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[AdminDeleteResponseDto]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"admin/simple/accounts/api-keys/{jsonable_encoder(api_key_id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
+            f"admin/simple/accounts/api-keys/{jsonable_encoder(api_key_id)}/",method="DELETE",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     AdminDeleteResponseDto,
                     parse_obj_as(
-                        type_=AdminDeleteResponseDto,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =AdminDeleteResponseDto,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def reset_password(
-        self,
-        *,
-        user_identities: typing.Sequence[AdminUserIdentityCreateDto],
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[None]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def reset_password(self, *, user_identities: typing.Sequence[AdminUserIdentityCreateDto], request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[None]:
         """
         Parameters
         ----------
         user_identities : typing.Sequence[AdminUserIdentityCreateDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[None]
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/reset-password",
-            method="POST",
+            "admin/simple/accounts/reset-password",method="POST",
             json={
-                "user_identities": convert_and_respect_annotation_metadata(
-                    object_=user_identities,
-                    annotation=typing.Sequence[AdminUserIdentityCreateDto],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "user_identities": convert_and_respect_annotation_metadata(object_=user_identities, annotation=typing.Sequence[AdminUserIdentityCreateDto], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 return AsyncHttpResponse(response=_response, data=None)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def transfer_ownership(
-        self,
-        *,
-        users: typing.Dict[str, EntityRef],
-        organizations: typing.Optional[
-            typing.Dict[str, typing.Optional[EntityRef]]
-        ] = OMIT,
-        include_workspaces: typing.Optional[
-            AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeWorkspaces
-        ] = OMIT,
-        include_projects: typing.Optional[
-            AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeProjects
-        ] = OMIT,
-        reason: typing.Optional[str] = OMIT,
-        recovery: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[
-        typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipResponseDto]
-    ]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def transfer_ownership(self, *, users: typing.Dict[str, EntityRef], organizations: typing.Optional[typing.Dict[str, typing.Optional[EntityRef]]] = OMIT, include_workspaces: typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeWorkspaces] = OMIT, include_projects: typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeProjects] = OMIT, reason: typing.Optional[str] = OMIT, recovery: typing.Optional[bool] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipResponseDto]]:
         """
         Parameters
         ----------
         users : typing.Dict[str, EntityRef]
-
+        
         organizations : typing.Optional[typing.Dict[str, typing.Optional[EntityRef]]]
-
+        
         include_workspaces : typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeWorkspaces]
-
+        
         include_projects : typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeProjects]
-
+        
         reason : typing.Optional[str]
-
+        
         recovery : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipResponseDto]]
             Partial transfer — some orgs could not be transferred.
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "admin/simple/accounts/transfer-ownership",
-            method="POST",
+            "admin/simple/accounts/transfer-ownership",method="POST",
             json={
-                "organizations": convert_and_respect_annotation_metadata(
-                    object_=organizations,
-                    annotation=typing.Optional[
-                        typing.Dict[str, typing.Optional[EntityRef]]
-                    ],
-                    direction="write",
-                ),
-                "users": convert_and_respect_annotation_metadata(
-                    object_=users,
-                    annotation=typing.Dict[str, EntityRef],
-                    direction="write",
-                ),
-                "include_workspaces": convert_and_respect_annotation_metadata(
-                    object_=include_workspaces,
-                    annotation=AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeWorkspaces,
-                    direction="write",
-                ),
-                "include_projects": convert_and_respect_annotation_metadata(
-                    object_=include_projects,
-                    annotation=AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeProjects,
-                    direction="write",
-                ),
+                "organizations": convert_and_respect_annotation_metadata(object_=organizations, annotation=typing.Optional[typing.Dict[str, typing.Optional[EntityRef]]], direction="write"),
+                "users": convert_and_respect_annotation_metadata(object_=users, annotation=typing.Dict[str, EntityRef], direction="write"),
+                "include_workspaces": convert_and_respect_annotation_metadata(object_=include_workspaces, annotation=AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeWorkspaces, direction="write"),
+                "include_projects": convert_and_respect_annotation_metadata(object_=include_projects, annotation=AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeProjects, direction="write"),
                 "reason": reason,
                 "recovery": recovery,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if _response is None or not _response.text.strip():
                 return AsyncHttpResponse(response=_response, data=None)
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    typing.Optional[
-                        AdminSimpleAccountsOrganizationsTransferOwnershipResponseDto
-                    ],
+                    typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipResponseDto],
                     parse_obj_as(
-                        type_=typing.Optional[
-                            AdminSimpleAccountsOrganizationsTransferOwnershipResponseDto
-                        ],  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipResponseDto],  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)

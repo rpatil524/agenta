@@ -2,9 +2,4 @@
 
 import typing
 
-EventType = typing.Union[
-    typing.Literal[
-        "unknown", "environments.revisions.committed", "webhooks.subscriptions.tested"
-    ],
-    typing.Any,
-]
+EventType = typing.Union[typing.Literal["unknown", "environments.revisions.committed", "webhooks.subscriptions.tested"], typing.Any]

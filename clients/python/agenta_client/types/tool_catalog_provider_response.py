@@ -10,13 +10,10 @@ from .tool_catalog_provider_response_provider import ToolCatalogProviderResponse
 class ToolCatalogProviderResponse(UniversalBaseModel):
     count: typing.Optional[int] = None
     provider: typing.Optional[ToolCatalogProviderResponseProvider] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

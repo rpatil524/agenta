@@ -2,7 +2,4 @@
 
 import typing
 
-WebhookEventType = typing.Union[
-    typing.Literal["environments.revisions.committed", "webhooks.subscriptions.tested"],
-    typing.Any,
-]
+WebhookEventType = typing.Union[typing.Literal["environments.revisions.committed", "webhooks.subscriptions.tested"], typing.Any]

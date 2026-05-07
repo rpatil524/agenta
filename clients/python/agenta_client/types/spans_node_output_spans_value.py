@@ -6,6 +6,4 @@ import typing
 
 if typing.TYPE_CHECKING:
     from .spans_node_output import SpansNodeOutput
-SpansNodeOutputSpansValue = typing.Union[
-    "SpansNodeOutput", typing.List["SpansNodeOutput"]
-]
+SpansNodeOutputSpansValue = typing.Union["SpansNodeOutput", typing.List["SpansNodeOutput"]]

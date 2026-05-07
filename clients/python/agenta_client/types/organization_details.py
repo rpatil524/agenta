@@ -19,13 +19,10 @@ class OrganizationDetails(UniversalBaseModel):
     invitations: typing.Optional[typing.List[typing.Any]] = None
     workspaces: typing.Optional[typing.List[str]] = None
     default_workspace: typing.Optional[typing.Dict[str, typing.Any]] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

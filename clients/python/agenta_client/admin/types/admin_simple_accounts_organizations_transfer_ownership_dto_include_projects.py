@@ -6,7 +6,4 @@ from .admin_simple_accounts_organizations_transfer_ownership_dto_include_project
     AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeProjectsZero,
 )
 
-AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeProjects = typing.Union[
-    AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeProjectsZero,
-    typing.List[str],
-]
+AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeProjects = typing.Union[AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeProjectsZero, typing.List[str]]

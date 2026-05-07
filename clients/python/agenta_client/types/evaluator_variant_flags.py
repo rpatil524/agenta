@@ -10,13 +10,10 @@ class EvaluatorVariantFlags(UniversalBaseModel):
     is_application: typing.Optional[bool] = None
     is_evaluator: typing.Optional[bool] = None
     is_snippet: typing.Optional[bool] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

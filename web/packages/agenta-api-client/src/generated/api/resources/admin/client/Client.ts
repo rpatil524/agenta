@@ -15,6 +15,9 @@ export declare namespace AdminClient {
     export interface RequestOptions extends BaseRequestOptions {}
 }
 
+/**
+ * Internal administration endpoints — restricted to platform operators.
+ */
 export class AdminClient {
     protected readonly _options: NormalizedClientOptionsWithAuth<AdminClient.Options>;
 
@@ -486,124 +489,6 @@ export class AdminClient {
     }
 
     /**
-     * @param {AgentaApi.EntitiesRequestModel} request
-     * @param {AdminClient.RequestOptions} requestOptions - Request-specific configuration.
-     *
-     * @throws {@link AgentaApi.UnprocessableEntityError}
-     *
-     * @example
-     *     await client.admin.createAccounts({
-     *         users: {
-     *             "key": {
-     *                 name: "name",
-     *                 email: "email"
-     *             }
-     *         },
-     *         organizations: {
-     *             "key": {
-     *                 owner_id: "owner_id"
-     *             }
-     *         },
-     *         workspaces: {
-     *             "key": {
-     *                 is_default: true,
-     *                 organization_ref: {}
-     *             }
-     *         },
-     *         projects: {
-     *             "key": {
-     *                 is_default: true,
-     *                 workspace_ref: {},
-     *                 organization_ref: {}
-     *             }
-     *         },
-     *         organization_memberships: {
-     *             "key": {
-     *                 role: "owner",
-     *                 is_demo: true,
-     *                 user_ref: {},
-     *                 organization_ref: {}
-     *             }
-     *         },
-     *         workspace_memberships: {
-     *             "key": {
-     *                 role: "owner",
-     *                 is_demo: true,
-     *                 user_ref: {},
-     *                 workspace_ref: {}
-     *             }
-     *         },
-     *         project_memberships: {
-     *             "key": {
-     *                 role: "owner",
-     *                 is_demo: true,
-     *                 user_ref: {},
-     *                 project_ref: {}
-     *             }
-     *         }
-     *     })
-     */
-    public createAccounts(
-        request: AgentaApi.EntitiesRequestModel,
-        requestOptions?: AdminClient.RequestOptions,
-    ): core.HttpResponsePromise<AgentaApi.ScopesResponseModel> {
-        return core.HttpResponsePromise.fromPromise(this.__createAccounts(request, requestOptions));
-    }
-
-    private async __createAccounts(
-        request: AgentaApi.EntitiesRequestModel,
-        requestOptions?: AdminClient.RequestOptions,
-    ): Promise<core.WithRawResponse<AgentaApi.ScopesResponseModel>> {
-        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
-        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
-            _authRequest.headers,
-            this._options?.headers,
-            requestOptions?.headers,
-        );
-        const _response = await core.fetcher({
-            url: core.url.join(
-                (await core.Supplier.get(this._options.baseUrl)) ??
-                    (await core.Supplier.get(this._options.environment)) ??
-                    environments.AgentaApiEnvironment.Default,
-                "admin/accounts",
-            ),
-            method: "POST",
-            headers: _headers,
-            contentType: "application/json",
-            queryParameters: requestOptions?.queryParams,
-            requestType: "json",
-            body: request,
-            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 30) * 1000,
-            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
-            withCredentials: true,
-            abortSignal: requestOptions?.abortSignal,
-            fetchFn: this._options?.fetch,
-            logging: this._options.logging,
-        });
-        if (_response.ok) {
-            return { data: _response.body as AgentaApi.ScopesResponseModel, rawResponse: _response.rawResponse };
-        }
-
-        if (_response.error.reason === "status-code") {
-            switch (_response.error.statusCode) {
-                case 422:
-                    throw new AgentaApi.UnprocessableEntityError(
-                        _response.error.body as AgentaApi.HttpValidationError,
-                        _response.rawResponse,
-                    );
-                default:
-                    throw new errors.AgentaApiError({
-                        statusCode: _response.error.statusCode,
-                        body: _response.error.body,
-                        rawResponse: _response.rawResponse,
-                    });
-            }
-        }
-
-        return handleNonStatusCodeError(_response.error, _response.rawResponse, "POST", "/admin/accounts");
-    }
-
-    /**
      * @param {AgentaApi.AccountRequest | null} request
      * @param {AdminClient.RequestOptions} requestOptions - Request-specific configuration.
      *
@@ -681,14 +566,14 @@ export class AdminClient {
      * @example
      *     await client.admin.createAccounts()
      */
-    public createAccountsAlt(
+    public createAccounts(
         request: AgentaApi.AdminAccountsCreateDto = {},
         requestOptions?: AdminClient.RequestOptions,
     ): core.HttpResponsePromise<AgentaApi.AdminAccountsResponseDto> {
-        return core.HttpResponsePromise.fromPromise(this.__createAccountsAlt(request, requestOptions));
+        return core.HttpResponsePromise.fromPromise(this.__createAccounts(request, requestOptions));
     }
 
-    private async __createAccountsAlt(
+    private async __createAccounts(
         request: AgentaApi.AdminAccountsCreateDto = {},
         requestOptions?: AdminClient.RequestOptions,
     ): Promise<core.WithRawResponse<AgentaApi.AdminAccountsResponseDto>> {

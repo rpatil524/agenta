@@ -17,167 +17,109 @@ from ..types.windowing import Windowing
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
-
-
 class RawEventsClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
-
-    def query_events_rpc(
-        self,
-        *,
-        event: typing.Optional[EventQuery] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[EventsQueryResponse]:
+    
+    def query_events_rpc(self, *, event: typing.Optional[EventQuery] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[EventsQueryResponse]:
         """
         Parameters
         ----------
         event : typing.Optional[EventQuery]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[EventsQueryResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "events/query",
-            method="POST",
+            "events/query",method="POST",
             json={
-                "event": convert_and_respect_annotation_metadata(
-                    object_=event,
-                    annotation=typing.Optional[EventQuery],
-                    direction="write",
-                ),
-                "windowing": convert_and_respect_annotation_metadata(
-                    object_=windowing,
-                    annotation=typing.Optional[Windowing],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "event": convert_and_respect_annotation_metadata(object_=event, annotation=typing.Optional[EventQuery], direction="write"),
+                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     EventsQueryResponse,
                     parse_obj_as(
-                        type_=EventsQueryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =EventsQueryResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 class AsyncRawEventsClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._client_wrapper = client_wrapper
-
-    async def query_events_rpc(
-        self,
-        *,
-        event: typing.Optional[EventQuery] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[EventsQueryResponse]:
+    
+    async def query_events_rpc(self, *, event: typing.Optional[EventQuery] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[EventsQueryResponse]:
         """
         Parameters
         ----------
         event : typing.Optional[EventQuery]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[EventsQueryResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "events/query",
-            method="POST",
+            "events/query",method="POST",
             json={
-                "event": convert_and_respect_annotation_metadata(
-                    object_=event,
-                    annotation=typing.Optional[EventQuery],
-                    direction="write",
-                ),
-                "windowing": convert_and_respect_annotation_metadata(
-                    object_=windowing,
-                    annotation=typing.Optional[Windowing],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "event": convert_and_respect_annotation_metadata(object_=event, annotation=typing.Optional[EventQuery], direction="write"),
+                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     EventsQueryResponse,
                     parse_obj_as(
-                        type_=EventsQueryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =EventsQueryResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)

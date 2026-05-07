@@ -2,6 +2,4 @@
 
 import typing
 
-CreateTestsetRevisionFromFileRequestFileType = typing.Union[
-    typing.Literal["csv", "json"], typing.Any
-]
+CreateTestsetRevisionFromFileRequestFileType = typing.Union[typing.Literal["csv", "json"], typing.Any]

@@ -33,49 +33,41 @@ from .types.query_queries_request_order import QueryQueriesRequestOrder
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
-
-
 class QueriesClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._raw_client = RawQueriesClient(client_wrapper=client_wrapper)
-
+    
     @property
     def with_raw_response(self) -> RawQueriesClient:
         """
         Retrieves a raw implementation of this client that returns raw responses.
-
+        
         Returns
         -------
         RawQueriesClient
         """
         return self._raw_client
-
-    def create_query(
-        self,
-        *,
-        query: QueryCreate,
-        query_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryResponse:
+    
+    def create_query(self, *, query: QueryCreate, query_id: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> QueryResponse:
         """
         Parameters
         ----------
         query : QueryCreate
-
+        
         query_id : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, QueryCreate
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -83,31 +75,27 @@ class QueriesClient:
             query=QueryCreate(),
         )
         """
-        _response = self._raw_client.create_query(
-            query=query, query_id=query_id, request_options=request_options
-        )
+        _response = self._raw_client.create_query(query=query, query_id=query_id, request_options=request_options)
         return _response.data
-
-    def fetch_query(
-        self, query_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> QueryResponse:
+    
+    def fetch_query(self, query_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> QueryResponse:
         """
         Parameters
         ----------
         query_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -115,37 +103,29 @@ class QueriesClient:
             query_id="query_id",
         )
         """
-        _response = self._raw_client.fetch_query(
-            query_id, request_options=request_options
-        )
+        _response = self._raw_client.fetch_query(query_id, request_options=request_options)
         return _response.data
-
-    def edit_query(
-        self,
-        query_id: str,
-        *,
-        query: QueryEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryResponse:
+    
+    def edit_query(self, query_id: str, *, query: QueryEdit, request_options: typing.Optional[RequestOptions] = None) -> QueryResponse:
         """
         Parameters
         ----------
         query_id : str
-
+        
         query : QueryEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, QueryEdit
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -154,31 +134,27 @@ class QueriesClient:
             query=QueryEdit(),
         )
         """
-        _response = self._raw_client.edit_query(
-            query_id, query=query, request_options=request_options
-        )
+        _response = self._raw_client.edit_query(query_id, query=query, request_options=request_options)
         return _response.data
-
-    def archive_query(
-        self, query_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> QueryResponse:
+    
+    def archive_query(self, query_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> QueryResponse:
         """
         Parameters
         ----------
         query_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -186,31 +162,27 @@ class QueriesClient:
             query_id="query_id",
         )
         """
-        _response = self._raw_client.archive_query(
-            query_id, request_options=request_options
-        )
+        _response = self._raw_client.archive_query(query_id, request_options=request_options)
         return _response.data
-
-    def unarchive_query(
-        self, query_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> QueryResponse:
+    
+    def unarchive_query(self, query_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> QueryResponse:
         """
         Parameters
         ----------
         query_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -218,124 +190,81 @@ class QueriesClient:
             query_id="query_id",
         )
         """
-        _response = self._raw_client.unarchive_query(
-            query_id, request_options=request_options
-        )
+        _response = self._raw_client.unarchive_query(query_id, request_options=request_options)
         return _response.data
-
-    def query_queries(
-        self,
-        *,
-        query_id: typing.Optional[str] = None,
-        query_ids: typing.Optional[typing.Sequence[str]] = None,
-        query_slug: typing.Optional[str] = None,
-        query_slugs: typing.Optional[typing.Sequence[str]] = None,
-        name: typing.Optional[str] = None,
-        description: typing.Optional[str] = None,
-        flags: typing.Optional[str] = None,
-        tags: typing.Optional[str] = None,
-        meta: typing.Optional[str] = None,
-        include_archived: typing.Optional[bool] = None,
-        next: typing.Optional[str] = None,
-        newest: typing.Optional[dt.datetime] = None,
-        oldest: typing.Optional[dt.datetime] = None,
-        limit: typing.Optional[int] = None,
-        order: typing.Optional[QueryQueriesRequestOrder] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueriesResponse:
+    
+    def query_queries(self, *, query_id: typing.Optional[str] = None, query_ids: typing.Optional[typing.Sequence[str]] = None, query_slug: typing.Optional[str] = None, query_slugs: typing.Optional[typing.Sequence[str]] = None, name: typing.Optional[str] = None, description: typing.Optional[str] = None, flags: typing.Optional[str] = None, tags: typing.Optional[str] = None, meta: typing.Optional[str] = None, include_archived: typing.Optional[bool] = None, next: typing.Optional[str] = None, newest: typing.Optional[dt.datetime] = None, oldest: typing.Optional[dt.datetime] = None, limit: typing.Optional[int] = None, order: typing.Optional[QueryQueriesRequestOrder] = None, request_options: typing.Optional[RequestOptions] = None) -> QueriesResponse:
         """
         Parameters
         ----------
         query_id : typing.Optional[str]
-
+        
         query_ids : typing.Optional[typing.Sequence[str]]
-
+        
         query_slug : typing.Optional[str]
-
+        
         query_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         name : typing.Optional[str]
-
+        
         description : typing.Optional[str]
-
+        
         flags : typing.Optional[str]
-
+        
         tags : typing.Optional[str]
-
+        
         meta : typing.Optional[str]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         next : typing.Optional[str]
-
+        
         newest : typing.Optional[dt.datetime]
-
+        
         oldest : typing.Optional[dt.datetime]
-
+        
         limit : typing.Optional[int]
-
+        
         order : typing.Optional[QueryQueriesRequestOrder]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueriesResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.queries.query_queries()
         """
-        _response = self._raw_client.query_queries(
-            query_id=query_id,
-            query_ids=query_ids,
-            query_slug=query_slug,
-            query_slugs=query_slugs,
-            name=name,
-            description=description,
-            flags=flags,
-            tags=tags,
-            meta=meta,
-            include_archived=include_archived,
-            next=next,
-            newest=newest,
-            oldest=oldest,
-            limit=limit,
-            order=order,
-            request_options=request_options,
-        )
+        _response = self._raw_client.query_queries(query_id=query_id, query_ids=query_ids, query_slug=query_slug, query_slugs=query_slugs, name=name, description=description, flags=flags, tags=tags, meta=meta, include_archived=include_archived, next=next, newest=newest, oldest=oldest, limit=limit, order=order, request_options=request_options)
         return _response.data
-
-    def create_query_variant(
-        self,
-        *,
-        query_variant: QueryVariantCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryVariantResponse:
+    
+    def create_query_variant(self, *, query_variant: QueryVariantCreate, request_options: typing.Optional[RequestOptions] = None) -> QueryVariantResponse:
         """
         Parameters
         ----------
         query_variant : QueryVariantCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryVariantResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, QueryVariantCreate
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -343,34 +272,27 @@ class QueriesClient:
             query_variant=QueryVariantCreate(),
         )
         """
-        _response = self._raw_client.create_query_variant(
-            query_variant=query_variant, request_options=request_options
-        )
+        _response = self._raw_client.create_query_variant(query_variant=query_variant, request_options=request_options)
         return _response.data
-
-    def fetch_query_variant(
-        self,
-        query_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryVariantResponse:
+    
+    def fetch_query_variant(self, query_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> QueryVariantResponse:
         """
         Parameters
         ----------
         query_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryVariantResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -378,37 +300,29 @@ class QueriesClient:
             query_variant_id="query_variant_id",
         )
         """
-        _response = self._raw_client.fetch_query_variant(
-            query_variant_id, request_options=request_options
-        )
+        _response = self._raw_client.fetch_query_variant(query_variant_id, request_options=request_options)
         return _response.data
-
-    def edit_query_variant(
-        self,
-        query_variant_id: str,
-        *,
-        query_variant: QueryVariantEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryVariantResponse:
+    
+    def edit_query_variant(self, query_variant_id: str, *, query_variant: QueryVariantEdit, request_options: typing.Optional[RequestOptions] = None) -> QueryVariantResponse:
         """
         Parameters
         ----------
         query_variant_id : str
-
+        
         query_variant : QueryVariantEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryVariantResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, QueryVariantEdit
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -417,36 +331,27 @@ class QueriesClient:
             query_variant=QueryVariantEdit(),
         )
         """
-        _response = self._raw_client.edit_query_variant(
-            query_variant_id,
-            query_variant=query_variant,
-            request_options=request_options,
-        )
+        _response = self._raw_client.edit_query_variant(query_variant_id, query_variant=query_variant, request_options=request_options)
         return _response.data
-
-    def archive_query_variant(
-        self,
-        query_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryVariantResponse:
+    
+    def archive_query_variant(self, query_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> QueryVariantResponse:
         """
         Parameters
         ----------
         query_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryVariantResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -454,34 +359,27 @@ class QueriesClient:
             query_variant_id="query_variant_id",
         )
         """
-        _response = self._raw_client.archive_query_variant(
-            query_variant_id, request_options=request_options
-        )
+        _response = self._raw_client.archive_query_variant(query_variant_id, request_options=request_options)
         return _response.data
-
-    def unarchive_query_variant(
-        self,
-        query_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryVariantResponse:
+    
+    def unarchive_query_variant(self, query_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> QueryVariantResponse:
         """
         Parameters
         ----------
         query_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryVariantResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -489,138 +387,97 @@ class QueriesClient:
             query_variant_id="query_variant_id",
         )
         """
-        _response = self._raw_client.unarchive_query_variant(
-            query_variant_id, request_options=request_options
-        )
+        _response = self._raw_client.unarchive_query_variant(query_variant_id, request_options=request_options)
         return _response.data
-
-    def query_query_variants(
-        self,
-        *,
-        query_variant: typing.Optional[QueryVariantQuery] = OMIT,
-        query_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        query_variant_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryVariantsResponse:
+    
+    def query_query_variants(self, *, query_variant: typing.Optional[QueryVariantQuery] = OMIT, query_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, query_variant_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> QueryVariantsResponse:
         """
         Parameters
         ----------
         query_variant : typing.Optional[QueryVariantQuery]
-
+        
         query_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         query_variant_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryVariantsResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.queries.query_query_variants()
         """
-        _response = self._raw_client.query_query_variants(
-            query_variant=query_variant,
-            query_refs=query_refs,
-            query_variant_refs=query_variant_refs,
-            include_archived=include_archived,
-            windowing=windowing,
-            request_options=request_options,
-        )
+        _response = self._raw_client.query_query_variants(query_variant=query_variant, query_refs=query_refs, query_variant_refs=query_variant_refs, include_archived=include_archived, windowing=windowing, request_options=request_options)
         return _response.data
-
-    def retrieve_query_revision(
-        self,
-        *,
-        query_ref: typing.Optional[Reference] = OMIT,
-        query_variant_ref: typing.Optional[Reference] = OMIT,
-        query_revision_ref: typing.Optional[Reference] = OMIT,
-        include_trace_ids: typing.Optional[bool] = OMIT,
-        include_traces: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryRevisionResponse:
+    
+    def retrieve_query_revision(self, *, query_ref: typing.Optional[Reference] = OMIT, query_variant_ref: typing.Optional[Reference] = OMIT, query_revision_ref: typing.Optional[Reference] = OMIT, include_trace_ids: typing.Optional[bool] = OMIT, include_traces: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> QueryRevisionResponse:
         """
         Parameters
         ----------
         query_ref : typing.Optional[Reference]
-
+        
         query_variant_ref : typing.Optional[Reference]
-
+        
         query_revision_ref : typing.Optional[Reference]
-
+        
         include_trace_ids : typing.Optional[bool]
-
+        
         include_traces : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.queries.retrieve_query_revision()
         """
-        _response = self._raw_client.retrieve_query_revision(
-            query_ref=query_ref,
-            query_variant_ref=query_variant_ref,
-            query_revision_ref=query_revision_ref,
-            include_trace_ids=include_trace_ids,
-            include_traces=include_traces,
-            windowing=windowing,
-            request_options=request_options,
-        )
+        _response = self._raw_client.retrieve_query_revision(query_ref=query_ref, query_variant_ref=query_variant_ref, query_revision_ref=query_revision_ref, include_trace_ids=include_trace_ids, include_traces=include_traces, windowing=windowing, request_options=request_options)
         return _response.data
-
-    def create_query_revision(
-        self,
-        *,
-        query_revision: QueryRevisionCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryRevisionResponse:
+    
+    def create_query_revision(self, *, query_revision: QueryRevisionCreate, request_options: typing.Optional[RequestOptions] = None) -> QueryRevisionResponse:
         """
         Parameters
         ----------
         query_revision : QueryRevisionCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, QueryRevisionCreate
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -628,34 +485,27 @@ class QueriesClient:
             query_revision=QueryRevisionCreate(),
         )
         """
-        _response = self._raw_client.create_query_revision(
-            query_revision=query_revision, request_options=request_options
-        )
+        _response = self._raw_client.create_query_revision(query_revision=query_revision, request_options=request_options)
         return _response.data
-
-    def fetch_query_revision(
-        self,
-        query_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryRevisionResponse:
+    
+    def fetch_query_revision(self, query_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> QueryRevisionResponse:
         """
         Parameters
         ----------
         query_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -663,37 +513,29 @@ class QueriesClient:
             query_revision_id="query_revision_id",
         )
         """
-        _response = self._raw_client.fetch_query_revision(
-            query_revision_id, request_options=request_options
-        )
+        _response = self._raw_client.fetch_query_revision(query_revision_id, request_options=request_options)
         return _response.data
-
-    def edit_query_revision(
-        self,
-        query_revision_id: str,
-        *,
-        query_revision: QueryRevisionEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryRevisionResponse:
+    
+    def edit_query_revision(self, query_revision_id: str, *, query_revision: QueryRevisionEdit, request_options: typing.Optional[RequestOptions] = None) -> QueryRevisionResponse:
         """
         Parameters
         ----------
         query_revision_id : str
-
+        
         query_revision : QueryRevisionEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, QueryRevisionEdit
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -702,36 +544,27 @@ class QueriesClient:
             query_revision=QueryRevisionEdit(),
         )
         """
-        _response = self._raw_client.edit_query_revision(
-            query_revision_id,
-            query_revision=query_revision,
-            request_options=request_options,
-        )
+        _response = self._raw_client.edit_query_revision(query_revision_id, query_revision=query_revision, request_options=request_options)
         return _response.data
-
-    def archive_query_revision(
-        self,
-        query_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryRevisionResponse:
+    
+    def archive_query_revision(self, query_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> QueryRevisionResponse:
         """
         Parameters
         ----------
         query_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -739,34 +572,27 @@ class QueriesClient:
             query_revision_id="query_revision_id",
         )
         """
-        _response = self._raw_client.archive_query_revision(
-            query_revision_id, request_options=request_options
-        )
+        _response = self._raw_client.archive_query_revision(query_revision_id, request_options=request_options)
         return _response.data
-
-    def unarchive_query_revision(
-        self,
-        query_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryRevisionResponse:
+    
+    def unarchive_query_revision(self, query_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> QueryRevisionResponse:
         """
         Parameters
         ----------
         query_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -774,88 +600,63 @@ class QueriesClient:
             query_revision_id="query_revision_id",
         )
         """
-        _response = self._raw_client.unarchive_query_revision(
-            query_revision_id, request_options=request_options
-        )
+        _response = self._raw_client.unarchive_query_revision(query_revision_id, request_options=request_options)
         return _response.data
-
-    def query_query_revisions(
-        self,
-        *,
-        query_revision: typing.Optional[QueryRevisionQuery] = OMIT,
-        query_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        query_variant_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        query_revision_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryRevisionsResponse:
+    
+    def query_query_revisions(self, *, query_revision: typing.Optional[QueryRevisionQuery] = OMIT, query_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, query_variant_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, query_revision_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> QueryRevisionsResponse:
         """
         Parameters
         ----------
         query_revision : typing.Optional[QueryRevisionQuery]
-
+        
         query_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         query_variant_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         query_revision_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryRevisionsResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.queries.query_query_revisions()
         """
-        _response = self._raw_client.query_query_revisions(
-            query_revision=query_revision,
-            query_refs=query_refs,
-            query_variant_refs=query_variant_refs,
-            query_revision_refs=query_revision_refs,
-            include_archived=include_archived,
-            windowing=windowing,
-            request_options=request_options,
-        )
+        _response = self._raw_client.query_query_revisions(query_revision=query_revision, query_refs=query_refs, query_variant_refs=query_variant_refs, query_revision_refs=query_revision_refs, include_archived=include_archived, windowing=windowing, request_options=request_options)
         return _response.data
-
-    def commit_query_revision(
-        self,
-        *,
-        query_revision_commit: QueryRevisionCommit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryRevisionResponse:
+    
+    def commit_query_revision(self, *, query_revision_commit: QueryRevisionCommit, request_options: typing.Optional[RequestOptions] = None) -> QueryRevisionResponse:
         """
         Parameters
         ----------
         query_revision_commit : QueryRevisionCommit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, QueryRevisionCommit
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -863,34 +664,27 @@ class QueriesClient:
             query_revision_commit=QueryRevisionCommit(),
         )
         """
-        _response = self._raw_client.commit_query_revision(
-            query_revision_commit=query_revision_commit, request_options=request_options
-        )
+        _response = self._raw_client.commit_query_revision(query_revision_commit=query_revision_commit, request_options=request_options)
         return _response.data
-
-    def log_query_revisions(
-        self,
-        *,
-        query_revisions: QueryRevisionsLog,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryRevisionsResponse:
+    
+    def log_query_revisions(self, *, query_revisions: QueryRevisionsLog, request_options: typing.Optional[RequestOptions] = None) -> QueryRevisionsResponse:
         """
         Parameters
         ----------
         query_revisions : QueryRevisionsLog
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryRevisionsResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, QueryRevisionsLog
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -898,37 +692,29 @@ class QueriesClient:
             query_revisions=QueryRevisionsLog(),
         )
         """
-        _response = self._raw_client.log_query_revisions(
-            query_revisions=query_revisions, request_options=request_options
-        )
+        _response = self._raw_client.log_query_revisions(query_revisions=query_revisions, request_options=request_options)
         return _response.data
-
-    def create_simple_query(
-        self,
-        *,
-        query: SimpleQueryCreate,
-        query_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleQueryResponse:
+    
+    def create_simple_query(self, *, query: SimpleQueryCreate, query_id: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> SimpleQueryResponse:
         """
         Parameters
         ----------
         query : SimpleQueryCreate
-
+        
         query_id : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleQueryResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, SimpleQueryCreate
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -936,31 +722,27 @@ class QueriesClient:
             query=SimpleQueryCreate(),
         )
         """
-        _response = self._raw_client.create_simple_query(
-            query=query, query_id=query_id, request_options=request_options
-        )
+        _response = self._raw_client.create_simple_query(query=query, query_id=query_id, request_options=request_options)
         return _response.data
-
-    def fetch_simple_query(
-        self, query_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> SimpleQueryResponse:
+    
+    def fetch_simple_query(self, query_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleQueryResponse:
         """
         Parameters
         ----------
         query_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleQueryResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -968,37 +750,29 @@ class QueriesClient:
             query_id="query_id",
         )
         """
-        _response = self._raw_client.fetch_simple_query(
-            query_id, request_options=request_options
-        )
+        _response = self._raw_client.fetch_simple_query(query_id, request_options=request_options)
         return _response.data
-
-    def edit_simple_query(
-        self,
-        query_id: str,
-        *,
-        query: SimpleQueryEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleQueryResponse:
+    
+    def edit_simple_query(self, query_id: str, *, query: SimpleQueryEdit, request_options: typing.Optional[RequestOptions] = None) -> SimpleQueryResponse:
         """
         Parameters
         ----------
         query_id : str
-
+        
         query : SimpleQueryEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleQueryResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, SimpleQueryEdit
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1007,31 +781,27 @@ class QueriesClient:
             query=SimpleQueryEdit(),
         )
         """
-        _response = self._raw_client.edit_simple_query(
-            query_id, query=query, request_options=request_options
-        )
+        _response = self._raw_client.edit_simple_query(query_id, query=query, request_options=request_options)
         return _response.data
-
-    def archive_simple_query(
-        self, query_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> SimpleQueryResponse:
+    
+    def archive_simple_query(self, query_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleQueryResponse:
         """
         Parameters
         ----------
         query_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleQueryResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1039,31 +809,27 @@ class QueriesClient:
             query_id="query_id",
         )
         """
-        _response = self._raw_client.archive_simple_query(
-            query_id, request_options=request_options
-        )
+        _response = self._raw_client.archive_simple_query(query_id, request_options=request_options)
         return _response.data
-
-    def unarchive_simple_query(
-        self, query_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> SimpleQueryResponse:
+    
+    def unarchive_simple_query(self, query_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleQueryResponse:
         """
         Parameters
         ----------
         query_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleQueryResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1071,1357 +837,1091 @@ class QueriesClient:
             query_id="query_id",
         )
         """
-        _response = self._raw_client.unarchive_simple_query(
-            query_id, request_options=request_options
-        )
+        _response = self._raw_client.unarchive_simple_query(query_id, request_options=request_options)
         return _response.data
-
-    def query_simple_queries(
-        self,
-        *,
-        query: typing.Optional[SimpleQueryQuery] = OMIT,
-        query_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleQueriesResponse:
+    
+    def query_simple_queries(self, *, query: typing.Optional[SimpleQueryQuery] = OMIT, query_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> SimpleQueriesResponse:
         """
         Parameters
         ----------
         query : typing.Optional[SimpleQueryQuery]
-
+        
         query_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleQueriesResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.queries.query_simple_queries()
         """
-        _response = self._raw_client.query_simple_queries(
-            query=query,
-            query_refs=query_refs,
-            include_archived=include_archived,
-            windowing=windowing,
-            request_options=request_options,
-        )
+        _response = self._raw_client.query_simple_queries(query=query, query_refs=query_refs, include_archived=include_archived, windowing=windowing, request_options=request_options)
         return _response.data
-
-
 class AsyncQueriesClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._raw_client = AsyncRawQueriesClient(client_wrapper=client_wrapper)
-
+    
     @property
     def with_raw_response(self) -> AsyncRawQueriesClient:
         """
         Retrieves a raw implementation of this client that returns raw responses.
-
+        
         Returns
         -------
         AsyncRawQueriesClient
         """
         return self._raw_client
-
-    async def create_query(
-        self,
-        *,
-        query: QueryCreate,
-        query_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryResponse:
+    
+    async def create_query(self, *, query: QueryCreate, query_id: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> QueryResponse:
         """
         Parameters
         ----------
         query : QueryCreate
-
+        
         query_id : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, QueryCreate
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.create_query(
                 query=QueryCreate(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_query(
-            query=query, query_id=query_id, request_options=request_options
-        )
+        _response = await self._raw_client.create_query(query=query, query_id=query_id, request_options=request_options)
         return _response.data
-
-    async def fetch_query(
-        self, query_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> QueryResponse:
+    
+    async def fetch_query(self, query_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> QueryResponse:
         """
         Parameters
         ----------
         query_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.fetch_query(
                 query_id="query_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.fetch_query(
-            query_id, request_options=request_options
-        )
+        _response = await self._raw_client.fetch_query(query_id, request_options=request_options)
         return _response.data
-
-    async def edit_query(
-        self,
-        query_id: str,
-        *,
-        query: QueryEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryResponse:
+    
+    async def edit_query(self, query_id: str, *, query: QueryEdit, request_options: typing.Optional[RequestOptions] = None) -> QueryResponse:
         """
         Parameters
         ----------
         query_id : str
-
+        
         query : QueryEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, QueryEdit
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.edit_query(
                 query_id="query_id",
                 query=QueryEdit(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.edit_query(
-            query_id, query=query, request_options=request_options
-        )
+        _response = await self._raw_client.edit_query(query_id, query=query, request_options=request_options)
         return _response.data
-
-    async def archive_query(
-        self, query_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> QueryResponse:
+    
+    async def archive_query(self, query_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> QueryResponse:
         """
         Parameters
         ----------
         query_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.archive_query(
                 query_id="query_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.archive_query(
-            query_id, request_options=request_options
-        )
+        _response = await self._raw_client.archive_query(query_id, request_options=request_options)
         return _response.data
-
-    async def unarchive_query(
-        self, query_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> QueryResponse:
+    
+    async def unarchive_query(self, query_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> QueryResponse:
         """
         Parameters
         ----------
         query_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.unarchive_query(
                 query_id="query_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.unarchive_query(
-            query_id, request_options=request_options
-        )
+        _response = await self._raw_client.unarchive_query(query_id, request_options=request_options)
         return _response.data
-
-    async def query_queries(
-        self,
-        *,
-        query_id: typing.Optional[str] = None,
-        query_ids: typing.Optional[typing.Sequence[str]] = None,
-        query_slug: typing.Optional[str] = None,
-        query_slugs: typing.Optional[typing.Sequence[str]] = None,
-        name: typing.Optional[str] = None,
-        description: typing.Optional[str] = None,
-        flags: typing.Optional[str] = None,
-        tags: typing.Optional[str] = None,
-        meta: typing.Optional[str] = None,
-        include_archived: typing.Optional[bool] = None,
-        next: typing.Optional[str] = None,
-        newest: typing.Optional[dt.datetime] = None,
-        oldest: typing.Optional[dt.datetime] = None,
-        limit: typing.Optional[int] = None,
-        order: typing.Optional[QueryQueriesRequestOrder] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueriesResponse:
+    
+    async def query_queries(self, *, query_id: typing.Optional[str] = None, query_ids: typing.Optional[typing.Sequence[str]] = None, query_slug: typing.Optional[str] = None, query_slugs: typing.Optional[typing.Sequence[str]] = None, name: typing.Optional[str] = None, description: typing.Optional[str] = None, flags: typing.Optional[str] = None, tags: typing.Optional[str] = None, meta: typing.Optional[str] = None, include_archived: typing.Optional[bool] = None, next: typing.Optional[str] = None, newest: typing.Optional[dt.datetime] = None, oldest: typing.Optional[dt.datetime] = None, limit: typing.Optional[int] = None, order: typing.Optional[QueryQueriesRequestOrder] = None, request_options: typing.Optional[RequestOptions] = None) -> QueriesResponse:
         """
         Parameters
         ----------
         query_id : typing.Optional[str]
-
+        
         query_ids : typing.Optional[typing.Sequence[str]]
-
+        
         query_slug : typing.Optional[str]
-
+        
         query_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         name : typing.Optional[str]
-
+        
         description : typing.Optional[str]
-
+        
         flags : typing.Optional[str]
-
+        
         tags : typing.Optional[str]
-
+        
         meta : typing.Optional[str]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         next : typing.Optional[str]
-
+        
         newest : typing.Optional[dt.datetime]
-
+        
         oldest : typing.Optional[dt.datetime]
-
+        
         limit : typing.Optional[int]
-
+        
         order : typing.Optional[QueryQueriesRequestOrder]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueriesResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.query_queries()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.query_queries(
-            query_id=query_id,
-            query_ids=query_ids,
-            query_slug=query_slug,
-            query_slugs=query_slugs,
-            name=name,
-            description=description,
-            flags=flags,
-            tags=tags,
-            meta=meta,
-            include_archived=include_archived,
-            next=next,
-            newest=newest,
-            oldest=oldest,
-            limit=limit,
-            order=order,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.query_queries(query_id=query_id, query_ids=query_ids, query_slug=query_slug, query_slugs=query_slugs, name=name, description=description, flags=flags, tags=tags, meta=meta, include_archived=include_archived, next=next, newest=newest, oldest=oldest, limit=limit, order=order, request_options=request_options)
         return _response.data
-
-    async def create_query_variant(
-        self,
-        *,
-        query_variant: QueryVariantCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryVariantResponse:
+    
+    async def create_query_variant(self, *, query_variant: QueryVariantCreate, request_options: typing.Optional[RequestOptions] = None) -> QueryVariantResponse:
         """
         Parameters
         ----------
         query_variant : QueryVariantCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryVariantResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, QueryVariantCreate
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.create_query_variant(
                 query_variant=QueryVariantCreate(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_query_variant(
-            query_variant=query_variant, request_options=request_options
-        )
+        _response = await self._raw_client.create_query_variant(query_variant=query_variant, request_options=request_options)
         return _response.data
-
-    async def fetch_query_variant(
-        self,
-        query_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryVariantResponse:
+    
+    async def fetch_query_variant(self, query_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> QueryVariantResponse:
         """
         Parameters
         ----------
         query_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryVariantResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.fetch_query_variant(
                 query_variant_id="query_variant_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.fetch_query_variant(
-            query_variant_id, request_options=request_options
-        )
+        _response = await self._raw_client.fetch_query_variant(query_variant_id, request_options=request_options)
         return _response.data
-
-    async def edit_query_variant(
-        self,
-        query_variant_id: str,
-        *,
-        query_variant: QueryVariantEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryVariantResponse:
+    
+    async def edit_query_variant(self, query_variant_id: str, *, query_variant: QueryVariantEdit, request_options: typing.Optional[RequestOptions] = None) -> QueryVariantResponse:
         """
         Parameters
         ----------
         query_variant_id : str
-
+        
         query_variant : QueryVariantEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryVariantResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, QueryVariantEdit
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.edit_query_variant(
                 query_variant_id="query_variant_id",
                 query_variant=QueryVariantEdit(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.edit_query_variant(
-            query_variant_id,
-            query_variant=query_variant,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.edit_query_variant(query_variant_id, query_variant=query_variant, request_options=request_options)
         return _response.data
-
-    async def archive_query_variant(
-        self,
-        query_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryVariantResponse:
+    
+    async def archive_query_variant(self, query_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> QueryVariantResponse:
         """
         Parameters
         ----------
         query_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryVariantResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.archive_query_variant(
                 query_variant_id="query_variant_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.archive_query_variant(
-            query_variant_id, request_options=request_options
-        )
+        _response = await self._raw_client.archive_query_variant(query_variant_id, request_options=request_options)
         return _response.data
-
-    async def unarchive_query_variant(
-        self,
-        query_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryVariantResponse:
+    
+    async def unarchive_query_variant(self, query_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> QueryVariantResponse:
         """
         Parameters
         ----------
         query_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryVariantResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.unarchive_query_variant(
                 query_variant_id="query_variant_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.unarchive_query_variant(
-            query_variant_id, request_options=request_options
-        )
+        _response = await self._raw_client.unarchive_query_variant(query_variant_id, request_options=request_options)
         return _response.data
-
-    async def query_query_variants(
-        self,
-        *,
-        query_variant: typing.Optional[QueryVariantQuery] = OMIT,
-        query_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        query_variant_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryVariantsResponse:
+    
+    async def query_query_variants(self, *, query_variant: typing.Optional[QueryVariantQuery] = OMIT, query_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, query_variant_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> QueryVariantsResponse:
         """
         Parameters
         ----------
         query_variant : typing.Optional[QueryVariantQuery]
-
+        
         query_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         query_variant_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryVariantsResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.query_query_variants()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.query_query_variants(
-            query_variant=query_variant,
-            query_refs=query_refs,
-            query_variant_refs=query_variant_refs,
-            include_archived=include_archived,
-            windowing=windowing,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.query_query_variants(query_variant=query_variant, query_refs=query_refs, query_variant_refs=query_variant_refs, include_archived=include_archived, windowing=windowing, request_options=request_options)
         return _response.data
-
-    async def retrieve_query_revision(
-        self,
-        *,
-        query_ref: typing.Optional[Reference] = OMIT,
-        query_variant_ref: typing.Optional[Reference] = OMIT,
-        query_revision_ref: typing.Optional[Reference] = OMIT,
-        include_trace_ids: typing.Optional[bool] = OMIT,
-        include_traces: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryRevisionResponse:
+    
+    async def retrieve_query_revision(self, *, query_ref: typing.Optional[Reference] = OMIT, query_variant_ref: typing.Optional[Reference] = OMIT, query_revision_ref: typing.Optional[Reference] = OMIT, include_trace_ids: typing.Optional[bool] = OMIT, include_traces: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> QueryRevisionResponse:
         """
         Parameters
         ----------
         query_ref : typing.Optional[Reference]
-
+        
         query_variant_ref : typing.Optional[Reference]
-
+        
         query_revision_ref : typing.Optional[Reference]
-
+        
         include_trace_ids : typing.Optional[bool]
-
+        
         include_traces : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.retrieve_query_revision()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.retrieve_query_revision(
-            query_ref=query_ref,
-            query_variant_ref=query_variant_ref,
-            query_revision_ref=query_revision_ref,
-            include_trace_ids=include_trace_ids,
-            include_traces=include_traces,
-            windowing=windowing,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.retrieve_query_revision(query_ref=query_ref, query_variant_ref=query_variant_ref, query_revision_ref=query_revision_ref, include_trace_ids=include_trace_ids, include_traces=include_traces, windowing=windowing, request_options=request_options)
         return _response.data
-
-    async def create_query_revision(
-        self,
-        *,
-        query_revision: QueryRevisionCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryRevisionResponse:
+    
+    async def create_query_revision(self, *, query_revision: QueryRevisionCreate, request_options: typing.Optional[RequestOptions] = None) -> QueryRevisionResponse:
         """
         Parameters
         ----------
         query_revision : QueryRevisionCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, QueryRevisionCreate
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.create_query_revision(
                 query_revision=QueryRevisionCreate(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_query_revision(
-            query_revision=query_revision, request_options=request_options
-        )
+        _response = await self._raw_client.create_query_revision(query_revision=query_revision, request_options=request_options)
         return _response.data
-
-    async def fetch_query_revision(
-        self,
-        query_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryRevisionResponse:
+    
+    async def fetch_query_revision(self, query_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> QueryRevisionResponse:
         """
         Parameters
         ----------
         query_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.fetch_query_revision(
                 query_revision_id="query_revision_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.fetch_query_revision(
-            query_revision_id, request_options=request_options
-        )
+        _response = await self._raw_client.fetch_query_revision(query_revision_id, request_options=request_options)
         return _response.data
-
-    async def edit_query_revision(
-        self,
-        query_revision_id: str,
-        *,
-        query_revision: QueryRevisionEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryRevisionResponse:
+    
+    async def edit_query_revision(self, query_revision_id: str, *, query_revision: QueryRevisionEdit, request_options: typing.Optional[RequestOptions] = None) -> QueryRevisionResponse:
         """
         Parameters
         ----------
         query_revision_id : str
-
+        
         query_revision : QueryRevisionEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, QueryRevisionEdit
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.edit_query_revision(
                 query_revision_id="query_revision_id",
                 query_revision=QueryRevisionEdit(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.edit_query_revision(
-            query_revision_id,
-            query_revision=query_revision,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.edit_query_revision(query_revision_id, query_revision=query_revision, request_options=request_options)
         return _response.data
-
-    async def archive_query_revision(
-        self,
-        query_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryRevisionResponse:
+    
+    async def archive_query_revision(self, query_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> QueryRevisionResponse:
         """
         Parameters
         ----------
         query_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.archive_query_revision(
                 query_revision_id="query_revision_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.archive_query_revision(
-            query_revision_id, request_options=request_options
-        )
+        _response = await self._raw_client.archive_query_revision(query_revision_id, request_options=request_options)
         return _response.data
-
-    async def unarchive_query_revision(
-        self,
-        query_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryRevisionResponse:
+    
+    async def unarchive_query_revision(self, query_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> QueryRevisionResponse:
         """
         Parameters
         ----------
         query_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.unarchive_query_revision(
                 query_revision_id="query_revision_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.unarchive_query_revision(
-            query_revision_id, request_options=request_options
-        )
+        _response = await self._raw_client.unarchive_query_revision(query_revision_id, request_options=request_options)
         return _response.data
-
-    async def query_query_revisions(
-        self,
-        *,
-        query_revision: typing.Optional[QueryRevisionQuery] = OMIT,
-        query_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        query_variant_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        query_revision_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryRevisionsResponse:
+    
+    async def query_query_revisions(self, *, query_revision: typing.Optional[QueryRevisionQuery] = OMIT, query_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, query_variant_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, query_revision_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> QueryRevisionsResponse:
         """
         Parameters
         ----------
         query_revision : typing.Optional[QueryRevisionQuery]
-
+        
         query_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         query_variant_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         query_revision_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryRevisionsResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.query_query_revisions()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.query_query_revisions(
-            query_revision=query_revision,
-            query_refs=query_refs,
-            query_variant_refs=query_variant_refs,
-            query_revision_refs=query_revision_refs,
-            include_archived=include_archived,
-            windowing=windowing,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.query_query_revisions(query_revision=query_revision, query_refs=query_refs, query_variant_refs=query_variant_refs, query_revision_refs=query_revision_refs, include_archived=include_archived, windowing=windowing, request_options=request_options)
         return _response.data
-
-    async def commit_query_revision(
-        self,
-        *,
-        query_revision_commit: QueryRevisionCommit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryRevisionResponse:
+    
+    async def commit_query_revision(self, *, query_revision_commit: QueryRevisionCommit, request_options: typing.Optional[RequestOptions] = None) -> QueryRevisionResponse:
         """
         Parameters
         ----------
         query_revision_commit : QueryRevisionCommit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, QueryRevisionCommit
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.commit_query_revision(
                 query_revision_commit=QueryRevisionCommit(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.commit_query_revision(
-            query_revision_commit=query_revision_commit, request_options=request_options
-        )
+        _response = await self._raw_client.commit_query_revision(query_revision_commit=query_revision_commit, request_options=request_options)
         return _response.data
-
-    async def log_query_revisions(
-        self,
-        *,
-        query_revisions: QueryRevisionsLog,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> QueryRevisionsResponse:
+    
+    async def log_query_revisions(self, *, query_revisions: QueryRevisionsLog, request_options: typing.Optional[RequestOptions] = None) -> QueryRevisionsResponse:
         """
         Parameters
         ----------
         query_revisions : QueryRevisionsLog
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         QueryRevisionsResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, QueryRevisionsLog
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.log_query_revisions(
                 query_revisions=QueryRevisionsLog(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.log_query_revisions(
-            query_revisions=query_revisions, request_options=request_options
-        )
+        _response = await self._raw_client.log_query_revisions(query_revisions=query_revisions, request_options=request_options)
         return _response.data
-
-    async def create_simple_query(
-        self,
-        *,
-        query: SimpleQueryCreate,
-        query_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleQueryResponse:
+    
+    async def create_simple_query(self, *, query: SimpleQueryCreate, query_id: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> SimpleQueryResponse:
         """
         Parameters
         ----------
         query : SimpleQueryCreate
-
+        
         query_id : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleQueryResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, SimpleQueryCreate
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.create_simple_query(
                 query=SimpleQueryCreate(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_simple_query(
-            query=query, query_id=query_id, request_options=request_options
-        )
+        _response = await self._raw_client.create_simple_query(query=query, query_id=query_id, request_options=request_options)
         return _response.data
-
-    async def fetch_simple_query(
-        self, query_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> SimpleQueryResponse:
+    
+    async def fetch_simple_query(self, query_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleQueryResponse:
         """
         Parameters
         ----------
         query_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleQueryResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.fetch_simple_query(
                 query_id="query_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.fetch_simple_query(
-            query_id, request_options=request_options
-        )
+        _response = await self._raw_client.fetch_simple_query(query_id, request_options=request_options)
         return _response.data
-
-    async def edit_simple_query(
-        self,
-        query_id: str,
-        *,
-        query: SimpleQueryEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleQueryResponse:
+    
+    async def edit_simple_query(self, query_id: str, *, query: SimpleQueryEdit, request_options: typing.Optional[RequestOptions] = None) -> SimpleQueryResponse:
         """
         Parameters
         ----------
         query_id : str
-
+        
         query : SimpleQueryEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleQueryResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, SimpleQueryEdit
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.edit_simple_query(
                 query_id="query_id",
                 query=SimpleQueryEdit(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.edit_simple_query(
-            query_id, query=query, request_options=request_options
-        )
+        _response = await self._raw_client.edit_simple_query(query_id, query=query, request_options=request_options)
         return _response.data
-
-    async def archive_simple_query(
-        self, query_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> SimpleQueryResponse:
+    
+    async def archive_simple_query(self, query_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleQueryResponse:
         """
         Parameters
         ----------
         query_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleQueryResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.archive_simple_query(
                 query_id="query_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.archive_simple_query(
-            query_id, request_options=request_options
-        )
+        _response = await self._raw_client.archive_simple_query(query_id, request_options=request_options)
         return _response.data
-
-    async def unarchive_simple_query(
-        self, query_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> SimpleQueryResponse:
+    
+    async def unarchive_simple_query(self, query_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleQueryResponse:
         """
         Parameters
         ----------
         query_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleQueryResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.unarchive_simple_query(
                 query_id="query_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.unarchive_simple_query(
-            query_id, request_options=request_options
-        )
+        _response = await self._raw_client.unarchive_simple_query(query_id, request_options=request_options)
         return _response.data
-
-    async def query_simple_queries(
-        self,
-        *,
-        query: typing.Optional[SimpleQueryQuery] = OMIT,
-        query_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleQueriesResponse:
+    
+    async def query_simple_queries(self, *, query: typing.Optional[SimpleQueryQuery] = OMIT, query_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> SimpleQueriesResponse:
         """
         Parameters
         ----------
         query : typing.Optional[SimpleQueryQuery]
-
+        
         query_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleQueriesResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.queries.query_simple_queries()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.query_simple_queries(
-            query=query,
-            query_refs=query_refs,
-            include_archived=include_archived,
-            windowing=windowing,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.query_simple_queries(query=query, query_refs=query_refs, include_archived=include_archived, windowing=windowing, request_options=request_options)
         return _response.data

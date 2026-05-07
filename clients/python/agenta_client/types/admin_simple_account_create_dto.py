@@ -7,9 +7,7 @@ from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 from .admin_account_create_options_dto import AdminAccountCreateOptionsDto
 from .admin_api_key_create_dto import AdminApiKeyCreateDto
 from .admin_organization_create_dto import AdminOrganizationCreateDto
-from .admin_organization_membership_create_dto import (
-    AdminOrganizationMembershipCreateDto,
-)
+from .admin_organization_membership_create_dto import AdminOrganizationMembershipCreateDto
 from .admin_project_create_dto import AdminProjectCreateDto
 from .admin_project_membership_create_dto import AdminProjectMembershipCreateDto
 from .admin_subscription_create_dto import AdminSubscriptionCreateDto
@@ -23,31 +21,21 @@ class AdminSimpleAccountCreateDto(UniversalBaseModel):
     """
     One account entry in a batch simple-accounts create request.
     """
-
     options: typing.Optional[AdminAccountCreateOptionsDto] = None
     user: AdminUserCreateDto
     user_identities: typing.Optional[typing.List[AdminUserIdentityCreateDto]] = None
     organization: typing.Optional[AdminOrganizationCreateDto] = None
     workspace: typing.Optional[AdminWorkspaceCreateDto] = None
     project: typing.Optional[AdminProjectCreateDto] = None
-    organization_memberships: typing.Optional[
-        typing.List[AdminOrganizationMembershipCreateDto]
-    ] = None
-    workspace_memberships: typing.Optional[
-        typing.List[AdminWorkspaceMembershipCreateDto]
-    ] = None
-    project_memberships: typing.Optional[
-        typing.List[AdminProjectMembershipCreateDto]
-    ] = None
+    organization_memberships: typing.Optional[typing.List[AdminOrganizationMembershipCreateDto]] = None
+    workspace_memberships: typing.Optional[typing.List[AdminWorkspaceMembershipCreateDto]] = None
+    project_memberships: typing.Optional[typing.List[AdminProjectMembershipCreateDto]] = None
     api_keys: typing.Optional[typing.List[AdminApiKeyCreateDto]] = None
     subscription: typing.Optional[AdminSubscriptionCreateDto] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

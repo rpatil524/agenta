@@ -16,6 +16,9 @@ export declare namespace ApplicationsClient {
     export interface RequestOptions extends BaseRequestOptions {}
 }
 
+/**
+ * LLM applications — create, update, list, and delete apps.
+ */
 export class ApplicationsClient {
     protected readonly _options: NormalizedClientOptionsWithAuth<ApplicationsClient.Options>;
 

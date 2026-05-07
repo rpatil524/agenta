@@ -14,13 +14,10 @@ class WebhookSubscriptionData(UniversalBaseModel):
     payload_fields: typing.Optional[typing.Dict[str, typing.Any]] = None
     auth_mode: typing.Optional[WebhookSubscriptionDataAuthMode] = None
     event_types: typing.Optional[typing.List[WebhookEventType]] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

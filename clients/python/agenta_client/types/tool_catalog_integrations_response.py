@@ -4,25 +4,18 @@ import typing
 
 import pydantic
 from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .tool_catalog_integrations_response_integrations_item import (
-    ToolCatalogIntegrationsResponseIntegrationsItem,
-)
+from .tool_catalog_integrations_response_integrations_item import ToolCatalogIntegrationsResponseIntegrationsItem
 
 
 class ToolCatalogIntegrationsResponse(UniversalBaseModel):
     count: typing.Optional[int] = None
     total: typing.Optional[int] = None
     cursor: typing.Optional[str] = None
-    integrations: typing.Optional[
-        typing.List[ToolCatalogIntegrationsResponseIntegrationsItem]
-    ] = None
-
+    integrations: typing.Optional[typing.List[ToolCatalogIntegrationsResponseIntegrationsItem]] = None
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

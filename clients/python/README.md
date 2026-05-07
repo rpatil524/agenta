@@ -6,8 +6,8 @@ Generate the Python Fern client from a locally running API:
 bash ./clients/scripts/generate.sh --language python
 ```
 
-Generate the Python Fern client with an explicit OpenAPI URL:
+Generate the Python Fern client from the live cloud API:
 
 ```bash
-bash ./clients/scripts/generate.sh --language python --openapi-url http://localhost/api/openapi.json
+bash ./clients/scripts/generate.sh --language python --live
 ```

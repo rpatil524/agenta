@@ -5,6 +5,4 @@ import typing
 from .tool_catalog_integration import ToolCatalogIntegration
 from .tool_catalog_integration_details import ToolCatalogIntegrationDetails
 
-ToolCatalogIntegrationResponseIntegration = typing.Union[
-    ToolCatalogIntegration, ToolCatalogIntegrationDetails
-]
+ToolCatalogIntegrationResponseIntegration = typing.Union[ToolCatalogIntegration, ToolCatalogIntegrationDetails]

@@ -2,7 +2,4 @@
 
 import typing
 
-WorkspaceRole = typing.Union[
-    typing.Literal["owner", "admin", "developer", "editor", "annotator", "viewer"],
-    typing.Any,
-]
+WorkspaceRole = typing.Union[typing.Literal["owner", "admin", "developer", "editor", "annotator", "viewer"], typing.Any]

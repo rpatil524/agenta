@@ -15,6 +15,9 @@ export declare namespace WebhooksClient {
     export interface RequestOptions extends BaseRequestOptions {}
 }
 
+/**
+ * Register and manage webhooks that fire on platform events.
+ */
 export class WebhooksClient {
     protected readonly _options: NormalizedClientOptionsWithAuth<WebhooksClient.Options>;
 

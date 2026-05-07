@@ -4,6 +4,4 @@ import typing
 
 from .simple_queue_data_evaluators_one_value import SimpleQueueDataEvaluatorsOneValue
 
-SimpleQueueDataEvaluators = typing.Union[
-    typing.List[str], typing.Dict[str, SimpleQueueDataEvaluatorsOneValue]
-]
+SimpleQueueDataEvaluators = typing.Union[typing.List[str], typing.Dict[str, SimpleQueueDataEvaluatorsOneValue]]

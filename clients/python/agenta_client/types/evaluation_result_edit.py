@@ -5,11 +5,7 @@ from __future__ import annotations
 import typing
 
 import pydantic
-from ..core.pydantic_utilities import (
-    IS_PYDANTIC_V2,
-    UniversalBaseModel,
-    update_forward_refs,
-)
+from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel, update_forward_refs
 from .evaluation_status import EvaluationStatus
 
 
@@ -24,22 +20,14 @@ class EvaluationResultEdit(UniversalBaseModel):
     testcase_id: typing.Optional[str] = None
     error: typing.Optional[typing.Dict[str, typing.Any]] = None
     status: typing.Optional[EvaluationStatus] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True
             extra = pydantic.Extra.allow
-
-
-from .label_json_input import LabelJsonInput  # noqa: E402, I001
-from .full_json_input import FullJsonInput  # noqa: E402, I001
-
-update_forward_refs(
-    EvaluationResultEdit, FullJsonInput=FullJsonInput, LabelJsonInput=LabelJsonInput
-)
+from .label_json_input import LabelJsonInput # noqa: E402, I001
+from .full_json_input import FullJsonInput # noqa: E402, I001
+update_forward_refs(EvaluationResultEdit, FullJsonInput=FullJsonInput, LabelJsonInput=LabelJsonInput)

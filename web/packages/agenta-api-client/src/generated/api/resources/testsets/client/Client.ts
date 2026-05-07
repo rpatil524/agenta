@@ -15,6 +15,9 @@ export declare namespace TestsetsClient {
     export interface RequestOptions extends BaseRequestOptions {}
 }
 
+/**
+ * Test datasets — collections of input/output pairs used in evaluations.
+ */
 export class TestsetsClient {
     protected readonly _options: NormalizedClientOptionsWithAuth<TestsetsClient.Options>;
 

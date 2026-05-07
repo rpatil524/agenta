@@ -4,9 +4,7 @@ import typing
 
 import pydantic
 from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .tool_catalog_actions_response_actions_item import (
-    ToolCatalogActionsResponseActionsItem,
-)
+from .tool_catalog_actions_response_actions_item import ToolCatalogActionsResponseActionsItem
 
 
 class ToolCatalogActionsResponse(UniversalBaseModel):
@@ -14,13 +12,10 @@ class ToolCatalogActionsResponse(UniversalBaseModel):
     total: typing.Optional[int] = None
     cursor: typing.Optional[str] = None
     actions: typing.Optional[typing.List[ToolCatalogActionsResponseActionsItem]] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

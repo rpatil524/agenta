@@ -11,13 +11,10 @@ from .evaluation_run_data_mapping_step import EvaluationRunDataMappingStep
 class EvaluationRunDataMapping(UniversalBaseModel):
     column: EvaluationRunDataMappingColumn
     step: EvaluationRunDataMappingStep
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

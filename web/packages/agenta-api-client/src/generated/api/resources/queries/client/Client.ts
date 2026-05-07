@@ -16,6 +16,9 @@ export declare namespace QueriesClient {
     export interface RequestOptions extends BaseRequestOptions {}
 }
 
+/**
+ * Saved query definitions used to filter and retrieve trace data.
+ */
 export class QueriesClient {
     protected readonly _options: NormalizedClientOptionsWithAuth<QueriesClient.Options>;
 

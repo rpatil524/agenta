@@ -15,6 +15,9 @@ export declare namespace BillingClient {
     export interface RequestOptions extends BaseRequestOptions {}
 }
 
+/**
+ * Subscription management, plans, usage, and Stripe billing (EE only).
+ */
 export class BillingClient {
     protected readonly _options: NormalizedClientOptionsWithAuth<BillingClient.Options>;
 

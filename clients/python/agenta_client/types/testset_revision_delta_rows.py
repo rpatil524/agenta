@@ -11,17 +11,13 @@ class TestsetRevisionDeltaRows(UniversalBaseModel):
     """
     Row-level operations applied to testcases in the revision.
     """
-
     add: typing.Optional[typing.List[TestcaseInput]] = None
     remove: typing.Optional[typing.List[str]] = None
     replace: typing.Optional[typing.List[TestcaseInput]] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

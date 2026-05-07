@@ -16,6 +16,9 @@ export declare namespace TestcasesClient {
     export interface RequestOptions extends BaseRequestOptions {}
 }
 
+/**
+ * Individual test cases within a testset.
+ */
 export class TestcasesClient {
     protected readonly _options: NormalizedClientOptionsWithAuth<TestcasesClient.Options>;
 

@@ -13,13 +13,10 @@ class AdminUserCreateDto(UniversalBaseModel):
     is_admin: typing.Optional[bool] = None
     is_root: typing.Optional[bool] = None
     metadata: typing.Optional[typing.Dict[str, typing.Any]] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

@@ -13,13 +13,10 @@ class TestsetVariantsResponse(UniversalBaseModel):
     support_ts: typing.Optional[dt.datetime] = None
     count: typing.Optional[int] = None
     testset_variants: typing.Optional[typing.List[TestsetVariant]] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

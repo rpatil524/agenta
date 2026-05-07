@@ -11,13 +11,10 @@ from .standard_provider_settings_dto import StandardProviderSettingsDto
 class StandardProviderDto(UniversalBaseModel):
     kind: StandardProviderKind
     provider: StandardProviderSettingsDto
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

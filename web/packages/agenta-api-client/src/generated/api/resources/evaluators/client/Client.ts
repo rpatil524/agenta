@@ -16,6 +16,9 @@ export declare namespace EvaluatorsClient {
     export interface RequestOptions extends BaseRequestOptions {}
 }
 
+/**
+ * Evaluator definitions — the metrics and judges used in evaluation runs.
+ */
 export class EvaluatorsClient {
     protected readonly _options: NormalizedClientOptionsWithAuth<EvaluatorsClient.Options>;
 

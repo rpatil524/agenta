@@ -2,6 +2,4 @@
 
 import typing
 
-SimpleEvaluatorDataOutputRuntime = typing.Union[
-    typing.Literal["python", "typescript", "javascript"], typing.Any
-]
+SimpleEvaluatorDataOutputRuntime = typing.Union[typing.Literal["python", "typescript", "javascript"], typing.Any]

@@ -10,13 +10,10 @@ from .invite_request_roles_item import InviteRequestRolesItem
 class InviteRequest(UniversalBaseModel):
     email: str
     roles: typing.Optional[typing.List[InviteRequestRolesItem]] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

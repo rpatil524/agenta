@@ -21,13 +21,10 @@ class SimpleTraceReferences(UniversalBaseModel):
     evaluator_variant: typing.Optional[Reference] = None
     evaluator_revision: typing.Optional[Reference] = None
     testcase: typing.Optional[Reference] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

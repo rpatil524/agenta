@@ -12,17 +12,13 @@ class ToolResult(UniversalBaseModel):
     """
     Response envelope with Agenta identity, status, and the OpenAI tool message.
     """
-
     id: typing.Optional[str] = None
     status: typing.Optional[Status] = None
     data: typing.Optional[ToolResultData] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

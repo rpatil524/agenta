@@ -2,6 +2,4 @@
 
 import typing
 
-StringOperator = typing.Union[
-    typing.Literal["startswith", "endswith", "contains", "matches", "like"], typing.Any
-]
+StringOperator = typing.Union[typing.Literal["startswith", "endswith", "contains", "matches", "like"], typing.Any]

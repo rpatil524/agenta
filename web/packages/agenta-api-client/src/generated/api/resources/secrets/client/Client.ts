@@ -15,6 +15,9 @@ export declare namespace SecretsClient {
     export interface RequestOptions extends BaseRequestOptions {}
 }
 
+/**
+ * Manage provider credentials and secret values stored in the vault.
+ */
 export class SecretsClient {
     protected readonly _options: NormalizedClientOptionsWithAuth<SecretsClient.Options>;
 

@@ -6,11 +6,7 @@ import datetime as dt
 import typing
 
 import pydantic
-from ..core.pydantic_utilities import (
-    IS_PYDANTIC_V2,
-    UniversalBaseModel,
-    update_forward_refs,
-)
+from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel, update_forward_refs
 from .evaluation_status import EvaluationStatus
 
 
@@ -37,22 +33,14 @@ class EvaluationResult(UniversalBaseModel):
     step_key: str
     scenario_id: str
     run_id: str
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True
             extra = pydantic.Extra.allow
-
-
-from .label_json_output import LabelJsonOutput  # noqa: E402, I001
-from .full_json_output import FullJsonOutput  # noqa: E402, I001
-
-update_forward_refs(
-    EvaluationResult, FullJsonOutput=FullJsonOutput, LabelJsonOutput=LabelJsonOutput
-)
+from .label_json_output import LabelJsonOutput # noqa: E402, I001
+from .full_json_output import FullJsonOutput # noqa: E402, I001
+update_forward_refs(EvaluationResult, FullJsonOutput=FullJsonOutput, LabelJsonOutput=LabelJsonOutput)

@@ -15,6 +15,9 @@ export declare namespace EvaluationsClient {
     export interface RequestOptions extends BaseRequestOptions {}
 }
 
+/**
+ * Evaluation runs — execute evaluators against variants and testsets.
+ */
 export class EvaluationsClient {
     protected readonly _options: NormalizedClientOptionsWithAuth<EvaluationsClient.Options>;
 
