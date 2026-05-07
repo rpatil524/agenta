@@ -258,19 +258,170 @@ function hasMessageIdentity(value: Record<string, unknown>): boolean {
     )
 }
 
+function stringifyToolCallArguments(value: unknown): string {
+    if (typeof value === "string") return value
+    if (value === null || value === undefined) return ""
+
+    try {
+        return JSON.stringify(value)
+    } catch {
+        return String(value)
+    }
+}
+
+function unwrapValueField(value: unknown): unknown {
+    return isPlainRecord(value) && "value" in value ? value.value : value
+}
+
+function asArrayField(value: unknown): unknown[] | null {
+    const unwrapped = unwrapValueField(value)
+    return Array.isArray(unwrapped) ? unwrapped : null
+}
+
+function extractTextParts(value: unknown): string {
+    if (!Array.isArray(value)) return ""
+
+    return value
+        .map((part) => {
+            if (typeof part === "string") return part
+            if (!isPlainRecord(part)) return ""
+            if (typeof part.text === "string") return part.text
+            if (typeof part.content === "string") return part.content
+            return ""
+        })
+        .filter(Boolean)
+        .join("\n")
+}
+
+function normalizeMessageContentValue(value: unknown): unknown {
+    const unwrapped = unwrapValueField(value)
+    if (Array.isArray(unwrapped)) {
+        return extractTextParts(unwrapped) || unwrapped
+    }
+    return unwrapped
+}
+
+function getToolCallDisplay(value: unknown): string | null {
+    if (!isPlainRecord(value)) return null
+
+    const fn = value.function
+    if (isPlainRecord(fn)) {
+        const name = typeof fn.name === "string" && fn.name.trim() ? fn.name.trim() : "tool_call"
+        const args = stringifyToolCallArguments(fn.arguments)
+        return args ? `${name}(${args})` : name
+    }
+
+    const name =
+        typeof value.name === "string" && value.name.trim()
+            ? value.name.trim()
+            : typeof value.type === "string" && value.type.trim()
+              ? value.type.trim()
+              : "tool_call"
+
+    return name
+}
+
+function extractToolCallsDisplay(value: Record<string, unknown>): string {
+    const toolCalls = asArrayField(value.tool_calls) ?? asArrayField(value.toolCalls)
+    if (toolCalls?.length) {
+        return toolCalls
+            .map(getToolCallDisplay)
+            .filter((display): display is string => Boolean(display))
+            .join("\n")
+    }
+
+    const functionCall = value.function_call ?? value.functionCall
+    if (isPlainRecord(functionCall)) {
+        return getToolCallDisplay({function: functionCall}) ?? ""
+    }
+
+    return ""
+}
+
+function extractDirectMessageContent(value: Record<string, unknown>): {
+    found: boolean
+    content: unknown
+} {
+    if ("content" in value) {
+        return {found: true, content: normalizeMessageContentValue(value.content)}
+    }
+
+    if ("text" in value) {
+        return {found: true, content: normalizeMessageContentValue(value.text)}
+    }
+
+    if ("message" in value && !isPlainRecord(value.message)) {
+        return {found: true, content: normalizeMessageContentValue(value.message)}
+    }
+
+    const delta = value.delta
+    if (isPlainRecord(delta) && "content" in delta) {
+        return {found: true, content: normalizeMessageContentValue(delta.content)}
+    }
+
+    if ("parts" in value) {
+        return {found: true, content: normalizeMessageContentValue(value.parts)}
+    }
+
+    return {found: false, content: undefined}
+}
+
+function extractKnownOutputMessage(value: Record<string, unknown>): unknown {
+    const completion = value.completion
+    if (Array.isArray(completion) && completion.length > 0) {
+        return completion[completion.length - 1]
+    }
+
+    const outputMessages = value.output_messages ?? value.outputMessages
+    if (Array.isArray(outputMessages) && outputMessages.length > 0) {
+        return outputMessages[outputMessages.length - 1]
+    }
+
+    const responses = value.responses
+    if (Array.isArray(responses) && responses.length > 0) {
+        return responses[responses.length - 1]
+    }
+
+    return undefined
+}
+
 function extractMessageContent(value: unknown): {matched: boolean; content: unknown} {
     if (!isPlainRecord(value)) {
         return {matched: false, content: value}
     }
 
-    if ("content" in value && hasMessageIdentity(value)) {
-        return {matched: true, content: value.content}
+    const toolCallsDisplay = extractToolCallsDisplay(value)
+
+    if (hasMessageIdentity(value)) {
+        const directContent = extractDirectMessageContent(value)
+        if (directContent.found) {
+            return {
+                matched: true,
+                content: directContent.content || toolCallsDisplay,
+            }
+        }
+
+        if (toolCallsDisplay) {
+            return {matched: true, content: toolCallsDisplay}
+        }
+
+        return {matched: true, content: ""}
+    }
+
+    if (toolCallsDisplay) {
+        return {matched: true, content: toolCallsDisplay}
     }
 
     const nestedMessage = value.message
     if (isPlainRecord(nestedMessage)) {
         const nested = extractMessageContent(nestedMessage)
         if (nested.matched) return nested
+    }
+
+    const knownOutputMessage = extractKnownOutputMessage(value)
+    if (knownOutputMessage !== undefined) {
+        const output = extractMessageContent(knownOutputMessage)
+        if (output.matched) return output
     }
 
     const choices = value.choices
