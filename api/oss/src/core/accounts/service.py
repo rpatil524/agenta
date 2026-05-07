@@ -898,6 +898,21 @@ class PlatformAdminAccountsService:
         workspace_ids: List[UUID] = [UUID(wid) for wid in (target.workspace_ids or [])]
         project_ids: List[UUID] = [UUID(pid) for pid in (target.project_ids or [])]
 
+        # On OSS, the singleton workspace under the singleton org is
+        # untouchable for the same reason as the org itself: deleting it
+        # would orphan in-flight bootstraps. Filter any such workspace
+        # IDs out of the delete set.
+        if not is_ee() and workspace_ids:
+            kept_ws_ids: List[UUID] = []
+            for wid in workspace_ids:
+                ws = await _db_get_workspace_by_id(wid)
+                if ws is not None:
+                    org = await _db_get_org_by_id(ws.organization_id)
+                    if org and org.slug == OSS_SINGLETON_ORG_SLUG:
+                        continue
+                kept_ws_ids.append(wid)
+            workspace_ids = kept_ws_ids
+
         if dry_run:
             # Report what would be deleted without writing
             deleted.organizations = [
@@ -1726,6 +1741,16 @@ class PlatformAdminAccountsService:
         ws = await _db_get_workspace_by_id(wid)
         if not ws:
             raise AdminWorkspaceNotFoundError(workspace_id)
+
+        # On OSS the workspace under the singleton org is itself a
+        # singleton; deleting it would orphan in-flight projects and
+        # break the bootstrap. Refuse rather than allow a partial nuke.
+        if not is_ee():
+            org = await _db_get_org_by_id(ws.organization_id)
+            if org and org.slug == OSS_SINGLETON_ORG_SLUG:
+                raise AdminValidationError(
+                    "The OSS singleton workspace cannot be deleted."
+                )
 
         await _db_delete_workspace(wid)
         deleted = AdminDeletedEntitiesDTO(

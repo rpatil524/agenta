@@ -125,40 +125,10 @@ class TestSimpleUserIdentities:
 
 
 class TestSimpleOrganizations:
-    def test_create_and_delete_organization(self, admin_api):
-        uid = uuid4().hex[:12]
-        email = f"org-owner-{uid}@test.agenta.ai"
-
-        # Owner must exist before creating an organization
-        user_resp = admin_api(
-            "POST",
-            "/admin/simple/accounts/users/",
-            json={"user": {"email": email}},
-        )
-        assert user_resp.status_code == 200
-
-        create_resp = admin_api(
-            "POST",
-            "/admin/simple/accounts/organizations/",
-            json={
-                "organization": {"name": f"Org-{uid}"},
-                "owner": {"email": email},
-            },
-        )
-        assert create_resp.status_code == 200
-        body = create_resp.json()
-        orgs = body["accounts"][0]["organizations"]
-        assert orgs
-        org_id = list(orgs.values())[0]["id"]
-
-        delete_resp = admin_api(
-            "DELETE",
-            f"/admin/simple/accounts/organizations/{org_id}/",
-        )
-        assert delete_resp.status_code == 200
-        assert delete_resp.json()["deleted"]["organizations"]
-
-        _delete_account_by_email(admin_api, email=email)
+    # Create / delete round-trip moved to EE: on OSS the singleton
+    # invariant collapses admin_create_organization onto a fixed slug
+    # and the delete handler refuses to remove it. See
+    # api/ee/tests/pytest/acceptance/accounts/test_simple_entities_ee.py.
 
     def test_delete_nonexistent_org_returns_404(self, admin_api):
         response = admin_api(
@@ -167,20 +137,6 @@ class TestSimpleOrganizations:
         )
         assert response.status_code == 404
 
-    def test_invalid_org_ref_returns_400(self, admin_api):
-        """Referencing a non-existent owner slug should return 400, not 500 (Bug 1 fix)."""
-        uid = uuid4().hex[:12]
-        response = admin_api(
-            "POST",
-            "/admin/simple/accounts/organizations/",
-            json={
-                "organization": {"name": f"BadRefOrg-{uid}"},
-                "owner": {"email": f"no-such-owner-{uid}@test.agenta.ai"},
-            },
-        )
-        # The service raises AdminInvalidReferenceError for unknown refs → must be 400
-        assert response.status_code in (400, 404)
-
 
 # ---------------------------------------------------------------------------
 # Workspaces
@@ -188,36 +144,10 @@ class TestSimpleOrganizations:
 
 
 class TestSimpleWorkspaces:
-    def test_create_and_delete_workspace(self, admin_api):
-        uid = uuid4().hex[:12]
-        email = f"wrk-{uid}@test.agenta.ai"
-        account = _create_account(admin_api, email=email)
-        org_id = list(account["organizations"].values())[0]["id"]
-
-        create_resp = admin_api(
-            "POST",
-            "/admin/simple/accounts/workspaces/",
-            json={
-                "workspace": {
-                    "name": f"Workspace-{uid}",
-                    "organization_ref": {"id": org_id},
-                }
-            },
-        )
-        assert create_resp.status_code == 200
-        body = create_resp.json()
-        wks = body["accounts"][0]["workspaces"]
-        assert wks
-        workspace_id = list(wks.values())[0]["id"]
-
-        delete_resp = admin_api(
-            "DELETE",
-            f"/admin/simple/accounts/workspaces/{workspace_id}/",
-        )
-        assert delete_resp.status_code == 200
-        assert delete_resp.json()["deleted"]["workspaces"]
-
-        _delete_account_by_email(admin_api, email=email)
+    # Create / delete round-trip moved to EE: on OSS the singleton
+    # workspace under the singleton org is itself a singleton and the
+    # delete handler refuses to remove it. See
+    # api/ee/tests/pytest/acceptance/accounts/test_simple_entities_ee.py.
 
     def test_delete_nonexistent_workspace_returns_404(self, admin_api):
         response = admin_api(

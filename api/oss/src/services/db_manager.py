@@ -1667,13 +1667,16 @@ async def admin_create_organization(
 ) -> OrganizationDB:
     """Create or reuse an organization (admin path).
 
-    On OSS, every org collapses onto the deterministic singleton slug —
-    callers' requested ``name``/``slug`` are ignored and the existing
+    On OSS every org collapses onto the deterministic singleton slug —
+    the caller's requested ``name``/``slug`` are ignored and the existing
     singleton row is returned (creating it on first call). The unique
     index on ``organizations.slug`` is the source of truth, so concurrent
-    callers are safe and no application lock is needed.
+    callers are safe and no application lock is needed. Combined with the
+    delete guard in the accounts service, this makes the OSS singleton
+    invariant absolute: exactly one organization exists, and it cannot be
+    duplicated or removed.
 
-    On EE, behavior is unchanged: a new row is inserted with the supplied
+    On EE behavior is unchanged: a new row is inserted with the supplied
     ``name``/``slug``.
     """
     async with engine.core_session() as session:
@@ -1722,7 +1725,43 @@ async def admin_create_workspace(
     *,
     is_default: bool = False,
 ) -> WorkspaceDB:
+    """Create or reuse a workspace (admin path).
+
+    On OSS the workspace under the singleton org is itself a singleton —
+    if one already exists it is returned; otherwise a single new
+    workspace is created under a row lock on the org so concurrent
+    callers converge on the same row. Combined with admin_create_organization
+    and the delete guards, OSS exposes exactly one org and one workspace.
+
+    On EE behavior is unchanged: a fresh workspace row is always inserted.
+    """
     async with engine.core_session() as session:
+        if not is_ee():
+            await session.execute(
+                select(OrganizationDB.id).filter_by(id=org_id).with_for_update()
+            )
+            existing = await session.execute(
+                select(WorkspaceDB).filter_by(organization_id=org_id)
+            )
+            ws_db = existing.scalars().first()
+            if ws_db is not None:
+                await session.commit()
+                return ws_db
+
+            ws_db = WorkspaceDB(
+                name=name,
+                type="default" if is_default else None,
+                organization_id=org_id,
+            )
+            session.add(ws_db)
+            await session.commit()
+            await session.refresh(ws_db)
+            log.info(
+                "[admin] workspace ensured (oss singleton)",
+                workspace_id=str(ws_db.id),
+            )
+            return ws_db
+
         ws_db = WorkspaceDB(
             name=name,
             type="default" if is_default else None,
