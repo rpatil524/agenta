@@ -2,8 +2,8 @@ import {memo} from "react"
 
 import {Tabs} from "antd"
 
-import {TAB_ITEMS} from "./constants"
-import type {SessionHeaderRightProps} from "./type"
+import {TAB_ITEMS} from "./assets/constants"
+import type {SessionHeaderRightProps} from "./assets/type"
 
 const SessionHeaderRight = memo(function SessionHeaderRight({
     activeView,

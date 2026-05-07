@@ -7,7 +7,7 @@ import {useAtomValue} from "jotai"
 
 import {useAnnotationNavigation} from "../../context"
 
-import type {EmptyQueueStateProps} from "./type"
+import type {EmptyQueueStateProps} from "./assets/type"
 
 const EmptyQueueState = memo(function EmptyQueueState({onViewChange}: EmptyQueueStateProps) {
     const navigation = useAnnotationNavigation()

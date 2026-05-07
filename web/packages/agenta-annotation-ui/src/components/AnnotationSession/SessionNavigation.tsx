@@ -16,10 +16,12 @@ import {useModifierKey} from "@agenta/shared/hooks"
 import {message} from "@agenta/ui/app-message"
 import {CopyTooltip} from "@agenta/ui/copy-tooltip"
 import {ArrowSquareOut, CaretLeft, CaretRight, Copy, Plus} from "@phosphor-icons/react"
-import {Button, Select, Switch, Tag, Typography} from "antd"
+import {Button, Select, Switch, Tag, Tooltip, Typography} from "antd"
 import {useAtomValue, useSetAtom} from "jotai"
 
 import {useAnnotationNavigation} from "../../context"
+
+import {getAddToTestsetDisabledReason} from "./assets/utils"
 
 // ============================================================================
 // HELPERS
@@ -77,6 +79,9 @@ const SessionNavigation = ({scenarioId, queueId, onCompleted}: SessionNavigation
     const isSubmitting = useAtomValue(annotationFormController.selectors.isSubmitting(scenarioId))
     const hasFilledMetrics = useAtomValue(
         annotationFormController.selectors.hasFilledMetrics(scenarioId),
+    )
+    const hasPendingChanges = useAtomValue(
+        annotationFormController.selectors.hasPendingChanges(scenarioId),
     )
     const isAddToTestsetExporting = useAtomValue(
         annotationSessionController.selectors.isAddToTestsetExporting(),
@@ -144,6 +149,16 @@ const SessionNavigation = ({scenarioId, queueId, onCompleted}: SessionNavigation
                 label: `${index + 1} / ${totalScenarios}`,
             })),
         [scenarioIds, totalScenarios],
+    )
+    const addToTestsetDisabledReason = useMemo(
+        () =>
+            getAddToTestsetDisabledReason({
+                scenarioId,
+                isSubmitting,
+                isExporting: isAddToTestsetExporting,
+                hasPendingChanges,
+            }),
+        [scenarioId, isSubmitting, isAddToTestsetExporting, hasPendingChanges],
     )
 
     return (
@@ -230,14 +245,16 @@ const SessionNavigation = ({scenarioId, queueId, onCompleted}: SessionNavigation
                             →
                         </kbd>
                     </Button>
-                    <Button
-                        size="small"
-                        icon={<Plus size={13} />}
-                        onClick={handleAddToTestset}
-                        disabled={isSubmitting || isAddToTestsetExporting || !scenarioId}
-                    >
-                        Add to Testset
-                    </Button>
+                    <Tooltip title={addToTestsetDisabledReason ?? undefined}>
+                        <Button
+                            size="small"
+                            icon={<Plus size={13} />}
+                            onClick={handleAddToTestset}
+                            disabled={Boolean(addToTestsetDisabledReason)}
+                        >
+                            Add to Testset
+                        </Button>
+                    </Tooltip>
                     <Button
                         type="primary"
                         onClick={handleMarkComplete}
