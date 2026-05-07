@@ -1137,12 +1137,10 @@ class PlatformAdminAccountsService:
             user_email=entry.user.email,
         )
 
-        await _db_assign_user_to_organization_oss(
-            user_db=user_db,
-            organization_id=str(org_db.id),
-            email=entry.user.email,
-        )
-
+        # Resolve the singleton default project + workspace BEFORE assigning
+        # the user, so that an inconsistent singleton state surfaces as a
+        # deterministic AdminValidationError (400) rather than a NoResultFound
+        # bubbling out of `_db_assign_user_to_organization_oss` as a 500.
         default_proj_db = await _db_get_default_project_by_organization_id(
             str(org_db.id)
         )
@@ -1156,6 +1154,12 @@ class PlatformAdminAccountsService:
             raise AdminValidationError(
                 "OSS singleton is in an inconsistent state: project's workspace not found."
             )
+
+        await _db_assign_user_to_organization_oss(
+            user_db=user_db,
+            organization_id=str(org_db.id),
+            email=entry.user.email,
+        )
 
         # Always mint a fresh project per account under the singleton
         # workspace. Org and workspace stay singleton; only projects
