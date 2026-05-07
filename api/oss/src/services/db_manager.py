@@ -7,7 +7,8 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import HTTPException
 from sqlalchemy.future import select
-from sqlalchemy import delete, func, or_, text, update
+from sqlalchemy import delete, func, or_, update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from supertokens_python.types import AccountInfo
 from sqlalchemy.orm import joinedload, load_only
@@ -346,6 +347,9 @@ async def get_oss_organization() -> Optional[OrganizationDB]:
     return None
 
 
+OSS_SINGLETON_ORG_SLUG = "oss-default"
+
+
 async def get_or_bootstrap_oss_organization(
     *,
     user_id: uuid.UUID,
@@ -353,49 +357,21 @@ async def get_or_bootstrap_oss_organization(
 ) -> OrganizationDB:
     """Get the OSS singleton organization, bootstrapping it if absent.
 
-    The bootstrap is non-atomic (creates org + workspace + repoints the
-    global default project) and the OSS data model has no per-workspace
-    default-project key, so concurrent first-time callers can clobber each
-    other and leave the project pointing at the wrong workspace. We
-    serialize the get-or-bootstrap with a Postgres session-level advisory
-    lock (``pg_advisory_lock`` / ``pg_advisory_unlock``) held on a dedicated
-    connection so only one caller bootstraps and the rest read the result.
+    The OSS singleton is identified by a deterministic
+    ``slug`` (``OSS_SINGLETON_ORG_SLUG``) and the existing unique index on
+    ``organizations.slug`` is the source of truth: at most one row with
+    that slug can ever exist. Concurrent first-user callers race on
+    ``INSERT ... ON CONFLICT (slug) DO NOTHING`` inside
+    :func:`create_organization` and all read back the same winning row.
+
+    No application-level lock is involved. The invariant is enforced by
+    Postgres, which means it holds across any number of API replicas and
+    through any connection pooler.
     """
-    # Hold the advisory lock on a dedicated connection so the inner
-    # bootstrap can open its own ORM sessions (which share an
-    # async_scoped_session keyed by task) without colliding with our
-    # transaction. Session-level locks (pg_advisory_lock / _unlock) bind to
-    # the lifetime of *this* connection regardless of inner transactions.
-    lock_key = env.postgres.advisory_lock
-    async with engine.async_core_engine.connect() as conn:
-        await conn.execute(
-            text("SELECT pg_advisory_lock(:key)"),
-            {"key": lock_key},
-        )
-        try:
-            existing = await get_organizations()
-            if existing:
-                # OSS is single-tenant: there must be exactly one org. More
-                # than one means the singleton invariant has been broken
-                # (leftover test data, manual DB edits, or a pre-lock race
-                # that escaped the previous fix). Fail loudly rather than
-                # silently picking an arbitrary org.
-                if len(existing) > 1:
-                    raise NoResultFound(
-                        f"OSS singleton invariant violated: expected exactly "
-                        f"one organization, found {len(existing)}. Manual "
-                        f"intervention required."
-                    )
-                return existing[0]
-            return await setup_oss_organization_for_first_user(
-                user_id=user_id,
-                user_email=user_email,
-            )
-        finally:
-            await conn.execute(
-                text("SELECT pg_advisory_unlock(:key)"),
-                {"key": lock_key},
-            )
+    return await setup_oss_organization_for_first_user(
+        user_id=user_id,
+        user_email=user_email,
+    )
 
 
 async def setup_oss_organization_for_first_user(
@@ -419,10 +395,23 @@ async def setup_oss_organization_for_first_user(
         owner_id=user_id,
         created_by_id=user_id,
     )
-    workspace_db = await create_workspace(
-        name="Default",
-        organization_id=str(organization_db.id),
-    )
+
+    # OSS is single-tenant: reuse the workspace already attached to the
+    # singleton org if one exists. This makes concurrent first-user
+    # signups idempotent under the unique-slug org guarantee — the second
+    # caller observes the org row created by the first and adopts its
+    # workspace instead of creating a duplicate.
+    async with engine.core_session() as session:
+        existing_workspaces = await session.execute(
+            select(WorkspaceDB).filter_by(organization_id=organization_db.id)
+        )
+        workspace_db = existing_workspaces.scalars().first()
+
+    if workspace_db is None:
+        workspace_db = await create_workspace(
+            name="Default",
+            organization_id=str(organization_db.id),
+        )
 
     # update default project with organization and workspace ids
     await create_or_update_default_project(
@@ -605,31 +594,58 @@ async def create_organization(
 ):
     """Create a new organization in the database.
 
-    Args:
-        name (str): The name of the organization
-        owner_id (Optional[uuid.UUID]): The UUID of the organization owner
-        created_by_id (Optional[uuid.UUID]): The UUID of the user who created the organization
+    In OSS the org is a singleton, so we attach a deterministic slug
+    (``OSS_SINGLETON_ORG_SLUG``) and use ``INSERT ... ON CONFLICT (slug)
+    DO NOTHING`` so concurrent first-user signups collapse to the same row
+    instead of producing duplicates. The unique index on
+    ``organizations.slug`` is the source of truth.
 
-    Returns:
-        OrganizationDB: instance of organization
+    EE keeps the previous behavior (one org per signup, slug left NULL).
     """
 
     async with engine.core_session() as session:
         # For bootstrap scenario, use a placeholder UUID if not provided
         _owner_id = owner_id or uuid.uuid4()
         _created_by_id = created_by_id or _owner_id
+        flags = {
+            "is_demo": False,
+            "allow_email": env.auth.email_enabled,
+            "allow_social": env.auth.oidc_enabled,
+            "allow_sso": False,
+            "allow_root": False,
+            "domains_only": False,
+            "auto_join": False,
+        }
+
+        if not is_ee():
+            stmt = (
+                pg_insert(OrganizationDB)
+                .values(
+                    slug=OSS_SINGLETON_ORG_SLUG,
+                    name=name,
+                    flags=flags,
+                    owner_id=_owner_id,
+                    created_by_id=_created_by_id,
+                )
+                .on_conflict_do_nothing(index_elements=["slug"])
+            )
+            await session.execute(stmt)
+            await session.commit()
+
+            result = await session.execute(
+                select(OrganizationDB).filter_by(slug=OSS_SINGLETON_ORG_SLUG)
+            )
+            organization_db = result.scalars().one()
+
+            log.info(
+                "[scopes] organization ensured (oss singleton)",
+                organization_id=organization_db.id,
+            )
+            return organization_db
 
         organization_db = OrganizationDB(
             name=name,
-            flags={
-                "is_demo": False,
-                "allow_email": env.auth.email_enabled,
-                "allow_social": env.auth.oidc_enabled,
-                "allow_sso": False,
-                "allow_root": False,
-                "domains_only": False,
-                "auto_join": False,
-            },
+            flags=flags,
             owner_id=_owner_id,
             created_by_id=_created_by_id,
         )
