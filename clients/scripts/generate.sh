@@ -83,7 +83,11 @@ if ! command -v fern >/dev/null 2>&1; then
 fi
 
 cleanup_fern_workspaces() {
-  for dir in "${CLIENTS_ROOT}/python/fern" "${CLIENTS_ROOT}/typescript/fern"; do
+  # Python's fern workspace lives under the canonical client root because
+  # clients/python is itself the package home. The TypeScript flow uses an
+  # ephemeral mktemp directory (cleaned via per-run trap in generate_typescript),
+  # so it doesn't appear in this list.
+  for dir in "${CLIENTS_ROOT}/python/fern"; do
     if [[ -d "${dir}" ]]; then
       log "removing fern workspace ${dir}"
       rm -rf "${dir}"
@@ -389,14 +393,22 @@ generate_python() {
 }
 
 generate_typescript() {
-  local client_root="${CLIENTS_ROOT}/typescript"
+  # Fern's CLI needs a CWD containing ./fern/fern.config.json + generators.yml
+  # to operate. The actual generated client lives at
+  # web/packages/agenta-api-client/src/generated, so the workspace where Fern
+  # writes intermediate output is purely ephemeral — use a per-run mktemp dir
+  # and clean it up on exit so nothing leaks into the repo.
+  local client_root
+  client_root="$(mktemp -d -t fern-typescript-XXXXXX)"
+  trap "rm -rf '${client_root}'" RETURN
+
   local target_dir="${REPO_ROOT}/web/packages/agenta-api-client/src/generated"
   local fern_dir="${client_root}/fern"
   local fern_output_dir="${fern_dir}/src/generated"
   local latest_version
 
   log "starting TypeScript client generation"
-  mkdir -p "${client_root}"
+  log "fern workspace=${client_root}"
 
   log "switching to ${client_root}"
   cd "${client_root}"
