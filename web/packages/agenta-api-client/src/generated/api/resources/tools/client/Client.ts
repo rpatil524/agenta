@@ -16,6 +16,9 @@ export declare namespace ToolsClient {
     export interface RequestOptions extends BaseRequestOptions {}
 }
 
+/**
+ * External tool connections and OAuth integrations available to applications.
+ */
 export class ToolsClient {
     protected readonly _options: NormalizedClientOptionsWithAuth<ToolsClient.Options>;
 

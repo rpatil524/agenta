@@ -3,6 +3,8 @@
 import type * as AgentaApi from "../index.js";
 
 export interface OTelTracingResponse {
+    support_id?: (string | null) | undefined;
+    support_ts?: (string | null) | undefined;
     count?: number | undefined;
     spans?: (AgentaApi.SpanOutput[] | null) | undefined;
     traces?: (Record<string, AgentaApi.SpansTreeOutput | null> | null) | undefined;

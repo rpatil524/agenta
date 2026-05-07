@@ -10,21 +10,17 @@ from .admin_structured_error_dto import AdminStructuredErrorDto
 class AdminSimpleAccountsOrganizationsTransferOwnershipResponseDto(UniversalBaseModel):
     """
     Response for the transfer-ownership endpoint.
-
+    
     ``transferred`` lists the IDs of organizations whose ownership was updated.
     ``errors`` lists any org refs that were requested but not transferred
     (e.g. not owned by the source user).
     """
-
     transferred: typing.Optional[typing.List[str]] = None
     errors: typing.Optional[typing.List[AdminStructuredErrorDto]] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

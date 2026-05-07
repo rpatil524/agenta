@@ -15,6 +15,9 @@ export declare namespace EventsClient {
     export interface RequestOptions extends BaseRequestOptions {}
 }
 
+/**
+ * Structured event ingestion for analytics and audit purposes.
+ */
 export class EventsClient {
     protected readonly _options: NormalizedClientOptionsWithAuth<EventsClient.Options>;
 

@@ -15,6 +15,9 @@ export declare namespace FoldersClient {
     export interface RequestOptions extends BaseRequestOptions {}
 }
 
+/**
+ * Organize applications and other resources into folder hierarchies.
+ */
 export class FoldersClient {
     protected readonly _options: NormalizedClientOptionsWithAuth<FoldersClient.Options>;
 

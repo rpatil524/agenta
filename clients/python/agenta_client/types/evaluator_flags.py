@@ -10,7 +10,6 @@ class EvaluatorFlags(UniversalBaseModel):
     """
     Legacy full evaluator flag set.
     """
-
     is_application: typing.Optional[bool] = None
     is_evaluator: typing.Optional[bool] = None
     is_snippet: typing.Optional[bool] = None
@@ -25,13 +24,10 @@ class EvaluatorFlags(UniversalBaseModel):
     has_url: typing.Optional[bool] = None
     has_script: typing.Optional[bool] = None
     has_handler: typing.Optional[bool] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

@@ -6,7 +6,7 @@ export interface EvaluationRunDataStep {
     key: string;
     type: EvaluationRunDataStep.Type;
     origin: EvaluationRunDataStep.Origin;
-    references: Record<string, AgentaApi.AgentaSdkModelsSharedReference>;
+    references: Record<string, AgentaApi.Reference>;
     inputs?: (AgentaApi.EvaluationRunDataStepInput[] | null) | undefined;
 }
 

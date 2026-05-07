@@ -20,34 +20,20 @@ class AdminAccountReadDto(UniversalBaseModel):
     """
     Per-account projection in the full graph response (plural entity maps).
     """
-
     users: typing.Optional[typing.Dict[str, AdminUserReadDto]] = None
     user_identities: typing.Optional[typing.Dict[str, AdminUserIdentityReadDto]] = None
     organizations: typing.Optional[typing.Dict[str, AdminOrganizationReadDto]] = None
     workspaces: typing.Optional[typing.Dict[str, AdminWorkspaceReadDto]] = None
     projects: typing.Optional[typing.Dict[str, AdminProjectReadDto]] = None
-    organization_memberships: typing.Optional[
-        typing.Dict[str, AdminOrganizationMembershipReadDto]
-    ] = None
-    workspace_memberships: typing.Optional[
-        typing.Dict[str, AdminWorkspaceMembershipReadDto]
-    ] = None
-    project_memberships: typing.Optional[
-        typing.Dict[str, AdminProjectMembershipReadDto]
-    ] = None
-    subscriptions: typing.Optional[
-        typing.Dict[str, typing.Optional[AdminSubscriptionReadDto]]
-    ] = None
-    api_keys: typing.Optional[
-        typing.Dict[str, typing.Optional[AdminApiKeyResponseDto]]
-    ] = None
-
+    organization_memberships: typing.Optional[typing.Dict[str, AdminOrganizationMembershipReadDto]] = None
+    workspace_memberships: typing.Optional[typing.Dict[str, AdminWorkspaceMembershipReadDto]] = None
+    project_memberships: typing.Optional[typing.Dict[str, AdminProjectMembershipReadDto]] = None
+    subscriptions: typing.Optional[typing.Dict[str, typing.Optional[AdminSubscriptionReadDto]]] = None
+    api_keys: typing.Optional[typing.Dict[str, typing.Optional[AdminApiKeyResponseDto]]] = None
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

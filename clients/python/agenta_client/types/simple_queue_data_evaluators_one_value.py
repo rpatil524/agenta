@@ -2,6 +2,4 @@
 
 import typing
 
-SimpleQueueDataEvaluatorsOneValue = typing.Union[
-    typing.Literal["custom", "human", "auto"], typing.Any
-]
+SimpleQueueDataEvaluatorsOneValue = typing.Union[typing.Literal["custom", "human", "auto"], typing.Any]

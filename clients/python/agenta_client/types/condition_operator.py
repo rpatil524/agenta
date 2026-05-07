@@ -9,11 +9,4 @@ from .list_operator import ListOperator
 from .numeric_operator import NumericOperator
 from .string_operator import StringOperator
 
-ConditionOperator = typing.Union[
-    ComparisonOperator,
-    NumericOperator,
-    StringOperator,
-    ListOperator,
-    DictOperator,
-    ExistenceOperator,
-]
+ConditionOperator = typing.Union[ComparisonOperator, NumericOperator, StringOperator, ListOperator, DictOperator, ExistenceOperator]

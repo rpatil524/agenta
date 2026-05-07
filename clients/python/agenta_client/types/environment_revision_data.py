@@ -10,10 +10,10 @@ from .reference import Reference
 class EnvironmentRevisionData(UniversalBaseModel):
     """
     Per-app references for environment revision data.
-
+    
     Keys are app-scoped identifiers (e.g., ``"pre.revision"``).
     Values are dicts of entity-type → Reference, providing full traceability::
-
+    
         {
             "pre.revision": {
                 "application": Reference(id=..., slug=..., version=...),
@@ -23,17 +23,11 @@ class EnvironmentRevisionData(UniversalBaseModel):
             ...
         }
     """
-
-    references: typing.Optional[
-        typing.Dict[str, typing.Optional[typing.Dict[str, typing.Optional[Reference]]]]
-    ] = None
-
+    references: typing.Optional[typing.Dict[str, typing.Optional[typing.Dict[str, typing.Optional[Reference]]]]] = None
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

@@ -7,6 +7,7 @@ export const StandardProviderKind = {
     Deepinfra: "deepinfra",
     Alephalpha: "alephalpha",
     Groq: "groq",
+    Minimax: "minimax",
     Mistral: "mistral",
     Mistralai: "mistralai",
     Anthropic: "anthropic",

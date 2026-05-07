@@ -2,17 +2,4 @@
 
 import typing
 
-MetricType = typing.Union[
-    typing.Literal[
-        "numeric/continuous",
-        "numeric/discrete",
-        "binary",
-        "categorical/single",
-        "categorical/multiple",
-        "string",
-        "json",
-        "none",
-        "*",
-    ],
-    typing.Any,
-]
+MetricType = typing.Union[typing.Literal["numeric/continuous", "numeric/discrete", "binary", "categorical/single", "categorical/multiple", "string", "json", "none", "*"], typing.Any]

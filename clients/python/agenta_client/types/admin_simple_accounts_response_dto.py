@@ -11,20 +11,16 @@ from .admin_structured_error_dto import AdminStructuredErrorDto
 class AdminSimpleAccountsResponseDto(UniversalBaseModel):
     """
     Response for the simple batch endpoint (POST /simple/accounts/).
-
+    
     ``accounts`` is keyed by the same refs used in the request so callers
     can look up each created account directly.
     """
-
     accounts: typing.Optional[typing.Dict[str, AdminSimpleAccountReadDto]] = None
     errors: typing.Optional[typing.List[AdminStructuredErrorDto]] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

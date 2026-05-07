@@ -17,13 +17,10 @@ class AdminApiKeyResponseDto(UniversalBaseModel):
     revoked_at: typing.Optional[str] = None
     value: typing.Optional[str] = None
     returned_once: typing.Optional[bool] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

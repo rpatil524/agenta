@@ -5,14 +5,8 @@ from __future__ import annotations
 import typing
 
 import pydantic
-from ..core.pydantic_utilities import (
-    IS_PYDANTIC_V2,
-    UniversalBaseModel,
-    update_forward_refs,
-)
-from .application_revision_data_input_headers_value import (
-    ApplicationRevisionDataInputHeadersValue,
-)
+from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel, update_forward_refs
+from .application_revision_data_input_headers_value import ApplicationRevisionDataInputHeadersValue
 from .application_revision_data_input_runtime import ApplicationRevisionDataInputRuntime
 from .json_schemas_input import JsonSchemasInput
 
@@ -20,26 +14,18 @@ from .json_schemas_input import JsonSchemasInput
 class ApplicationRevisionDataInput(UniversalBaseModel):
     uri: typing.Optional[str] = None
     url: typing.Optional[str] = None
-    headers: typing.Optional[
-        typing.Dict[str, typing.Optional[ApplicationRevisionDataInputHeadersValue]]
-    ] = None
+    headers: typing.Optional[typing.Dict[str, typing.Optional[ApplicationRevisionDataInputHeadersValue]]] = None
     runtime: typing.Optional[ApplicationRevisionDataInputRuntime] = None
     script: typing.Optional[str] = None
     schemas: typing.Optional[JsonSchemasInput] = None
     parameters: typing.Optional[typing.Dict[str, typing.Any]] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True
             extra = pydantic.Extra.allow
-
-
-from .full_json_input import FullJsonInput  # noqa: E402, I001
-
+from .full_json_input import FullJsonInput # noqa: E402, I001
 update_forward_refs(ApplicationRevisionDataInput, FullJsonInput=FullJsonInput)

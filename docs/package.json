@@ -2,6 +2,7 @@
   "name": "doc",
   "version": "0.0.0",
   "private": true,
+  "packageManager": "pnpm@10.30.0",
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start --port 5000 --host 0.0.0.0 --config docusaurus.config.dev.ts",
@@ -88,6 +89,6 @@
     ]
   },
   "engines": {
-    "node": ">=24"
+    "node": "24.x"
   }
 }

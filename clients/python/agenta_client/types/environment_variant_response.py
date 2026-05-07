@@ -13,13 +13,10 @@ class EnvironmentVariantResponse(UniversalBaseModel):
     support_ts: typing.Optional[dt.datetime] = None
     count: typing.Optional[int] = None
     environment_variant: typing.Optional[EnvironmentVariant] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

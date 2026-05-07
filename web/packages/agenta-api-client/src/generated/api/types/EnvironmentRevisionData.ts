@@ -18,7 +18,5 @@ import type * as AgentaApi from "../index.js";
  *     }
  */
 export interface EnvironmentRevisionData {
-    references?:
-        | (Record<string, Record<string, AgentaApi.AgentaSdkModelsSharedReference | null> | null> | null)
-        | undefined;
+    references?: (Record<string, Record<string, AgentaApi.Reference | null> | null> | null) | undefined;
 }

@@ -16,6 +16,9 @@ export declare namespace WorkflowsClient {
     export interface RequestOptions extends BaseRequestOptions {}
 }
 
+/**
+ * Workflow definitions — the runnable pipelines that back an application.
+ */
 export class WorkflowsClient {
     protected readonly _options: NormalizedClientOptionsWithAuth<WorkflowsClient.Options>;
 

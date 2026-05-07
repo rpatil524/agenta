@@ -37,1214 +37,821 @@ from ..types.testset_variant_response import TestsetVariantResponse
 from ..types.testset_variants_response import TestsetVariantsResponse
 from ..types.testsets_response import TestsetsResponse
 from ..types.windowing import Windowing
-from .types.create_simple_testset_from_file_request_file_type import (
-    CreateSimpleTestsetFromFileRequestFileType,
-)
-from .types.create_testset_revision_from_file_request_file_type import (
-    CreateTestsetRevisionFromFileRequestFileType,
-)
-from .types.edit_simple_testset_from_file_request_file_type import (
-    EditSimpleTestsetFromFileRequestFileType,
-)
-from .types.fetch_simple_testset_to_file_request_file_type import (
-    FetchSimpleTestsetToFileRequestFileType,
-)
-from .types.fetch_testset_revision_to_file_request_file_type import (
-    FetchTestsetRevisionToFileRequestFileType,
-)
+from .types.create_simple_testset_from_file_request_file_type import CreateSimpleTestsetFromFileRequestFileType
+from .types.create_testset_revision_from_file_request_file_type import CreateTestsetRevisionFromFileRequestFileType
+from .types.edit_simple_testset_from_file_request_file_type import EditSimpleTestsetFromFileRequestFileType
+from .types.fetch_simple_testset_to_file_request_file_type import FetchSimpleTestsetToFileRequestFileType
+from .types.fetch_testset_revision_to_file_request_file_type import FetchTestsetRevisionToFileRequestFileType
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
-
-
 class RawTestsetsClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
-
-    def create_testset(
-        self,
-        *,
-        testset: TestsetCreate,
-        testset_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TestsetResponse]:
+    
+    def create_testset(self, *, testset: TestsetCreate, testset_id: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TestsetResponse]:
         """
         Parameters
         ----------
         testset : TestsetCreate
-
+        
         testset_id : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[TestsetResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "testsets/",
-            method="POST",
-            params={
-                "testset_id": testset_id,
-            },
+            "testsets/",method="POST",
+            params={"testset_id": testset_id, }
+            ,
             json={
-                "testset": convert_and_respect_annotation_metadata(
-                    object_=testset, annotation=TestsetCreate, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "testset": convert_and_respect_annotation_metadata(object_=testset, annotation=TestsetCreate, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetResponse,
                     parse_obj_as(
-                        type_=TestsetResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def fetch_testset(
-        self,
-        testset_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TestsetResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def fetch_testset(self, testset_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TestsetResponse]:
         """
         Parameters
         ----------
         testset_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[TestsetResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"testsets/{jsonable_encoder(testset_id)}",
-            method="GET",
-            request_options=request_options,
-        )
+            f"testsets/{jsonable_encoder(testset_id)}",method="GET",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetResponse,
                     parse_obj_as(
-                        type_=TestsetResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def edit_testset(
-        self,
-        testset_id: str,
-        *,
-        testset: TestsetEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TestsetResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def edit_testset(self, testset_id: str, *, testset: TestsetEdit, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TestsetResponse]:
         """
         Parameters
         ----------
         testset_id : str
-
+        
         testset : TestsetEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[TestsetResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"testsets/{jsonable_encoder(testset_id)}",
-            method="PUT",
+            f"testsets/{jsonable_encoder(testset_id)}",method="PUT",
             json={
-                "testset": convert_and_respect_annotation_metadata(
-                    object_=testset, annotation=TestsetEdit, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "testset": convert_and_respect_annotation_metadata(object_=testset, annotation=TestsetEdit, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetResponse,
                     parse_obj_as(
-                        type_=TestsetResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def archive_testset(
-        self,
-        testset_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TestsetResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def archive_testset(self, testset_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TestsetResponse]:
         """
         Parameters
         ----------
         testset_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[TestsetResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"testsets/{jsonable_encoder(testset_id)}/archive",
-            method="POST",
-            request_options=request_options,
-        )
+            f"testsets/{jsonable_encoder(testset_id)}/archive",method="POST",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetResponse,
                     parse_obj_as(
-                        type_=TestsetResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def unarchive_testset(
-        self,
-        testset_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TestsetResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def unarchive_testset(self, testset_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TestsetResponse]:
         """
         Parameters
         ----------
         testset_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[TestsetResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"testsets/{jsonable_encoder(testset_id)}/unarchive",
-            method="POST",
-            request_options=request_options,
-        )
+            f"testsets/{jsonable_encoder(testset_id)}/unarchive",method="POST",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetResponse,
                     parse_obj_as(
-                        type_=TestsetResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def query_testsets(
-        self,
-        *,
-        testset: typing.Optional[TestsetQuery] = OMIT,
-        testset_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TestsetsResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def query_testsets(self, *, testset: typing.Optional[TestsetQuery] = OMIT, testset_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TestsetsResponse]:
         """
         Parameters
         ----------
         testset : typing.Optional[TestsetQuery]
-
+        
         testset_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[TestsetsResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "testsets/query",
-            method="POST",
+            "testsets/query",method="POST",
             json={
-                "testset": convert_and_respect_annotation_metadata(
-                    object_=testset,
-                    annotation=typing.Optional[TestsetQuery],
-                    direction="write",
-                ),
-                "testset_refs": convert_and_respect_annotation_metadata(
-                    object_=testset_refs,
-                    annotation=typing.Optional[typing.Sequence[Reference]],
-                    direction="write",
-                ),
+                "testset": convert_and_respect_annotation_metadata(object_=testset, annotation=typing.Optional[TestsetQuery], direction="write"),
+                "testset_refs": convert_and_respect_annotation_metadata(object_=testset_refs, annotation=typing.Optional[typing.Sequence[Reference]], direction="write"),
                 "include_archived": include_archived,
-                "windowing": convert_and_respect_annotation_metadata(
-                    object_=windowing,
-                    annotation=typing.Optional[Windowing],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetsResponse,
                     parse_obj_as(
-                        type_=TestsetsResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetsResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def create_testset_variant(
-        self,
-        *,
-        testset_variant: TestsetVariantCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TestsetVariantResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def create_testset_variant(self, *, testset_variant: TestsetVariantCreate, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TestsetVariantResponse]:
         """
         Parameters
         ----------
         testset_variant : TestsetVariantCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[TestsetVariantResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "testsets/variants/",
-            method="POST",
+            "testsets/variants/",method="POST",
             json={
-                "testset_variant": convert_and_respect_annotation_metadata(
-                    object_=testset_variant,
-                    annotation=TestsetVariantCreate,
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "testset_variant": convert_and_respect_annotation_metadata(object_=testset_variant, annotation=TestsetVariantCreate, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetVariantResponse,
                     parse_obj_as(
-                        type_=TestsetVariantResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetVariantResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def fetch_testset_variant(
-        self,
-        testset_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TestsetVariantResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def fetch_testset_variant(self, testset_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TestsetVariantResponse]:
         """
         Parameters
         ----------
         testset_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[TestsetVariantResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"testsets/variants/{jsonable_encoder(testset_variant_id)}",
-            method="GET",
-            request_options=request_options,
-        )
+            f"testsets/variants/{jsonable_encoder(testset_variant_id)}",method="GET",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetVariantResponse,
                     parse_obj_as(
-                        type_=TestsetVariantResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetVariantResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def edit_testset_variant(
-        self,
-        testset_variant_id: str,
-        *,
-        testset_variant: TestsetVariantEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TestsetVariantResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def edit_testset_variant(self, testset_variant_id: str, *, testset_variant: TestsetVariantEdit, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TestsetVariantResponse]:
         """
         Parameters
         ----------
         testset_variant_id : str
-
+        
         testset_variant : TestsetVariantEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[TestsetVariantResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"testsets/variants/{jsonable_encoder(testset_variant_id)}",
-            method="PUT",
+            f"testsets/variants/{jsonable_encoder(testset_variant_id)}",method="PUT",
             json={
-                "testset_variant": convert_and_respect_annotation_metadata(
-                    object_=testset_variant,
-                    annotation=TestsetVariantEdit,
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "testset_variant": convert_and_respect_annotation_metadata(object_=testset_variant, annotation=TestsetVariantEdit, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetVariantResponse,
                     parse_obj_as(
-                        type_=TestsetVariantResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetVariantResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def archive_testset_variant(
-        self,
-        testset_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TestsetVariantResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def archive_testset_variant(self, testset_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TestsetVariantResponse]:
         """
         Parameters
         ----------
         testset_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[TestsetVariantResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"testsets/variants/{jsonable_encoder(testset_variant_id)}/archive",
-            method="POST",
-            request_options=request_options,
-        )
+            f"testsets/variants/{jsonable_encoder(testset_variant_id)}/archive",method="POST",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetVariantResponse,
                     parse_obj_as(
-                        type_=TestsetVariantResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetVariantResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def unarchive_testset_variant(
-        self,
-        testset_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TestsetVariantResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def unarchive_testset_variant(self, testset_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TestsetVariantResponse]:
         """
         Parameters
         ----------
         testset_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[TestsetVariantResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"testsets/variants/{jsonable_encoder(testset_variant_id)}/unarchive",
-            method="POST",
-            request_options=request_options,
-        )
+            f"testsets/variants/{jsonable_encoder(testset_variant_id)}/unarchive",method="POST",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetVariantResponse,
                     parse_obj_as(
-                        type_=TestsetVariantResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetVariantResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def query_testset_variants(
-        self,
-        *,
-        testset_variant: typing.Optional[TestsetVariantQuery] = OMIT,
-        testset_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        testset_variant_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TestsetVariantsResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def query_testset_variants(self, *, testset_variant: typing.Optional[TestsetVariantQuery] = OMIT, testset_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, testset_variant_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TestsetVariantsResponse]:
         """
         Parameters
         ----------
         testset_variant : typing.Optional[TestsetVariantQuery]
-
+        
         testset_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         testset_variant_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[TestsetVariantsResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "testsets/variants/query",
-            method="POST",
+            "testsets/variants/query",method="POST",
             json={
-                "testset_variant": convert_and_respect_annotation_metadata(
-                    object_=testset_variant,
-                    annotation=typing.Optional[TestsetVariantQuery],
-                    direction="write",
-                ),
-                "testset_refs": convert_and_respect_annotation_metadata(
-                    object_=testset_refs,
-                    annotation=typing.Optional[typing.Sequence[Reference]],
-                    direction="write",
-                ),
-                "testset_variant_refs": convert_and_respect_annotation_metadata(
-                    object_=testset_variant_refs,
-                    annotation=typing.Optional[typing.Sequence[Reference]],
-                    direction="write",
-                ),
+                "testset_variant": convert_and_respect_annotation_metadata(object_=testset_variant, annotation=typing.Optional[TestsetVariantQuery], direction="write"),
+                "testset_refs": convert_and_respect_annotation_metadata(object_=testset_refs, annotation=typing.Optional[typing.Sequence[Reference]], direction="write"),
+                "testset_variant_refs": convert_and_respect_annotation_metadata(object_=testset_variant_refs, annotation=typing.Optional[typing.Sequence[Reference]], direction="write"),
                 "include_archived": include_archived,
-                "windowing": convert_and_respect_annotation_metadata(
-                    object_=windowing,
-                    annotation=typing.Optional[Windowing],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetVariantsResponse,
                     parse_obj_as(
-                        type_=TestsetVariantsResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetVariantsResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def create_testset_revision(
-        self,
-        *,
-        testset_revision: TestsetRevisionCreate,
-        include_testcases: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TestsetRevisionResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def create_testset_revision(self, *, testset_revision: TestsetRevisionCreate, include_testcases: typing.Optional[bool] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TestsetRevisionResponse]:
         """
         Parameters
         ----------
         testset_revision : TestsetRevisionCreate
-
+        
         include_testcases : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[TestsetRevisionResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "testsets/revisions/",
-            method="POST",
+            "testsets/revisions/",method="POST",
             json={
-                "testset_revision": convert_and_respect_annotation_metadata(
-                    object_=testset_revision,
-                    annotation=TestsetRevisionCreate,
-                    direction="write",
-                ),
+                "testset_revision": convert_and_respect_annotation_metadata(object_=testset_revision, annotation=TestsetRevisionCreate, direction="write"),
                 "include_testcases": include_testcases,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetRevisionResponse,
                     parse_obj_as(
-                        type_=TestsetRevisionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetRevisionResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def fetch_testset_revision(
-        self,
-        testset_revision_id: str,
-        *,
-        include_testcases: typing.Optional[bool] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TestsetRevisionResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def fetch_testset_revision(self, testset_revision_id: str, *, include_testcases: typing.Optional[bool] = None, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TestsetRevisionResponse]:
         """
         Parameters
         ----------
         testset_revision_id : str
-
+        
         include_testcases : typing.Optional[bool]
             Include full testcase objects. Default (null/true): include testcases. False: return only testcase IDs.
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[TestsetRevisionResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"testsets/revisions/{jsonable_encoder(testset_revision_id)}",
-            method="GET",
-            params={
-                "include_testcases": include_testcases,
-            },
-            request_options=request_options,
-        )
+            f"testsets/revisions/{jsonable_encoder(testset_revision_id)}",method="GET",
+            params={"include_testcases": include_testcases, }
+            ,
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetRevisionResponse,
                     parse_obj_as(
-                        type_=TestsetRevisionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetRevisionResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def edit_testset_revision(
-        self,
-        testset_revision_id: str,
-        *,
-        testset_revision: TestsetRevisionEdit,
-        include_testcases: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TestsetRevisionResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def edit_testset_revision(self, testset_revision_id: str, *, testset_revision: TestsetRevisionEdit, include_testcases: typing.Optional[bool] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TestsetRevisionResponse]:
         """
         Parameters
         ----------
         testset_revision_id : str
-
+        
         testset_revision : TestsetRevisionEdit
-
+        
         include_testcases : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[TestsetRevisionResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"testsets/revisions/{jsonable_encoder(testset_revision_id)}",
-            method="PUT",
+            f"testsets/revisions/{jsonable_encoder(testset_revision_id)}",method="PUT",
             json={
-                "testset_revision": convert_and_respect_annotation_metadata(
-                    object_=testset_revision,
-                    annotation=TestsetRevisionEdit,
-                    direction="write",
-                ),
+                "testset_revision": convert_and_respect_annotation_metadata(object_=testset_revision, annotation=TestsetRevisionEdit, direction="write"),
                 "include_testcases": include_testcases,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetRevisionResponse,
                     parse_obj_as(
-                        type_=TestsetRevisionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetRevisionResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def archive_testset_revision(
-        self,
-        testset_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TestsetRevisionResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def archive_testset_revision(self, testset_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TestsetRevisionResponse]:
         """
         Parameters
         ----------
         testset_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[TestsetRevisionResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"testsets/revisions/{jsonable_encoder(testset_revision_id)}/archive",
-            method="POST",
-            request_options=request_options,
-        )
+            f"testsets/revisions/{jsonable_encoder(testset_revision_id)}/archive",method="POST",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetRevisionResponse,
                     parse_obj_as(
-                        type_=TestsetRevisionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetRevisionResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def unarchive_testset_revision(
-        self,
-        testset_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TestsetRevisionResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def unarchive_testset_revision(self, testset_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TestsetRevisionResponse]:
         """
         Parameters
         ----------
         testset_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[TestsetRevisionResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"testsets/revisions/{jsonable_encoder(testset_revision_id)}/unarchive",
-            method="POST",
-            request_options=request_options,
-        )
+            f"testsets/revisions/{jsonable_encoder(testset_revision_id)}/unarchive",method="POST",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetRevisionResponse,
                     parse_obj_as(
-                        type_=TestsetRevisionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetRevisionResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def fetch_testset_revision_to_file(
-        self,
-        testset_revision_id: str,
-        *,
-        file_type: typing.Optional[FetchTestsetRevisionToFileRequestFileType] = None,
-        file_name: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[typing.Any]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def fetch_testset_revision_to_file(self, testset_revision_id: str, *, file_type: typing.Optional[FetchTestsetRevisionToFileRequestFileType] = None, file_name: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[typing.Any]:
         """
         Parameters
         ----------
         testset_revision_id : str
-
+        
         file_type : typing.Optional[FetchTestsetRevisionToFileRequestFileType]
             File type to download. Supported: 'csv' or 'json'. Default: 'csv'.
-
+        
         file_name : typing.Optional[str]
             Optional custom filename for the download.
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[typing.Any]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"testsets/revisions/{jsonable_encoder(testset_revision_id)}/download",
-            method="POST",
-            params={
-                "file_type": file_type,
-                "file_name": file_name,
-            },
-            request_options=request_options,
-        )
+            f"testsets/revisions/{jsonable_encoder(testset_revision_id)}/download",method="POST",
+            params={"file_type": file_type, "file_name": file_name, }
+            ,
+            request_options=request_options,)
         try:
             if _response is None or not _response.text.strip():
                 return HttpResponse(response=_response, data=None)
@@ -1252,76 +859,57 @@ class RawTestsetsClient:
                 _data = typing.cast(
                     typing.Any,
                     parse_obj_as(
-                        type_=typing.Any,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =typing.Any,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def create_testset_revision_from_file(
-        self,
-        testset_revision_id: str,
-        *,
-        file: core.File,
-        file_type: typing.Optional[CreateTestsetRevisionFromFileRequestFileType] = OMIT,
-        include_testcases: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TestsetRevisionResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def create_testset_revision_from_file(self, testset_revision_id: str, *, file: core.File, file_type: typing.Optional[CreateTestsetRevisionFromFileRequestFileType] = OMIT, include_testcases: typing.Optional[bool] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TestsetRevisionResponse]:
         """
         Parameters
         ----------
         testset_revision_id : str
-
+        
         file : core.File
             See core.File for more documentation
-
+        
         file_type : typing.Optional[CreateTestsetRevisionFromFileRequestFileType]
-
+        
         include_testcases : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[TestsetRevisionResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"testsets/revisions/{jsonable_encoder(testset_revision_id)}/upload",
-            method="POST",
+            f"testsets/revisions/{jsonable_encoder(testset_revision_id)}/upload",method="POST",
             data={
                 "file_type": file_type,
                 "include_testcases": include_testcases,
-            },
+            }
+            ,
             files={
                 "file": file,
-            },
-            request_options=request_options,
-            omit=OMIT,
+            }
+            ,
+            request_options=request_options,omit=OMIT,
             force_multipart=True,
         )
         try:
@@ -1329,761 +917,513 @@ class RawTestsetsClient:
                 _data = typing.cast(
                     TestsetRevisionResponse,
                     parse_obj_as(
-                        type_=TestsetRevisionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetRevisionResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def query_testset_revisions(
-        self,
-        *,
-        testset_revision: typing.Optional[TestsetRevisionQuery] = OMIT,
-        testset_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        testset_variant_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        testset_revision_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        include_testcases: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TestsetRevisionsResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def query_testset_revisions(self, *, testset_revision: typing.Optional[TestsetRevisionQuery] = OMIT, testset_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, testset_variant_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, testset_revision_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, include_archived: typing.Optional[bool] = OMIT, include_testcases: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TestsetRevisionsResponse]:
         """
         Parameters
         ----------
         testset_revision : typing.Optional[TestsetRevisionQuery]
-
+        
         testset_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         testset_variant_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         testset_revision_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         include_testcases : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[TestsetRevisionsResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "testsets/revisions/query",
-            method="POST",
+            "testsets/revisions/query",method="POST",
             json={
-                "testset_revision": convert_and_respect_annotation_metadata(
-                    object_=testset_revision,
-                    annotation=typing.Optional[TestsetRevisionQuery],
-                    direction="write",
-                ),
-                "testset_refs": convert_and_respect_annotation_metadata(
-                    object_=testset_refs,
-                    annotation=typing.Optional[typing.Sequence[Reference]],
-                    direction="write",
-                ),
-                "testset_variant_refs": convert_and_respect_annotation_metadata(
-                    object_=testset_variant_refs,
-                    annotation=typing.Optional[typing.Sequence[Reference]],
-                    direction="write",
-                ),
-                "testset_revision_refs": convert_and_respect_annotation_metadata(
-                    object_=testset_revision_refs,
-                    annotation=typing.Optional[typing.Sequence[Reference]],
-                    direction="write",
-                ),
+                "testset_revision": convert_and_respect_annotation_metadata(object_=testset_revision, annotation=typing.Optional[TestsetRevisionQuery], direction="write"),
+                "testset_refs": convert_and_respect_annotation_metadata(object_=testset_refs, annotation=typing.Optional[typing.Sequence[Reference]], direction="write"),
+                "testset_variant_refs": convert_and_respect_annotation_metadata(object_=testset_variant_refs, annotation=typing.Optional[typing.Sequence[Reference]], direction="write"),
+                "testset_revision_refs": convert_and_respect_annotation_metadata(object_=testset_revision_refs, annotation=typing.Optional[typing.Sequence[Reference]], direction="write"),
                 "include_archived": include_archived,
                 "include_testcases": include_testcases,
-                "windowing": convert_and_respect_annotation_metadata(
-                    object_=windowing,
-                    annotation=typing.Optional[Windowing],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetRevisionsResponse,
                     parse_obj_as(
-                        type_=TestsetRevisionsResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetRevisionsResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def commit_testset_revision(
-        self,
-        *,
-        testset_revision_commit: TestsetRevisionCommit,
-        include_testcases: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TestsetRevisionResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def commit_testset_revision(self, *, testset_revision_commit: TestsetRevisionCommit, include_testcases: typing.Optional[bool] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TestsetRevisionResponse]:
         """
         Parameters
         ----------
         testset_revision_commit : TestsetRevisionCommit
-
+        
         include_testcases : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[TestsetRevisionResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "testsets/revisions/commit",
-            method="POST",
+            "testsets/revisions/commit",method="POST",
             json={
-                "testset_revision_commit": convert_and_respect_annotation_metadata(
-                    object_=testset_revision_commit,
-                    annotation=TestsetRevisionCommit,
-                    direction="write",
-                ),
+                "testset_revision_commit": convert_and_respect_annotation_metadata(object_=testset_revision_commit, annotation=TestsetRevisionCommit, direction="write"),
                 "include_testcases": include_testcases,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetRevisionResponse,
                     parse_obj_as(
-                        type_=TestsetRevisionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetRevisionResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def retrieve_testset_revision(
-        self,
-        *,
-        testset_ref: typing.Optional[Reference] = OMIT,
-        testset_variant_ref: typing.Optional[Reference] = OMIT,
-        testset_revision_ref: typing.Optional[Reference] = OMIT,
-        include_testcase_ids: typing.Optional[bool] = OMIT,
-        include_testcases: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TestsetRevisionResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def retrieve_testset_revision(self, *, testset_ref: typing.Optional[Reference] = OMIT, testset_variant_ref: typing.Optional[Reference] = OMIT, testset_revision_ref: typing.Optional[Reference] = OMIT, include_testcase_ids: typing.Optional[bool] = OMIT, include_testcases: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TestsetRevisionResponse]:
         """
         Parameters
         ----------
         testset_ref : typing.Optional[Reference]
-
+        
         testset_variant_ref : typing.Optional[Reference]
-
+        
         testset_revision_ref : typing.Optional[Reference]
-
+        
         include_testcase_ids : typing.Optional[bool]
-
+        
         include_testcases : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[TestsetRevisionResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "testsets/revisions/retrieve",
-            method="POST",
+            "testsets/revisions/retrieve",method="POST",
             json={
-                "testset_ref": convert_and_respect_annotation_metadata(
-                    object_=testset_ref,
-                    annotation=typing.Optional[Reference],
-                    direction="write",
-                ),
-                "testset_variant_ref": convert_and_respect_annotation_metadata(
-                    object_=testset_variant_ref,
-                    annotation=typing.Optional[Reference],
-                    direction="write",
-                ),
-                "testset_revision_ref": convert_and_respect_annotation_metadata(
-                    object_=testset_revision_ref,
-                    annotation=typing.Optional[Reference],
-                    direction="write",
-                ),
+                "testset_ref": convert_and_respect_annotation_metadata(object_=testset_ref, annotation=typing.Optional[Reference], direction="write"),
+                "testset_variant_ref": convert_and_respect_annotation_metadata(object_=testset_variant_ref, annotation=typing.Optional[Reference], direction="write"),
+                "testset_revision_ref": convert_and_respect_annotation_metadata(object_=testset_revision_ref, annotation=typing.Optional[Reference], direction="write"),
                 "include_testcase_ids": include_testcase_ids,
                 "include_testcases": include_testcases,
-                "windowing": convert_and_respect_annotation_metadata(
-                    object_=windowing,
-                    annotation=typing.Optional[Windowing],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetRevisionResponse,
                     parse_obj_as(
-                        type_=TestsetRevisionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetRevisionResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def log_testset_revisions(
-        self,
-        *,
-        testset_revision: TestsetRevisionsLog,
-        include_testcases: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TestsetRevisionsResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def log_testset_revisions(self, *, testset_revision: TestsetRevisionsLog, include_testcases: typing.Optional[bool] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TestsetRevisionsResponse]:
         """
         Parameters
         ----------
         testset_revision : TestsetRevisionsLog
-
+        
         include_testcases : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[TestsetRevisionsResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "testsets/revisions/log",
-            method="POST",
+            "testsets/revisions/log",method="POST",
             json={
-                "testset_revision": convert_and_respect_annotation_metadata(
-                    object_=testset_revision,
-                    annotation=TestsetRevisionsLog,
-                    direction="write",
-                ),
+                "testset_revision": convert_and_respect_annotation_metadata(object_=testset_revision, annotation=TestsetRevisionsLog, direction="write"),
                 "include_testcases": include_testcases,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetRevisionsResponse,
                     parse_obj_as(
-                        type_=TestsetRevisionsResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetRevisionsResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def create_simple_testset(
-        self,
-        *,
-        testset: SimpleTestsetCreate,
-        testset_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[SimpleTestsetResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def create_simple_testset(self, *, testset: SimpleTestsetCreate, testset_id: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[SimpleTestsetResponse]:
         """
         Parameters
         ----------
         testset : SimpleTestsetCreate
-
+        
         testset_id : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[SimpleTestsetResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "simple/testsets/",
-            method="POST",
-            params={
-                "testset_id": testset_id,
-            },
+            "simple/testsets/",method="POST",
+            params={"testset_id": testset_id, }
+            ,
             json={
-                "testset": convert_and_respect_annotation_metadata(
-                    object_=testset, annotation=SimpleTestsetCreate, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "testset": convert_and_respect_annotation_metadata(object_=testset, annotation=SimpleTestsetCreate, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     SimpleTestsetResponse,
                     parse_obj_as(
-                        type_=SimpleTestsetResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =SimpleTestsetResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def fetch_simple_testset(
-        self,
-        testset_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[SimpleTestsetResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def fetch_simple_testset(self, testset_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[SimpleTestsetResponse]:
         """
         Parameters
         ----------
         testset_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[SimpleTestsetResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"simple/testsets/{jsonable_encoder(testset_id)}",
-            method="GET",
-            request_options=request_options,
-        )
+            f"simple/testsets/{jsonable_encoder(testset_id)}",method="GET",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     SimpleTestsetResponse,
                     parse_obj_as(
-                        type_=SimpleTestsetResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =SimpleTestsetResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def edit_simple_testset(
-        self,
-        testset_id: str,
-        *,
-        testset: SimpleTestsetEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[SimpleTestsetResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def edit_simple_testset(self, testset_id: str, *, testset: SimpleTestsetEdit, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[SimpleTestsetResponse]:
         """
         Parameters
         ----------
         testset_id : str
-
+        
         testset : SimpleTestsetEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[SimpleTestsetResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"simple/testsets/{jsonable_encoder(testset_id)}",
-            method="PUT",
+            f"simple/testsets/{jsonable_encoder(testset_id)}",method="PUT",
             json={
-                "testset": convert_and_respect_annotation_metadata(
-                    object_=testset, annotation=SimpleTestsetEdit, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "testset": convert_and_respect_annotation_metadata(object_=testset, annotation=SimpleTestsetEdit, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     SimpleTestsetResponse,
                     parse_obj_as(
-                        type_=SimpleTestsetResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =SimpleTestsetResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def archive_simple_testset(
-        self,
-        testset_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[SimpleTestsetResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def archive_simple_testset(self, testset_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[SimpleTestsetResponse]:
         """
         Parameters
         ----------
         testset_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[SimpleTestsetResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"simple/testsets/{jsonable_encoder(testset_id)}/archive",
-            method="POST",
-            request_options=request_options,
-        )
+            f"simple/testsets/{jsonable_encoder(testset_id)}/archive",method="POST",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     SimpleTestsetResponse,
                     parse_obj_as(
-                        type_=SimpleTestsetResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =SimpleTestsetResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def unarchive_simple_testset(
-        self,
-        testset_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[SimpleTestsetResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def unarchive_simple_testset(self, testset_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[SimpleTestsetResponse]:
         """
         Parameters
         ----------
         testset_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[SimpleTestsetResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"simple/testsets/{jsonable_encoder(testset_id)}/unarchive",
-            method="POST",
-            request_options=request_options,
-        )
+            f"simple/testsets/{jsonable_encoder(testset_id)}/unarchive",method="POST",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     SimpleTestsetResponse,
                     parse_obj_as(
-                        type_=SimpleTestsetResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =SimpleTestsetResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def edit_simple_testset_from_file(
-        self,
-        testset_id: str,
-        *,
-        file: core.File,
-        file_type: typing.Optional[EditSimpleTestsetFromFileRequestFileType] = OMIT,
-        testset_name: typing.Optional[str] = OMIT,
-        testset_description: typing.Optional[str] = OMIT,
-        testset_tags: typing.Optional[str] = OMIT,
-        testset_meta: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[SimpleTestsetResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def edit_simple_testset_from_file(self, testset_id: str, *, file: core.File, file_type: typing.Optional[EditSimpleTestsetFromFileRequestFileType] = OMIT, testset_name: typing.Optional[str] = OMIT, testset_description: typing.Optional[str] = OMIT, testset_tags: typing.Optional[str] = OMIT, testset_meta: typing.Optional[str] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[SimpleTestsetResponse]:
         """
         Parameters
         ----------
         testset_id : str
-
+        
         file : core.File
             See core.File for more documentation
-
+        
         file_type : typing.Optional[EditSimpleTestsetFromFileRequestFileType]
-
+        
         testset_name : typing.Optional[str]
-
+        
         testset_description : typing.Optional[str]
-
+        
         testset_tags : typing.Optional[str]
-
+        
         testset_meta : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[SimpleTestsetResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"simple/testsets/{jsonable_encoder(testset_id)}/upload",
-            method="POST",
+            f"simple/testsets/{jsonable_encoder(testset_id)}/upload",method="POST",
             data={
                 "file_type": file_type,
                 "testset_name": testset_name,
                 "testset_description": testset_description,
                 "testset_tags": testset_tags,
                 "testset_meta": testset_meta,
-            },
+            }
+            ,
             files={
                 "file": file,
-            },
-            request_options=request_options,
-            omit=OMIT,
+            }
+            ,
+            request_options=request_options,omit=OMIT,
             force_multipart=True,
         )
         try:
@@ -2091,69 +1431,47 @@ class RawTestsetsClient:
                 _data = typing.cast(
                     SimpleTestsetResponse,
                     parse_obj_as(
-                        type_=SimpleTestsetResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =SimpleTestsetResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def fetch_simple_testset_to_file(
-        self,
-        testset_id: str,
-        *,
-        file_type: typing.Optional[FetchSimpleTestsetToFileRequestFileType] = None,
-        file_name: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[typing.Any]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def fetch_simple_testset_to_file(self, testset_id: str, *, file_type: typing.Optional[FetchSimpleTestsetToFileRequestFileType] = None, file_name: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[typing.Any]:
         """
         Parameters
         ----------
         testset_id : str
-
+        
         file_type : typing.Optional[FetchSimpleTestsetToFileRequestFileType]
-
+        
         file_name : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[typing.Any]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"simple/testsets/{jsonable_encoder(testset_id)}/download",
-            method="POST",
-            params={
-                "file_type": file_type,
-                "file_name": file_name,
-            },
-            request_options=request_options,
-        )
+            f"simple/testsets/{jsonable_encoder(testset_id)}/download",method="POST",
+            params={"file_type": file_type, "file_name": file_name, }
+            ,
+            request_options=request_options,)
         try:
             if _response is None or not _response.text.strip():
                 return HttpResponse(response=_response, data=None)
@@ -2161,165 +1479,109 @@ class RawTestsetsClient:
                 _data = typing.cast(
                     typing.Any,
                     parse_obj_as(
-                        type_=typing.Any,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =typing.Any,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def query_simple_testsets(
-        self,
-        *,
-        testset: typing.Optional[SimpleTestsetQuery] = OMIT,
-        testset_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[SimpleTestsetsResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def query_simple_testsets(self, *, testset: typing.Optional[SimpleTestsetQuery] = OMIT, testset_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[SimpleTestsetsResponse]:
         """
         Parameters
         ----------
         testset : typing.Optional[SimpleTestsetQuery]
-
+        
         testset_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[SimpleTestsetsResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "simple/testsets/query",
-            method="POST",
+            "simple/testsets/query",method="POST",
             json={
-                "testset": convert_and_respect_annotation_metadata(
-                    object_=testset,
-                    annotation=typing.Optional[SimpleTestsetQuery],
-                    direction="write",
-                ),
-                "testset_refs": convert_and_respect_annotation_metadata(
-                    object_=testset_refs,
-                    annotation=typing.Optional[typing.Sequence[Reference]],
-                    direction="write",
-                ),
+                "testset": convert_and_respect_annotation_metadata(object_=testset, annotation=typing.Optional[SimpleTestsetQuery], direction="write"),
+                "testset_refs": convert_and_respect_annotation_metadata(object_=testset_refs, annotation=typing.Optional[typing.Sequence[Reference]], direction="write"),
                 "include_archived": include_archived,
-                "windowing": convert_and_respect_annotation_metadata(
-                    object_=windowing,
-                    annotation=typing.Optional[Windowing],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     SimpleTestsetsResponse,
                     parse_obj_as(
-                        type_=SimpleTestsetsResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =SimpleTestsetsResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def create_simple_testset_from_file(
-        self,
-        *,
-        file: core.File,
-        file_type: typing.Optional[CreateSimpleTestsetFromFileRequestFileType] = OMIT,
-        testset_slug: typing.Optional[str] = OMIT,
-        testset_name: typing.Optional[str] = OMIT,
-        testset_description: typing.Optional[str] = OMIT,
-        testset_tags: typing.Optional[str] = OMIT,
-        testset_meta: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[SimpleTestsetResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def create_simple_testset_from_file(self, *, file: core.File, file_type: typing.Optional[CreateSimpleTestsetFromFileRequestFileType] = OMIT, testset_slug: typing.Optional[str] = OMIT, testset_name: typing.Optional[str] = OMIT, testset_description: typing.Optional[str] = OMIT, testset_tags: typing.Optional[str] = OMIT, testset_meta: typing.Optional[str] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[SimpleTestsetResponse]:
         """
         Parameters
         ----------
         file : core.File
             See core.File for more documentation
-
+        
         file_type : typing.Optional[CreateSimpleTestsetFromFileRequestFileType]
-
+        
         testset_slug : typing.Optional[str]
-
+        
         testset_name : typing.Optional[str]
-
+        
         testset_description : typing.Optional[str]
-
+        
         testset_tags : typing.Optional[str]
-
+        
         testset_meta : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[SimpleTestsetResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "simple/testsets/upload",
-            method="POST",
+            "simple/testsets/upload",method="POST",
             data={
                 "file_type": file_type,
                 "testset_slug": testset_slug,
@@ -2327,12 +1589,13 @@ class RawTestsetsClient:
                 "testset_description": testset_description,
                 "testset_tags": testset_tags,
                 "testset_meta": testset_meta,
-            },
+            }
+            ,
             files={
                 "file": file,
-            },
-            request_options=request_options,
-            omit=OMIT,
+            }
+            ,
+            request_options=request_options,omit=OMIT,
             force_multipart=True,
         )
         try:
@@ -2340,1224 +1603,830 @@ class RawTestsetsClient:
                 _data = typing.cast(
                     SimpleTestsetResponse,
                     parse_obj_as(
-                        type_=SimpleTestsetResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =SimpleTestsetResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 class AsyncRawTestsetsClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._client_wrapper = client_wrapper
-
-    async def create_testset(
-        self,
-        *,
-        testset: TestsetCreate,
-        testset_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TestsetResponse]:
+    
+    async def create_testset(self, *, testset: TestsetCreate, testset_id: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TestsetResponse]:
         """
         Parameters
         ----------
         testset : TestsetCreate
-
+        
         testset_id : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[TestsetResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "testsets/",
-            method="POST",
-            params={
-                "testset_id": testset_id,
-            },
+            "testsets/",method="POST",
+            params={"testset_id": testset_id, }
+            ,
             json={
-                "testset": convert_and_respect_annotation_metadata(
-                    object_=testset, annotation=TestsetCreate, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "testset": convert_and_respect_annotation_metadata(object_=testset, annotation=TestsetCreate, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetResponse,
                     parse_obj_as(
-                        type_=TestsetResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def fetch_testset(
-        self,
-        testset_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TestsetResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def fetch_testset(self, testset_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TestsetResponse]:
         """
         Parameters
         ----------
         testset_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[TestsetResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"testsets/{jsonable_encoder(testset_id)}",
-            method="GET",
-            request_options=request_options,
-        )
+            f"testsets/{jsonable_encoder(testset_id)}",method="GET",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetResponse,
                     parse_obj_as(
-                        type_=TestsetResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def edit_testset(
-        self,
-        testset_id: str,
-        *,
-        testset: TestsetEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TestsetResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def edit_testset(self, testset_id: str, *, testset: TestsetEdit, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TestsetResponse]:
         """
         Parameters
         ----------
         testset_id : str
-
+        
         testset : TestsetEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[TestsetResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"testsets/{jsonable_encoder(testset_id)}",
-            method="PUT",
+            f"testsets/{jsonable_encoder(testset_id)}",method="PUT",
             json={
-                "testset": convert_and_respect_annotation_metadata(
-                    object_=testset, annotation=TestsetEdit, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "testset": convert_and_respect_annotation_metadata(object_=testset, annotation=TestsetEdit, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetResponse,
                     parse_obj_as(
-                        type_=TestsetResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def archive_testset(
-        self,
-        testset_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TestsetResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def archive_testset(self, testset_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TestsetResponse]:
         """
         Parameters
         ----------
         testset_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[TestsetResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"testsets/{jsonable_encoder(testset_id)}/archive",
-            method="POST",
-            request_options=request_options,
-        )
+            f"testsets/{jsonable_encoder(testset_id)}/archive",method="POST",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetResponse,
                     parse_obj_as(
-                        type_=TestsetResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def unarchive_testset(
-        self,
-        testset_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TestsetResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def unarchive_testset(self, testset_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TestsetResponse]:
         """
         Parameters
         ----------
         testset_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[TestsetResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"testsets/{jsonable_encoder(testset_id)}/unarchive",
-            method="POST",
-            request_options=request_options,
-        )
+            f"testsets/{jsonable_encoder(testset_id)}/unarchive",method="POST",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetResponse,
                     parse_obj_as(
-                        type_=TestsetResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def query_testsets(
-        self,
-        *,
-        testset: typing.Optional[TestsetQuery] = OMIT,
-        testset_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TestsetsResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def query_testsets(self, *, testset: typing.Optional[TestsetQuery] = OMIT, testset_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TestsetsResponse]:
         """
         Parameters
         ----------
         testset : typing.Optional[TestsetQuery]
-
+        
         testset_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[TestsetsResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "testsets/query",
-            method="POST",
+            "testsets/query",method="POST",
             json={
-                "testset": convert_and_respect_annotation_metadata(
-                    object_=testset,
-                    annotation=typing.Optional[TestsetQuery],
-                    direction="write",
-                ),
-                "testset_refs": convert_and_respect_annotation_metadata(
-                    object_=testset_refs,
-                    annotation=typing.Optional[typing.Sequence[Reference]],
-                    direction="write",
-                ),
+                "testset": convert_and_respect_annotation_metadata(object_=testset, annotation=typing.Optional[TestsetQuery], direction="write"),
+                "testset_refs": convert_and_respect_annotation_metadata(object_=testset_refs, annotation=typing.Optional[typing.Sequence[Reference]], direction="write"),
                 "include_archived": include_archived,
-                "windowing": convert_and_respect_annotation_metadata(
-                    object_=windowing,
-                    annotation=typing.Optional[Windowing],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetsResponse,
                     parse_obj_as(
-                        type_=TestsetsResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetsResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def create_testset_variant(
-        self,
-        *,
-        testset_variant: TestsetVariantCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TestsetVariantResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def create_testset_variant(self, *, testset_variant: TestsetVariantCreate, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TestsetVariantResponse]:
         """
         Parameters
         ----------
         testset_variant : TestsetVariantCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[TestsetVariantResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "testsets/variants/",
-            method="POST",
+            "testsets/variants/",method="POST",
             json={
-                "testset_variant": convert_and_respect_annotation_metadata(
-                    object_=testset_variant,
-                    annotation=TestsetVariantCreate,
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "testset_variant": convert_and_respect_annotation_metadata(object_=testset_variant, annotation=TestsetVariantCreate, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetVariantResponse,
                     parse_obj_as(
-                        type_=TestsetVariantResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetVariantResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def fetch_testset_variant(
-        self,
-        testset_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TestsetVariantResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def fetch_testset_variant(self, testset_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TestsetVariantResponse]:
         """
         Parameters
         ----------
         testset_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[TestsetVariantResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"testsets/variants/{jsonable_encoder(testset_variant_id)}",
-            method="GET",
-            request_options=request_options,
-        )
+            f"testsets/variants/{jsonable_encoder(testset_variant_id)}",method="GET",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetVariantResponse,
                     parse_obj_as(
-                        type_=TestsetVariantResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetVariantResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def edit_testset_variant(
-        self,
-        testset_variant_id: str,
-        *,
-        testset_variant: TestsetVariantEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TestsetVariantResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def edit_testset_variant(self, testset_variant_id: str, *, testset_variant: TestsetVariantEdit, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TestsetVariantResponse]:
         """
         Parameters
         ----------
         testset_variant_id : str
-
+        
         testset_variant : TestsetVariantEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[TestsetVariantResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"testsets/variants/{jsonable_encoder(testset_variant_id)}",
-            method="PUT",
+            f"testsets/variants/{jsonable_encoder(testset_variant_id)}",method="PUT",
             json={
-                "testset_variant": convert_and_respect_annotation_metadata(
-                    object_=testset_variant,
-                    annotation=TestsetVariantEdit,
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "testset_variant": convert_and_respect_annotation_metadata(object_=testset_variant, annotation=TestsetVariantEdit, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetVariantResponse,
                     parse_obj_as(
-                        type_=TestsetVariantResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetVariantResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def archive_testset_variant(
-        self,
-        testset_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TestsetVariantResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def archive_testset_variant(self, testset_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TestsetVariantResponse]:
         """
         Parameters
         ----------
         testset_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[TestsetVariantResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"testsets/variants/{jsonable_encoder(testset_variant_id)}/archive",
-            method="POST",
-            request_options=request_options,
-        )
+            f"testsets/variants/{jsonable_encoder(testset_variant_id)}/archive",method="POST",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetVariantResponse,
                     parse_obj_as(
-                        type_=TestsetVariantResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetVariantResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def unarchive_testset_variant(
-        self,
-        testset_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TestsetVariantResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def unarchive_testset_variant(self, testset_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TestsetVariantResponse]:
         """
         Parameters
         ----------
         testset_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[TestsetVariantResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"testsets/variants/{jsonable_encoder(testset_variant_id)}/unarchive",
-            method="POST",
-            request_options=request_options,
-        )
+            f"testsets/variants/{jsonable_encoder(testset_variant_id)}/unarchive",method="POST",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetVariantResponse,
                     parse_obj_as(
-                        type_=TestsetVariantResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetVariantResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def query_testset_variants(
-        self,
-        *,
-        testset_variant: typing.Optional[TestsetVariantQuery] = OMIT,
-        testset_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        testset_variant_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TestsetVariantsResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def query_testset_variants(self, *, testset_variant: typing.Optional[TestsetVariantQuery] = OMIT, testset_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, testset_variant_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TestsetVariantsResponse]:
         """
         Parameters
         ----------
         testset_variant : typing.Optional[TestsetVariantQuery]
-
+        
         testset_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         testset_variant_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[TestsetVariantsResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "testsets/variants/query",
-            method="POST",
+            "testsets/variants/query",method="POST",
             json={
-                "testset_variant": convert_and_respect_annotation_metadata(
-                    object_=testset_variant,
-                    annotation=typing.Optional[TestsetVariantQuery],
-                    direction="write",
-                ),
-                "testset_refs": convert_and_respect_annotation_metadata(
-                    object_=testset_refs,
-                    annotation=typing.Optional[typing.Sequence[Reference]],
-                    direction="write",
-                ),
-                "testset_variant_refs": convert_and_respect_annotation_metadata(
-                    object_=testset_variant_refs,
-                    annotation=typing.Optional[typing.Sequence[Reference]],
-                    direction="write",
-                ),
+                "testset_variant": convert_and_respect_annotation_metadata(object_=testset_variant, annotation=typing.Optional[TestsetVariantQuery], direction="write"),
+                "testset_refs": convert_and_respect_annotation_metadata(object_=testset_refs, annotation=typing.Optional[typing.Sequence[Reference]], direction="write"),
+                "testset_variant_refs": convert_and_respect_annotation_metadata(object_=testset_variant_refs, annotation=typing.Optional[typing.Sequence[Reference]], direction="write"),
                 "include_archived": include_archived,
-                "windowing": convert_and_respect_annotation_metadata(
-                    object_=windowing,
-                    annotation=typing.Optional[Windowing],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetVariantsResponse,
                     parse_obj_as(
-                        type_=TestsetVariantsResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetVariantsResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def create_testset_revision(
-        self,
-        *,
-        testset_revision: TestsetRevisionCreate,
-        include_testcases: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TestsetRevisionResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def create_testset_revision(self, *, testset_revision: TestsetRevisionCreate, include_testcases: typing.Optional[bool] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TestsetRevisionResponse]:
         """
         Parameters
         ----------
         testset_revision : TestsetRevisionCreate
-
+        
         include_testcases : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[TestsetRevisionResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "testsets/revisions/",
-            method="POST",
+            "testsets/revisions/",method="POST",
             json={
-                "testset_revision": convert_and_respect_annotation_metadata(
-                    object_=testset_revision,
-                    annotation=TestsetRevisionCreate,
-                    direction="write",
-                ),
+                "testset_revision": convert_and_respect_annotation_metadata(object_=testset_revision, annotation=TestsetRevisionCreate, direction="write"),
                 "include_testcases": include_testcases,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetRevisionResponse,
                     parse_obj_as(
-                        type_=TestsetRevisionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetRevisionResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def fetch_testset_revision(
-        self,
-        testset_revision_id: str,
-        *,
-        include_testcases: typing.Optional[bool] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TestsetRevisionResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def fetch_testset_revision(self, testset_revision_id: str, *, include_testcases: typing.Optional[bool] = None, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TestsetRevisionResponse]:
         """
         Parameters
         ----------
         testset_revision_id : str
-
+        
         include_testcases : typing.Optional[bool]
             Include full testcase objects. Default (null/true): include testcases. False: return only testcase IDs.
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[TestsetRevisionResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"testsets/revisions/{jsonable_encoder(testset_revision_id)}",
-            method="GET",
-            params={
-                "include_testcases": include_testcases,
-            },
-            request_options=request_options,
-        )
+            f"testsets/revisions/{jsonable_encoder(testset_revision_id)}",method="GET",
+            params={"include_testcases": include_testcases, }
+            ,
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetRevisionResponse,
                     parse_obj_as(
-                        type_=TestsetRevisionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetRevisionResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def edit_testset_revision(
-        self,
-        testset_revision_id: str,
-        *,
-        testset_revision: TestsetRevisionEdit,
-        include_testcases: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TestsetRevisionResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def edit_testset_revision(self, testset_revision_id: str, *, testset_revision: TestsetRevisionEdit, include_testcases: typing.Optional[bool] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TestsetRevisionResponse]:
         """
         Parameters
         ----------
         testset_revision_id : str
-
+        
         testset_revision : TestsetRevisionEdit
-
+        
         include_testcases : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[TestsetRevisionResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"testsets/revisions/{jsonable_encoder(testset_revision_id)}",
-            method="PUT",
+            f"testsets/revisions/{jsonable_encoder(testset_revision_id)}",method="PUT",
             json={
-                "testset_revision": convert_and_respect_annotation_metadata(
-                    object_=testset_revision,
-                    annotation=TestsetRevisionEdit,
-                    direction="write",
-                ),
+                "testset_revision": convert_and_respect_annotation_metadata(object_=testset_revision, annotation=TestsetRevisionEdit, direction="write"),
                 "include_testcases": include_testcases,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetRevisionResponse,
                     parse_obj_as(
-                        type_=TestsetRevisionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetRevisionResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def archive_testset_revision(
-        self,
-        testset_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TestsetRevisionResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def archive_testset_revision(self, testset_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TestsetRevisionResponse]:
         """
         Parameters
         ----------
         testset_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[TestsetRevisionResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"testsets/revisions/{jsonable_encoder(testset_revision_id)}/archive",
-            method="POST",
-            request_options=request_options,
-        )
+            f"testsets/revisions/{jsonable_encoder(testset_revision_id)}/archive",method="POST",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetRevisionResponse,
                     parse_obj_as(
-                        type_=TestsetRevisionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetRevisionResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def unarchive_testset_revision(
-        self,
-        testset_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TestsetRevisionResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def unarchive_testset_revision(self, testset_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TestsetRevisionResponse]:
         """
         Parameters
         ----------
         testset_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[TestsetRevisionResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"testsets/revisions/{jsonable_encoder(testset_revision_id)}/unarchive",
-            method="POST",
-            request_options=request_options,
-        )
+            f"testsets/revisions/{jsonable_encoder(testset_revision_id)}/unarchive",method="POST",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetRevisionResponse,
                     parse_obj_as(
-                        type_=TestsetRevisionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetRevisionResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def fetch_testset_revision_to_file(
-        self,
-        testset_revision_id: str,
-        *,
-        file_type: typing.Optional[FetchTestsetRevisionToFileRequestFileType] = None,
-        file_name: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[typing.Any]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def fetch_testset_revision_to_file(self, testset_revision_id: str, *, file_type: typing.Optional[FetchTestsetRevisionToFileRequestFileType] = None, file_name: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[typing.Any]:
         """
         Parameters
         ----------
         testset_revision_id : str
-
+        
         file_type : typing.Optional[FetchTestsetRevisionToFileRequestFileType]
             File type to download. Supported: 'csv' or 'json'. Default: 'csv'.
-
+        
         file_name : typing.Optional[str]
             Optional custom filename for the download.
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[typing.Any]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"testsets/revisions/{jsonable_encoder(testset_revision_id)}/download",
-            method="POST",
-            params={
-                "file_type": file_type,
-                "file_name": file_name,
-            },
-            request_options=request_options,
-        )
+            f"testsets/revisions/{jsonable_encoder(testset_revision_id)}/download",method="POST",
+            params={"file_type": file_type, "file_name": file_name, }
+            ,
+            request_options=request_options,)
         try:
             if _response is None or not _response.text.strip():
                 return AsyncHttpResponse(response=_response, data=None)
@@ -3565,76 +2434,57 @@ class AsyncRawTestsetsClient:
                 _data = typing.cast(
                     typing.Any,
                     parse_obj_as(
-                        type_=typing.Any,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =typing.Any,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def create_testset_revision_from_file(
-        self,
-        testset_revision_id: str,
-        *,
-        file: core.File,
-        file_type: typing.Optional[CreateTestsetRevisionFromFileRequestFileType] = OMIT,
-        include_testcases: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TestsetRevisionResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def create_testset_revision_from_file(self, testset_revision_id: str, *, file: core.File, file_type: typing.Optional[CreateTestsetRevisionFromFileRequestFileType] = OMIT, include_testcases: typing.Optional[bool] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TestsetRevisionResponse]:
         """
         Parameters
         ----------
         testset_revision_id : str
-
+        
         file : core.File
             See core.File for more documentation
-
+        
         file_type : typing.Optional[CreateTestsetRevisionFromFileRequestFileType]
-
+        
         include_testcases : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[TestsetRevisionResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"testsets/revisions/{jsonable_encoder(testset_revision_id)}/upload",
-            method="POST",
+            f"testsets/revisions/{jsonable_encoder(testset_revision_id)}/upload",method="POST",
             data={
                 "file_type": file_type,
                 "include_testcases": include_testcases,
-            },
+            }
+            ,
             files={
                 "file": file,
-            },
-            request_options=request_options,
-            omit=OMIT,
+            }
+            ,
+            request_options=request_options,omit=OMIT,
             force_multipart=True,
         )
         try:
@@ -3642,761 +2492,513 @@ class AsyncRawTestsetsClient:
                 _data = typing.cast(
                     TestsetRevisionResponse,
                     parse_obj_as(
-                        type_=TestsetRevisionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetRevisionResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def query_testset_revisions(
-        self,
-        *,
-        testset_revision: typing.Optional[TestsetRevisionQuery] = OMIT,
-        testset_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        testset_variant_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        testset_revision_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        include_testcases: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TestsetRevisionsResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def query_testset_revisions(self, *, testset_revision: typing.Optional[TestsetRevisionQuery] = OMIT, testset_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, testset_variant_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, testset_revision_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, include_archived: typing.Optional[bool] = OMIT, include_testcases: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TestsetRevisionsResponse]:
         """
         Parameters
         ----------
         testset_revision : typing.Optional[TestsetRevisionQuery]
-
+        
         testset_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         testset_variant_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         testset_revision_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         include_testcases : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[TestsetRevisionsResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "testsets/revisions/query",
-            method="POST",
+            "testsets/revisions/query",method="POST",
             json={
-                "testset_revision": convert_and_respect_annotation_metadata(
-                    object_=testset_revision,
-                    annotation=typing.Optional[TestsetRevisionQuery],
-                    direction="write",
-                ),
-                "testset_refs": convert_and_respect_annotation_metadata(
-                    object_=testset_refs,
-                    annotation=typing.Optional[typing.Sequence[Reference]],
-                    direction="write",
-                ),
-                "testset_variant_refs": convert_and_respect_annotation_metadata(
-                    object_=testset_variant_refs,
-                    annotation=typing.Optional[typing.Sequence[Reference]],
-                    direction="write",
-                ),
-                "testset_revision_refs": convert_and_respect_annotation_metadata(
-                    object_=testset_revision_refs,
-                    annotation=typing.Optional[typing.Sequence[Reference]],
-                    direction="write",
-                ),
+                "testset_revision": convert_and_respect_annotation_metadata(object_=testset_revision, annotation=typing.Optional[TestsetRevisionQuery], direction="write"),
+                "testset_refs": convert_and_respect_annotation_metadata(object_=testset_refs, annotation=typing.Optional[typing.Sequence[Reference]], direction="write"),
+                "testset_variant_refs": convert_and_respect_annotation_metadata(object_=testset_variant_refs, annotation=typing.Optional[typing.Sequence[Reference]], direction="write"),
+                "testset_revision_refs": convert_and_respect_annotation_metadata(object_=testset_revision_refs, annotation=typing.Optional[typing.Sequence[Reference]], direction="write"),
                 "include_archived": include_archived,
                 "include_testcases": include_testcases,
-                "windowing": convert_and_respect_annotation_metadata(
-                    object_=windowing,
-                    annotation=typing.Optional[Windowing],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetRevisionsResponse,
                     parse_obj_as(
-                        type_=TestsetRevisionsResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetRevisionsResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def commit_testset_revision(
-        self,
-        *,
-        testset_revision_commit: TestsetRevisionCommit,
-        include_testcases: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TestsetRevisionResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def commit_testset_revision(self, *, testset_revision_commit: TestsetRevisionCommit, include_testcases: typing.Optional[bool] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TestsetRevisionResponse]:
         """
         Parameters
         ----------
         testset_revision_commit : TestsetRevisionCommit
-
+        
         include_testcases : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[TestsetRevisionResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "testsets/revisions/commit",
-            method="POST",
+            "testsets/revisions/commit",method="POST",
             json={
-                "testset_revision_commit": convert_and_respect_annotation_metadata(
-                    object_=testset_revision_commit,
-                    annotation=TestsetRevisionCommit,
-                    direction="write",
-                ),
+                "testset_revision_commit": convert_and_respect_annotation_metadata(object_=testset_revision_commit, annotation=TestsetRevisionCommit, direction="write"),
                 "include_testcases": include_testcases,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetRevisionResponse,
                     parse_obj_as(
-                        type_=TestsetRevisionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetRevisionResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def retrieve_testset_revision(
-        self,
-        *,
-        testset_ref: typing.Optional[Reference] = OMIT,
-        testset_variant_ref: typing.Optional[Reference] = OMIT,
-        testset_revision_ref: typing.Optional[Reference] = OMIT,
-        include_testcase_ids: typing.Optional[bool] = OMIT,
-        include_testcases: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TestsetRevisionResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def retrieve_testset_revision(self, *, testset_ref: typing.Optional[Reference] = OMIT, testset_variant_ref: typing.Optional[Reference] = OMIT, testset_revision_ref: typing.Optional[Reference] = OMIT, include_testcase_ids: typing.Optional[bool] = OMIT, include_testcases: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TestsetRevisionResponse]:
         """
         Parameters
         ----------
         testset_ref : typing.Optional[Reference]
-
+        
         testset_variant_ref : typing.Optional[Reference]
-
+        
         testset_revision_ref : typing.Optional[Reference]
-
+        
         include_testcase_ids : typing.Optional[bool]
-
+        
         include_testcases : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[TestsetRevisionResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "testsets/revisions/retrieve",
-            method="POST",
+            "testsets/revisions/retrieve",method="POST",
             json={
-                "testset_ref": convert_and_respect_annotation_metadata(
-                    object_=testset_ref,
-                    annotation=typing.Optional[Reference],
-                    direction="write",
-                ),
-                "testset_variant_ref": convert_and_respect_annotation_metadata(
-                    object_=testset_variant_ref,
-                    annotation=typing.Optional[Reference],
-                    direction="write",
-                ),
-                "testset_revision_ref": convert_and_respect_annotation_metadata(
-                    object_=testset_revision_ref,
-                    annotation=typing.Optional[Reference],
-                    direction="write",
-                ),
+                "testset_ref": convert_and_respect_annotation_metadata(object_=testset_ref, annotation=typing.Optional[Reference], direction="write"),
+                "testset_variant_ref": convert_and_respect_annotation_metadata(object_=testset_variant_ref, annotation=typing.Optional[Reference], direction="write"),
+                "testset_revision_ref": convert_and_respect_annotation_metadata(object_=testset_revision_ref, annotation=typing.Optional[Reference], direction="write"),
                 "include_testcase_ids": include_testcase_ids,
                 "include_testcases": include_testcases,
-                "windowing": convert_and_respect_annotation_metadata(
-                    object_=windowing,
-                    annotation=typing.Optional[Windowing],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetRevisionResponse,
                     parse_obj_as(
-                        type_=TestsetRevisionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetRevisionResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def log_testset_revisions(
-        self,
-        *,
-        testset_revision: TestsetRevisionsLog,
-        include_testcases: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TestsetRevisionsResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def log_testset_revisions(self, *, testset_revision: TestsetRevisionsLog, include_testcases: typing.Optional[bool] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TestsetRevisionsResponse]:
         """
         Parameters
         ----------
         testset_revision : TestsetRevisionsLog
-
+        
         include_testcases : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[TestsetRevisionsResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "testsets/revisions/log",
-            method="POST",
+            "testsets/revisions/log",method="POST",
             json={
-                "testset_revision": convert_and_respect_annotation_metadata(
-                    object_=testset_revision,
-                    annotation=TestsetRevisionsLog,
-                    direction="write",
-                ),
+                "testset_revision": convert_and_respect_annotation_metadata(object_=testset_revision, annotation=TestsetRevisionsLog, direction="write"),
                 "include_testcases": include_testcases,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestsetRevisionsResponse,
                     parse_obj_as(
-                        type_=TestsetRevisionsResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestsetRevisionsResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def create_simple_testset(
-        self,
-        *,
-        testset: SimpleTestsetCreate,
-        testset_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[SimpleTestsetResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def create_simple_testset(self, *, testset: SimpleTestsetCreate, testset_id: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[SimpleTestsetResponse]:
         """
         Parameters
         ----------
         testset : SimpleTestsetCreate
-
+        
         testset_id : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[SimpleTestsetResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "simple/testsets/",
-            method="POST",
-            params={
-                "testset_id": testset_id,
-            },
+            "simple/testsets/",method="POST",
+            params={"testset_id": testset_id, }
+            ,
             json={
-                "testset": convert_and_respect_annotation_metadata(
-                    object_=testset, annotation=SimpleTestsetCreate, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "testset": convert_and_respect_annotation_metadata(object_=testset, annotation=SimpleTestsetCreate, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     SimpleTestsetResponse,
                     parse_obj_as(
-                        type_=SimpleTestsetResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =SimpleTestsetResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def fetch_simple_testset(
-        self,
-        testset_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[SimpleTestsetResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def fetch_simple_testset(self, testset_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[SimpleTestsetResponse]:
         """
         Parameters
         ----------
         testset_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[SimpleTestsetResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"simple/testsets/{jsonable_encoder(testset_id)}",
-            method="GET",
-            request_options=request_options,
-        )
+            f"simple/testsets/{jsonable_encoder(testset_id)}",method="GET",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     SimpleTestsetResponse,
                     parse_obj_as(
-                        type_=SimpleTestsetResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =SimpleTestsetResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def edit_simple_testset(
-        self,
-        testset_id: str,
-        *,
-        testset: SimpleTestsetEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[SimpleTestsetResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def edit_simple_testset(self, testset_id: str, *, testset: SimpleTestsetEdit, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[SimpleTestsetResponse]:
         """
         Parameters
         ----------
         testset_id : str
-
+        
         testset : SimpleTestsetEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[SimpleTestsetResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"simple/testsets/{jsonable_encoder(testset_id)}",
-            method="PUT",
+            f"simple/testsets/{jsonable_encoder(testset_id)}",method="PUT",
             json={
-                "testset": convert_and_respect_annotation_metadata(
-                    object_=testset, annotation=SimpleTestsetEdit, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "testset": convert_and_respect_annotation_metadata(object_=testset, annotation=SimpleTestsetEdit, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     SimpleTestsetResponse,
                     parse_obj_as(
-                        type_=SimpleTestsetResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =SimpleTestsetResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def archive_simple_testset(
-        self,
-        testset_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[SimpleTestsetResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def archive_simple_testset(self, testset_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[SimpleTestsetResponse]:
         """
         Parameters
         ----------
         testset_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[SimpleTestsetResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"simple/testsets/{jsonable_encoder(testset_id)}/archive",
-            method="POST",
-            request_options=request_options,
-        )
+            f"simple/testsets/{jsonable_encoder(testset_id)}/archive",method="POST",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     SimpleTestsetResponse,
                     parse_obj_as(
-                        type_=SimpleTestsetResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =SimpleTestsetResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def unarchive_simple_testset(
-        self,
-        testset_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[SimpleTestsetResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def unarchive_simple_testset(self, testset_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[SimpleTestsetResponse]:
         """
         Parameters
         ----------
         testset_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[SimpleTestsetResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"simple/testsets/{jsonable_encoder(testset_id)}/unarchive",
-            method="POST",
-            request_options=request_options,
-        )
+            f"simple/testsets/{jsonable_encoder(testset_id)}/unarchive",method="POST",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     SimpleTestsetResponse,
                     parse_obj_as(
-                        type_=SimpleTestsetResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =SimpleTestsetResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def edit_simple_testset_from_file(
-        self,
-        testset_id: str,
-        *,
-        file: core.File,
-        file_type: typing.Optional[EditSimpleTestsetFromFileRequestFileType] = OMIT,
-        testset_name: typing.Optional[str] = OMIT,
-        testset_description: typing.Optional[str] = OMIT,
-        testset_tags: typing.Optional[str] = OMIT,
-        testset_meta: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[SimpleTestsetResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def edit_simple_testset_from_file(self, testset_id: str, *, file: core.File, file_type: typing.Optional[EditSimpleTestsetFromFileRequestFileType] = OMIT, testset_name: typing.Optional[str] = OMIT, testset_description: typing.Optional[str] = OMIT, testset_tags: typing.Optional[str] = OMIT, testset_meta: typing.Optional[str] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[SimpleTestsetResponse]:
         """
         Parameters
         ----------
         testset_id : str
-
+        
         file : core.File
             See core.File for more documentation
-
+        
         file_type : typing.Optional[EditSimpleTestsetFromFileRequestFileType]
-
+        
         testset_name : typing.Optional[str]
-
+        
         testset_description : typing.Optional[str]
-
+        
         testset_tags : typing.Optional[str]
-
+        
         testset_meta : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[SimpleTestsetResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"simple/testsets/{jsonable_encoder(testset_id)}/upload",
-            method="POST",
+            f"simple/testsets/{jsonable_encoder(testset_id)}/upload",method="POST",
             data={
                 "file_type": file_type,
                 "testset_name": testset_name,
                 "testset_description": testset_description,
                 "testset_tags": testset_tags,
                 "testset_meta": testset_meta,
-            },
+            }
+            ,
             files={
                 "file": file,
-            },
-            request_options=request_options,
-            omit=OMIT,
+            }
+            ,
+            request_options=request_options,omit=OMIT,
             force_multipart=True,
         )
         try:
@@ -4404,69 +3006,47 @@ class AsyncRawTestsetsClient:
                 _data = typing.cast(
                     SimpleTestsetResponse,
                     parse_obj_as(
-                        type_=SimpleTestsetResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =SimpleTestsetResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def fetch_simple_testset_to_file(
-        self,
-        testset_id: str,
-        *,
-        file_type: typing.Optional[FetchSimpleTestsetToFileRequestFileType] = None,
-        file_name: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[typing.Any]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def fetch_simple_testset_to_file(self, testset_id: str, *, file_type: typing.Optional[FetchSimpleTestsetToFileRequestFileType] = None, file_name: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[typing.Any]:
         """
         Parameters
         ----------
         testset_id : str
-
+        
         file_type : typing.Optional[FetchSimpleTestsetToFileRequestFileType]
-
+        
         file_name : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[typing.Any]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"simple/testsets/{jsonable_encoder(testset_id)}/download",
-            method="POST",
-            params={
-                "file_type": file_type,
-                "file_name": file_name,
-            },
-            request_options=request_options,
-        )
+            f"simple/testsets/{jsonable_encoder(testset_id)}/download",method="POST",
+            params={"file_type": file_type, "file_name": file_name, }
+            ,
+            request_options=request_options,)
         try:
             if _response is None or not _response.text.strip():
                 return AsyncHttpResponse(response=_response, data=None)
@@ -4474,165 +3054,109 @@ class AsyncRawTestsetsClient:
                 _data = typing.cast(
                     typing.Any,
                     parse_obj_as(
-                        type_=typing.Any,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =typing.Any,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def query_simple_testsets(
-        self,
-        *,
-        testset: typing.Optional[SimpleTestsetQuery] = OMIT,
-        testset_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[SimpleTestsetsResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def query_simple_testsets(self, *, testset: typing.Optional[SimpleTestsetQuery] = OMIT, testset_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[SimpleTestsetsResponse]:
         """
         Parameters
         ----------
         testset : typing.Optional[SimpleTestsetQuery]
-
+        
         testset_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[SimpleTestsetsResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "simple/testsets/query",
-            method="POST",
+            "simple/testsets/query",method="POST",
             json={
-                "testset": convert_and_respect_annotation_metadata(
-                    object_=testset,
-                    annotation=typing.Optional[SimpleTestsetQuery],
-                    direction="write",
-                ),
-                "testset_refs": convert_and_respect_annotation_metadata(
-                    object_=testset_refs,
-                    annotation=typing.Optional[typing.Sequence[Reference]],
-                    direction="write",
-                ),
+                "testset": convert_and_respect_annotation_metadata(object_=testset, annotation=typing.Optional[SimpleTestsetQuery], direction="write"),
+                "testset_refs": convert_and_respect_annotation_metadata(object_=testset_refs, annotation=typing.Optional[typing.Sequence[Reference]], direction="write"),
                 "include_archived": include_archived,
-                "windowing": convert_and_respect_annotation_metadata(
-                    object_=windowing,
-                    annotation=typing.Optional[Windowing],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     SimpleTestsetsResponse,
                     parse_obj_as(
-                        type_=SimpleTestsetsResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =SimpleTestsetsResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def create_simple_testset_from_file(
-        self,
-        *,
-        file: core.File,
-        file_type: typing.Optional[CreateSimpleTestsetFromFileRequestFileType] = OMIT,
-        testset_slug: typing.Optional[str] = OMIT,
-        testset_name: typing.Optional[str] = OMIT,
-        testset_description: typing.Optional[str] = OMIT,
-        testset_tags: typing.Optional[str] = OMIT,
-        testset_meta: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[SimpleTestsetResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def create_simple_testset_from_file(self, *, file: core.File, file_type: typing.Optional[CreateSimpleTestsetFromFileRequestFileType] = OMIT, testset_slug: typing.Optional[str] = OMIT, testset_name: typing.Optional[str] = OMIT, testset_description: typing.Optional[str] = OMIT, testset_tags: typing.Optional[str] = OMIT, testset_meta: typing.Optional[str] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[SimpleTestsetResponse]:
         """
         Parameters
         ----------
         file : core.File
             See core.File for more documentation
-
+        
         file_type : typing.Optional[CreateSimpleTestsetFromFileRequestFileType]
-
+        
         testset_slug : typing.Optional[str]
-
+        
         testset_name : typing.Optional[str]
-
+        
         testset_description : typing.Optional[str]
-
+        
         testset_tags : typing.Optional[str]
-
+        
         testset_meta : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[SimpleTestsetResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "simple/testsets/upload",
-            method="POST",
+            "simple/testsets/upload",method="POST",
             data={
                 "file_type": file_type,
                 "testset_slug": testset_slug,
@@ -4640,12 +3164,13 @@ class AsyncRawTestsetsClient:
                 "testset_description": testset_description,
                 "testset_tags": testset_tags,
                 "testset_meta": testset_meta,
-            },
+            }
+            ,
             files={
                 "file": file,
-            },
-            request_options=request_options,
-            omit=OMIT,
+            }
+            ,
+            request_options=request_options,omit=OMIT,
             force_multipart=True,
         )
         try:
@@ -4653,31 +3178,20 @@ class AsyncRawTestsetsClient:
                 _data = typing.cast(
                     SimpleTestsetResponse,
                     parse_obj_as(
-                        type_=SimpleTestsetResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =SimpleTestsetResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)

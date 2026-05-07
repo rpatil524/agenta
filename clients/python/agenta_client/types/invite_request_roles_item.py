@@ -2,7 +2,4 @@
 
 import typing
 
-InviteRequestRolesItem = typing.Union[
-    typing.Literal["owner", "admin", "developer", "editor", "annotator", "viewer"],
-    typing.Any,
-]
+InviteRequestRolesItem = typing.Union[typing.Literal["owner", "admin", "developer", "editor", "annotator", "viewer"], typing.Any]

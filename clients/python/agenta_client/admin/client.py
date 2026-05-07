@@ -12,15 +12,11 @@ from ..types.admin_accounts_response_dto import AdminAccountsResponseDto
 from ..types.admin_api_key_create_dto import AdminApiKeyCreateDto
 from ..types.admin_delete_response_dto import AdminDeleteResponseDto
 from ..types.admin_organization_create_dto import AdminOrganizationCreateDto
-from ..types.admin_organization_membership_create_dto import (
-    AdminOrganizationMembershipCreateDto,
-)
+from ..types.admin_organization_membership_create_dto import AdminOrganizationMembershipCreateDto
 from ..types.admin_project_create_dto import AdminProjectCreateDto
 from ..types.admin_project_membership_create_dto import AdminProjectMembershipCreateDto
 from ..types.admin_simple_account_create_dto import AdminSimpleAccountCreateDto
-from ..types.admin_simple_account_delete_entry_dto import (
-    AdminSimpleAccountDeleteEntryDto,
-)
+from ..types.admin_simple_account_delete_entry_dto import AdminSimpleAccountDeleteEntryDto
 from ..types.admin_simple_accounts_organizations_transfer_ownership_response_dto import (
     AdminSimpleAccountsOrganizationsTransferOwnershipResponseDto,
 )
@@ -29,9 +25,7 @@ from ..types.admin_subscription_create_dto import AdminSubscriptionCreateDto
 from ..types.admin_user_create_dto import AdminUserCreateDto
 from ..types.admin_user_identity_create_dto import AdminUserIdentityCreateDto
 from ..types.admin_workspace_create_dto import AdminWorkspaceCreateDto
-from ..types.admin_workspace_membership_create_dto import (
-    AdminWorkspaceMembershipCreateDto,
-)
+from ..types.admin_workspace_membership_create_dto import AdminWorkspaceMembershipCreateDto
 from ..types.entity_ref import EntityRef
 from ..types.plan import Plan
 from .raw_client import AsyncRawAdminClient, RawAdminClient
@@ -44,46 +38,39 @@ from .types.admin_simple_accounts_organizations_transfer_ownership_dto_include_w
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
-
-
 class AdminClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._raw_client = RawAdminClient(client_wrapper=client_wrapper)
-
+    
     @property
     def with_raw_response(self) -> RawAdminClient:
         """
         Retrieves a raw implementation of this client that returns raw responses.
-
+        
         Returns
         -------
         RawAdminClient
         """
         return self._raw_client
-
-    def create_portal(
-        self,
-        *,
-        organization_id: str,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Any:
+    
+    def create_portal(self, *, organization_id: str, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
         """
         Parameters
         ----------
         organization_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         typing.Any
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -91,40 +78,31 @@ class AdminClient:
             organization_id="organization_id",
         )
         """
-        _response = self._raw_client.create_portal(
-            organization_id=organization_id, request_options=request_options
-        )
+        _response = self._raw_client.create_portal(organization_id=organization_id, request_options=request_options)
         return _response.data
-
-    def create_checkout(
-        self,
-        *,
-        organization_id: str,
-        plan: Plan,
-        success_url: str,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Any:
+    
+    def create_checkout(self, *, organization_id: str, plan: Plan, success_url: str, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
         """
         Parameters
         ----------
         organization_id : str
-
+        
         plan : Plan
-
+        
         success_url : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         typing.Any
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -134,40 +112,29 @@ class AdminClient:
             success_url="success_url",
         )
         """
-        _response = self._raw_client.create_checkout(
-            organization_id=organization_id,
-            plan=plan,
-            success_url=success_url,
-            request_options=request_options,
-        )
+        _response = self._raw_client.create_checkout(organization_id=organization_id, plan=plan, success_url=success_url, request_options=request_options)
         return _response.data
-
-    def switch_plans(
-        self,
-        *,
-        organization_id: str,
-        plan: Plan,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Any:
+    
+    def switch_plans(self, *, organization_id: str, plan: Plan, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
         """
         Parameters
         ----------
         organization_id : str
-
+        
         plan : Plan
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         typing.Any
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -176,34 +143,27 @@ class AdminClient:
             plan="cloud_v0_hobby",
         )
         """
-        _response = self._raw_client.switch_plans(
-            organization_id=organization_id, plan=plan, request_options=request_options
-        )
+        _response = self._raw_client.switch_plans(organization_id=organization_id, plan=plan, request_options=request_options)
         return _response.data
-
-    def cancel_subscription(
-        self,
-        *,
-        organization_id: str,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Any:
+    
+    def cancel_subscription(self, *, organization_id: str, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
         """
         Parameters
         ----------
         organization_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         typing.Any
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -211,29 +171,25 @@ class AdminClient:
             organization_id="organization_id",
         )
         """
-        _response = self._raw_client.cancel_subscription(
-            organization_id=organization_id, request_options=request_options
-        )
+        _response = self._raw_client.cancel_subscription(organization_id=organization_id, request_options=request_options)
         return _response.data
-
-    def report_usage(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> typing.Any:
+    
+    def report_usage(self, *, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
         """
         Parameters
         ----------
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         typing.Any
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -241,53 +197,47 @@ class AdminClient:
         """
         _response = self._raw_client.report_usage(request_options=request_options)
         return _response.data
-
-    def unlock_report_usage(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> typing.Any:
+    
+    def unlock_report_usage(self, *, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
         """
         Parameters
         ----------
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         typing.Any
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.admin.unlock_report_usage()
         """
-        _response = self._raw_client.unlock_report_usage(
-            request_options=request_options
-        )
+        _response = self._raw_client.unlock_report_usage(request_options=request_options)
         return _response.data
-
-    def flush_usage(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> typing.Any:
+    
+    def flush_usage(self, *, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
         """
         Parameters
         ----------
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         typing.Any
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -295,30 +245,25 @@ class AdminClient:
         """
         _response = self._raw_client.flush_usage(request_options=request_options)
         return _response.data
-
-    def create_account(
-        self,
-        *,
-        request: typing.Optional[AccountRequest] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AccountResponse:
+    
+    def create_account(self, *, request: typing.Optional[AccountRequest] = None, request_options: typing.Optional[RequestOptions] = None) -> AccountResponse:
         """
         Parameters
         ----------
         request : typing.Optional[AccountRequest]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AccountResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AccountRequest, AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -326,137 +271,79 @@ class AdminClient:
             request=AccountRequest(),
         )
         """
-        _response = self._raw_client.create_account(
-            request=request, request_options=request_options
-        )
+        _response = self._raw_client.create_account(request=request, request_options=request_options)
         return _response.data
-
-    def create_accounts(
-        self,
-        *,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        users: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminUserCreateDto]]
-        ] = OMIT,
-        user_identities: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminUserIdentityCreateDto]]
-        ] = OMIT,
-        organizations: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminOrganizationCreateDto]]
-        ] = OMIT,
-        workspaces: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminWorkspaceCreateDto]]
-        ] = OMIT,
-        projects: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminProjectCreateDto]]
-        ] = OMIT,
-        organization_memberships: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminOrganizationMembershipCreateDto]]
-        ] = OMIT,
-        workspace_memberships: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminWorkspaceMembershipCreateDto]]
-        ] = OMIT,
-        project_memberships: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminProjectMembershipCreateDto]]
-        ] = OMIT,
-        api_keys: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminApiKeyCreateDto]]
-        ] = OMIT,
-        subscriptions: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminSubscriptionCreateDto]]
-        ] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminAccountsResponseDto:
+    
+    def create_accounts(self, *, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, users: typing.Optional[typing.Dict[str, typing.Optional[AdminUserCreateDto]]] = OMIT, user_identities: typing.Optional[typing.Dict[str, typing.Optional[AdminUserIdentityCreateDto]]] = OMIT, organizations: typing.Optional[typing.Dict[str, typing.Optional[AdminOrganizationCreateDto]]] = OMIT, workspaces: typing.Optional[typing.Dict[str, typing.Optional[AdminWorkspaceCreateDto]]] = OMIT, projects: typing.Optional[typing.Dict[str, typing.Optional[AdminProjectCreateDto]]] = OMIT, organization_memberships: typing.Optional[typing.Dict[str, typing.Optional[AdminOrganizationMembershipCreateDto]]] = OMIT, workspace_memberships: typing.Optional[typing.Dict[str, typing.Optional[AdminWorkspaceMembershipCreateDto]]] = OMIT, project_memberships: typing.Optional[typing.Dict[str, typing.Optional[AdminProjectMembershipCreateDto]]] = OMIT, api_keys: typing.Optional[typing.Dict[str, typing.Optional[AdminApiKeyCreateDto]]] = OMIT, subscriptions: typing.Optional[typing.Dict[str, typing.Optional[AdminSubscriptionCreateDto]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminAccountsResponseDto:
         """
         Parameters
         ----------
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         users : typing.Optional[typing.Dict[str, typing.Optional[AdminUserCreateDto]]]
-
+        
         user_identities : typing.Optional[typing.Dict[str, typing.Optional[AdminUserIdentityCreateDto]]]
-
+        
         organizations : typing.Optional[typing.Dict[str, typing.Optional[AdminOrganizationCreateDto]]]
-
+        
         workspaces : typing.Optional[typing.Dict[str, typing.Optional[AdminWorkspaceCreateDto]]]
-
+        
         projects : typing.Optional[typing.Dict[str, typing.Optional[AdminProjectCreateDto]]]
-
+        
         organization_memberships : typing.Optional[typing.Dict[str, typing.Optional[AdminOrganizationMembershipCreateDto]]]
-
+        
         workspace_memberships : typing.Optional[typing.Dict[str, typing.Optional[AdminWorkspaceMembershipCreateDto]]]
-
+        
         project_memberships : typing.Optional[typing.Dict[str, typing.Optional[AdminProjectMembershipCreateDto]]]
-
+        
         api_keys : typing.Optional[typing.Dict[str, typing.Optional[AdminApiKeyCreateDto]]]
-
+        
         subscriptions : typing.Optional[typing.Dict[str, typing.Optional[AdminSubscriptionCreateDto]]]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminAccountsResponseDto
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.admin.create_accounts()
         """
-        _response = self._raw_client.create_accounts(
-            options=options,
-            users=users,
-            user_identities=user_identities,
-            organizations=organizations,
-            workspaces=workspaces,
-            projects=projects,
-            organization_memberships=organization_memberships,
-            workspace_memberships=workspace_memberships,
-            project_memberships=project_memberships,
-            api_keys=api_keys,
-            subscriptions=subscriptions,
-            request_options=request_options,
-        )
+        _response = self._raw_client.create_accounts(options=options, users=users, user_identities=user_identities, organizations=organizations, workspaces=workspaces, projects=projects, organization_memberships=organization_memberships, workspace_memberships=workspace_memberships, project_memberships=project_memberships, api_keys=api_keys, subscriptions=subscriptions, request_options=request_options)
         return _response.data
-
-    def delete_accounts(
-        self,
-        *,
-        target: AdminAccountsDeleteTargetDto,
-        dry_run: typing.Optional[bool] = OMIT,
-        reason: typing.Optional[str] = OMIT,
-        confirm: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminDeleteResponseDto:
+    
+    def delete_accounts(self, *, target: AdminAccountsDeleteTargetDto, dry_run: typing.Optional[bool] = OMIT, reason: typing.Optional[str] = OMIT, confirm: typing.Optional[str] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminDeleteResponseDto:
         """
         Parameters
         ----------
         target : AdminAccountsDeleteTargetDto
-
+        
         dry_run : typing.Optional[bool]
-
+        
         reason : typing.Optional[str]
-
+        
         confirm : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminDeleteResponseDto
             Successful Response
-
+        
         Examples
         --------
         from agenta import AdminAccountsDeleteTargetDto, AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -464,41 +351,29 @@ class AdminClient:
             target=AdminAccountsDeleteTargetDto(),
         )
         """
-        _response = self._raw_client.delete_accounts(
-            target=target,
-            dry_run=dry_run,
-            reason=reason,
-            confirm=confirm,
-            request_options=request_options,
-        )
+        _response = self._raw_client.delete_accounts(target=target, dry_run=dry_run, reason=reason, confirm=confirm, request_options=request_options)
         return _response.data
-
-    def create_simple_accounts(
-        self,
-        *,
-        accounts: typing.Dict[str, AdminSimpleAccountCreateDto],
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminSimpleAccountsResponseDto:
+    
+    def create_simple_accounts(self, *, accounts: typing.Dict[str, AdminSimpleAccountCreateDto], options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminSimpleAccountsResponseDto:
         """
         Parameters
         ----------
         accounts : typing.Dict[str, AdminSimpleAccountCreateDto]
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminSimpleAccountsResponseDto
             Successful Response
-
+        
         Examples
         --------
         from agenta import AdminSimpleAccountCreateDto, AdminUserCreateDto, AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -512,42 +387,32 @@ class AdminClient:
             },
         )
         """
-        _response = self._raw_client.create_simple_accounts(
-            accounts=accounts, options=options, request_options=request_options
-        )
+        _response = self._raw_client.create_simple_accounts(accounts=accounts, options=options, request_options=request_options)
         return _response.data
-
-    def delete_simple_accounts(
-        self,
-        *,
-        accounts: typing.Dict[str, AdminSimpleAccountDeleteEntryDto],
-        dry_run: typing.Optional[bool] = OMIT,
-        reason: typing.Optional[str] = OMIT,
-        confirm: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> None:
+    
+    def delete_simple_accounts(self, *, accounts: typing.Dict[str, AdminSimpleAccountDeleteEntryDto], dry_run: typing.Optional[bool] = OMIT, reason: typing.Optional[str] = OMIT, confirm: typing.Optional[str] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
         Parameters
         ----------
         accounts : typing.Dict[str, AdminSimpleAccountDeleteEntryDto]
-
+        
         dry_run : typing.Optional[bool]
-
+        
         reason : typing.Optional[str]
-
+        
         confirm : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         None
-
+        
         Examples
         --------
         from agenta import AdminSimpleAccountDeleteEntryDto, AgentaApi, EntityRef
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -559,41 +424,29 @@ class AdminClient:
             },
         )
         """
-        _response = self._raw_client.delete_simple_accounts(
-            accounts=accounts,
-            dry_run=dry_run,
-            reason=reason,
-            confirm=confirm,
-            request_options=request_options,
-        )
+        _response = self._raw_client.delete_simple_accounts(accounts=accounts, dry_run=dry_run, reason=reason, confirm=confirm, request_options=request_options)
         return _response.data
-
-    def create_user(
-        self,
-        *,
-        user: AdminUserCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminAccountsResponseDto:
+    
+    def create_user(self, *, user: AdminUserCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminAccountsResponseDto:
         """
         Parameters
         ----------
         user : AdminUserCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminAccountsResponseDto
             Successful Response
-
+        
         Examples
         --------
         from agenta import AdminUserCreateDto, AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -603,40 +456,31 @@ class AdminClient:
             ),
         )
         """
-        _response = self._raw_client.create_user(
-            user=user, options=options, request_options=request_options
-        )
+        _response = self._raw_client.create_user(user=user, options=options, request_options=request_options)
         return _response.data
-
-    def create_user_identity(
-        self,
-        *,
-        user_ref: EntityRef,
-        user_identity: AdminUserIdentityCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminAccountsResponseDto:
+    
+    def create_user_identity(self, *, user_ref: EntityRef, user_identity: AdminUserIdentityCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminAccountsResponseDto:
         """
         Parameters
         ----------
         user_ref : EntityRef
-
+        
         user_identity : AdminUserIdentityCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminAccountsResponseDto
             Successful Response
-
+        
         Examples
         --------
         from agenta import AdminUserIdentityCreateDto, AgentaApi, EntityRef
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -648,40 +492,29 @@ class AdminClient:
             ),
         )
         """
-        _response = self._raw_client.create_user_identity(
-            user_ref=user_ref,
-            user_identity=user_identity,
-            options=options,
-            request_options=request_options,
-        )
+        _response = self._raw_client.create_user_identity(user_ref=user_ref, user_identity=user_identity, options=options, request_options=request_options)
         return _response.data
-
-    def delete_user_identity(
-        self,
-        user_id: str,
-        identity_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminDeleteResponseDto:
+    
+    def delete_user_identity(self, user_id: str, identity_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AdminDeleteResponseDto:
         """
         Parameters
         ----------
         user_id : str
-
+        
         identity_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminDeleteResponseDto
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -690,40 +523,31 @@ class AdminClient:
             identity_id="identity_id",
         )
         """
-        _response = self._raw_client.delete_user_identity(
-            user_id, identity_id, request_options=request_options
-        )
+        _response = self._raw_client.delete_user_identity(user_id, identity_id, request_options=request_options)
         return _response.data
-
-    def create_organization(
-        self,
-        *,
-        organization: AdminOrganizationCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        owner: typing.Optional[AdminUserCreateDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminAccountsResponseDto:
+    
+    def create_organization(self, *, organization: AdminOrganizationCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, owner: typing.Optional[AdminUserCreateDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminAccountsResponseDto:
         """
         Parameters
         ----------
         organization : AdminOrganizationCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         owner : typing.Optional[AdminUserCreateDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminAccountsResponseDto
             Successful Response
-
+        
         Examples
         --------
         from agenta import AdminOrganizationCreateDto, AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -733,37 +557,27 @@ class AdminClient:
             ),
         )
         """
-        _response = self._raw_client.create_organization(
-            organization=organization,
-            options=options,
-            owner=owner,
-            request_options=request_options,
-        )
+        _response = self._raw_client.create_organization(organization=organization, options=options, owner=owner, request_options=request_options)
         return _response.data
-
-    def delete_organization(
-        self,
-        organization_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminDeleteResponseDto:
+    
+    def delete_organization(self, organization_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AdminDeleteResponseDto:
         """
         Parameters
         ----------
         organization_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminDeleteResponseDto
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -771,37 +585,29 @@ class AdminClient:
             organization_id="organization_id",
         )
         """
-        _response = self._raw_client.delete_organization(
-            organization_id, request_options=request_options
-        )
+        _response = self._raw_client.delete_organization(organization_id, request_options=request_options)
         return _response.data
-
-    def create_organization_membership(
-        self,
-        *,
-        membership: AdminOrganizationMembershipCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminAccountsResponseDto:
+    
+    def create_organization_membership(self, *, membership: AdminOrganizationMembershipCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminAccountsResponseDto:
         """
         Parameters
         ----------
         membership : AdminOrganizationMembershipCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminAccountsResponseDto
             Successful Response
-
+        
         Examples
         --------
         from agenta import AdminOrganizationMembershipCreateDto, AgentaApi, EntityRef
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -813,37 +619,29 @@ class AdminClient:
             ),
         )
         """
-        _response = self._raw_client.create_organization_membership(
-            membership=membership, options=options, request_options=request_options
-        )
+        _response = self._raw_client.create_organization_membership(membership=membership, options=options, request_options=request_options)
         return _response.data
-
-    def delete_organization_membership(
-        self,
-        organization_id: str,
-        membership_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminDeleteResponseDto:
+    
+    def delete_organization_membership(self, organization_id: str, membership_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AdminDeleteResponseDto:
         """
         Parameters
         ----------
         organization_id : str
-
+        
         membership_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminDeleteResponseDto
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -852,37 +650,29 @@ class AdminClient:
             membership_id="membership_id",
         )
         """
-        _response = self._raw_client.delete_organization_membership(
-            organization_id, membership_id, request_options=request_options
-        )
+        _response = self._raw_client.delete_organization_membership(organization_id, membership_id, request_options=request_options)
         return _response.data
-
-    def create_workspace(
-        self,
-        *,
-        workspace: AdminWorkspaceCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminAccountsResponseDto:
+    
+    def create_workspace(self, *, workspace: AdminWorkspaceCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminAccountsResponseDto:
         """
         Parameters
         ----------
         workspace : AdminWorkspaceCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminAccountsResponseDto
             Successful Response
-
+        
         Examples
         --------
         from agenta import AdminWorkspaceCreateDto, AgentaApi, EntityRef
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -893,34 +683,27 @@ class AdminClient:
             ),
         )
         """
-        _response = self._raw_client.create_workspace(
-            workspace=workspace, options=options, request_options=request_options
-        )
+        _response = self._raw_client.create_workspace(workspace=workspace, options=options, request_options=request_options)
         return _response.data
-
-    def delete_workspace(
-        self,
-        workspace_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminDeleteResponseDto:
+    
+    def delete_workspace(self, workspace_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AdminDeleteResponseDto:
         """
         Parameters
         ----------
         workspace_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminDeleteResponseDto
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -928,37 +711,29 @@ class AdminClient:
             workspace_id="workspace_id",
         )
         """
-        _response = self._raw_client.delete_workspace(
-            workspace_id, request_options=request_options
-        )
+        _response = self._raw_client.delete_workspace(workspace_id, request_options=request_options)
         return _response.data
-
-    def create_workspace_membership(
-        self,
-        *,
-        membership: AdminWorkspaceMembershipCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminAccountsResponseDto:
+    
+    def create_workspace_membership(self, *, membership: AdminWorkspaceMembershipCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminAccountsResponseDto:
         """
         Parameters
         ----------
         membership : AdminWorkspaceMembershipCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminAccountsResponseDto
             Successful Response
-
+        
         Examples
         --------
         from agenta import AdminWorkspaceMembershipCreateDto, AgentaApi, EntityRef
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -970,37 +745,29 @@ class AdminClient:
             ),
         )
         """
-        _response = self._raw_client.create_workspace_membership(
-            membership=membership, options=options, request_options=request_options
-        )
+        _response = self._raw_client.create_workspace_membership(membership=membership, options=options, request_options=request_options)
         return _response.data
-
-    def delete_workspace_membership(
-        self,
-        workspace_id: str,
-        membership_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminDeleteResponseDto:
+    
+    def delete_workspace_membership(self, workspace_id: str, membership_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AdminDeleteResponseDto:
         """
         Parameters
         ----------
         workspace_id : str
-
+        
         membership_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminDeleteResponseDto
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1009,37 +776,29 @@ class AdminClient:
             membership_id="membership_id",
         )
         """
-        _response = self._raw_client.delete_workspace_membership(
-            workspace_id, membership_id, request_options=request_options
-        )
+        _response = self._raw_client.delete_workspace_membership(workspace_id, membership_id, request_options=request_options)
         return _response.data
-
-    def create_project(
-        self,
-        *,
-        project: AdminProjectCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminAccountsResponseDto:
+    
+    def create_project(self, *, project: AdminProjectCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminAccountsResponseDto:
         """
         Parameters
         ----------
         project : AdminProjectCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminAccountsResponseDto
             Successful Response
-
+        
         Examples
         --------
         from agenta import AdminProjectCreateDto, AgentaApi, EntityRef
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1051,34 +810,27 @@ class AdminClient:
             ),
         )
         """
-        _response = self._raw_client.create_project(
-            project=project, options=options, request_options=request_options
-        )
+        _response = self._raw_client.create_project(project=project, options=options, request_options=request_options)
         return _response.data
-
-    def delete_project(
-        self,
-        project_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminDeleteResponseDto:
+    
+    def delete_project(self, project_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AdminDeleteResponseDto:
         """
         Parameters
         ----------
         project_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminDeleteResponseDto
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1086,37 +838,29 @@ class AdminClient:
             project_id="project_id",
         )
         """
-        _response = self._raw_client.delete_project(
-            project_id, request_options=request_options
-        )
+        _response = self._raw_client.delete_project(project_id, request_options=request_options)
         return _response.data
-
-    def create_project_membership(
-        self,
-        *,
-        membership: AdminProjectMembershipCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminAccountsResponseDto:
+    
+    def create_project_membership(self, *, membership: AdminProjectMembershipCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminAccountsResponseDto:
         """
         Parameters
         ----------
         membership : AdminProjectMembershipCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminAccountsResponseDto
             Successful Response
-
+        
         Examples
         --------
         from agenta import AdminProjectMembershipCreateDto, AgentaApi, EntityRef
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1128,37 +872,29 @@ class AdminClient:
             ),
         )
         """
-        _response = self._raw_client.create_project_membership(
-            membership=membership, options=options, request_options=request_options
-        )
+        _response = self._raw_client.create_project_membership(membership=membership, options=options, request_options=request_options)
         return _response.data
-
-    def delete_project_membership(
-        self,
-        project_id: str,
-        membership_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminDeleteResponseDto:
+    
+    def delete_project_membership(self, project_id: str, membership_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AdminDeleteResponseDto:
         """
         Parameters
         ----------
         project_id : str
-
+        
         membership_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminDeleteResponseDto
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1167,37 +903,29 @@ class AdminClient:
             membership_id="membership_id",
         )
         """
-        _response = self._raw_client.delete_project_membership(
-            project_id, membership_id, request_options=request_options
-        )
+        _response = self._raw_client.delete_project_membership(project_id, membership_id, request_options=request_options)
         return _response.data
-
-    def create_api_key(
-        self,
-        *,
-        api_key: AdminApiKeyCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminAccountsResponseDto:
+    
+    def create_api_key(self, *, api_key: AdminApiKeyCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminAccountsResponseDto:
         """
         Parameters
         ----------
         api_key : AdminApiKeyCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminAccountsResponseDto
             Successful Response
-
+        
         Examples
         --------
         from agenta import AdminApiKeyCreateDto, AgentaApi, EntityRef
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1208,34 +936,27 @@ class AdminClient:
             ),
         )
         """
-        _response = self._raw_client.create_api_key(
-            api_key=api_key, options=options, request_options=request_options
-        )
+        _response = self._raw_client.create_api_key(api_key=api_key, options=options, request_options=request_options)
         return _response.data
-
-    def delete_api_key(
-        self,
-        api_key_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminDeleteResponseDto:
+    
+    def delete_api_key(self, api_key_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AdminDeleteResponseDto:
         """
         Parameters
         ----------
         api_key_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminDeleteResponseDto
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1243,33 +964,26 @@ class AdminClient:
             api_key_id="api_key_id",
         )
         """
-        _response = self._raw_client.delete_api_key(
-            api_key_id, request_options=request_options
-        )
+        _response = self._raw_client.delete_api_key(api_key_id, request_options=request_options)
         return _response.data
-
-    def reset_password(
-        self,
-        *,
-        user_identities: typing.Sequence[AdminUserIdentityCreateDto],
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> None:
+    
+    def reset_password(self, *, user_identities: typing.Sequence[AdminUserIdentityCreateDto], request_options: typing.Optional[RequestOptions] = None) -> None:
         """
         Parameters
         ----------
         user_identities : typing.Sequence[AdminUserIdentityCreateDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         None
-
+        
         Examples
         --------
         from agenta import AdminUserIdentityCreateDto, AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1282,55 +996,37 @@ class AdminClient:
             ],
         )
         """
-        _response = self._raw_client.reset_password(
-            user_identities=user_identities, request_options=request_options
-        )
+        _response = self._raw_client.reset_password(user_identities=user_identities, request_options=request_options)
         return _response.data
-
-    def transfer_ownership(
-        self,
-        *,
-        users: typing.Dict[str, EntityRef],
-        organizations: typing.Optional[
-            typing.Dict[str, typing.Optional[EntityRef]]
-        ] = OMIT,
-        include_workspaces: typing.Optional[
-            AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeWorkspaces
-        ] = OMIT,
-        include_projects: typing.Optional[
-            AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeProjects
-        ] = OMIT,
-        reason: typing.Optional[str] = OMIT,
-        recovery: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipResponseDto]:
+    
+    def transfer_ownership(self, *, users: typing.Dict[str, EntityRef], organizations: typing.Optional[typing.Dict[str, typing.Optional[EntityRef]]] = OMIT, include_workspaces: typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeWorkspaces] = OMIT, include_projects: typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeProjects] = OMIT, reason: typing.Optional[str] = OMIT, recovery: typing.Optional[bool] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipResponseDto]:
         """
         Parameters
         ----------
         users : typing.Dict[str, EntityRef]
-
+        
         organizations : typing.Optional[typing.Dict[str, typing.Optional[EntityRef]]]
-
+        
         include_workspaces : typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeWorkspaces]
-
+        
         include_projects : typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeProjects]
-
+        
         reason : typing.Optional[str]
-
+        
         recovery : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipResponseDto]
             Partial transfer — some orgs could not be transferred.
-
+        
         Examples
         --------
         from agenta import AgentaApi, EntityRef
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1338,562 +1034,435 @@ class AdminClient:
             users={"key": EntityRef()},
         )
         """
-        _response = self._raw_client.transfer_ownership(
-            users=users,
-            organizations=organizations,
-            include_workspaces=include_workspaces,
-            include_projects=include_projects,
-            reason=reason,
-            recovery=recovery,
-            request_options=request_options,
-        )
+        _response = self._raw_client.transfer_ownership(users=users, organizations=organizations, include_workspaces=include_workspaces, include_projects=include_projects, reason=reason, recovery=recovery, request_options=request_options)
         return _response.data
-
-
 class AsyncAdminClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._raw_client = AsyncRawAdminClient(client_wrapper=client_wrapper)
-
+    
     @property
     def with_raw_response(self) -> AsyncRawAdminClient:
         """
         Retrieves a raw implementation of this client that returns raw responses.
-
+        
         Returns
         -------
         AsyncRawAdminClient
         """
         return self._raw_client
-
-    async def create_portal(
-        self,
-        *,
-        organization_id: str,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Any:
+    
+    async def create_portal(self, *, organization_id: str, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
         """
         Parameters
         ----------
         organization_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         typing.Any
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.create_portal(
                 organization_id="organization_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_portal(
-            organization_id=organization_id, request_options=request_options
-        )
+        _response = await self._raw_client.create_portal(organization_id=organization_id, request_options=request_options)
         return _response.data
-
-    async def create_checkout(
-        self,
-        *,
-        organization_id: str,
-        plan: Plan,
-        success_url: str,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Any:
+    
+    async def create_checkout(self, *, organization_id: str, plan: Plan, success_url: str, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
         """
         Parameters
         ----------
         organization_id : str
-
+        
         plan : Plan
-
+        
         success_url : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         typing.Any
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.create_checkout(
                 organization_id="organization_id",
                 plan="cloud_v0_hobby",
                 success_url="success_url",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_checkout(
-            organization_id=organization_id,
-            plan=plan,
-            success_url=success_url,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.create_checkout(organization_id=organization_id, plan=plan, success_url=success_url, request_options=request_options)
         return _response.data
-
-    async def switch_plans(
-        self,
-        *,
-        organization_id: str,
-        plan: Plan,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Any:
+    
+    async def switch_plans(self, *, organization_id: str, plan: Plan, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
         """
         Parameters
         ----------
         organization_id : str
-
+        
         plan : Plan
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         typing.Any
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.switch_plans(
                 organization_id="organization_id",
                 plan="cloud_v0_hobby",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.switch_plans(
-            organization_id=organization_id, plan=plan, request_options=request_options
-        )
+        _response = await self._raw_client.switch_plans(organization_id=organization_id, plan=plan, request_options=request_options)
         return _response.data
-
-    async def cancel_subscription(
-        self,
-        *,
-        organization_id: str,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Any:
+    
+    async def cancel_subscription(self, *, organization_id: str, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
         """
         Parameters
         ----------
         organization_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         typing.Any
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.cancel_subscription(
                 organization_id="organization_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.cancel_subscription(
-            organization_id=organization_id, request_options=request_options
-        )
+        _response = await self._raw_client.cancel_subscription(organization_id=organization_id, request_options=request_options)
         return _response.data
-
-    async def report_usage(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> typing.Any:
+    
+    async def report_usage(self, *, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
         """
         Parameters
         ----------
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         typing.Any
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.report_usage()
-
-
+        
+        
         asyncio.run(main())
         """
         _response = await self._raw_client.report_usage(request_options=request_options)
         return _response.data
-
-    async def unlock_report_usage(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> typing.Any:
+    
+    async def unlock_report_usage(self, *, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
         """
         Parameters
         ----------
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         typing.Any
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.unlock_report_usage()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.unlock_report_usage(
-            request_options=request_options
-        )
+        _response = await self._raw_client.unlock_report_usage(request_options=request_options)
         return _response.data
-
-    async def flush_usage(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> typing.Any:
+    
+    async def flush_usage(self, *, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
         """
         Parameters
         ----------
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         typing.Any
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.flush_usage()
-
-
+        
+        
         asyncio.run(main())
         """
         _response = await self._raw_client.flush_usage(request_options=request_options)
         return _response.data
-
-    async def create_account(
-        self,
-        *,
-        request: typing.Optional[AccountRequest] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AccountResponse:
+    
+    async def create_account(self, *, request: typing.Optional[AccountRequest] = None, request_options: typing.Optional[RequestOptions] = None) -> AccountResponse:
         """
         Parameters
         ----------
         request : typing.Optional[AccountRequest]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AccountResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AccountRequest, AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.create_account(
                 request=AccountRequest(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_account(
-            request=request, request_options=request_options
-        )
+        _response = await self._raw_client.create_account(request=request, request_options=request_options)
         return _response.data
-
-    async def create_accounts(
-        self,
-        *,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        users: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminUserCreateDto]]
-        ] = OMIT,
-        user_identities: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminUserIdentityCreateDto]]
-        ] = OMIT,
-        organizations: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminOrganizationCreateDto]]
-        ] = OMIT,
-        workspaces: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminWorkspaceCreateDto]]
-        ] = OMIT,
-        projects: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminProjectCreateDto]]
-        ] = OMIT,
-        organization_memberships: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminOrganizationMembershipCreateDto]]
-        ] = OMIT,
-        workspace_memberships: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminWorkspaceMembershipCreateDto]]
-        ] = OMIT,
-        project_memberships: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminProjectMembershipCreateDto]]
-        ] = OMIT,
-        api_keys: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminApiKeyCreateDto]]
-        ] = OMIT,
-        subscriptions: typing.Optional[
-            typing.Dict[str, typing.Optional[AdminSubscriptionCreateDto]]
-        ] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminAccountsResponseDto:
+    
+    async def create_accounts(self, *, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, users: typing.Optional[typing.Dict[str, typing.Optional[AdminUserCreateDto]]] = OMIT, user_identities: typing.Optional[typing.Dict[str, typing.Optional[AdminUserIdentityCreateDto]]] = OMIT, organizations: typing.Optional[typing.Dict[str, typing.Optional[AdminOrganizationCreateDto]]] = OMIT, workspaces: typing.Optional[typing.Dict[str, typing.Optional[AdminWorkspaceCreateDto]]] = OMIT, projects: typing.Optional[typing.Dict[str, typing.Optional[AdminProjectCreateDto]]] = OMIT, organization_memberships: typing.Optional[typing.Dict[str, typing.Optional[AdminOrganizationMembershipCreateDto]]] = OMIT, workspace_memberships: typing.Optional[typing.Dict[str, typing.Optional[AdminWorkspaceMembershipCreateDto]]] = OMIT, project_memberships: typing.Optional[typing.Dict[str, typing.Optional[AdminProjectMembershipCreateDto]]] = OMIT, api_keys: typing.Optional[typing.Dict[str, typing.Optional[AdminApiKeyCreateDto]]] = OMIT, subscriptions: typing.Optional[typing.Dict[str, typing.Optional[AdminSubscriptionCreateDto]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminAccountsResponseDto:
         """
         Parameters
         ----------
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         users : typing.Optional[typing.Dict[str, typing.Optional[AdminUserCreateDto]]]
-
+        
         user_identities : typing.Optional[typing.Dict[str, typing.Optional[AdminUserIdentityCreateDto]]]
-
+        
         organizations : typing.Optional[typing.Dict[str, typing.Optional[AdminOrganizationCreateDto]]]
-
+        
         workspaces : typing.Optional[typing.Dict[str, typing.Optional[AdminWorkspaceCreateDto]]]
-
+        
         projects : typing.Optional[typing.Dict[str, typing.Optional[AdminProjectCreateDto]]]
-
+        
         organization_memberships : typing.Optional[typing.Dict[str, typing.Optional[AdminOrganizationMembershipCreateDto]]]
-
+        
         workspace_memberships : typing.Optional[typing.Dict[str, typing.Optional[AdminWorkspaceMembershipCreateDto]]]
-
+        
         project_memberships : typing.Optional[typing.Dict[str, typing.Optional[AdminProjectMembershipCreateDto]]]
-
+        
         api_keys : typing.Optional[typing.Dict[str, typing.Optional[AdminApiKeyCreateDto]]]
-
+        
         subscriptions : typing.Optional[typing.Dict[str, typing.Optional[AdminSubscriptionCreateDto]]]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminAccountsResponseDto
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.create_accounts()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_accounts(
-            options=options,
-            users=users,
-            user_identities=user_identities,
-            organizations=organizations,
-            workspaces=workspaces,
-            projects=projects,
-            organization_memberships=organization_memberships,
-            workspace_memberships=workspace_memberships,
-            project_memberships=project_memberships,
-            api_keys=api_keys,
-            subscriptions=subscriptions,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.create_accounts(options=options, users=users, user_identities=user_identities, organizations=organizations, workspaces=workspaces, projects=projects, organization_memberships=organization_memberships, workspace_memberships=workspace_memberships, project_memberships=project_memberships, api_keys=api_keys, subscriptions=subscriptions, request_options=request_options)
         return _response.data
-
-    async def delete_accounts(
-        self,
-        *,
-        target: AdminAccountsDeleteTargetDto,
-        dry_run: typing.Optional[bool] = OMIT,
-        reason: typing.Optional[str] = OMIT,
-        confirm: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminDeleteResponseDto:
+    
+    async def delete_accounts(self, *, target: AdminAccountsDeleteTargetDto, dry_run: typing.Optional[bool] = OMIT, reason: typing.Optional[str] = OMIT, confirm: typing.Optional[str] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminDeleteResponseDto:
         """
         Parameters
         ----------
         target : AdminAccountsDeleteTargetDto
-
+        
         dry_run : typing.Optional[bool]
-
+        
         reason : typing.Optional[str]
-
+        
         confirm : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminDeleteResponseDto
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AdminAccountsDeleteTargetDto, AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.delete_accounts(
                 target=AdminAccountsDeleteTargetDto(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_accounts(
-            target=target,
-            dry_run=dry_run,
-            reason=reason,
-            confirm=confirm,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.delete_accounts(target=target, dry_run=dry_run, reason=reason, confirm=confirm, request_options=request_options)
         return _response.data
-
-    async def create_simple_accounts(
-        self,
-        *,
-        accounts: typing.Dict[str, AdminSimpleAccountCreateDto],
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminSimpleAccountsResponseDto:
+    
+    async def create_simple_accounts(self, *, accounts: typing.Dict[str, AdminSimpleAccountCreateDto], options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminSimpleAccountsResponseDto:
         """
         Parameters
         ----------
         accounts : typing.Dict[str, AdminSimpleAccountCreateDto]
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminSimpleAccountsResponseDto
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import (
             AdminSimpleAccountCreateDto,
             AdminUserCreateDto,
             AsyncAgentaApi,
         )
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.create_simple_accounts(
                 accounts={
@@ -1904,53 +1473,43 @@ class AsyncAdminClient:
                     )
                 },
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_simple_accounts(
-            accounts=accounts, options=options, request_options=request_options
-        )
+        _response = await self._raw_client.create_simple_accounts(accounts=accounts, options=options, request_options=request_options)
         return _response.data
-
-    async def delete_simple_accounts(
-        self,
-        *,
-        accounts: typing.Dict[str, AdminSimpleAccountDeleteEntryDto],
-        dry_run: typing.Optional[bool] = OMIT,
-        reason: typing.Optional[str] = OMIT,
-        confirm: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> None:
+    
+    async def delete_simple_accounts(self, *, accounts: typing.Dict[str, AdminSimpleAccountDeleteEntryDto], dry_run: typing.Optional[bool] = OMIT, reason: typing.Optional[str] = OMIT, confirm: typing.Optional[str] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
         Parameters
         ----------
         accounts : typing.Dict[str, AdminSimpleAccountDeleteEntryDto]
-
+        
         dry_run : typing.Optional[bool]
-
+        
         reason : typing.Optional[str]
-
+        
         confirm : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         None
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AdminSimpleAccountDeleteEntryDto, AsyncAgentaApi, EntityRef
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.delete_simple_accounts(
                 accounts={
@@ -1959,103 +1518,82 @@ class AsyncAdminClient:
                     )
                 },
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_simple_accounts(
-            accounts=accounts,
-            dry_run=dry_run,
-            reason=reason,
-            confirm=confirm,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.delete_simple_accounts(accounts=accounts, dry_run=dry_run, reason=reason, confirm=confirm, request_options=request_options)
         return _response.data
-
-    async def create_user(
-        self,
-        *,
-        user: AdminUserCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminAccountsResponseDto:
+    
+    async def create_user(self, *, user: AdminUserCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminAccountsResponseDto:
         """
         Parameters
         ----------
         user : AdminUserCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminAccountsResponseDto
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AdminUserCreateDto, AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.create_user(
                 user=AdminUserCreateDto(
                     email="email",
                 ),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_user(
-            user=user, options=options, request_options=request_options
-        )
+        _response = await self._raw_client.create_user(user=user, options=options, request_options=request_options)
         return _response.data
-
-    async def create_user_identity(
-        self,
-        *,
-        user_ref: EntityRef,
-        user_identity: AdminUserIdentityCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminAccountsResponseDto:
+    
+    async def create_user_identity(self, *, user_ref: EntityRef, user_identity: AdminUserIdentityCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminAccountsResponseDto:
         """
         Parameters
         ----------
         user_ref : EntityRef
-
+        
         user_identity : AdminUserIdentityCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminAccountsResponseDto
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AdminUserIdentityCreateDto, AsyncAgentaApi, EntityRef
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.create_user_identity(
                 user_ref=EntityRef(),
@@ -2064,199 +1602,161 @@ class AsyncAdminClient:
                     subject="subject",
                 ),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_user_identity(
-            user_ref=user_ref,
-            user_identity=user_identity,
-            options=options,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.create_user_identity(user_ref=user_ref, user_identity=user_identity, options=options, request_options=request_options)
         return _response.data
-
-    async def delete_user_identity(
-        self,
-        user_id: str,
-        identity_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminDeleteResponseDto:
+    
+    async def delete_user_identity(self, user_id: str, identity_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AdminDeleteResponseDto:
         """
         Parameters
         ----------
         user_id : str
-
+        
         identity_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminDeleteResponseDto
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.delete_user_identity(
                 user_id="user_id",
                 identity_id="identity_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_user_identity(
-            user_id, identity_id, request_options=request_options
-        )
+        _response = await self._raw_client.delete_user_identity(user_id, identity_id, request_options=request_options)
         return _response.data
-
-    async def create_organization(
-        self,
-        *,
-        organization: AdminOrganizationCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        owner: typing.Optional[AdminUserCreateDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminAccountsResponseDto:
+    
+    async def create_organization(self, *, organization: AdminOrganizationCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, owner: typing.Optional[AdminUserCreateDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminAccountsResponseDto:
         """
         Parameters
         ----------
         organization : AdminOrganizationCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         owner : typing.Optional[AdminUserCreateDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminAccountsResponseDto
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AdminOrganizationCreateDto, AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.create_organization(
                 organization=AdminOrganizationCreateDto(
                     name="name",
                 ),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_organization(
-            organization=organization,
-            options=options,
-            owner=owner,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.create_organization(organization=organization, options=options, owner=owner, request_options=request_options)
         return _response.data
-
-    async def delete_organization(
-        self,
-        organization_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminDeleteResponseDto:
+    
+    async def delete_organization(self, organization_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AdminDeleteResponseDto:
         """
         Parameters
         ----------
         organization_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminDeleteResponseDto
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.delete_organization(
                 organization_id="organization_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_organization(
-            organization_id, request_options=request_options
-        )
+        _response = await self._raw_client.delete_organization(organization_id, request_options=request_options)
         return _response.data
-
-    async def create_organization_membership(
-        self,
-        *,
-        membership: AdminOrganizationMembershipCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminAccountsResponseDto:
+    
+    async def create_organization_membership(self, *, membership: AdminOrganizationMembershipCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminAccountsResponseDto:
         """
         Parameters
         ----------
         membership : AdminOrganizationMembershipCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminAccountsResponseDto
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import (
             AdminOrganizationMembershipCreateDto,
             AsyncAgentaApi,
             EntityRef,
         )
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.create_organization_membership(
                 membership=AdminOrganizationMembershipCreateDto(
@@ -2265,95 +1765,79 @@ class AsyncAdminClient:
                     role="role",
                 ),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_organization_membership(
-            membership=membership, options=options, request_options=request_options
-        )
+        _response = await self._raw_client.create_organization_membership(membership=membership, options=options, request_options=request_options)
         return _response.data
-
-    async def delete_organization_membership(
-        self,
-        organization_id: str,
-        membership_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminDeleteResponseDto:
+    
+    async def delete_organization_membership(self, organization_id: str, membership_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AdminDeleteResponseDto:
         """
         Parameters
         ----------
         organization_id : str
-
+        
         membership_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminDeleteResponseDto
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.delete_organization_membership(
                 organization_id="organization_id",
                 membership_id="membership_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_organization_membership(
-            organization_id, membership_id, request_options=request_options
-        )
+        _response = await self._raw_client.delete_organization_membership(organization_id, membership_id, request_options=request_options)
         return _response.data
-
-    async def create_workspace(
-        self,
-        *,
-        workspace: AdminWorkspaceCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminAccountsResponseDto:
+    
+    async def create_workspace(self, *, workspace: AdminWorkspaceCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminAccountsResponseDto:
         """
         Parameters
         ----------
         workspace : AdminWorkspaceCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminAccountsResponseDto
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AdminWorkspaceCreateDto, AsyncAgentaApi, EntityRef
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.create_workspace(
                 workspace=AdminWorkspaceCreateDto(
@@ -2361,91 +1845,76 @@ class AsyncAdminClient:
                     organization_ref=EntityRef(),
                 ),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_workspace(
-            workspace=workspace, options=options, request_options=request_options
-        )
+        _response = await self._raw_client.create_workspace(workspace=workspace, options=options, request_options=request_options)
         return _response.data
-
-    async def delete_workspace(
-        self,
-        workspace_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminDeleteResponseDto:
+    
+    async def delete_workspace(self, workspace_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AdminDeleteResponseDto:
         """
         Parameters
         ----------
         workspace_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminDeleteResponseDto
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.delete_workspace(
                 workspace_id="workspace_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_workspace(
-            workspace_id, request_options=request_options
-        )
+        _response = await self._raw_client.delete_workspace(workspace_id, request_options=request_options)
         return _response.data
-
-    async def create_workspace_membership(
-        self,
-        *,
-        membership: AdminWorkspaceMembershipCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminAccountsResponseDto:
+    
+    async def create_workspace_membership(self, *, membership: AdminWorkspaceMembershipCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminAccountsResponseDto:
         """
         Parameters
         ----------
         membership : AdminWorkspaceMembershipCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminAccountsResponseDto
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AdminWorkspaceMembershipCreateDto, AsyncAgentaApi, EntityRef
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.create_workspace_membership(
                 membership=AdminWorkspaceMembershipCreateDto(
@@ -2454,95 +1923,79 @@ class AsyncAdminClient:
                     role="role",
                 ),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_workspace_membership(
-            membership=membership, options=options, request_options=request_options
-        )
+        _response = await self._raw_client.create_workspace_membership(membership=membership, options=options, request_options=request_options)
         return _response.data
-
-    async def delete_workspace_membership(
-        self,
-        workspace_id: str,
-        membership_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminDeleteResponseDto:
+    
+    async def delete_workspace_membership(self, workspace_id: str, membership_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AdminDeleteResponseDto:
         """
         Parameters
         ----------
         workspace_id : str
-
+        
         membership_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminDeleteResponseDto
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.delete_workspace_membership(
                 workspace_id="workspace_id",
                 membership_id="membership_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_workspace_membership(
-            workspace_id, membership_id, request_options=request_options
-        )
+        _response = await self._raw_client.delete_workspace_membership(workspace_id, membership_id, request_options=request_options)
         return _response.data
-
-    async def create_project(
-        self,
-        *,
-        project: AdminProjectCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminAccountsResponseDto:
+    
+    async def create_project(self, *, project: AdminProjectCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminAccountsResponseDto:
         """
         Parameters
         ----------
         project : AdminProjectCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminAccountsResponseDto
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AdminProjectCreateDto, AsyncAgentaApi, EntityRef
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.create_project(
                 project=AdminProjectCreateDto(
@@ -2551,91 +2004,76 @@ class AsyncAdminClient:
                     workspace_ref=EntityRef(),
                 ),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_project(
-            project=project, options=options, request_options=request_options
-        )
+        _response = await self._raw_client.create_project(project=project, options=options, request_options=request_options)
         return _response.data
-
-    async def delete_project(
-        self,
-        project_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminDeleteResponseDto:
+    
+    async def delete_project(self, project_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AdminDeleteResponseDto:
         """
         Parameters
         ----------
         project_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminDeleteResponseDto
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.delete_project(
                 project_id="project_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_project(
-            project_id, request_options=request_options
-        )
+        _response = await self._raw_client.delete_project(project_id, request_options=request_options)
         return _response.data
-
-    async def create_project_membership(
-        self,
-        *,
-        membership: AdminProjectMembershipCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminAccountsResponseDto:
+    
+    async def create_project_membership(self, *, membership: AdminProjectMembershipCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminAccountsResponseDto:
         """
         Parameters
         ----------
         membership : AdminProjectMembershipCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminAccountsResponseDto
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AdminProjectMembershipCreateDto, AsyncAgentaApi, EntityRef
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.create_project_membership(
                 membership=AdminProjectMembershipCreateDto(
@@ -2644,95 +2082,79 @@ class AsyncAdminClient:
                     role="role",
                 ),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_project_membership(
-            membership=membership, options=options, request_options=request_options
-        )
+        _response = await self._raw_client.create_project_membership(membership=membership, options=options, request_options=request_options)
         return _response.data
-
-    async def delete_project_membership(
-        self,
-        project_id: str,
-        membership_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminDeleteResponseDto:
+    
+    async def delete_project_membership(self, project_id: str, membership_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AdminDeleteResponseDto:
         """
         Parameters
         ----------
         project_id : str
-
+        
         membership_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminDeleteResponseDto
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.delete_project_membership(
                 project_id="project_id",
                 membership_id="membership_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_project_membership(
-            project_id, membership_id, request_options=request_options
-        )
+        _response = await self._raw_client.delete_project_membership(project_id, membership_id, request_options=request_options)
         return _response.data
-
-    async def create_api_key(
-        self,
-        *,
-        api_key: AdminApiKeyCreateDto,
-        options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminAccountsResponseDto:
+    
+    async def create_api_key(self, *, api_key: AdminApiKeyCreateDto, options: typing.Optional[AdminAccountCreateOptionsDto] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AdminAccountsResponseDto:
         """
         Parameters
         ----------
         api_key : AdminApiKeyCreateDto
-
+        
         options : typing.Optional[AdminAccountCreateOptionsDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminAccountsResponseDto
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AdminApiKeyCreateDto, AsyncAgentaApi, EntityRef
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.create_api_key(
                 api_key=AdminApiKeyCreateDto(
@@ -2740,87 +2162,73 @@ class AsyncAdminClient:
                     user_ref=EntityRef(),
                 ),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_api_key(
-            api_key=api_key, options=options, request_options=request_options
-        )
+        _response = await self._raw_client.create_api_key(api_key=api_key, options=options, request_options=request_options)
         return _response.data
-
-    async def delete_api_key(
-        self,
-        api_key_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AdminDeleteResponseDto:
+    
+    async def delete_api_key(self, api_key_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AdminDeleteResponseDto:
         """
         Parameters
         ----------
         api_key_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AdminDeleteResponseDto
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.delete_api_key(
                 api_key_id="api_key_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_api_key(
-            api_key_id, request_options=request_options
-        )
+        _response = await self._raw_client.delete_api_key(api_key_id, request_options=request_options)
         return _response.data
-
-    async def reset_password(
-        self,
-        *,
-        user_identities: typing.Sequence[AdminUserIdentityCreateDto],
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> None:
+    
+    async def reset_password(self, *, user_identities: typing.Sequence[AdminUserIdentityCreateDto], request_options: typing.Optional[RequestOptions] = None) -> None:
         """
         Parameters
         ----------
         user_identities : typing.Sequence[AdminUserIdentityCreateDto]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         None
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AdminUserIdentityCreateDto, AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.reset_password(
                 user_identities=[
@@ -2830,81 +2238,55 @@ class AsyncAdminClient:
                     )
                 ],
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.reset_password(
-            user_identities=user_identities, request_options=request_options
-        )
+        _response = await self._raw_client.reset_password(user_identities=user_identities, request_options=request_options)
         return _response.data
-
-    async def transfer_ownership(
-        self,
-        *,
-        users: typing.Dict[str, EntityRef],
-        organizations: typing.Optional[
-            typing.Dict[str, typing.Optional[EntityRef]]
-        ] = OMIT,
-        include_workspaces: typing.Optional[
-            AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeWorkspaces
-        ] = OMIT,
-        include_projects: typing.Optional[
-            AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeProjects
-        ] = OMIT,
-        reason: typing.Optional[str] = OMIT,
-        recovery: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipResponseDto]:
+    
+    async def transfer_ownership(self, *, users: typing.Dict[str, EntityRef], organizations: typing.Optional[typing.Dict[str, typing.Optional[EntityRef]]] = OMIT, include_workspaces: typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeWorkspaces] = OMIT, include_projects: typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeProjects] = OMIT, reason: typing.Optional[str] = OMIT, recovery: typing.Optional[bool] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipResponseDto]:
         """
         Parameters
         ----------
         users : typing.Dict[str, EntityRef]
-
+        
         organizations : typing.Optional[typing.Dict[str, typing.Optional[EntityRef]]]
-
+        
         include_workspaces : typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeWorkspaces]
-
+        
         include_projects : typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeProjects]
-
+        
         reason : typing.Optional[str]
-
+        
         recovery : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         typing.Optional[AdminSimpleAccountsOrganizationsTransferOwnershipResponseDto]
             Partial transfer — some orgs could not be transferred.
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, EntityRef
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.admin.transfer_ownership(
                 users={"key": EntityRef()},
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.transfer_ownership(
-            users=users,
-            organizations=organizations,
-            include_workspaces=include_workspaces,
-            include_projects=include_projects,
-            reason=reason,
-            recovery=recovery,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.transfer_ownership(users=users, organizations=organizations, include_workspaces=include_workspaces, include_projects=include_projects, reason=reason, recovery=recovery, request_options=request_options)
         return _response.data

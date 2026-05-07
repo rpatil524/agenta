@@ -10,7 +10,6 @@ class EvaluatorTemplate(UniversalBaseModel):
     """
     Static evaluator template definition (built-in evaluator types).
     """
-
     name: str
     key: str
     direct_use: bool
@@ -22,13 +21,10 @@ class EvaluatorTemplate(UniversalBaseModel):
     requires_llm_api_keys: typing.Optional[bool] = None
     tags: typing.Optional[typing.List[str]] = None
     archived: typing.Optional[bool] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

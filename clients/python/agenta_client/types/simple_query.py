@@ -6,11 +6,7 @@ import datetime as dt
 import typing
 
 import pydantic
-from ..core.pydantic_utilities import (
-    IS_PYDANTIC_V2,
-    UniversalBaseModel,
-    update_forward_refs,
-)
+from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel, update_forward_refs
 from .query_flags import QueryFlags
 from .query_revision_data_output import QueryRevisionDataOutput
 
@@ -32,22 +28,14 @@ class SimpleQuery(UniversalBaseModel):
     data: typing.Optional[QueryRevisionDataOutput] = None
     variant_id: typing.Optional[str] = None
     revision_id: typing.Optional[str] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True
             extra = pydantic.Extra.allow
-
-
-from .label_json_output import LabelJsonOutput  # noqa: E402, I001
-from .full_json_output import FullJsonOutput  # noqa: E402, I001
-
-update_forward_refs(
-    SimpleQuery, FullJsonOutput=FullJsonOutput, LabelJsonOutput=LabelJsonOutput
-)
+from .label_json_output import LabelJsonOutput # noqa: E402, I001
+from .full_json_output import FullJsonOutput # noqa: E402, I001
+update_forward_refs(SimpleQuery, FullJsonOutput=FullJsonOutput, LabelJsonOutput=LabelJsonOutput)

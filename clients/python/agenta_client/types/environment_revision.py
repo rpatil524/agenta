@@ -6,11 +6,7 @@ import datetime as dt
 import typing
 
 import pydantic
-from ..core.pydantic_utilities import (
-    IS_PYDANTIC_V2,
-    UniversalBaseModel,
-    update_forward_refs,
-)
+from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel, update_forward_refs
 from .environment_revision_data import EnvironmentRevisionData
 
 
@@ -37,22 +33,14 @@ class EnvironmentRevision(UniversalBaseModel):
     slug: typing.Optional[str] = None
     id: typing.Optional[str] = None
     data: typing.Optional[EnvironmentRevisionData] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True
             extra = pydantic.Extra.allow
-
-
-from .label_json_output import LabelJsonOutput  # noqa: E402, I001
-from .full_json_output import FullJsonOutput  # noqa: E402, I001
-
-update_forward_refs(
-    EnvironmentRevision, FullJsonOutput=FullJsonOutput, LabelJsonOutput=LabelJsonOutput
-)
+from .label_json_output import LabelJsonOutput # noqa: E402, I001
+from .full_json_output import FullJsonOutput # noqa: E402, I001
+update_forward_refs(EnvironmentRevision, FullJsonOutput=FullJsonOutput, LabelJsonOutput=LabelJsonOutput)

@@ -10,18 +10,14 @@ from .entity_ref import EntityRef
 class AdminSimpleAccountDeleteEntryDto(UniversalBaseModel):
     """
     One account entry in a batch simple-accounts delete request.
-
+    
     Identifies the account by its user (typically by id).
     """
-
     user: EntityRef
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

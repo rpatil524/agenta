@@ -5,6 +5,4 @@ import typing
 from .tool_catalog_provider import ToolCatalogProvider
 from .tool_catalog_provider_details import ToolCatalogProviderDetails
 
-ToolCatalogProviderResponseProvider = typing.Union[
-    ToolCatalogProvider, ToolCatalogProviderDetails
-]
+ToolCatalogProviderResponseProvider = typing.Union[ToolCatalogProvider, ToolCatalogProviderDetails]

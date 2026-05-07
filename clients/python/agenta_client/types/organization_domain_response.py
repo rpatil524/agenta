@@ -11,7 +11,6 @@ class OrganizationDomainResponse(UniversalBaseModel):
     """
     Response model for a domain.
     """
-
     id: str
     slug: str
     name: typing.Optional[str] = None
@@ -21,13 +20,10 @@ class OrganizationDomainResponse(UniversalBaseModel):
     created_at: dt.datetime
     updated_at: typing.Optional[dt.datetime] = None
     organization_id: str
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

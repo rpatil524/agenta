@@ -15,13 +15,10 @@ class ApplicationRevisionResolveResponse(UniversalBaseModel):
     count: typing.Optional[int] = None
     application_revision: typing.Optional[ApplicationRevision] = None
     resolution_info: typing.Optional[ResolutionInfo] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

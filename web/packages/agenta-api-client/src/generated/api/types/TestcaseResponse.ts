@@ -3,6 +3,8 @@
 import type * as AgentaApi from "../index.js";
 
 export interface TestcaseResponse {
+    support_id?: (string | null) | undefined;
+    support_ts?: (string | null) | undefined;
     count?: number | undefined;
     testcase?: (AgentaApi.TestcaseOutput | null) | undefined;
 }

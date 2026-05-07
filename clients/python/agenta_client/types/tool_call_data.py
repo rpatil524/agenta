@@ -11,17 +11,13 @@ class ToolCallData(UniversalBaseModel):
     """
     OpenAI tool_calls array item — passed verbatim from the LLM.
     """
-
     id: str
     type: typing.Optional[str] = None
     function: ToolCallFunction
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

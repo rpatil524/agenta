@@ -16,6 +16,9 @@ export declare namespace EnvironmentsClient {
     export interface RequestOptions extends BaseRequestOptions {}
 }
 
+/**
+ * Deployment environments (e.g. production, staging) and their active variants.
+ */
 export class EnvironmentsClient {
     protected readonly _options: NormalizedClientOptionsWithAuth<EnvironmentsClient.Options>;
 

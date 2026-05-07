@@ -2,14 +2,4 @@
 
 import typing
 
-OTelSpanKind = typing.Union[
-    typing.Literal[
-        "SPAN_KIND_UNSPECIFIED",
-        "SPAN_KIND_INTERNAL",
-        "SPAN_KIND_SERVER",
-        "SPAN_KIND_CLIENT",
-        "SPAN_KIND_PRODUCER",
-        "SPAN_KIND_CONSUMER",
-    ],
-    typing.Any,
-]
+OTelSpanKind = typing.Union[typing.Literal["SPAN_KIND_UNSPECIFIED", "SPAN_KIND_INTERNAL", "SPAN_KIND_SERVER", "SPAN_KIND_CLIENT", "SPAN_KIND_PRODUCER", "SPAN_KIND_CONSUMER"], typing.Any]

@@ -3,6 +3,8 @@
 import type * as AgentaApi from "../index.js";
 
 export interface TestsetRevisionsResponse {
+    support_id?: (string | null) | undefined;
+    support_ts?: (string | null) | undefined;
     count?: number | undefined;
     testset_revisions?: AgentaApi.TestsetRevision[] | undefined;
 }

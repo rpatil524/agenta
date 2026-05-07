@@ -6,11 +6,7 @@ import datetime as dt
 import typing
 
 import pydantic
-from ..core.pydantic_utilities import (
-    IS_PYDANTIC_V2,
-    UniversalBaseModel,
-    update_forward_refs,
-)
+from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel, update_forward_refs
 from .metric_spec import MetricSpec
 from .metrics_bucket import MetricsBucket
 from .tracing_query import TracingQuery
@@ -23,17 +19,12 @@ class AnalyticsResponse(UniversalBaseModel):
     buckets: typing.Optional[typing.List[MetricsBucket]] = None
     query: typing.Optional[TracingQuery] = None
     specs: typing.Optional[typing.List[MetricSpec]] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True
             extra = pydantic.Extra.allow
-
-
 update_forward_refs(AnalyticsResponse)

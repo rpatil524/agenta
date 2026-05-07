@@ -2,6 +2,4 @@
 
 import typing
 
-ErrorPolicy = typing.Union[
-    typing.Literal["exception", "placeholder", "keep"], typing.Any
-]
+ErrorPolicy = typing.Union[typing.Literal["exception", "placeholder", "keep"], typing.Any]
