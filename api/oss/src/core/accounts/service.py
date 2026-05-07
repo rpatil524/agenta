@@ -112,6 +112,11 @@ from supertokens_python.recipe.emailpassword.interfaces import (
     UnknownUserIdError as _EpUnknownUserIdError,
     PasswordPolicyViolationError as _EpPasswordPolicyViolationError,
 )
+from supertokens_python.recipe.passwordless.asyncio import (
+    signinup as _pwl_signinup,
+)
+
+from oss.src.utils.env import env
 
 from oss.src.core.accounts.dtos import (
     AdminAccountCreateOptionsDTO,
@@ -298,6 +303,102 @@ def _api_key_db_to_response_dto(
 
 
 # ---------------------------------------------------------------------------
+# SuperTokens identity helper
+# ---------------------------------------------------------------------------
+
+
+async def _create_st_email_identity(
+    *,
+    tenant_id: str,
+    email: str,
+    password: Optional[str],
+) -> tuple[Optional[str], Optional[str], Optional[str], Optional[str]]:
+    """Create an email-based SuperTokens identity using the deployment's recipe.
+
+    Returns ``(recipe_user_id, method, error_code, error_message)``. On success
+    ``error_code`` is ``None`` and the other three are populated; on failure
+    ``recipe_user_id`` and ``method`` are ``None``.
+
+    The auth recipe is inferred from ``env.auth.email_method``:
+      - ``"password"`` requires ``password`` and uses ``emailpassword.sign_up``.
+      - ``"otp"`` ignores ``password`` and uses ``passwordless.signinup``.
+      - ``""`` (disabled) returns ``identity_method_unavailable``.
+
+    Existence is checked explicitly via ``list_users_by_account_info`` before
+    creation so the error surface is uniform across recipes.
+    """
+    method_env = env.auth.email_method
+
+    if method_env == "":
+        return (
+            None,
+            None,
+            "identity_method_unavailable",
+            "Email identity creation is unavailable in this deployment.",
+        )
+
+    existing = await _st_list_users_by_account_info(
+        tenant_id=tenant_id,
+        account_info=_StAccountInfoInput(email=email),
+    )
+    if existing:
+        return (
+            None,
+            None,
+            "identity_already_exists",
+            f"An email identity for '{email}' already exists.",
+        )
+
+    if method_env == "password":
+        if not password:
+            return (
+                None,
+                None,
+                "invalid_identity",
+                "email:password identity requires 'password' on this deployment.",
+            )
+        st_result = await _ep.sign_up(
+            tenant_id=tenant_id,
+            email=email,
+            password=password,
+        )
+        if isinstance(st_result, _EpEmailAlreadyExistsError):
+            return (
+                None,
+                None,
+                "identity_already_exists",
+                f"An email identity for '{email}' already exists.",
+            )
+        if not isinstance(st_result, _EpSignUpOkResult):
+            return (
+                None,
+                None,
+                "identity_creation_failed",
+                "SuperTokens sign_up returned an unexpected result.",
+            )
+        return (
+            st_result.recipe_user_id.get_as_string(),
+            "email:password",
+            None,
+            None,
+        )
+
+    # method_env == "otp" — passwordless. The provided password (if any) is
+    # silently ignored: under OTP the deployment authenticates by code.
+    pwl_result = await _pwl_signinup(
+        tenant_id=tenant_id,
+        email=email,
+        phone_number=None,
+    )
+    return (
+        pwl_result.recipe_user_id.get_as_string(),
+        "email:otp",
+        None,
+        None,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Reference resolution helper
 # ---------------------------------------------------------------------------
 
@@ -397,13 +498,13 @@ class PlatformAdminAccountsService:
 
                 email = identity_create.email or identity_create.subject
                 password = identity_create.password
-                if not email or not password:
+                if not email:
                     errors.append(
                         AdminStructuredErrorDTO(
                             code="invalid_identity",
                             message=(
-                                f"email:password identity requires both 'email' (or "
-                                f"'subject') and 'password' (ref: {identity_ref})."
+                                f"email identity requires 'email' (or 'subject') "
+                                f"(ref: {identity_ref})."
                             ),
                             details={"ref": identity_ref},
                         )
@@ -420,36 +521,30 @@ class PlatformAdminAccountsService:
                 elif tracker.users:
                     user_id_str = str(next(iter(tracker.users.values())))
 
-                st_result = await _ep.sign_up(
+                (
+                    rid,
+                    created_method,
+                    err_code,
+                    err_msg,
+                ) = await _create_st_email_identity(
                     tenant_id=tenant_id,
                     email=email,
                     password=password,
                 )
-
-                if isinstance(st_result, _EpEmailAlreadyExistsError):
+                if err_code is not None:
                     errors.append(
                         AdminStructuredErrorDTO(
-                            code="identity_already_exists",
-                            message=f"An email:password identity for '{email}' already exists in SuperTokens (ref: {identity_ref}).",
+                            code=err_code,
+                            message=f"{err_msg} (ref: {identity_ref}).",
                             details={"ref": identity_ref, "email": email},
                         )
                     )
                     continue
 
-                if not isinstance(st_result, _EpSignUpOkResult):
-                    errors.append(
-                        AdminStructuredErrorDTO(
-                            code="identity_creation_failed",
-                            message=f"SuperTokens sign_up returned an unexpected result (ref: {identity_ref}).",
-                            details={"ref": identity_ref},
-                        )
-                    )
-                    continue
-
                 account.user_identities[identity_ref] = AdminUserIdentityReadDTO(
-                    id=st_result.recipe_user_id.get_as_string(),
+                    id=rid,
                     user_id=user_id_str or "",
-                    method="email:password",
+                    method=created_method,
                     subject=email,
                     email=email,
                     verified=identity_create.verified or False,
@@ -1063,49 +1158,43 @@ class PlatformAdminAccountsService:
 
                 email = identity_create.email or identity_create.subject
                 password = identity_create.password
-                if not email or not password:
+                if not email:
                     errors.append(
                         AdminStructuredErrorDTO(
                             code="invalid_identity",
                             message=(
-                                f"email:password identity requires both 'email' (or "
-                                f"'subject') and 'password' (ref: {identity_ref})."
+                                f"email identity requires 'email' (or 'subject') "
+                                f"(ref: {identity_ref})."
                             ),
                             details={"ref": identity_ref},
                         )
                     )
                     continue
 
-                st_result = await _ep.sign_up(
+                (
+                    rid,
+                    created_method,
+                    err_code,
+                    err_msg,
+                ) = await _create_st_email_identity(
                     tenant_id=tenant_id,
                     email=email,
                     password=password,
                 )
-
-                if isinstance(st_result, _EpEmailAlreadyExistsError):
+                if err_code is not None:
                     errors.append(
                         AdminStructuredErrorDTO(
-                            code="identity_already_exists",
-                            message=f"An email:password identity for '{email}' already exists in SuperTokens (ref: {identity_ref}).",
+                            code=err_code,
+                            message=f"{err_msg} (ref: {identity_ref}).",
                             details={"ref": identity_ref, "email": email},
                         )
                     )
                     continue
 
-                if not isinstance(st_result, _EpSignUpOkResult):
-                    errors.append(
-                        AdminStructuredErrorDTO(
-                            code="identity_creation_failed",
-                            message=f"SuperTokens sign_up returned an unexpected result (ref: {identity_ref}).",
-                            details={"ref": identity_ref},
-                        )
-                    )
-                    continue
-
                 account.user_identities[identity_ref] = AdminUserIdentityReadDTO(
-                    id=st_result.recipe_user_id.get_as_string(),
+                    id=rid,
                     user_id=str(user_db.id),
-                    method="email:password",
+                    method=created_method,
                     subject=email,
                     email=email,
                     verified=identity_create.verified or False,
@@ -1223,9 +1312,9 @@ class PlatformAdminAccountsService:
 
         email = identity.email or identity.subject
         password = identity.password
-        if not email or not password:
+        if not email:
             raise AdminValidationError(
-                "email:password identity requires 'email' (or 'subject') and 'password'."
+                "email identity requires 'email' (or 'subject')."
             )
 
         # Resolve the user this identity should attach to
@@ -1238,25 +1327,18 @@ class PlatformAdminAccountsService:
                 raise AdminUserNotFoundError(dto.user_ref.email)
             user_id_str = str(u.id)
 
-        st_result = await _ep.sign_up(
+        rid, created_method, err_code, err_msg = await _create_st_email_identity(
             tenant_id="public",
             email=email,
             password=password,
         )
-
-        if isinstance(st_result, _EpEmailAlreadyExistsError):
-            raise AdminValidationError(
-                f"An email:password identity for '{email}' already exists in SuperTokens."
-            )
-        if not isinstance(st_result, _EpSignUpOkResult):
-            raise AdminValidationError(
-                "SuperTokens sign_up returned an unexpected result."
-            )
+        if err_code is not None:
+            raise AdminValidationError(err_msg)
 
         identity_dto = AdminUserIdentityReadDTO(
-            id=st_result.recipe_user_id.get_as_string(),
+            id=rid,
             user_id=user_id_str or "",
-            method="email:password",
+            method=created_method,
             subject=email,
             email=email,
             verified=identity.verified or False,
@@ -1583,6 +1665,12 @@ class PlatformAdminAccountsService:
         3. Call ``update_email_or_password`` with the new password.
         """
         tenant_id = "public"
+
+        # Under OTP-only deployments there is no password to reset; the call
+        # is a documented no-op so callers can run the same flow against any
+        # auth-method configuration.
+        if env.auth.email_method != "password":
+            return
 
         for identity in dto.user_identities:
             if identity.method != "email:password":
