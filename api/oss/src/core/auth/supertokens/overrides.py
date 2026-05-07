@@ -71,7 +71,7 @@ from oss.src.services.db_manager import (
     check_if_user_invitation_exists,
     is_first_user_signup,
     get_oss_organization,
-    setup_oss_organization_for_first_user,
+    get_or_bootstrap_oss_organization,
 )
 
 log = get_module_logger(__name__)
@@ -211,8 +211,11 @@ async def _create_account(email: str, uid: str) -> bool:
             # This avoids the FK violation where org.owner_id references non-existent user
             user_db = await create_accounts(payload)
 
-            # Now create organization with the real user ID
-            organization_db = await setup_oss_organization_for_first_user(
+            # Now create organization with the real user ID. Use the
+            # advisory-lock-guarded helper so concurrent first-user signups
+            # serialize on bootstrap and the losers read the singleton
+            # rather than racing setup_oss_organization_for_first_user.
+            organization_db = await get_or_bootstrap_oss_organization(
                 user_id=user_db.id,
                 user_email=auth_info.email,
             )

@@ -1032,7 +1032,7 @@ class PlatformAdminAccountsService:
                 raise OssMultiOrgNotSupportedError(
                     "OSS is single-tenant: organization, workspace, project, subscription, "
                     "explicit memberships, and explicit api_keys cannot be specified. "
-                    "Use options.create_api_keys to request a default API key on the singleton project."
+                    "Use options.create_api_keys to request an API key on the per-account project."
                 )
             return await self._create_one_simple_account_oss(
                 entry=entry,
