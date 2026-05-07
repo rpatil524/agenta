@@ -957,7 +957,7 @@ const setScenarioContextAtom = atom(null, (get, set, ctx: ScenarioContext) => {
     })
 
     // If annotations changed (e.g. after save + refetch), clear matching edits
-    if (prevAnnotations !== ctx.annotations && prevAnnotations.length > 0) {
+    if (prevAnnotations !== ctx.annotations) {
         const edits = get(editsAtomFamily(ctx.scenarioId))
         if (Object.keys(edits).length > 0) {
             const {baseline} = computeBaseline(get, get(evaluatorStepRefsAtom), ctx.annotations)

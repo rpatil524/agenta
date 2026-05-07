@@ -154,11 +154,12 @@ const SessionNavigation = ({scenarioId, queueId, onCompleted}: SessionNavigation
         () =>
             getAddToTestsetDisabledReason({
                 scenarioId,
+                isCompleted,
                 isSubmitting,
                 isExporting: isAddToTestsetExporting,
                 hasPendingChanges,
             }),
-        [scenarioId, isSubmitting, isAddToTestsetExporting, hasPendingChanges],
+        [scenarioId, isCompleted, isSubmitting, isAddToTestsetExporting, hasPendingChanges],
     )
 
     return (
