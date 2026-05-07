@@ -83,7 +83,11 @@ if ! command -v fern >/dev/null 2>&1; then
 fi
 
 cleanup_fern_workspaces() {
-  for dir in "${CLIENTS_ROOT}/python/fern" "${CLIENTS_ROOT}/typescript/fern"; do
+  # Python's fern workspace lives under the canonical client root because
+  # clients/python is itself the package home. The TypeScript flow uses an
+  # ephemeral mktemp directory (cleaned via per-run trap in generate_typescript),
+  # so it doesn't appear in this list.
+  for dir in "${CLIENTS_ROOT}/python/fern"; do
     if [[ -d "${dir}" ]]; then
       log "removing fern workspace ${dir}"
       rm -rf "${dir}"
@@ -213,15 +217,15 @@ groups:
 
           # Serde stays OFF for now (default). Turning it on with this Fern
           # version (3.63.7) emits ~200 type errors against our spec:
-          #   - 189 × TS2322 — broken codegen for Record<string, T | null>
-          #     (e.g. `tags`, `meta` fields) where the serializer expects
+          #   - 189 x TS2322 — broken codegen for Record<string, T | null>
+          #     (e.g. tags, meta fields) where the serializer expects
           #     non-null values
-          #   - 4 × TS2456 — circular type aliases for FullJson{Input,Output}
+          #   - 4 x TS2456 — circular type aliases for FullJson{Input,Output}
           #     and LabelJson{Input,Output} (the same recursive-types issue
           #     the Python generator patches in this script via sed)
-          #   - 4 × TS2393 — duplicate function implementations in admin/client
+          #   - 4 x TS2393 — duplicate function implementations in admin/client
           # Re-evaluate when Fern ships fixes; in the meantime, the convenience
-          # layer's Zod boundary handles `extra="allow"` at the entity level.
+          # layer's Zod boundary handles extra="allow" at the entity level.
           # noSerdeLayer: false
           # allowExtraFields: true
           # skipResponseValidation: true
@@ -388,77 +392,23 @@ generate_python() {
   log "generated Python client in ${target_dir}"
 }
 
-fix_typescript_admin_duplicates() {
-  local target_dir="$1"
-  local admin_client="${target_dir}/api/resources/admin/client/Client.ts"
-
-  if [[ ! -f "${admin_client}" ]]; then
-    return
-  fi
-
-  log "patching duplicate admin/client function names in ${admin_client}"
-
-  # Fern generates two `createAccounts` methods in admin/client because two
-  # OpenAPI operations resolve to the same TS function name. Backend should
-  # disambiguate via explicit operation_id on the routes; until then, rename
-  # the SECOND public+private pair to `createAccountsAlt` / `__createAccountsAlt`
-  # so the file compiles. Admin endpoints aren't in v0 scope.
-  python3 - "${admin_client}" <<'PY'
-import re
-import sys
-from pathlib import Path
-
-DUPLICATES = ["createAccounts"]
-
-def rename_second_pair(src: str, name: str) -> str:
-    """Rename only the SECOND `public <name>` block and the SECOND
-    `private async __<name>` block (and the call to `this.__<name>` inside
-    the second public block). Leaves the first pair alone."""
-    public_re = re.compile(rf"(\bpublic\s+){name}(\s*\()")
-    private_re = re.compile(rf"(\bprivate\s+async\s+__){name}(\s*\()")
-    call_re = re.compile(rf"(this\.__){name}(\()")
-
-    # Locate spans in order; rename only those at index >= 1.
-    def replace_nth(text: str, regex: re.Pattern, replacement: str, target_index: int) -> str:
-        out = []
-        last = 0
-        for i, m in enumerate(regex.finditer(text)):
-            if i == target_index:
-                out.append(text[last:m.start()])
-                out.append(regex.sub(replacement, m.group(0), count=1))
-                last = m.end()
-                break
-        else:
-            return text
-        out.append(text[last:])
-        return "".join(out)
-
-    src = replace_nth(src, public_re, rf"\g<1>{name}Alt\g<2>", 1)
-    # Group 1 of private_re already captures `private async __`; the replacement
-    # only appends `<name>Alt`.
-    src = replace_nth(src, private_re, rf"\g<1>{name}Alt\g<2>", 1)
-    # The renamed public block now calls `this.__<name>`; flip ONLY that one
-    # call (the second `this.__<name>(` overall) to `this.__<name>Alt(`.
-    src = replace_nth(src, call_re, rf"\g<1>{name}Alt\g<2>", 1)
-    return src
-
-p = Path(sys.argv[1])
-text = p.read_text()
-for name in DUPLICATES:
-    text = rename_second_pair(text, name)
-p.write_text(text)
-PY
-}
-
 generate_typescript() {
-  local client_root="${CLIENTS_ROOT}/typescript"
+  # Fern's CLI needs a CWD containing ./fern/fern.config.json + generators.yml
+  # to operate. The actual generated client lives at
+  # web/packages/agenta-api-client/src/generated, so the workspace where Fern
+  # writes intermediate output is purely ephemeral — use a per-run mktemp dir
+  # and clean it up on exit so nothing leaks into the repo.
+  local client_root
+  client_root="$(mktemp -d -t fern-typescript-XXXXXX)"
+  trap "rm -rf '${client_root}'" RETURN
+
   local target_dir="${REPO_ROOT}/web/packages/agenta-api-client/src/generated"
   local fern_dir="${client_root}/fern"
   local fern_output_dir="${fern_dir}/src/generated"
   local latest_version
 
   log "starting TypeScript client generation"
-  mkdir -p "${client_root}"
+  log "fern workspace=${client_root}"
 
   log "switching to ${client_root}"
   cd "${client_root}"
@@ -474,8 +424,6 @@ generate_typescript() {
   log "syncing generated TypeScript client from ${fern_output_dir} to ${target_dir}"
   mkdir -p "$(dirname "${target_dir}")"
   cp -R "${fern_output_dir}" "${target_dir}"
-
-  fix_typescript_admin_duplicates "${target_dir}"
 
   log "generated TypeScript client in ${target_dir}"
 }
