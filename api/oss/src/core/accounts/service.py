@@ -39,8 +39,7 @@ from oss.src.services.db_manager import (
     admin_delete_accounts_batch as _db_delete_accounts_batch,
     admin_delete_user_with_cascade as _db_delete_user_with_cascade,
     admin_transfer_org_ownership_batch as _db_transfer_org_ownership_batch,
-    get_oss_organization as _db_get_oss_organization,
-    setup_oss_organization_for_first_user as _db_setup_oss_organization_for_first_user,
+    get_or_bootstrap_oss_organization as _db_get_or_bootstrap_oss_organization,
     _assign_user_to_organization_oss as _db_assign_user_to_organization_oss,
     get_project_by_organization_id as _db_get_project_by_organization_id,
 )
@@ -361,6 +360,7 @@ async def _create_st_email_identity(
             tenant_id=tenant_id,
             email=email,
             password=password,
+            user_context={"admin_managed": True},
         )
         if isinstance(st_result, _EpEmailAlreadyExistsError):
             return (
@@ -389,6 +389,7 @@ async def _create_st_email_identity(
         tenant_id=tenant_id,
         email=email,
         phone_number=None,
+        user_context={"admin_managed": True},
     )
     return (
         pwl_result.recipe_user_id.get_as_string(),
@@ -1105,12 +1106,12 @@ class PlatformAdminAccountsService:
         account.users["user"] = _user_db_to_read_dto(user_db)
 
         # 2. Get-or-bootstrap the OSS singleton org/workspace/default project.
-        org_db = await _db_get_oss_organization()
-        if org_db is None:
-            org_db = await _db_setup_oss_organization_for_first_user(
-                user_id=user_db.id,
-                user_email=entry.user.email,
-            )
+        # Serialized via a Postgres advisory lock so concurrent first-time
+        # callers don't clobber each other's bootstrap.
+        org_db = await _db_get_or_bootstrap_oss_organization(
+            user_id=user_db.id,
+            user_email=entry.user.email,
+        )
 
         await _db_assign_user_to_organization_oss(
             user_db=user_db,
@@ -1118,16 +1119,38 @@ class PlatformAdminAccountsService:
             email=entry.user.email,
         )
 
-        proj_db = await _db_get_project_by_organization_id(str(org_db.id))
-        if proj_db is None:
+        default_proj_db = await _db_get_project_by_organization_id(str(org_db.id))
+        if default_proj_db is None:
             raise AdminValidationError(
                 "OSS singleton is in an inconsistent state: no default project found for organization."
             )
 
-        ws_db = await _db_get_workspace_by_id(proj_db.workspace_id)
+        ws_db = await _db_get_workspace_by_id(default_proj_db.workspace_id)
         if ws_db is None:
             raise AdminValidationError(
                 "OSS singleton is in an inconsistent state: project's workspace not found."
+            )
+
+        # Always mint a fresh project per account under the singleton
+        # workspace. Org and workspace stay singleton; only projects
+        # multiply. This isolates per-account state (entities, traces,
+        # api-keys) so concurrent or sequential accounts don't see each
+        # other's data — required for test isolation under the OSS
+        # singleton, and harmless for non-test callers.
+        proj_db = await _db_create_project(
+            f"account-{user_db.id}",
+            org_db.id,
+            ws_db.id,
+            is_default=False,
+        )
+        if options.seed_defaults:
+            await _create_default_environments(
+                project_id=proj_db.id,
+                user_id=user_db.id,
+            )
+            await _create_default_evaluators(
+                project_id=proj_db.id,
+                user_id=user_db.id,
             )
 
         account.organizations["org"] = _org_db_to_read_dto(org_db)

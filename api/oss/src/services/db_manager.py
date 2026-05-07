@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import HTTPException
 from sqlalchemy.future import select
-from sqlalchemy import delete, func, or_, update
+from sqlalchemy import delete, func, or_, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from supertokens_python.types import AccountInfo
 from sqlalchemy.orm import joinedload, load_only
@@ -346,6 +346,47 @@ async def get_oss_organization() -> Optional[OrganizationDB]:
     return None
 
 
+async def get_or_bootstrap_oss_organization(
+    *,
+    user_id: uuid.UUID,
+    user_email: str,
+) -> OrganizationDB:
+    """Get the OSS singleton organization, bootstrapping it if absent.
+
+    The bootstrap is non-atomic (creates org + workspace + repoints the
+    global default project) and the OSS data model has no per-workspace
+    default-project key, so concurrent first-time callers can clobber each
+    other and leave the project pointing at the wrong workspace. We
+    serialize the get-or-bootstrap with a Postgres transaction-scoped
+    advisory lock so only one caller bootstraps and the rest read the
+    result.
+    """
+    # Hold the advisory lock on a dedicated connection so the inner
+    # bootstrap can open its own ORM sessions (which share an
+    # async_scoped_session keyed by task) without colliding with our
+    # transaction. Session-level locks (pg_advisory_lock / _unlock) bind to
+    # the lifetime of *this* connection regardless of inner transactions.
+    lock_key = env.postgres.advisory_lock
+    async with engine.async_core_engine.connect() as conn:
+        await conn.execute(
+            text("SELECT pg_advisory_lock(:key)"),
+            {"key": lock_key},
+        )
+        try:
+            existing = await get_organizations()
+            if existing:
+                return existing[0]
+            return await setup_oss_organization_for_first_user(
+                user_id=user_id,
+                user_email=user_email,
+            )
+        finally:
+            await conn.execute(
+                text("SELECT pg_advisory_unlock(:key)"),
+                {"key": lock_key},
+            )
+
+
 async def setup_oss_organization_for_first_user(
     user_id: uuid.UUID,
     user_email: str,
@@ -500,6 +541,11 @@ async def _assign_user_to_organization_oss(
 
     # Get project belonging to organization
     project_db = await get_project_by_organization_id(organization_id=organization_id)
+    if project_db is None:
+        raise NoResultFound(
+            f"No default project found for organization_id {organization_id} "
+            "while assigning user; OSS singleton is in an inconsistent state."
+        )
 
     # Update user invitation if the user was invited
     invitation = await get_project_invitation_by_email(

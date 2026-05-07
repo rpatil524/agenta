@@ -4,7 +4,7 @@ import agenta as ag
 class TestHealthCheck:
     def test_unauthenticated(self):
         # ACT ------------------------------------------------------------------
-        response = ag.api.health_check()
+        response = ag.api.status.health_check()
         # ----------------------------------------------------------------------
 
         # ASSERT ---------------------------------------------------------------
@@ -13,7 +13,7 @@ class TestHealthCheck:
 
     def test_authenticated(self):
         # ACT ------------------------------------------------------------------
-        response = ag.api.fetch_user_profile()
+        response = ag.api.users.fetch_user_profile()
         # ----------------------------------------------------------------------
 
         # ASSERT ---------------------------------------------------------------

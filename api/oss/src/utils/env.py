@@ -1,4 +1,5 @@
 import os
+import hashlib
 from uuid import getnode
 from json import loads
 from urllib.parse import urlparse
@@ -631,6 +632,18 @@ class PostgresConfig(BaseModel):
 
     username: str = os.getenv("POSTGRES_USER") or "username"
     password: str = os.getenv("POSTGRES_PASSWORD") or "password"
+
+    # Stable signed-64-bit advisory-lock key for this deployment, derived
+    # from AGENTA_AUTH_KEY so distinct deployments sharing a Postgres
+    # cluster don't contend on the same lock.
+    advisory_lock: int = int.from_bytes(
+        hashlib.blake2b(
+            (os.getenv("AGENTA_AUTH_KEY") or "replace-me").encode(),
+            digest_size=8,
+        ).digest(),
+        "big",
+        signed=True,
+    )
 
     model_config = ConfigDict(extra="ignore")
 

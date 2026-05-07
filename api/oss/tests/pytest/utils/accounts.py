@@ -27,7 +27,11 @@ def create_account(ag_env):
                     "options": {
                         "create_api_keys": True,
                         "return_api_keys": True,
-                        "seed_defaults": True,
+                        # Default-seeded evaluators/environments leak into
+                        # query-count assertions in test classes that share
+                        # this fixture. Tests that need defaults should
+                        # create them explicitly.
+                        "seed_defaults": False,
                     },
                 }
             }

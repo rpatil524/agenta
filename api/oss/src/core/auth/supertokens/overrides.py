@@ -918,8 +918,14 @@ def override_passwordless_functions(
         auth_info = await ensure_auth_info_not_blocked(parse_auth_info(email))
         assert auth_info is not None
 
-        # Create internal user account first (idempotent - skips if exists)
-        is_new_user = await _create_account(auth_info.email, user_id_str)
+        # When invoked by an admin-managed path (e.g. /admin/simple/accounts/),
+        # skip _create_account: the admin caller has already provisioned the
+        # internal user, org membership, project, and api-key. Running the
+        # invitation/bootstrap branch here would 401 the alias signup.
+        if user_context.get("admin_managed"):
+            is_new_user = False
+        else:
+            is_new_user = await _create_account(auth_info.email, user_id_str)
         user_context["is_new_user"] = is_new_user
 
         # Create or update user_identity
@@ -1087,8 +1093,14 @@ def override_emailpassword_functions(
         # Method for email/password
         method = "email:password"
 
-        # Create internal user account first (idempotent - skips if exists)
-        is_new_user = await _create_account(auth_info.email, result.user.id)
+        # When invoked by an admin-managed path (e.g. /admin/simple/accounts/),
+        # skip _create_account: the admin caller has already provisioned the
+        # internal user, org membership, project, and api-key. Running the
+        # invitation/bootstrap branch here would 401 the alias signup.
+        if user_context.get("admin_managed"):
+            is_new_user = False
+        else:
+            is_new_user = await _create_account(auth_info.email, result.user.id)
         user_context["is_new_user"] = is_new_user
 
         # Create or update user_identity
