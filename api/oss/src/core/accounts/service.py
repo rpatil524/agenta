@@ -39,6 +39,11 @@ from oss.src.services.db_manager import (
     admin_delete_accounts_batch as _db_delete_accounts_batch,
     admin_delete_user_with_cascade as _db_delete_user_with_cascade,
     admin_transfer_org_ownership_batch as _db_transfer_org_ownership_batch,
+    get_oss_organization as _db_get_oss_organization,
+    setup_oss_organization_for_first_user as _db_setup_oss_organization_for_first_user,
+    _assign_user_to_organization_oss as _db_assign_user_to_organization_oss,
+    get_default_project_id_from_workspace as _db_get_default_project_id_from_workspace,
+    get_workspaces as _db_get_workspaces,
 )
 from oss.src.core.environments.defaults import (
     create_default_environments as _create_default_environments,
@@ -167,6 +172,7 @@ from oss.src.core.accounts.errors import (
     AdminUserNotFoundError,
     AdminValidationError,
     AdminWorkspaceNotFoundError,
+    OssMultiOrgNotSupportedError,
 )
 
 log = get_module_logger(__name__)
@@ -882,6 +888,22 @@ class PlatformAdminAccountsService:
             else True,
         )
 
+        if not is_ee():
+            if (
+                entry.organization
+                or entry.workspace
+                or entry.project
+                or entry.subscription
+                or entry.organization_memberships
+                or entry.workspace_memberships
+                or entry.project_memberships
+            ):
+                raise OssMultiOrgNotSupportedError()
+            return await self._create_one_simple_account_oss(
+                entry=entry,
+                options=effective_options,
+            )
+
         org_create = entry.organization or _default_org_for_user(entry.user)
         ws_create = entry.workspace or _default_ws_for_org("org")
         proj_create = entry.project or _default_proj_for_ws("org", "wrk")
@@ -959,6 +981,159 @@ class PlatformAdminAccountsService:
             }
 
         return await self.create_accounts(dto=graph_dto)
+
+    async def _create_one_simple_account_oss(
+        self,
+        *,
+        entry: "AdminSimpleAccountCreateDTO",
+        options: AdminAccountCreateOptionsDTO,
+    ) -> AdminAccountsResponseDTO:
+        """OSS-only path for simple account creation.
+
+        OSS is single-tenant: every user lives under one organization with one
+        workspace and one default project. We bootstrap that singleton on first
+        use (mirroring `_create_account` in the SuperTokens override) and
+        attach every subsequent user to it via `_assign_user_to_organization_oss`.
+        """
+        account = AdminAccountReadDTO()
+        errors: List[AdminStructuredErrorDTO] = []
+
+        # 1. Create the user (the existence check already happened in caller).
+        user_db = await _db_get_or_create_user(
+            entry.user.email,
+            entry.user.username or entry.user.name,
+        )
+        account.users["user"] = _user_db_to_read_dto(user_db)
+
+        # 2. Get-or-bootstrap the OSS singleton org/workspace/default project.
+        org_db = await _db_get_oss_organization()
+        if org_db is None:
+            org_db = await _db_setup_oss_organization_for_first_user(
+                user_id=user_db.id,
+                user_email=entry.user.email,
+            )
+
+        await _db_assign_user_to_organization_oss(
+            user_db=user_db,
+            organization_id=str(org_db.id),
+            email=entry.user.email,
+        )
+
+        workspaces = await _db_get_workspaces(organization_id=str(org_db.id))
+        if not workspaces:
+            raise AdminValidationError(
+                "OSS singleton is in an inconsistent state: no workspace found."
+            )
+        ws_db = workspaces[0]
+
+        default_project_id = await _db_get_default_project_id_from_workspace(
+            str(ws_db.id)
+        )
+        proj_db = await _db_get_project_by_id(_uuid_mod.UUID(default_project_id))
+        if proj_db is None:
+            raise AdminValidationError(
+                "OSS singleton is in an inconsistent state: no default project found."
+            )
+
+        account.organizations["org"] = _org_db_to_read_dto(org_db)
+        account.workspaces["wrk"] = _ws_db_to_read_dto(ws_db)
+        account.projects["prj"] = _proj_db_to_read_dto(proj_db)
+
+        # 3. Optional SuperTokens identities.
+        if entry.user_identities and options.create_identities:
+            tenant_id = "public"
+            for index, identity_create in enumerate(entry.user_identities):
+                identity_ref = f"identity_{index}"
+                if identity_create.method != "email:password":
+                    errors.append(
+                        AdminStructuredErrorDTO(
+                            code="not_implemented",
+                            message=(
+                                f"Identity provisioning for method "
+                                f"'{identity_create.method}' is not yet implemented "
+                                f"(ref: {identity_ref})."
+                            ),
+                            details={
+                                "ref": identity_ref,
+                                "method": identity_create.method,
+                            },
+                        )
+                    )
+                    continue
+
+                email = identity_create.email or identity_create.subject
+                password = identity_create.password
+                if not email or not password:
+                    errors.append(
+                        AdminStructuredErrorDTO(
+                            code="invalid_identity",
+                            message=(
+                                f"email:password identity requires both 'email' (or "
+                                f"'subject') and 'password' (ref: {identity_ref})."
+                            ),
+                            details={"ref": identity_ref},
+                        )
+                    )
+                    continue
+
+                st_result = await _ep.sign_up(
+                    tenant_id=tenant_id,
+                    email=email,
+                    password=password,
+                )
+
+                if isinstance(st_result, _EpEmailAlreadyExistsError):
+                    errors.append(
+                        AdminStructuredErrorDTO(
+                            code="identity_already_exists",
+                            message=f"An email:password identity for '{email}' already exists in SuperTokens (ref: {identity_ref}).",
+                            details={"ref": identity_ref, "email": email},
+                        )
+                    )
+                    continue
+
+                if not isinstance(st_result, _EpSignUpOkResult):
+                    errors.append(
+                        AdminStructuredErrorDTO(
+                            code="identity_creation_failed",
+                            message=f"SuperTokens sign_up returned an unexpected result (ref: {identity_ref}).",
+                            details={"ref": identity_ref},
+                        )
+                    )
+                    continue
+
+                account.user_identities[identity_ref] = AdminUserIdentityReadDTO(
+                    id=st_result.recipe_user_id.get_as_string(),
+                    user_id=str(user_db.id),
+                    method="email:password",
+                    subject=email,
+                    email=email,
+                    verified=identity_create.verified or False,
+                    status="created",
+                )
+
+        # 4. API key on the default project.
+        if options.create_api_keys:
+            raw_key = await _create_raw_api_key(
+                user_id=str(user_db.id),
+                project_id=str(proj_db.id),
+            )
+            prefix = raw_key.split(".")[0]
+            key_db = await _db_get_api_key_by_prefix(prefix)
+            account.api_keys = {
+                "key": AdminApiKeyResponseDTO(
+                    id=str(key_db.id) if key_db else None,
+                    prefix=prefix,
+                    project_id=str(proj_db.id),
+                    user_id=str(user_db.id),
+                    value=raw_key if options.return_api_keys else None,
+                )
+            }
+
+        return AdminAccountsResponseDTO(
+            accounts=[account],
+            errors=errors or None,
+        )
 
     async def delete_simple_accounts(
         self,
