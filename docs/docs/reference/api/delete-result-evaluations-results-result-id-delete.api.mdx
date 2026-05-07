@@ -18,6 +18,7 @@ import StatusCodes from "@theme/StatusCodes";
 import OperationTabs from "@theme/OperationTabs";
 import TabItem from "@theme/TabItem";
 import Heading from "@theme/Heading";
+import Translate from "@docusaurus/Translate";
 
 <Heading
   as={"h1"}
@@ -42,27 +43,24 @@ Delete Result
   id={"request"}
   as={"h2"}
   className={"openapi-tabs__heading"}
-  children={"Request"}
 >
+  <Translate id="theme.openapi.request.title">Request</Translate>
 </Heading>
 
 <ParamsDetails
-  parameters={[{"name":"result_id","in":"path","required":true,"schema":{"type":"string","format":"uuid","title":"Result Id"}}]}
+  {...require("./delete-result-evaluations-results-result-id-delete.ParamsDetails.json")}
 >
   
 </ParamsDetails>
 
 <RequestSchema
-  title={"Body"}
-  body={undefined}
+  {...require("./delete-result-evaluations-results-result-id-delete.RequestSchema.json")}
 >
   
 </RequestSchema>
 
 <StatusCodes
-  id={undefined}
-  label={undefined}
-  responses={{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"properties":{"support_id":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Support Id"},"support_ts":{"anyOf":[{"type":"string","format":"date-time"},{"type":"null"}],"title":"Support Ts"},"count":{"type":"integer","title":"Count","default":0},"result_id":{"anyOf":[{"type":"string","format":"uuid"},{"type":"null"}],"title":"Result Id"}},"type":"object","title":"EvaluationResultIdResponse"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"properties":{"detail":{"items":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"},"input":{"title":"Input"},"ctx":{"type":"object","title":"Context"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"}}}}}}
+  {...require("./delete-result-evaluations-results-result-id-delete.StatusCodes.json")}
 >
   
 </StatusCodes>
