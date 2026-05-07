@@ -10,6 +10,7 @@
 **/*.vscode
 **/*.pem
 **/*dont_commit_me*
+web/packages/agenta-api-client/dist/
 
 __pycache__/
 **/__pycache__/
@@ -68,6 +69,7 @@ services/ee/tests/results/
 !api/.dockerignore
 !services/.dockerignore
 !.env.example
+!web/.prettierignore
 
 # Temporary SDK copies created by run.sh --local
 api/sdks
