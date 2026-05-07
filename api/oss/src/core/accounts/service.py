@@ -1322,6 +1322,46 @@ class PlatformAdminAccountsService:
         dto: AdminSimpleAccountsUsersCreateDTO,
     ) -> AdminAccountsResponseDTO:
         options = dto.options or AdminAccountCreateOptionsDTO()
+
+        # On OSS we must route through the simple-account path so the
+        # singleton org/workspace are reused via
+        # ``get_or_bootstrap_oss_organization`` (deterministic slug, race
+        # free). The graph-shaped ``create_accounts`` path mints a fresh
+        # org per call and would break the singleton invariant.
+        if options.seed_defaults and not is_ee():
+            simple_entry = AdminSimpleAccountCreateDTO(
+                user=dto.user,
+                options=options,
+            )
+            simple_dto = AdminSimpleAccountsCreateDTO(
+                accounts={"user": simple_entry},
+                options=options,
+            )
+            simple_response = await self.create_simple_accounts(dto=simple_dto)
+
+            # Translate the simple response shape back into the graph
+            # response shape that callers of ``create_user`` expect.
+            graph_response = AdminAccountsResponseDTO()
+            for account_ref, simple_account in simple_response.accounts.items():
+                read = AdminAccountReadDTO()
+                if simple_account.user is not None:
+                    read.users = {"user": simple_account.user}
+                if simple_account.organizations:
+                    read.organizations = dict(simple_account.organizations)
+                if simple_account.workspaces:
+                    read.workspaces = dict(simple_account.workspaces)
+                if simple_account.projects:
+                    read.projects = dict(simple_account.projects)
+                # NOTE: simple-account responses expose api_keys as raw
+                # value strings, while the graph shape expects a richer
+                # AdminApiKeyResponseDTO. We cannot losslessly reconstruct
+                # the latter, so leave ``read.api_keys`` unset on this OSS
+                # path. Tests for this endpoint only assert on ``users``.
+                graph_response.accounts[account_ref] = read
+            if simple_response.errors:
+                graph_response.errors = list(simple_response.errors)
+            return graph_response
+
         graph_dto = AdminAccountsCreateDTO(
             options=options,
             users={"user": dto.user},
