@@ -590,12 +590,20 @@ async def get_default_workspace_id_oss() -> str:
     that race-free. Pre-fix deployments may have leftover duplicate
     workspaces; rather than crashing the auth path with an AssertionError
     (which then gets cached as a deny and locks every user out for the
-    full TTL), we deterministically pick the oldest row and log a warning
-    so the leftover can be cleaned up.
+    full TTL), we deterministically pick the oldest row attached to the
+    OSS singleton organization and log a warning so the leftover can be
+    cleaned up. We filter by the singleton org explicitly so that
+    leftover workspaces from non-singleton orgs (possible on pre-fix
+    deployments where ``admin_create_organization`` minted multiple
+    orgs) cannot shadow the real singleton workspace and steer auth
+    scope resolution to the wrong tenant.
     """
     async with engine.core_session() as session:
         result = await session.execute(
-            select(WorkspaceDB).order_by(WorkspaceDB.created_at.asc())
+            select(WorkspaceDB)
+            .join(OrganizationDB, WorkspaceDB.organization_id == OrganizationDB.id)
+            .where(OrganizationDB.slug == OSS_SINGLETON_ORG_SLUG)
+            .order_by(WorkspaceDB.created_at.asc())
         )
         workspaces = result.scalars().all()
 
