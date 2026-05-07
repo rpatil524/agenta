@@ -10,7 +10,7 @@
 **/*.vscode
 **/*.pem
 **/*dont_commit_me*
-web/packages/api-client/dist/
+web/packages/agenta-api-client/dist/
 
 __pycache__/
 **/__pycache__/
