@@ -15,9 +15,9 @@ repos:
         exclude: ^clients/
       - id: prettier-format
         name: prettier --write (web)
-        entry: bash -c 'cd web && pnpm exec prettier --write --cache --log-level warn "**/*.{js,jsx,cjs,mjs,ts,tsx,cts,mts,mdx}" --ignore-path ./ee/.gitignore --ignore-path ./oss/.gitignore'
+        entry: bash -c 'cd web && pnpm exec prettier --write --cache --log-level warn "**/*.{js,jsx,cjs,mjs,ts,tsx,cts,mts,mdx}" --ignore-path ./.prettierignore --ignore-path ./ee/.gitignore --ignore-path ./oss/.gitignore'
         language: system
-        files: ^web/.*\.(js|jsx|cjs|mjs|ts|tsx|cts|mts|mdx)$
+        files: ^web/(?!packages/agenta-api-client/).*\.(js|jsx|cjs|mjs|ts|tsx|cts|mts|mdx)$
         pass_filenames: false
       - id: turbo-lint
         name: turbo lint (web)
