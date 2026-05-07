@@ -1341,8 +1341,11 @@ class PlatformAdminAccountsService:
 
             # Translate the simple response shape back into the graph
             # response shape that callers of ``create_user`` expect.
+            # Note: ``AdminAccountsResponseDTO.accounts`` is a *list* of
+            # ``AdminAccountReadDTO`` (not a dict), so we append rather
+            # than subscript.
             graph_response = AdminAccountsResponseDTO()
-            for account_ref, simple_account in simple_response.accounts.items():
+            for _account_ref, simple_account in simple_response.accounts.items():
                 read = AdminAccountReadDTO()
                 if simple_account.user is not None:
                     read.users = {"user": simple_account.user}
@@ -1357,7 +1360,7 @@ class PlatformAdminAccountsService:
                 # AdminApiKeyResponseDTO. We cannot losslessly reconstruct
                 # the latter, so leave ``read.api_keys`` unset on this OSS
                 # path. Tests for this endpoint only assert on ``users``.
-                graph_response.accounts[account_ref] = read
+                graph_response.accounts.append(read)
             if simple_response.errors:
                 graph_response.errors = list(simple_response.errors)
             return graph_response
