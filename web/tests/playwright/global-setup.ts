@@ -939,6 +939,27 @@ async function maybeCreateEphemeralProject(page: Page, baseURL: string): Promise
         const apiURL = getApiURL(baseURL)
         const projectMetadataPath = getProjectMetadataPath()
 
+        // The page.request context inherits cookies from the page, but the
+        // SuperTokens session cookie may not have propagated yet if the
+        // sign-in network response wasn't observed before the page settled.
+        // Poll GET /projects/ for up to 10s; 401 here just means the cookie
+        // hasn't been written to the request context yet.
+        const sessionReadyDeadline = Date.now() + 10_000
+        let sessionReady = false
+        while (Date.now() < sessionReadyDeadline) {
+            const probe = await page.request.get(`${apiURL}/projects/`).catch(() => null)
+            if (probe && probe.ok()) {
+                sessionReady = true
+                break
+            }
+            await page.waitForTimeout(500)
+        }
+        if (!sessionReady) {
+            console.warn(
+                "[global-setup] Session probe never returned 2xx within 10s; ephemeral project creation will likely 401",
+            )
+        }
+
         const projectsResponse = await page.request.get(`${apiURL}/projects/`)
         let originalDefaultProjectId: string | null = null
 

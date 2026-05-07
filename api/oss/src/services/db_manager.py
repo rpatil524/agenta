@@ -375,6 +375,17 @@ async def get_or_bootstrap_oss_organization(
         try:
             existing = await get_organizations()
             if existing:
+                # OSS is single-tenant: there must be exactly one org. More
+                # than one means the singleton invariant has been broken
+                # (leftover test data, manual DB edits, or a pre-lock race
+                # that escaped the previous fix). Fail loudly rather than
+                # silently picking an arbitrary org.
+                if len(existing) > 1:
+                    raise NoResultFound(
+                        f"OSS singleton invariant violated: expected exactly "
+                        f"one organization, found {len(existing)}. Manual "
+                        f"intervention required."
+                    )
                 return existing[0]
             return await setup_oss_organization_for_first_user(
                 user_id=user_id,

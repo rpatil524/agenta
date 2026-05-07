@@ -1751,14 +1751,23 @@ class PlatformAdminAccountsService:
                 )
 
             # Look up the ST user by email. We do this regardless of the
-            # configured email_method so that unknown identities return a
-            # deterministic 404 even on OTP-only deployments — only the
-            # password-update step itself is skipped when there is no
-            # password recipe to update.
+            # configured email_method so that truly unknown identities return
+            # a deterministic 404 even on OTP-only deployments. The lookup
+            # has two distinct miss states:
+            #
+            #   1. No SuperTokens user at all → 404 AdminUserNotFoundError.
+            #   2. User exists but has no `emailpassword` login method → on
+            #      OTP-only deployments this is expected (the user was
+            #      provisioned via passwordless), so we no-op; on password
+            #      deployments this is still a "not found" for the password
+            #      recipe and we 404.
             st_users = await _st_list_users_by_account_info(
                 tenant_id=tenant_id,
                 account_info=_StAccountInfoInput(email=email),
             )
+
+            if not st_users:
+                raise AdminUserNotFoundError(email)
 
             recipe_user_id: Optional[str] = None
             for st_user in st_users:
@@ -1775,12 +1784,12 @@ class PlatformAdminAccountsService:
                     break
 
             if not recipe_user_id:
+                # The user exists but has no password recipe. On OTP-only
+                # deployments this is the expected state for every account;
+                # treat as a no-op so callers can run a uniform reset flow.
+                if not password_recipe_active:
+                    continue
                 raise AdminUserNotFoundError(email)
-
-            # On OTP-only deployments the user exists but has no password
-            # recipe to update; treat the call as a no-op for that identity.
-            if not password_recipe_active:
-                continue
 
             result = await _ep.update_email_or_password(
                 recipe_user_id=_StRecipeUserId(recipe_user_id),

@@ -416,6 +416,8 @@ def _maybe_xfail_for_llm_provider_error(
         "Incorrect API key provided",
         "api_key client option must be set",
         "OPENAI_API_KEY environment variable",
+        "OPENAI_API_KEY",
+        "Missing credentials",
         "invalid_api_key",
     )
     if resp.status_code in {400, 401, 424, 429, 500} and any(
