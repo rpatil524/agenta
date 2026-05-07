@@ -68,7 +68,10 @@ export const normalizeValue = (value: unknown): string => {
 export function getBeautifiedJsonEntries(value: unknown): {key: string; value: string}[] | null {
     if (!value || typeof value !== "object" || Array.isArray(value)) return null
 
-    return Object.entries(value as Record<string, unknown>).map(([key, entryValue]) => ({
+    const entries = Object.entries(value as Record<string, unknown>)
+    if (entries.length === 0) return null
+
+    return entries.map(([key, entryValue]) => ({
         key,
         value: normalizeValue(entryValue),
     }))
