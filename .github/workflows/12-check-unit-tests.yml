@@ -77,7 +77,7 @@ jobs:
         if: github.event_name != 'workflow_dispatch' || contains(fromJSON('["all","sdk-only"]'), inputs.packages)
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
 
       - name: Install uv
         if: github.event_name != 'workflow_dispatch' || contains(fromJSON('["all","sdk-only"]'), inputs.packages)
@@ -96,7 +96,7 @@ jobs:
         if: github.event_name != 'workflow_dispatch' || contains(fromJSON('["all","sdk-only"]'), inputs.packages)
         working-directory: sdks/python
         run: |
-          uv sync --locked --python 3.11
+          uv sync --locked --python 3.13
 
       - name: Run SDK unit tests
         if: github.event_name != 'workflow_dispatch' || contains(fromJSON('["all","sdk-only"]'), inputs.packages)
@@ -133,7 +133,7 @@ jobs:
         if: github.event_name != 'workflow_dispatch' || contains(fromJSON('["all","api-only"]'), inputs.packages)
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
 
       - name: Install uv
         if: github.event_name != 'workflow_dispatch' || contains(fromJSON('["all","api-only"]'), inputs.packages)
@@ -152,7 +152,7 @@ jobs:
         if: github.event_name != 'workflow_dispatch' || contains(fromJSON('["all","api-only"]'), inputs.packages)
         working-directory: api
         run: |
-          uv sync --locked --python 3.11
+          uv sync --locked --python 3.13
           uv pip install --python .venv/bin/python --editable ../sdks/python/
 
       - name: Run API unit tests
@@ -202,7 +202,7 @@ jobs:
         if: (github.event_name != 'workflow_dispatch' || contains(fromJSON('["all","services-only"]'), inputs.packages)) && steps.services-unit-tests.outputs.has_tests == 'true'
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
 
       - name: Install uv
         if: (github.event_name != 'workflow_dispatch' || contains(fromJSON('["all","services-only"]'), inputs.packages)) && steps.services-unit-tests.outputs.has_tests == 'true'
@@ -221,7 +221,7 @@ jobs:
         if: (github.event_name != 'workflow_dispatch' || contains(fromJSON('["all","services-only"]'), inputs.packages)) && steps.services-unit-tests.outputs.has_tests == 'true'
         working-directory: services
         run: |
-          uv sync --locked --python 3.11
+          uv sync --locked --python 3.13
           uv pip install --python .venv/bin/python --editable ../sdks/python/
 
       - name: Run services unit tests

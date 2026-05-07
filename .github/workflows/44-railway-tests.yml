@@ -336,7 +336,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
 
       - name: Cache Python dependencies
         uses: actions/cache@v4
@@ -350,7 +350,7 @@ jobs:
         run: |
           pip install "uv==0.11.9"
           cd api
-          uv sync --locked --python 3.11
+          uv sync --locked --python 3.13
           uv pip install --python .venv/bin/python --editable ../sdks/python/
 
       - name: Run API tests
@@ -437,7 +437,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
 
       - name: Cache Python dependencies
         uses: actions/cache@v4
@@ -451,7 +451,7 @@ jobs:
         run: |
           pip install "uv==0.11.9"
           cd sdks/python
-          uv sync --locked --python 3.11
+          uv sync --locked --python 3.13
 
       - name: Run SDK tests
         run: |
@@ -538,7 +538,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
 
       - name: Cache Python dependencies
         uses: actions/cache@v4
@@ -552,7 +552,7 @@ jobs:
         run: |
           pip install "uv==0.11.9"
           cd services
-          uv sync --locked --python 3.11
+          uv sync --locked --python 3.13
           uv pip install --python .venv/bin/python --editable ../sdk/
 
       - name: Run services tests
