@@ -357,9 +357,9 @@ async def get_or_bootstrap_oss_organization(
     global default project) and the OSS data model has no per-workspace
     default-project key, so concurrent first-time callers can clobber each
     other and leave the project pointing at the wrong workspace. We
-    serialize the get-or-bootstrap with a Postgres transaction-scoped
-    advisory lock so only one caller bootstraps and the rest read the
-    result.
+    serialize the get-or-bootstrap with a Postgres session-level advisory
+    lock (``pg_advisory_lock`` / ``pg_advisory_unlock``) held on a dedicated
+    connection so only one caller bootstraps and the rest read the result.
     """
     # Hold the advisory lock on a dedicated connection so the inner
     # bootstrap can open its own ORM sessions (which share an

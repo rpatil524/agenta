@@ -633,12 +633,22 @@ class PostgresConfig(BaseModel):
     username: str = os.getenv("POSTGRES_USER") or "username"
     password: str = os.getenv("POSTGRES_PASSWORD") or "password"
 
-    # Stable signed-64-bit advisory-lock key for this deployment, derived
-    # from AGENTA_AUTH_KEY so distinct deployments sharing a Postgres
-    # cluster don't contend on the same lock.
+    # Stable signed-64-bit advisory-lock key for this deployment. We mix
+    # AGENTA_AUTH_KEY with the core Postgres URI so two deployments that
+    # both forget to set AGENTA_AUTH_KEY (and thus share the literal
+    # "replace-me" fallback) still get distinct keys as long as they point
+    # at different databases.
     advisory_lock: int = int.from_bytes(
         hashlib.blake2b(
-            (os.getenv("AGENTA_AUTH_KEY") or "replace-me").encode(),
+            b"|".join(
+                (
+                    (os.getenv("AGENTA_AUTH_KEY") or "replace-me").encode(),
+                    (
+                        os.getenv("POSTGRES_URI_CORE")
+                        or f"postgresql+asyncpg://username:password@postgres:5432/agenta_{_LICENSE}_core"
+                    ).encode(),
+                )
+            ),
             digest_size=8,
         ).digest(),
         "big",

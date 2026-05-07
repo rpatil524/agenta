@@ -306,6 +306,27 @@ def _api_key_db_to_response_dto(
 # ---------------------------------------------------------------------------
 
 
+_SUPPORTED_IDENTITY_METHODS = ("email:password", "email:otp")
+
+
+def _identity_method_supported(requested: str) -> bool:
+    """Return True if the requested identity method matches what the
+    deployment's auth config can provision via `_create_st_email_identity`.
+
+    "email:password" is allowed when `env.auth.email_method == "password"`.
+    "email:otp" is allowed when `env.auth.email_method == "otp"`.
+    Anything else is rejected (including the disabled `""` deployment mode).
+    """
+    if requested not in _SUPPORTED_IDENTITY_METHODS:
+        return False
+    configured = env.auth.email_method
+    if requested == "email:password":
+        return configured == "password"
+    if requested == "email:otp":
+        return configured == "otp"
+    return False
+
+
 async def _create_st_email_identity(
     *,
     tenant_id: str,
@@ -315,8 +336,9 @@ async def _create_st_email_identity(
     """Create an email-based SuperTokens identity using the deployment's recipe.
 
     Returns ``(recipe_user_id, method, error_code, error_message)``. On success
-    ``error_code`` is ``None`` and the other three are populated; on failure
-    ``recipe_user_id`` and ``method`` are ``None``.
+    ``error_code`` and ``error_message`` are ``None`` and ``recipe_user_id`` /
+    ``method`` are populated; on failure ``recipe_user_id`` and ``method`` are
+    ``None``.
 
     The auth recipe is inferred from ``env.auth.email_method``:
       - ``"password"`` requires ``password`` and uses ``emailpassword.sign_up``.
@@ -480,18 +502,20 @@ class PlatformAdminAccountsService:
         if dto.user_identities and options.create_identities:
             tenant_id = "public"
             for identity_ref, identity_create in dto.user_identities.items():
-                if identity_create.method != "email:password":
+                if not _identity_method_supported(identity_create.method):
                     errors.append(
                         AdminStructuredErrorDTO(
                             code="not_implemented",
                             message=(
                                 f"Identity provisioning for method "
-                                f"'{identity_create.method}' is not yet implemented "
-                                f"(ref: {identity_ref})."
+                                f"'{identity_create.method}' is not supported on this "
+                                f"deployment (configured email_method="
+                                f"'{env.auth.email_method}'; ref: {identity_ref})."
                             ),
                             details={
                                 "ref": identity_ref,
                                 "method": identity_create.method,
+                                "configured_email_method": env.auth.email_method,
                             },
                         )
                     )
@@ -1164,18 +1188,20 @@ class PlatformAdminAccountsService:
             tenant_id = "public"
             for index, identity_create in enumerate(entry.user_identities):
                 identity_ref = f"identity_{index}"
-                if identity_create.method != "email:password":
+                if not _identity_method_supported(identity_create.method):
                     errors.append(
                         AdminStructuredErrorDTO(
                             code="not_implemented",
                             message=(
                                 f"Identity provisioning for method "
-                                f"'{identity_create.method}' is not yet implemented "
-                                f"(ref: {identity_ref})."
+                                f"'{identity_create.method}' is not supported on this "
+                                f"deployment (configured email_method="
+                                f"'{env.auth.email_method}'; ref: {identity_ref})."
                             ),
                             details={
                                 "ref": identity_ref,
                                 "method": identity_create.method,
+                                "configured_email_method": env.auth.email_method,
                             },
                         )
                     )
@@ -1330,9 +1356,10 @@ class PlatformAdminAccountsService:
     ) -> AdminAccountsResponseDTO:
         """Create a SuperTokens identity for an existing user."""
         identity = dto.user_identity
-        if identity.method != "email:password":
+        if not _identity_method_supported(identity.method):
             raise AdminNotImplementedError(
-                f"create_user_identity for method '{identity.method}'"
+                f"create_user_identity for method '{identity.method}' "
+                f"(configured email_method='{env.auth.email_method}')"
             )
 
         email = identity.email or identity.subject
