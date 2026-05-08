@@ -33,16 +33,16 @@ export class TracesClient {
      * @throws {@link AgentaApi.UnprocessableEntityError}
      *
      * @example
-     *     await client.traces.ingestSpansRpc({})
+     *     await client.traces.ingestSpans({})
      */
-    public ingestSpansRpc(
+    public ingestSpans(
         request: AgentaApi.OTelTracingRequest,
         requestOptions?: TracesClient.RequestOptions,
     ): core.HttpResponsePromise<AgentaApi.OTelLinksResponse> {
-        return core.HttpResponsePromise.fromPromise(this.__ingestSpansRpc(request, requestOptions));
+        return core.HttpResponsePromise.fromPromise(this.__ingestSpans(request, requestOptions));
     }
 
-    private async __ingestSpansRpc(
+    private async __ingestSpans(
         request: AgentaApi.OTelTracingRequest,
         requestOptions?: TracesClient.RequestOptions,
     ): Promise<core.WithRawResponse<AgentaApi.OTelLinksResponse>> {
@@ -250,23 +250,23 @@ export class TracesClient {
     }
 
     /**
-     * @param {AgentaApi.FetchAnalyticsRequest} request
+     * @param {AgentaApi.QueryAnalyticsRequest} request
      * @param {TracesClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link AgentaApi.UnprocessableEntityError}
      *
      * @example
-     *     await client.traces.fetchAnalytics()
+     *     await client.traces.queryAnalytics()
      */
-    public fetchAnalytics(
-        request: AgentaApi.FetchAnalyticsRequest = {},
+    public queryAnalytics(
+        request: AgentaApi.QueryAnalyticsRequest = {},
         requestOptions?: TracesClient.RequestOptions,
     ): core.HttpResponsePromise<AgentaApi.AnalyticsResponse> {
-        return core.HttpResponsePromise.fromPromise(this.__fetchAnalytics(request, requestOptions));
+        return core.HttpResponsePromise.fromPromise(this.__queryAnalytics(request, requestOptions));
     }
 
-    private async __fetchAnalytics(
-        request: AgentaApi.FetchAnalyticsRequest = {},
+    private async __queryAnalytics(
+        request: AgentaApi.QueryAnalyticsRequest = {},
         requestOptions?: TracesClient.RequestOptions,
     ): Promise<core.WithRawResponse<AgentaApi.AnalyticsResponse>> {
         const { focus, format, oldest, newest, interval, rate, filter, specs } = request;
@@ -613,16 +613,16 @@ export class TracesClient {
      * @throws {@link AgentaApi.UnprocessableEntityError}
      *
      * @example
-     *     await client.traces.listSessions()
+     *     await client.traces.querySessions()
      */
-    public listSessions(
+    public querySessions(
         request: AgentaApi.SessionsQueryRequest = {},
         requestOptions?: TracesClient.RequestOptions,
     ): core.HttpResponsePromise<AgentaApi.SessionIdsResponse> {
-        return core.HttpResponsePromise.fromPromise(this.__listSessions(request, requestOptions));
+        return core.HttpResponsePromise.fromPromise(this.__querySessions(request, requestOptions));
     }
 
-    private async __listSessions(
+    private async __querySessions(
         request: AgentaApi.SessionsQueryRequest = {},
         requestOptions?: TracesClient.RequestOptions,
     ): Promise<core.WithRawResponse<AgentaApi.SessionIdsResponse>> {
@@ -682,16 +682,16 @@ export class TracesClient {
      * @throws {@link AgentaApi.UnprocessableEntityError}
      *
      * @example
-     *     await client.traces.listUsers()
+     *     await client.traces.queryUsers()
      */
-    public listUsers(
+    public queryUsers(
         request: AgentaApi.UsersQueryRequest = {},
         requestOptions?: TracesClient.RequestOptions,
     ): core.HttpResponsePromise<AgentaApi.UserIdsResponse> {
-        return core.HttpResponsePromise.fromPromise(this.__listUsers(request, requestOptions));
+        return core.HttpResponsePromise.fromPromise(this.__queryUsers(request, requestOptions));
     }
 
-    private async __listUsers(
+    private async __queryUsers(
         request: AgentaApi.UsersQueryRequest = {},
         requestOptions?: TracesClient.RequestOptions,
     ): Promise<core.WithRawResponse<AgentaApi.UserIdsResponse>> {

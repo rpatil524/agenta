@@ -39,10 +39,10 @@ from ..types.trace_response import TraceResponse
 from ..types.traces_response import TracesResponse
 from ..types.user_ids_response import UserIdsResponse
 from ..types.windowing import Windowing
-from .types.fetch_analytics_request_newest import FetchAnalyticsRequestNewest
-from .types.fetch_analytics_request_oldest import FetchAnalyticsRequestOldest
 from .types.fetch_legacy_analytics_request_newest import FetchLegacyAnalyticsRequestNewest
 from .types.fetch_legacy_analytics_request_oldest import FetchLegacyAnalyticsRequestOldest
+from .types.query_analytics_request_newest import QueryAnalyticsRequestNewest
+from .types.query_analytics_request_oldest import QueryAnalyticsRequestOldest
 from .types.query_spans_rpc_request_newest import QuerySpansRpcRequestNewest
 from .types.query_spans_rpc_request_oldest import QuerySpansRpcRequestOldest
 
@@ -52,7 +52,7 @@ class RawTracesClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
     
-    def ingest_spans_rpc(self, *, spans: typing.Optional[typing.Sequence[SpanInput]] = OMIT, traces: typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[OTelLinksResponse]:
+    def ingest_spans(self, *, spans: typing.Optional[typing.Sequence[SpanInput]] = OMIT, traces: typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[OTelLinksResponse]:
         """
         Parameters
         ----------
@@ -214,7 +214,7 @@ class RawTracesClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
     
-    def fetch_analytics(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[FetchAnalyticsRequestOldest] = None, newest: typing.Optional[FetchAnalyticsRequestNewest] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, specs: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AnalyticsResponse]:
+    def query_analytics(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[QueryAnalyticsRequestOldest] = None, newest: typing.Optional[QueryAnalyticsRequestNewest] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, specs: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AnalyticsResponse]:
         """
         Parameters
         ----------
@@ -222,9 +222,9 @@ class RawTracesClient:
         
         format : typing.Optional[Format]
         
-        oldest : typing.Optional[FetchAnalyticsRequestOldest]
+        oldest : typing.Optional[QueryAnalyticsRequestOldest]
         
-        newest : typing.Optional[FetchAnalyticsRequestNewest]
+        newest : typing.Optional[QueryAnalyticsRequestNewest]
         
         interval : typing.Optional[int]
         
@@ -452,7 +452,7 @@ class RawTracesClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
     
-    def list_sessions(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[SessionIdsResponse]:
+    def query_sessions(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[SessionIdsResponse]:
         """
         Parameters
         ----------
@@ -502,7 +502,7 @@ class RawTracesClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
     
-    def list_users(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[UserIdsResponse]:
+    def query_users(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[UserIdsResponse]:
         """
         Parameters
         ----------
@@ -1219,7 +1219,7 @@ class AsyncRawTracesClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._client_wrapper = client_wrapper
     
-    async def ingest_spans_rpc(self, *, spans: typing.Optional[typing.Sequence[SpanInput]] = OMIT, traces: typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[OTelLinksResponse]:
+    async def ingest_spans(self, *, spans: typing.Optional[typing.Sequence[SpanInput]] = OMIT, traces: typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[OTelLinksResponse]:
         """
         Parameters
         ----------
@@ -1381,7 +1381,7 @@ class AsyncRawTracesClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
     
-    async def fetch_analytics(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[FetchAnalyticsRequestOldest] = None, newest: typing.Optional[FetchAnalyticsRequestNewest] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, specs: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AnalyticsResponse]:
+    async def query_analytics(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[QueryAnalyticsRequestOldest] = None, newest: typing.Optional[QueryAnalyticsRequestNewest] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, specs: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AnalyticsResponse]:
         """
         Parameters
         ----------
@@ -1389,9 +1389,9 @@ class AsyncRawTracesClient:
         
         format : typing.Optional[Format]
         
-        oldest : typing.Optional[FetchAnalyticsRequestOldest]
+        oldest : typing.Optional[QueryAnalyticsRequestOldest]
         
-        newest : typing.Optional[FetchAnalyticsRequestNewest]
+        newest : typing.Optional[QueryAnalyticsRequestNewest]
         
         interval : typing.Optional[int]
         
@@ -1619,7 +1619,7 @@ class AsyncRawTracesClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
     
-    async def list_sessions(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[SessionIdsResponse]:
+    async def query_sessions(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[SessionIdsResponse]:
         """
         Parameters
         ----------
@@ -1669,7 +1669,7 @@ class AsyncRawTracesClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
     
-    async def list_users(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[UserIdsResponse]:
+    async def query_users(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[UserIdsResponse]:
         """
         Parameters
         ----------

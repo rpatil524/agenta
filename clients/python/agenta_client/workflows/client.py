@@ -828,7 +828,7 @@ class WorkflowsClient:
         _response = self._raw_client.edit_workflow_revision(workflow_revision_id, workflow_revision=workflow_revision, request_options=request_options)
         return _response.data
     
-    def archive_workflow_revision_rpc(self, workflow_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResponse:
+    def archive_workflow_revision(self, workflow_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResponse:
         """
         Parameters
         ----------
@@ -849,14 +849,14 @@ class WorkflowsClient:
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
-        client.workflows.archive_workflow_revision_rpc(
+        client.workflows.archive_workflow_revision(
             workflow_revision_id="workflow_revision_id",
         )
         """
-        _response = self._raw_client.archive_workflow_revision_rpc(workflow_revision_id, request_options=request_options)
+        _response = self._raw_client.archive_workflow_revision(workflow_revision_id, request_options=request_options)
         return _response.data
     
-    def unarchive_workflow_revision_rpc(self, workflow_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResponse:
+    def unarchive_workflow_revision(self, workflow_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResponse:
         """
         Parameters
         ----------
@@ -877,11 +877,11 @@ class WorkflowsClient:
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
-        client.workflows.unarchive_workflow_revision_rpc(
+        client.workflows.unarchive_workflow_revision(
             workflow_revision_id="workflow_revision_id",
         )
         """
-        _response = self._raw_client.unarchive_workflow_revision_rpc(workflow_revision_id, request_options=request_options)
+        _response = self._raw_client.unarchive_workflow_revision(workflow_revision_id, request_options=request_options)
         return _response.data
     
     def query_workflow_revisions(self, *, workflow_id: typing.Optional[str] = None, workflow_ids: typing.Optional[typing.Sequence[str]] = None, workflow_slug: typing.Optional[str] = None, workflow_slugs: typing.Optional[typing.Sequence[str]] = None, workflow_variant_id: typing.Optional[str] = None, workflow_variant_ids: typing.Optional[typing.Sequence[str]] = None, workflow_variant_slug: typing.Optional[str] = None, workflow_variant_slugs: typing.Optional[typing.Sequence[str]] = None, workflow_revision_id: typing.Optional[str] = None, workflow_revision_ids: typing.Optional[typing.Sequence[str]] = None, workflow_revision_slug: typing.Optional[str] = None, workflow_revision_slugs: typing.Optional[typing.Sequence[str]] = None, workflow_revision_version: typing.Optional[str] = None, workflow_revision_versions: typing.Optional[typing.Sequence[str]] = None, name: typing.Optional[str] = None, description: typing.Optional[str] = None, flags: typing.Optional[str] = None, tags: typing.Optional[str] = None, meta: typing.Optional[str] = None, include_archived: typing.Optional[bool] = None, next: typing.Optional[str] = None, newest: typing.Optional[dt.datetime] = None, oldest: typing.Optional[dt.datetime] = None, limit: typing.Optional[int] = None, order: typing.Optional[QueryWorkflowRevisionsRequestOrder] = None, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionsResponse:
@@ -2214,7 +2214,7 @@ class AsyncWorkflowsClient:
         _response = await self._raw_client.edit_workflow_revision(workflow_revision_id, workflow_revision=workflow_revision, request_options=request_options)
         return _response.data
     
-    async def archive_workflow_revision_rpc(self, workflow_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResponse:
+    async def archive_workflow_revision(self, workflow_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResponse:
         """
         Parameters
         ----------
@@ -2240,17 +2240,17 @@ class AsyncWorkflowsClient:
         
         
         async def main() -> None:
-            await client.workflows.archive_workflow_revision_rpc(
+            await client.workflows.archive_workflow_revision(
                 workflow_revision_id="workflow_revision_id",
             )
         
         
         asyncio.run(main())
         """
-        _response = await self._raw_client.archive_workflow_revision_rpc(workflow_revision_id, request_options=request_options)
+        _response = await self._raw_client.archive_workflow_revision(workflow_revision_id, request_options=request_options)
         return _response.data
     
-    async def unarchive_workflow_revision_rpc(self, workflow_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResponse:
+    async def unarchive_workflow_revision(self, workflow_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResponse:
         """
         Parameters
         ----------
@@ -2276,14 +2276,14 @@ class AsyncWorkflowsClient:
         
         
         async def main() -> None:
-            await client.workflows.unarchive_workflow_revision_rpc(
+            await client.workflows.unarchive_workflow_revision(
                 workflow_revision_id="workflow_revision_id",
             )
         
         
         asyncio.run(main())
         """
-        _response = await self._raw_client.unarchive_workflow_revision_rpc(workflow_revision_id, request_options=request_options)
+        _response = await self._raw_client.unarchive_workflow_revision(workflow_revision_id, request_options=request_options)
         return _response.data
     
     async def query_workflow_revisions(self, *, workflow_id: typing.Optional[str] = None, workflow_ids: typing.Optional[typing.Sequence[str]] = None, workflow_slug: typing.Optional[str] = None, workflow_slugs: typing.Optional[typing.Sequence[str]] = None, workflow_variant_id: typing.Optional[str] = None, workflow_variant_ids: typing.Optional[typing.Sequence[str]] = None, workflow_variant_slug: typing.Optional[str] = None, workflow_variant_slugs: typing.Optional[typing.Sequence[str]] = None, workflow_revision_id: typing.Optional[str] = None, workflow_revision_ids: typing.Optional[typing.Sequence[str]] = None, workflow_revision_slug: typing.Optional[str] = None, workflow_revision_slugs: typing.Optional[typing.Sequence[str]] = None, workflow_revision_version: typing.Optional[str] = None, workflow_revision_versions: typing.Optional[typing.Sequence[str]] = None, name: typing.Optional[str] = None, description: typing.Optional[str] = None, flags: typing.Optional[str] = None, tags: typing.Optional[str] = None, meta: typing.Optional[str] = None, include_archived: typing.Optional[bool] = None, next: typing.Optional[str] = None, newest: typing.Optional[dt.datetime] = None, oldest: typing.Optional[dt.datetime] = None, limit: typing.Optional[int] = None, order: typing.Optional[QueryWorkflowRevisionsRequestOrder] = None, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionsResponse:

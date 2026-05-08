@@ -113,6 +113,10 @@ from oss.src.apis.fastapi.evaluations.router import EvaluationsRouter
 from oss.src.apis.fastapi.evaluations.router import SimpleEvaluationsRouter
 from oss.src.apis.fastapi.evaluations.router import SimpleQueuesRouter
 from oss.src.apis.fastapi.traces.router import SimpleTracesRouter
+from oss.src.apis.fastapi.annotations.router import AnnotationsRouter
+from oss.src.apis.fastapi.invocations.router import InvocationsRouter
+from oss.src.core.annotations.service import AnnotationsService
+from oss.src.core.invocations.service import InvocationsService
 
 from oss.src.core.ai_services.service import AIServicesService
 from oss.src.apis.fastapi.ai_services.router import AIServicesRouter
@@ -239,6 +243,14 @@ _OPENAPI_TAGS = [
         "name": "Traces",
         "description": "Ingest and query traces, spans, and metrics from running applications.",
     },
+    {
+        "name": "Invocations",
+        "description": "Run an application against a payload and capture the resulting trace.",
+    },
+    {
+        "name": "Annotations",
+        "description": "Attach evaluator-style feedback to existing traces and spans.",
+    },
     # --
     {
         "name": "Evaluations",
@@ -265,10 +277,10 @@ _OPENAPI_TAGS = [
         "description": "Organize applications and other resources into folder hierarchies.",
     },
     # --
-    {
-        "name": "Events",
-        "description": "Structured event ingestion for analytics and audit purposes.",
-    },
+    # {
+    #     "name": "Events",
+    #     "description": "Structured event ingestion for analytics and audit purposes.",
+    # },
     {
         "name": "Webhooks",
         "description": "Register and manage webhooks that fire on platform events.",
@@ -636,6 +648,24 @@ simple_traces = SimpleTracesRouter(
     simple_traces_service=simple_traces_service,
 )
 
+annotations_service = AnnotationsService(
+    evaluators_service=evaluators_service,
+    simple_evaluators_service=simple_evaluators_service,
+    tracing_service=tracing_service,
+)
+annotations = AnnotationsRouter(
+    annotations_service=annotations_service,
+)
+
+invocations_service = InvocationsService(
+    applications_service=applications_service,
+    simple_applications_service=simple_applications_service,
+    tracing_service=tracing_service,
+)
+invocations = InvocationsRouter(
+    invocations_service=invocations_service,
+)
+
 # AI SERVICES ------------------------------------------------------------------
 
 ai_services_service = AIServicesService.from_env()
@@ -654,9 +684,16 @@ platform_admin_accounts = PlatformAdminAccountsRouter(
 
 app.include_router(
     router=secrets.router,
-    prefix="/vault/v1",
     tags=["Secrets"],
 )
+
+## DEPRECATED
+app.include_router(
+    router=secrets.router,
+    prefix="/vault/v1",
+    include_in_schema=False,
+)
+## DEPRECATED
 
 app.include_router(
     router=webhooks.router,
@@ -673,7 +710,7 @@ app.include_router(
 app.include_router(
     router=auth_router,
     prefix="/auth",
-    include_in_schema=False,
+    tags=["Access"],
 )
 
 ## DEPRECATED
@@ -721,6 +758,7 @@ app.include_router(
     router=events.router,
     prefix="/events",
     tags=["Events"],
+    include_in_schema=False,
 )
 
 app.include_router(
@@ -733,6 +771,32 @@ app.include_router(
     router=simple_traces.router,
     prefix="/preview/simple/traces",
     tags=["Traces"],
+    include_in_schema=False,
+)
+
+app.include_router(
+    router=invocations.router,
+    prefix="/invocations",
+    tags=["Invocations"],
+)
+
+app.include_router(
+    router=invocations.router,
+    prefix="/preview/invocations",
+    tags=["Invocations"],
+    include_in_schema=False,
+)
+
+app.include_router(
+    router=annotations.router,
+    prefix="/annotations",
+    tags=["Annotations"],
+)
+
+app.include_router(
+    router=annotations.router,
+    prefix="/preview/annotations",
+    tags=["Annotations"],
     include_in_schema=False,
 )
 
@@ -940,6 +1004,7 @@ app.include_router(
     router=evaluations.admin_router,
     prefix="/admin/evaluations",
     tags=["Evaluations", "Admin"],
+    include_in_schema=False,
 )
 
 app.include_router(
@@ -996,8 +1061,7 @@ app.include_router(
 app.include_router(
     permissions_router.router,
     prefix="/permissions",
-    tags=["Access Control"],
-    include_in_schema=False,
+    tags=["Access"],
 )
 
 app.include_router(
@@ -1014,7 +1078,6 @@ app.include_router(
 
 app.include_router(
     api_key_router.router,
-    prefix="/keys",
     tags=["Keys"],
 )
 

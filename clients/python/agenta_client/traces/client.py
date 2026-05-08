@@ -32,10 +32,10 @@ from ..types.traces_response import TracesResponse
 from ..types.user_ids_response import UserIdsResponse
 from ..types.windowing import Windowing
 from .raw_client import AsyncRawTracesClient, RawTracesClient
-from .types.fetch_analytics_request_newest import FetchAnalyticsRequestNewest
-from .types.fetch_analytics_request_oldest import FetchAnalyticsRequestOldest
 from .types.fetch_legacy_analytics_request_newest import FetchLegacyAnalyticsRequestNewest
 from .types.fetch_legacy_analytics_request_oldest import FetchLegacyAnalyticsRequestOldest
+from .types.query_analytics_request_newest import QueryAnalyticsRequestNewest
+from .types.query_analytics_request_oldest import QueryAnalyticsRequestOldest
 from .types.query_spans_rpc_request_newest import QuerySpansRpcRequestNewest
 from .types.query_spans_rpc_request_oldest import QuerySpansRpcRequestOldest
 
@@ -56,7 +56,7 @@ class TracesClient:
         """
         return self._raw_client
     
-    def ingest_spans_rpc(self, *, spans: typing.Optional[typing.Sequence[SpanInput]] = OMIT, traces: typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> OTelLinksResponse:
+    def ingest_spans(self, *, spans: typing.Optional[typing.Sequence[SpanInput]] = OMIT, traces: typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> OTelLinksResponse:
         """
         Parameters
         ----------
@@ -79,9 +79,9 @@ class TracesClient:
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
-        client.traces.ingest_spans_rpc()
+        client.traces.ingest_spans()
         """
-        _response = self._raw_client.ingest_spans_rpc(spans=spans, traces=traces, request_options=request_options)
+        _response = self._raw_client.ingest_spans(spans=spans, traces=traces, request_options=request_options)
         return _response.data
     
     def query_spans_rpc(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[QuerySpansRpcRequestOldest] = None, newest: typing.Optional[QuerySpansRpcRequestNewest] = None, limit: typing.Optional[int] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> OTelTracingResponse:
@@ -164,7 +164,7 @@ class TracesClient:
         _response = self._raw_client.fetch_legacy_analytics(focus=focus, format=format, oldest=oldest, newest=newest, limit=limit, interval=interval, rate=rate, filter=filter, request_options=request_options)
         return _response.data
     
-    def fetch_analytics(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[FetchAnalyticsRequestOldest] = None, newest: typing.Optional[FetchAnalyticsRequestNewest] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, specs: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> AnalyticsResponse:
+    def query_analytics(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[QueryAnalyticsRequestOldest] = None, newest: typing.Optional[QueryAnalyticsRequestNewest] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, specs: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> AnalyticsResponse:
         """
         Parameters
         ----------
@@ -172,9 +172,9 @@ class TracesClient:
         
         format : typing.Optional[Format]
         
-        oldest : typing.Optional[FetchAnalyticsRequestOldest]
+        oldest : typing.Optional[QueryAnalyticsRequestOldest]
         
-        newest : typing.Optional[FetchAnalyticsRequestNewest]
+        newest : typing.Optional[QueryAnalyticsRequestNewest]
         
         interval : typing.Optional[int]
         
@@ -199,9 +199,9 @@ class TracesClient:
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
-        client.traces.fetch_analytics()
+        client.traces.query_analytics()
         """
-        _response = self._raw_client.fetch_analytics(focus=focus, format=format, oldest=oldest, newest=newest, interval=interval, rate=rate, filter=filter, specs=specs, request_options=request_options)
+        _response = self._raw_client.query_analytics(focus=focus, format=format, oldest=oldest, newest=newest, interval=interval, rate=rate, filter=filter, specs=specs, request_options=request_options)
         return _response.data
     
     def create_trace_tracing(self, *, spans: typing.Optional[typing.Sequence[SpanInput]] = OMIT, traces: typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> OTelLinksResponse:
@@ -320,7 +320,7 @@ class TracesClient:
         _response = self._raw_client.delete_trace_tracing(trace_id, request_options=request_options)
         return _response.data
     
-    def list_sessions(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> SessionIdsResponse:
+    def query_sessions(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> SessionIdsResponse:
         """
         Parameters
         ----------
@@ -343,12 +343,12 @@ class TracesClient:
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
-        client.traces.list_sessions()
+        client.traces.query_sessions()
         """
-        _response = self._raw_client.list_sessions(realtime=realtime, windowing=windowing, request_options=request_options)
+        _response = self._raw_client.query_sessions(realtime=realtime, windowing=windowing, request_options=request_options)
         return _response.data
     
-    def list_users(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> UserIdsResponse:
+    def query_users(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> UserIdsResponse:
         """
         Parameters
         ----------
@@ -371,9 +371,9 @@ class TracesClient:
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
-        client.traces.list_users()
+        client.traces.query_users()
         """
-        _response = self._raw_client.list_users(realtime=realtime, windowing=windowing, request_options=request_options)
+        _response = self._raw_client.query_users(realtime=realtime, windowing=windowing, request_options=request_options)
         return _response.data
     
     def fetch_traces(self, *, trace_id: typing.Optional[typing.Sequence[str]] = None, trace_ids: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> TracesResponse:
@@ -815,7 +815,7 @@ class AsyncTracesClient:
         """
         return self._raw_client
     
-    async def ingest_spans_rpc(self, *, spans: typing.Optional[typing.Sequence[SpanInput]] = OMIT, traces: typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> OTelLinksResponse:
+    async def ingest_spans(self, *, spans: typing.Optional[typing.Sequence[SpanInput]] = OMIT, traces: typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> OTelLinksResponse:
         """
         Parameters
         ----------
@@ -843,12 +843,12 @@ class AsyncTracesClient:
         
         
         async def main() -> None:
-            await client.traces.ingest_spans_rpc()
+            await client.traces.ingest_spans()
         
         
         asyncio.run(main())
         """
-        _response = await self._raw_client.ingest_spans_rpc(spans=spans, traces=traces, request_options=request_options)
+        _response = await self._raw_client.ingest_spans(spans=spans, traces=traces, request_options=request_options)
         return _response.data
     
     async def query_spans_rpc(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[QuerySpansRpcRequestOldest] = None, newest: typing.Optional[QuerySpansRpcRequestNewest] = None, limit: typing.Optional[int] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> OTelTracingResponse:
@@ -947,7 +947,7 @@ class AsyncTracesClient:
         _response = await self._raw_client.fetch_legacy_analytics(focus=focus, format=format, oldest=oldest, newest=newest, limit=limit, interval=interval, rate=rate, filter=filter, request_options=request_options)
         return _response.data
     
-    async def fetch_analytics(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[FetchAnalyticsRequestOldest] = None, newest: typing.Optional[FetchAnalyticsRequestNewest] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, specs: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> AnalyticsResponse:
+    async def query_analytics(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[QueryAnalyticsRequestOldest] = None, newest: typing.Optional[QueryAnalyticsRequestNewest] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, specs: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> AnalyticsResponse:
         """
         Parameters
         ----------
@@ -955,9 +955,9 @@ class AsyncTracesClient:
         
         format : typing.Optional[Format]
         
-        oldest : typing.Optional[FetchAnalyticsRequestOldest]
+        oldest : typing.Optional[QueryAnalyticsRequestOldest]
         
-        newest : typing.Optional[FetchAnalyticsRequestNewest]
+        newest : typing.Optional[QueryAnalyticsRequestNewest]
         
         interval : typing.Optional[int]
         
@@ -987,12 +987,12 @@ class AsyncTracesClient:
         
         
         async def main() -> None:
-            await client.traces.fetch_analytics()
+            await client.traces.query_analytics()
         
         
         asyncio.run(main())
         """
-        _response = await self._raw_client.fetch_analytics(focus=focus, format=format, oldest=oldest, newest=newest, interval=interval, rate=rate, filter=filter, specs=specs, request_options=request_options)
+        _response = await self._raw_client.query_analytics(focus=focus, format=format, oldest=oldest, newest=newest, interval=interval, rate=rate, filter=filter, specs=specs, request_options=request_options)
         return _response.data
     
     async def create_trace_tracing(self, *, spans: typing.Optional[typing.Sequence[SpanInput]] = OMIT, traces: typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> OTelLinksResponse:
@@ -1143,7 +1143,7 @@ class AsyncTracesClient:
         _response = await self._raw_client.delete_trace_tracing(trace_id, request_options=request_options)
         return _response.data
     
-    async def list_sessions(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> SessionIdsResponse:
+    async def query_sessions(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> SessionIdsResponse:
         """
         Parameters
         ----------
@@ -1171,15 +1171,15 @@ class AsyncTracesClient:
         
         
         async def main() -> None:
-            await client.traces.list_sessions()
+            await client.traces.query_sessions()
         
         
         asyncio.run(main())
         """
-        _response = await self._raw_client.list_sessions(realtime=realtime, windowing=windowing, request_options=request_options)
+        _response = await self._raw_client.query_sessions(realtime=realtime, windowing=windowing, request_options=request_options)
         return _response.data
     
-    async def list_users(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> UserIdsResponse:
+    async def query_users(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> UserIdsResponse:
         """
         Parameters
         ----------
@@ -1207,12 +1207,12 @@ class AsyncTracesClient:
         
         
         async def main() -> None:
-            await client.traces.list_users()
+            await client.traces.query_users()
         
         
         asyncio.run(main())
         """
-        _response = await self._raw_client.list_users(realtime=realtime, windowing=windowing, request_options=request_options)
+        _response = await self._raw_client.query_users(realtime=realtime, windowing=windowing, request_options=request_options)
         return _response.data
     
     async def fetch_traces(self, *, trace_id: typing.Optional[typing.Sequence[str]] = None, trace_ids: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> TracesResponse:

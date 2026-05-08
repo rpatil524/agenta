@@ -67,12 +67,12 @@ log = get_module_logger(__name__)
 
 
 @router.get(
-    "/{organization_id}/",
+    "/{organization_id}",
     operation_id="fetch_ee_organization_details",
 )
 async def fetch_organization_details(
-    organization_id: str,
     request: Request,
+    organization_id: str,
 ):
     """Get an organization's details.
 
@@ -153,19 +153,19 @@ async def fetch_organization_details(
 
 
 @router.put(
-    "/{organization_id}/",
+    "/{organization_id}",
     operation_id="update_organization",
     response_model=Organization,
 )
 @router.patch(
-    "/{organization_id}/",
+    "/{organization_id}",
     operation_id="patch_organization",
     response_model=Organization,
 )
 async def update_organization(
+    request: Request,
     organization_id: str,
     payload: OrganizationUpdate,
-    request: Request,
 ):
     if (
         not payload.slug
@@ -238,9 +238,9 @@ async def update_organization(
     response_model=WorkspaceResponse,
 )
 async def create_workspace(
+    request: Request,
     organization_id: str,
     payload: CreateWorkspace,
-    request: Request,
 ) -> WorkspaceResponse:
     try:
         user_org_workspace_data: dict = await get_user_org_and_workspace_id(
@@ -277,15 +277,15 @@ async def create_workspace(
 
 
 @router.put(
-    "/{organization_id}/workspaces/{workspace_id}/",
+    "/{organization_id}/workspaces/{workspace_id}",
     operation_id="update_workspace",
     response_model=WorkspaceResponse,
 )
 async def update_workspace(
+    request: Request,
     organization_id: str,
     workspace_id: str,
     payload: UpdateWorkspace,
-    request: Request,
 ) -> WorkspaceResponse:
     try:
         user_org_workspace_data: dict = await get_user_org_and_workspace_id(
@@ -327,9 +327,9 @@ async def update_workspace(
     operation_id="transfer_organization_ownership",
 )
 async def transfer_organization_ownership(
+    request: Request,
     organization_id: str,
     new_owner_id: str,
-    request: Request,
 ):
     """Transfer organization ownership to another member."""
     try:
@@ -386,8 +386,8 @@ async def transfer_organization_ownership(
     operation_id="create_organization",
 )
 async def create_organization(
-    payload: CreateOrganizationPayload,
     request: Request,
+    payload: CreateOrganizationPayload,
 ):
     """Create a new organization."""
     try:
@@ -431,12 +431,12 @@ async def create_organization(
 
 
 @router.delete(
-    "/{organization_id}/",
+    "/{organization_id}",
     operation_id="delete_organization",
 )
 async def delete_organization(
-    organization_id: str,
     request: Request,
+    organization_id: str,
 ):
     """Delete an organization (owner only)."""
     try:
@@ -498,8 +498,8 @@ async def delete_organization(
     operation_id="list_organization_domains",
 )
 async def list_organization_domains(
-    organization_id: str,
     request: Request,
+    organization_id: str,
 ):
     """List all domains for an organization."""
     try:
@@ -552,8 +552,8 @@ async def list_organization_domains(
     operation_id="create_organization_domain",
 )
 async def create_organization_domain(
-    organization_id: str,
     request: Request,
+    organization_id: str,
     domain: str,
 ):
     """Add a new domain to an organization."""
@@ -609,9 +609,9 @@ async def create_organization_domain(
     operation_id="get_organization_domain",
 )
 async def get_organization_domain(
+    request: Request,
     organization_id: str,
     domain_id: str,
-    request: Request,
 ):
     """Get a single domain by ID."""
     try:
@@ -663,9 +663,9 @@ async def get_organization_domain(
     operation_id="delete_organization_domain",
 )
 async def delete_organization_domain(
+    request: Request,
     organization_id: str,
     domain_id: str,
-    request: Request,
 ):
     """Delete a domain from an organization."""
     try:
@@ -706,9 +706,9 @@ async def delete_organization_domain(
     operation_id="verify_organization_domain",
 )
 async def verify_organization_domain(
+    request: Request,
     organization_id: str,
     domain_id: str,
-    request: Request,
 ):
     """Verify a domain (marks it as verified)."""
     try:
@@ -771,8 +771,8 @@ async def verify_organization_domain(
     operation_id="list_organization_providers",
 )
 async def list_organization_providers(
-    organization_id: str,
     request: Request,
+    organization_id: str,
 ):
     """List all SSO providers for an organization."""
     try:
@@ -807,8 +807,8 @@ async def list_organization_providers(
     operation_id="create_organization_provider",
 )
 async def create_organization_provider(
-    organization_id: str,
     request: Request,
+    organization_id: str,
     payload: dict,
 ):
     """Add a new SSO provider to an organization."""
@@ -860,9 +860,9 @@ async def create_organization_provider(
     operation_id="get_organization_provider",
 )
 async def get_organization_provider(
+    request: Request,
     organization_id: str,
     provider_id: str,
-    request: Request,
 ):
     """Get a single SSO provider by ID."""
     try:
@@ -900,9 +900,9 @@ async def get_organization_provider(
     operation_id="update_organization_provider",
 )
 async def update_organization_provider(
+    request: Request,
     organization_id: str,
     provider_id: str,
-    request: Request,
     payload: dict,
 ):
     """Update an SSO provider."""
@@ -953,9 +953,9 @@ async def update_organization_provider(
     operation_id="delete_organization_provider",
 )
 async def delete_organization_provider(
+    request: Request,
     organization_id: str,
     provider_id: str,
-    request: Request,
 ):
     """Delete an SSO provider from an organization."""
     try:

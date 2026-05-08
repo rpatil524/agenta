@@ -5,13 +5,13 @@
 import typing
 from importlib import import_module
 if typing.TYPE_CHECKING:
-    from .fetch_analytics_request_newest import FetchAnalyticsRequestNewest
-    from .fetch_analytics_request_oldest import FetchAnalyticsRequestOldest
     from .fetch_legacy_analytics_request_newest import FetchLegacyAnalyticsRequestNewest
     from .fetch_legacy_analytics_request_oldest import FetchLegacyAnalyticsRequestOldest
+    from .query_analytics_request_newest import QueryAnalyticsRequestNewest
+    from .query_analytics_request_oldest import QueryAnalyticsRequestOldest
     from .query_spans_rpc_request_newest import QuerySpansRpcRequestNewest
     from .query_spans_rpc_request_oldest import QuerySpansRpcRequestOldest
-_dynamic_imports: typing.Dict[str, str] = {"FetchAnalyticsRequestNewest": ".fetch_analytics_request_newest", "FetchAnalyticsRequestOldest": ".fetch_analytics_request_oldest", "FetchLegacyAnalyticsRequestNewest": ".fetch_legacy_analytics_request_newest", "FetchLegacyAnalyticsRequestOldest": ".fetch_legacy_analytics_request_oldest", "QuerySpansRpcRequestNewest": ".query_spans_rpc_request_newest", "QuerySpansRpcRequestOldest": ".query_spans_rpc_request_oldest"}
+_dynamic_imports: typing.Dict[str, str] = {"FetchLegacyAnalyticsRequestNewest": ".fetch_legacy_analytics_request_newest", "FetchLegacyAnalyticsRequestOldest": ".fetch_legacy_analytics_request_oldest", "QueryAnalyticsRequestNewest": ".query_analytics_request_newest", "QueryAnalyticsRequestOldest": ".query_analytics_request_oldest", "QuerySpansRpcRequestNewest": ".query_spans_rpc_request_newest", "QuerySpansRpcRequestOldest": ".query_spans_rpc_request_oldest"}
 def __getattr__(attr_name: str) -> typing.Any:
     module_name = _dynamic_imports.get(attr_name)
     if module_name is None:
@@ -29,4 +29,4 @@ def __getattr__(attr_name: str) -> typing.Any:
 def __dir__():
     lazy_attrs = list(_dynamic_imports.keys())
     return sorted(lazy_attrs)
-__all__ = ["FetchAnalyticsRequestNewest", "FetchAnalyticsRequestOldest", "FetchLegacyAnalyticsRequestNewest", "FetchLegacyAnalyticsRequestOldest", "QuerySpansRpcRequestNewest", "QuerySpansRpcRequestOldest"]
+__all__ = ["FetchLegacyAnalyticsRequestNewest", "FetchLegacyAnalyticsRequestOldest", "QueryAnalyticsRequestNewest", "QueryAnalyticsRequestOldest", "QuerySpansRpcRequestNewest", "QuerySpansRpcRequestOldest"]
