@@ -9,9 +9,6 @@ from ..types.filtering_input import FilteringInput
 from ..types.focus import Focus
 from ..types.format import Format
 from ..types.o_tel_link_input import OTelLinkInput
-from ..types.o_tel_links_response import OTelLinksResponse
-from ..types.o_tel_tracing_response import OTelTracingResponse
-from ..types.old_analytics_response import OldAnalyticsResponse
 from ..types.reference import Reference
 from ..types.session_ids_response import SessionIdsResponse
 from ..types.simple_trace_create import SimpleTraceCreate
@@ -20,24 +17,17 @@ from ..types.simple_trace_link_response import SimpleTraceLinkResponse
 from ..types.simple_trace_query import SimpleTraceQuery
 from ..types.simple_trace_response import SimpleTraceResponse
 from ..types.simple_traces_response import SimpleTracesResponse
-from ..types.span_input import SpanInput
 from ..types.span_response import SpanResponse
 from ..types.spans_response import SpansResponse
-from ..types.spans_tree_input import SpansTreeInput
 from ..types.trace_id_response import TraceIdResponse
-from ..types.trace_ids_response import TraceIdsResponse
 from ..types.trace_input import TraceInput
 from ..types.trace_response import TraceResponse
 from ..types.traces_response import TracesResponse
 from ..types.user_ids_response import UserIdsResponse
 from ..types.windowing import Windowing
 from .raw_client import AsyncRawTracesClient, RawTracesClient
-from .types.fetch_analytics_request_newest import FetchAnalyticsRequestNewest
-from .types.fetch_analytics_request_oldest import FetchAnalyticsRequestOldest
-from .types.fetch_legacy_analytics_request_newest import FetchLegacyAnalyticsRequestNewest
-from .types.fetch_legacy_analytics_request_oldest import FetchLegacyAnalyticsRequestOldest
-from .types.query_spans_rpc_request_newest import QuerySpansRpcRequestNewest
-from .types.query_spans_rpc_request_oldest import QuerySpansRpcRequestOldest
+from .types.query_spans_analytics_request_newest import QuerySpansAnalyticsRequestNewest
+from .types.query_spans_analytics_request_oldest import QuerySpansAnalyticsRequestOldest
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -55,326 +45,6 @@ class TracesClient:
         RawTracesClient
         """
         return self._raw_client
-    
-    def ingest_spans_rpc(self, *, spans: typing.Optional[typing.Sequence[SpanInput]] = OMIT, traces: typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> OTelLinksResponse:
-        """
-        Parameters
-        ----------
-        spans : typing.Optional[typing.Sequence[SpanInput]]
-        
-        traces : typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        OTelLinksResponse
-            Successful Response
-        
-        Examples
-        --------
-        from agenta import AgentaApi
-        
-        client = AgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        client.traces.ingest_spans_rpc()
-        """
-        _response = self._raw_client.ingest_spans_rpc(spans=spans, traces=traces, request_options=request_options)
-        return _response.data
-    
-    def query_spans_rpc(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[QuerySpansRpcRequestOldest] = None, newest: typing.Optional[QuerySpansRpcRequestNewest] = None, limit: typing.Optional[int] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> OTelTracingResponse:
-        """
-        Parameters
-        ----------
-        focus : typing.Optional[Focus]
-        
-        format : typing.Optional[Format]
-        
-        oldest : typing.Optional[QuerySpansRpcRequestOldest]
-        
-        newest : typing.Optional[QuerySpansRpcRequestNewest]
-        
-        limit : typing.Optional[int]
-        
-        interval : typing.Optional[int]
-        
-        rate : typing.Optional[float]
-        
-        filter : typing.Optional[str]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        OTelTracingResponse
-            Successful Response
-        
-        Examples
-        --------
-        from agenta import AgentaApi
-        
-        client = AgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        client.traces.query_spans_rpc()
-        """
-        _response = self._raw_client.query_spans_rpc(focus=focus, format=format, oldest=oldest, newest=newest, limit=limit, interval=interval, rate=rate, filter=filter, request_options=request_options)
-        return _response.data
-    
-    def fetch_legacy_analytics(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[FetchLegacyAnalyticsRequestOldest] = None, newest: typing.Optional[FetchLegacyAnalyticsRequestNewest] = None, limit: typing.Optional[int] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> OldAnalyticsResponse:
-        """
-        Parameters
-        ----------
-        focus : typing.Optional[Focus]
-        
-        format : typing.Optional[Format]
-        
-        oldest : typing.Optional[FetchLegacyAnalyticsRequestOldest]
-        
-        newest : typing.Optional[FetchLegacyAnalyticsRequestNewest]
-        
-        limit : typing.Optional[int]
-        
-        interval : typing.Optional[int]
-        
-        rate : typing.Optional[float]
-        
-        filter : typing.Optional[str]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        OldAnalyticsResponse
-            Successful Response
-        
-        Examples
-        --------
-        from agenta import AgentaApi
-        
-        client = AgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        client.traces.fetch_legacy_analytics()
-        """
-        _response = self._raw_client.fetch_legacy_analytics(focus=focus, format=format, oldest=oldest, newest=newest, limit=limit, interval=interval, rate=rate, filter=filter, request_options=request_options)
-        return _response.data
-    
-    def fetch_analytics(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[FetchAnalyticsRequestOldest] = None, newest: typing.Optional[FetchAnalyticsRequestNewest] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, specs: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> AnalyticsResponse:
-        """
-        Parameters
-        ----------
-        focus : typing.Optional[Focus]
-        
-        format : typing.Optional[Format]
-        
-        oldest : typing.Optional[FetchAnalyticsRequestOldest]
-        
-        newest : typing.Optional[FetchAnalyticsRequestNewest]
-        
-        interval : typing.Optional[int]
-        
-        rate : typing.Optional[float]
-        
-        filter : typing.Optional[str]
-        
-        specs : typing.Optional[str]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        AnalyticsResponse
-            Successful Response
-        
-        Examples
-        --------
-        from agenta import AgentaApi
-        
-        client = AgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        client.traces.fetch_analytics()
-        """
-        _response = self._raw_client.fetch_analytics(focus=focus, format=format, oldest=oldest, newest=newest, interval=interval, rate=rate, filter=filter, specs=specs, request_options=request_options)
-        return _response.data
-    
-    def create_trace_tracing(self, *, spans: typing.Optional[typing.Sequence[SpanInput]] = OMIT, traces: typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> OTelLinksResponse:
-        """
-        Parameters
-        ----------
-        spans : typing.Optional[typing.Sequence[SpanInput]]
-        
-        traces : typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        OTelLinksResponse
-            Successful Response
-        
-        Examples
-        --------
-        from agenta import AgentaApi
-        
-        client = AgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        client.traces.create_trace_tracing()
-        """
-        _response = self._raw_client.create_trace_tracing(spans=spans, traces=traces, request_options=request_options)
-        return _response.data
-    
-    def fetch_trace_tracing(self, trace_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> OTelTracingResponse:
-        """
-        Parameters
-        ----------
-        trace_id : str
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        OTelTracingResponse
-            Successful Response
-        
-        Examples
-        --------
-        from agenta import AgentaApi
-        
-        client = AgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        client.traces.fetch_trace_tracing(
-            trace_id="trace_id",
-        )
-        """
-        _response = self._raw_client.fetch_trace_tracing(trace_id, request_options=request_options)
-        return _response.data
-    
-    def edit_trace_tracing(self, trace_id: str, *, spans: typing.Optional[typing.Sequence[SpanInput]] = OMIT, traces: typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> OTelLinksResponse:
-        """
-        Parameters
-        ----------
-        trace_id : str
-        
-        spans : typing.Optional[typing.Sequence[SpanInput]]
-        
-        traces : typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        OTelLinksResponse
-            Successful Response
-        
-        Examples
-        --------
-        from agenta import AgentaApi
-        
-        client = AgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        client.traces.edit_trace_tracing(
-            trace_id="trace_id",
-        )
-        """
-        _response = self._raw_client.edit_trace_tracing(trace_id, spans=spans, traces=traces, request_options=request_options)
-        return _response.data
-    
-    def delete_trace_tracing(self, trace_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> OTelLinksResponse:
-        """
-        Parameters
-        ----------
-        trace_id : str
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        OTelLinksResponse
-            Successful Response
-        
-        Examples
-        --------
-        from agenta import AgentaApi
-        
-        client = AgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        client.traces.delete_trace_tracing(
-            trace_id="trace_id",
-        )
-        """
-        _response = self._raw_client.delete_trace_tracing(trace_id, request_options=request_options)
-        return _response.data
-    
-    def list_sessions(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> SessionIdsResponse:
-        """
-        Parameters
-        ----------
-        realtime : typing.Optional[bool]
-        
-        windowing : typing.Optional[Windowing]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        SessionIdsResponse
-            Successful Response
-        
-        Examples
-        --------
-        from agenta import AgentaApi
-        
-        client = AgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        client.traces.list_sessions()
-        """
-        _response = self._raw_client.list_sessions(realtime=realtime, windowing=windowing, request_options=request_options)
-        return _response.data
-    
-    def list_users(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> UserIdsResponse:
-        """
-        Parameters
-        ----------
-        realtime : typing.Optional[bool]
-        
-        windowing : typing.Optional[Windowing]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        UserIdsResponse
-            Successful Response
-        
-        Examples
-        --------
-        from agenta import AgentaApi
-        
-        client = AgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        client.traces.list_users()
-        """
-        _response = self._raw_client.list_users(realtime=realtime, windowing=windowing, request_options=request_options)
-        return _response.data
     
     def fetch_traces(self, *, trace_id: typing.Optional[typing.Sequence[str]] = None, trace_ids: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> TracesResponse:
         """
@@ -464,32 +134,6 @@ class TracesClient:
         _response = self._raw_client.query_traces(filtering=filtering, windowing=windowing, query_ref=query_ref, query_variant_ref=query_variant_ref, query_revision_ref=query_revision_ref, request_options=request_options)
         return _response.data
     
-    def ingest_traces(self, *, traces: typing.Optional[typing.Sequence[TraceInput]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> TraceIdsResponse:
-        """
-        Parameters
-        ----------
-        traces : typing.Optional[typing.Sequence[TraceInput]]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        TraceIdsResponse
-            Successful Response
-        
-        Examples
-        --------
-        from agenta import AgentaApi
-        
-        client = AgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        client.traces.ingest_traces()
-        """
-        _response = self._raw_client.ingest_traces(traces=traces, request_options=request_options)
-        return _response.data
-    
     def fetch_trace(self, trace_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> TraceResponse:
         """
         Parameters
@@ -546,6 +190,34 @@ class TracesClient:
         )
         """
         _response = self._raw_client.edit_trace(trace_id, trace=trace, request_options=request_options)
+        return _response.data
+    
+    def delete_trace(self, trace_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> TraceIdResponse:
+        """
+        Parameters
+        ----------
+        trace_id : str
+        
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+        
+        Returns
+        -------
+        TraceIdResponse
+            Successful Response
+        
+        Examples
+        --------
+        from agenta import AgentaApi
+        
+        client = AgentaApi(
+            api_key="YOUR_API_KEY",
+        )
+        client.traces.delete_trace(
+            trace_id="trace_id",
+        )
+        """
+        _response = self._raw_client.delete_trace(trace_id, request_options=request_options)
         return _response.data
     
     def fetch_spans(self, *, trace_id: typing.Optional[typing.Sequence[str]] = None, trace_ids: typing.Optional[str] = None, span_id: typing.Optional[typing.Sequence[str]] = None, span_ids: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> SpansResponse:
@@ -612,6 +284,102 @@ class TracesClient:
         client.traces.query_spans()
         """
         _response = self._raw_client.query_spans(filtering=filtering, windowing=windowing, query_ref=query_ref, query_variant_ref=query_variant_ref, query_revision_ref=query_revision_ref, request_options=request_options)
+        return _response.data
+    
+    def query_spans_analytics(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[QuerySpansAnalyticsRequestOldest] = None, newest: typing.Optional[QuerySpansAnalyticsRequestNewest] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, specs: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> AnalyticsResponse:
+        """
+        Parameters
+        ----------
+        focus : typing.Optional[Focus]
+        
+        format : typing.Optional[Format]
+        
+        oldest : typing.Optional[QuerySpansAnalyticsRequestOldest]
+        
+        newest : typing.Optional[QuerySpansAnalyticsRequestNewest]
+        
+        interval : typing.Optional[int]
+        
+        rate : typing.Optional[float]
+        
+        filter : typing.Optional[str]
+        
+        specs : typing.Optional[str]
+        
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+        
+        Returns
+        -------
+        AnalyticsResponse
+            Successful Response
+        
+        Examples
+        --------
+        from agenta import AgentaApi
+        
+        client = AgentaApi(
+            api_key="YOUR_API_KEY",
+        )
+        client.traces.query_spans_analytics()
+        """
+        _response = self._raw_client.query_spans_analytics(focus=focus, format=format, oldest=oldest, newest=newest, interval=interval, rate=rate, filter=filter, specs=specs, request_options=request_options)
+        return _response.data
+    
+    def query_spans_sessions(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> SessionIdsResponse:
+        """
+        Parameters
+        ----------
+        realtime : typing.Optional[bool]
+        
+        windowing : typing.Optional[Windowing]
+        
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+        
+        Returns
+        -------
+        SessionIdsResponse
+            Successful Response
+        
+        Examples
+        --------
+        from agenta import AgentaApi
+        
+        client = AgentaApi(
+            api_key="YOUR_API_KEY",
+        )
+        client.traces.query_spans_sessions()
+        """
+        _response = self._raw_client.query_spans_sessions(realtime=realtime, windowing=windowing, request_options=request_options)
+        return _response.data
+    
+    def query_spans_users(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> UserIdsResponse:
+        """
+        Parameters
+        ----------
+        realtime : typing.Optional[bool]
+        
+        windowing : typing.Optional[Windowing]
+        
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+        
+        Returns
+        -------
+        UserIdsResponse
+            Successful Response
+        
+        Examples
+        --------
+        from agenta import AgentaApi
+        
+        client = AgentaApi(
+            api_key="YOUR_API_KEY",
+        )
+        client.traces.query_spans_users()
+        """
+        _response = self._raw_client.query_spans_users(realtime=realtime, windowing=windowing, request_options=request_options)
         return _response.data
     
     def fetch_span(self, trace_id: str, span_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SpanResponse:
@@ -815,406 +583,6 @@ class AsyncTracesClient:
         """
         return self._raw_client
     
-    async def ingest_spans_rpc(self, *, spans: typing.Optional[typing.Sequence[SpanInput]] = OMIT, traces: typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> OTelLinksResponse:
-        """
-        Parameters
-        ----------
-        spans : typing.Optional[typing.Sequence[SpanInput]]
-        
-        traces : typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        OTelLinksResponse
-            Successful Response
-        
-        Examples
-        --------
-        import asyncio
-        
-        from agenta import AsyncAgentaApi
-        
-        client = AsyncAgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        
-        
-        async def main() -> None:
-            await client.traces.ingest_spans_rpc()
-        
-        
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.ingest_spans_rpc(spans=spans, traces=traces, request_options=request_options)
-        return _response.data
-    
-    async def query_spans_rpc(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[QuerySpansRpcRequestOldest] = None, newest: typing.Optional[QuerySpansRpcRequestNewest] = None, limit: typing.Optional[int] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> OTelTracingResponse:
-        """
-        Parameters
-        ----------
-        focus : typing.Optional[Focus]
-        
-        format : typing.Optional[Format]
-        
-        oldest : typing.Optional[QuerySpansRpcRequestOldest]
-        
-        newest : typing.Optional[QuerySpansRpcRequestNewest]
-        
-        limit : typing.Optional[int]
-        
-        interval : typing.Optional[int]
-        
-        rate : typing.Optional[float]
-        
-        filter : typing.Optional[str]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        OTelTracingResponse
-            Successful Response
-        
-        Examples
-        --------
-        import asyncio
-        
-        from agenta import AsyncAgentaApi
-        
-        client = AsyncAgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        
-        
-        async def main() -> None:
-            await client.traces.query_spans_rpc()
-        
-        
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.query_spans_rpc(focus=focus, format=format, oldest=oldest, newest=newest, limit=limit, interval=interval, rate=rate, filter=filter, request_options=request_options)
-        return _response.data
-    
-    async def fetch_legacy_analytics(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[FetchLegacyAnalyticsRequestOldest] = None, newest: typing.Optional[FetchLegacyAnalyticsRequestNewest] = None, limit: typing.Optional[int] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> OldAnalyticsResponse:
-        """
-        Parameters
-        ----------
-        focus : typing.Optional[Focus]
-        
-        format : typing.Optional[Format]
-        
-        oldest : typing.Optional[FetchLegacyAnalyticsRequestOldest]
-        
-        newest : typing.Optional[FetchLegacyAnalyticsRequestNewest]
-        
-        limit : typing.Optional[int]
-        
-        interval : typing.Optional[int]
-        
-        rate : typing.Optional[float]
-        
-        filter : typing.Optional[str]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        OldAnalyticsResponse
-            Successful Response
-        
-        Examples
-        --------
-        import asyncio
-        
-        from agenta import AsyncAgentaApi
-        
-        client = AsyncAgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        
-        
-        async def main() -> None:
-            await client.traces.fetch_legacy_analytics()
-        
-        
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.fetch_legacy_analytics(focus=focus, format=format, oldest=oldest, newest=newest, limit=limit, interval=interval, rate=rate, filter=filter, request_options=request_options)
-        return _response.data
-    
-    async def fetch_analytics(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[FetchAnalyticsRequestOldest] = None, newest: typing.Optional[FetchAnalyticsRequestNewest] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, specs: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> AnalyticsResponse:
-        """
-        Parameters
-        ----------
-        focus : typing.Optional[Focus]
-        
-        format : typing.Optional[Format]
-        
-        oldest : typing.Optional[FetchAnalyticsRequestOldest]
-        
-        newest : typing.Optional[FetchAnalyticsRequestNewest]
-        
-        interval : typing.Optional[int]
-        
-        rate : typing.Optional[float]
-        
-        filter : typing.Optional[str]
-        
-        specs : typing.Optional[str]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        AnalyticsResponse
-            Successful Response
-        
-        Examples
-        --------
-        import asyncio
-        
-        from agenta import AsyncAgentaApi
-        
-        client = AsyncAgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        
-        
-        async def main() -> None:
-            await client.traces.fetch_analytics()
-        
-        
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.fetch_analytics(focus=focus, format=format, oldest=oldest, newest=newest, interval=interval, rate=rate, filter=filter, specs=specs, request_options=request_options)
-        return _response.data
-    
-    async def create_trace_tracing(self, *, spans: typing.Optional[typing.Sequence[SpanInput]] = OMIT, traces: typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> OTelLinksResponse:
-        """
-        Parameters
-        ----------
-        spans : typing.Optional[typing.Sequence[SpanInput]]
-        
-        traces : typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        OTelLinksResponse
-            Successful Response
-        
-        Examples
-        --------
-        import asyncio
-        
-        from agenta import AsyncAgentaApi
-        
-        client = AsyncAgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        
-        
-        async def main() -> None:
-            await client.traces.create_trace_tracing()
-        
-        
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.create_trace_tracing(spans=spans, traces=traces, request_options=request_options)
-        return _response.data
-    
-    async def fetch_trace_tracing(self, trace_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> OTelTracingResponse:
-        """
-        Parameters
-        ----------
-        trace_id : str
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        OTelTracingResponse
-            Successful Response
-        
-        Examples
-        --------
-        import asyncio
-        
-        from agenta import AsyncAgentaApi
-        
-        client = AsyncAgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        
-        
-        async def main() -> None:
-            await client.traces.fetch_trace_tracing(
-                trace_id="trace_id",
-            )
-        
-        
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.fetch_trace_tracing(trace_id, request_options=request_options)
-        return _response.data
-    
-    async def edit_trace_tracing(self, trace_id: str, *, spans: typing.Optional[typing.Sequence[SpanInput]] = OMIT, traces: typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> OTelLinksResponse:
-        """
-        Parameters
-        ----------
-        trace_id : str
-        
-        spans : typing.Optional[typing.Sequence[SpanInput]]
-        
-        traces : typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        OTelLinksResponse
-            Successful Response
-        
-        Examples
-        --------
-        import asyncio
-        
-        from agenta import AsyncAgentaApi
-        
-        client = AsyncAgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        
-        
-        async def main() -> None:
-            await client.traces.edit_trace_tracing(
-                trace_id="trace_id",
-            )
-        
-        
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.edit_trace_tracing(trace_id, spans=spans, traces=traces, request_options=request_options)
-        return _response.data
-    
-    async def delete_trace_tracing(self, trace_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> OTelLinksResponse:
-        """
-        Parameters
-        ----------
-        trace_id : str
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        OTelLinksResponse
-            Successful Response
-        
-        Examples
-        --------
-        import asyncio
-        
-        from agenta import AsyncAgentaApi
-        
-        client = AsyncAgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        
-        
-        async def main() -> None:
-            await client.traces.delete_trace_tracing(
-                trace_id="trace_id",
-            )
-        
-        
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.delete_trace_tracing(trace_id, request_options=request_options)
-        return _response.data
-    
-    async def list_sessions(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> SessionIdsResponse:
-        """
-        Parameters
-        ----------
-        realtime : typing.Optional[bool]
-        
-        windowing : typing.Optional[Windowing]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        SessionIdsResponse
-            Successful Response
-        
-        Examples
-        --------
-        import asyncio
-        
-        from agenta import AsyncAgentaApi
-        
-        client = AsyncAgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        
-        
-        async def main() -> None:
-            await client.traces.list_sessions()
-        
-        
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.list_sessions(realtime=realtime, windowing=windowing, request_options=request_options)
-        return _response.data
-    
-    async def list_users(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> UserIdsResponse:
-        """
-        Parameters
-        ----------
-        realtime : typing.Optional[bool]
-        
-        windowing : typing.Optional[Windowing]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        UserIdsResponse
-            Successful Response
-        
-        Examples
-        --------
-        import asyncio
-        
-        from agenta import AsyncAgentaApi
-        
-        client = AsyncAgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        
-        
-        async def main() -> None:
-            await client.traces.list_users()
-        
-        
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.list_users(realtime=realtime, windowing=windowing, request_options=request_options)
-        return _response.data
-    
     async def fetch_traces(self, *, trace_id: typing.Optional[typing.Sequence[str]] = None, trace_ids: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> TracesResponse:
         """
         Parameters
@@ -1327,40 +695,6 @@ class AsyncTracesClient:
         _response = await self._raw_client.query_traces(filtering=filtering, windowing=windowing, query_ref=query_ref, query_variant_ref=query_variant_ref, query_revision_ref=query_revision_ref, request_options=request_options)
         return _response.data
     
-    async def ingest_traces(self, *, traces: typing.Optional[typing.Sequence[TraceInput]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> TraceIdsResponse:
-        """
-        Parameters
-        ----------
-        traces : typing.Optional[typing.Sequence[TraceInput]]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        TraceIdsResponse
-            Successful Response
-        
-        Examples
-        --------
-        import asyncio
-        
-        from agenta import AsyncAgentaApi
-        
-        client = AsyncAgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        
-        
-        async def main() -> None:
-            await client.traces.ingest_traces()
-        
-        
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.ingest_traces(traces=traces, request_options=request_options)
-        return _response.data
-    
     async def fetch_trace(self, trace_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> TraceResponse:
         """
         Parameters
@@ -1433,6 +767,42 @@ class AsyncTracesClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.edit_trace(trace_id, trace=trace, request_options=request_options)
+        return _response.data
+    
+    async def delete_trace(self, trace_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> TraceIdResponse:
+        """
+        Parameters
+        ----------
+        trace_id : str
+        
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+        
+        Returns
+        -------
+        TraceIdResponse
+            Successful Response
+        
+        Examples
+        --------
+        import asyncio
+        
+        from agenta import AsyncAgentaApi
+        
+        client = AsyncAgentaApi(
+            api_key="YOUR_API_KEY",
+        )
+        
+        
+        async def main() -> None:
+            await client.traces.delete_trace(
+                trace_id="trace_id",
+            )
+        
+        
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.delete_trace(trace_id, request_options=request_options)
         return _response.data
     
     async def fetch_spans(self, *, trace_id: typing.Optional[typing.Sequence[str]] = None, trace_ids: typing.Optional[str] = None, span_id: typing.Optional[typing.Sequence[str]] = None, span_ids: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> SpansResponse:
@@ -1515,6 +885,126 @@ class AsyncTracesClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.query_spans(filtering=filtering, windowing=windowing, query_ref=query_ref, query_variant_ref=query_variant_ref, query_revision_ref=query_revision_ref, request_options=request_options)
+        return _response.data
+    
+    async def query_spans_analytics(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[QuerySpansAnalyticsRequestOldest] = None, newest: typing.Optional[QuerySpansAnalyticsRequestNewest] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, specs: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> AnalyticsResponse:
+        """
+        Parameters
+        ----------
+        focus : typing.Optional[Focus]
+        
+        format : typing.Optional[Format]
+        
+        oldest : typing.Optional[QuerySpansAnalyticsRequestOldest]
+        
+        newest : typing.Optional[QuerySpansAnalyticsRequestNewest]
+        
+        interval : typing.Optional[int]
+        
+        rate : typing.Optional[float]
+        
+        filter : typing.Optional[str]
+        
+        specs : typing.Optional[str]
+        
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+        
+        Returns
+        -------
+        AnalyticsResponse
+            Successful Response
+        
+        Examples
+        --------
+        import asyncio
+        
+        from agenta import AsyncAgentaApi
+        
+        client = AsyncAgentaApi(
+            api_key="YOUR_API_KEY",
+        )
+        
+        
+        async def main() -> None:
+            await client.traces.query_spans_analytics()
+        
+        
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.query_spans_analytics(focus=focus, format=format, oldest=oldest, newest=newest, interval=interval, rate=rate, filter=filter, specs=specs, request_options=request_options)
+        return _response.data
+    
+    async def query_spans_sessions(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> SessionIdsResponse:
+        """
+        Parameters
+        ----------
+        realtime : typing.Optional[bool]
+        
+        windowing : typing.Optional[Windowing]
+        
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+        
+        Returns
+        -------
+        SessionIdsResponse
+            Successful Response
+        
+        Examples
+        --------
+        import asyncio
+        
+        from agenta import AsyncAgentaApi
+        
+        client = AsyncAgentaApi(
+            api_key="YOUR_API_KEY",
+        )
+        
+        
+        async def main() -> None:
+            await client.traces.query_spans_sessions()
+        
+        
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.query_spans_sessions(realtime=realtime, windowing=windowing, request_options=request_options)
+        return _response.data
+    
+    async def query_spans_users(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> UserIdsResponse:
+        """
+        Parameters
+        ----------
+        realtime : typing.Optional[bool]
+        
+        windowing : typing.Optional[Windowing]
+        
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+        
+        Returns
+        -------
+        UserIdsResponse
+            Successful Response
+        
+        Examples
+        --------
+        import asyncio
+        
+        from agenta import AsyncAgentaApi
+        
+        client = AsyncAgentaApi(
+            api_key="YOUR_API_KEY",
+        )
+        
+        
+        async def main() -> None:
+            await client.traces.query_spans_users()
+        
+        
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.query_spans_users(realtime=realtime, windowing=windowing, request_options=request_options)
         return _response.data
     
     async def fetch_span(self, trace_id: str, span_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SpanResponse:

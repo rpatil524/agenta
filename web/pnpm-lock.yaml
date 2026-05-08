@@ -1163,7 +1163,7 @@ importers:
 
   packages/agenta-sdk:
     dependencies:
-      '@agenta/api-client':
+      '@agentaai/api-client':
         specifier: workspace:../agenta-api-client
         version: link:../agenta-api-client
     devDependencies:
