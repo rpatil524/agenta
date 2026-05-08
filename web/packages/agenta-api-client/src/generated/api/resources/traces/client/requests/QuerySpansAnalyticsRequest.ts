@@ -6,13 +6,13 @@ import type * as AgentaApi from "../../../../index.js";
  * @example
  *     {}
  */
-export interface QuerySpansRpcRequest {
+export interface QuerySpansAnalyticsRequest {
     focus?: AgentaApi.Focus | null;
     format?: AgentaApi.Format | null;
-    oldest?: AgentaApi.QuerySpansRpcRequestOldest | null;
-    newest?: AgentaApi.QuerySpansRpcRequestNewest | null;
-    limit?: number | null;
+    oldest?: AgentaApi.QuerySpansAnalyticsRequestOldest | null;
+    newest?: AgentaApi.QuerySpansAnalyticsRequestNewest | null;
     interval?: number | null;
     rate?: number | null;
     filter?: string;
+    specs?: string;
 }

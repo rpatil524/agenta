@@ -26,30 +26,22 @@ export class OrganizationsClient {
     }
 
     /**
-     * List all domains for an organization.
+     * List all domains for the organization.
      *
-     * @param {AgentaApi.ListOrganizationDomainsRequest} request
      * @param {OrganizationsClient.RequestOptions} requestOptions - Request-specific configuration.
      *
-     * @throws {@link AgentaApi.UnprocessableEntityError}
-     *
      * @example
-     *     await client.organizations.listOrganizationDomains({
-     *         organization_id: "organization_id"
-     *     })
+     *     await client.organizations.listOrganizationDomains()
      */
     public listOrganizationDomains(
-        request: AgentaApi.ListOrganizationDomainsRequest,
         requestOptions?: OrganizationsClient.RequestOptions,
-    ): core.HttpResponsePromise<unknown> {
-        return core.HttpResponsePromise.fromPromise(this.__listOrganizationDomains(request, requestOptions));
+    ): core.HttpResponsePromise<AgentaApi.OrganizationDomainResponse[]> {
+        return core.HttpResponsePromise.fromPromise(this.__listOrganizationDomains(requestOptions));
     }
 
     private async __listOrganizationDomains(
-        request: AgentaApi.ListOrganizationDomainsRequest,
         requestOptions?: OrganizationsClient.RequestOptions,
-    ): Promise<core.WithRawResponse<unknown>> {
-        const { organization_id: organizationId } = request;
+    ): Promise<core.WithRawResponse<AgentaApi.OrganizationDomainResponse[]>> {
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
             _authRequest.headers,
@@ -61,7 +53,7 @@ export class OrganizationsClient {
                 (await core.Supplier.get(this._options.baseUrl)) ??
                     (await core.Supplier.get(this._options.environment)) ??
                     environments.AgentaApiEnvironment.Default,
-                `organizations/${core.url.encodePathParam(organizationId)}/domains`,
+                "organizations/domains/",
             ),
             method: "GET",
             headers: _headers,
@@ -74,62 +66,54 @@ export class OrganizationsClient {
             logging: this._options.logging,
         });
         if (_response.ok) {
-            return { data: _response.body, rawResponse: _response.rawResponse };
+            return {
+                data: _response.body as AgentaApi.OrganizationDomainResponse[],
+                rawResponse: _response.rawResponse,
+            };
         }
 
         if (_response.error.reason === "status-code") {
-            switch (_response.error.statusCode) {
-                case 422:
-                    throw new AgentaApi.UnprocessableEntityError(
-                        _response.error.body as AgentaApi.HttpValidationError,
-                        _response.rawResponse,
-                    );
-                default:
-                    throw new errors.AgentaApiError({
-                        statusCode: _response.error.statusCode,
-                        body: _response.error.body,
-                        rawResponse: _response.rawResponse,
-                    });
-            }
+            throw new errors.AgentaApiError({
+                statusCode: _response.error.statusCode,
+                body: _response.error.body,
+                rawResponse: _response.rawResponse,
+            });
         }
 
-        return handleNonStatusCodeError(
-            _response.error,
-            _response.rawResponse,
-            "GET",
-            "/organizations/{organization_id}/domains",
-        );
+        return handleNonStatusCodeError(_response.error, _response.rawResponse, "GET", "/organizations/domains/");
     }
 
     /**
-     * Add a new domain to an organization.
+     * Create a new domain for verification.
      *
-     * @param {AgentaApi.CreateOrganizationDomainRequest} request
+     * This endpoint initiates the domain verification process by:
+     * 1. Creating a domain record
+     * 2. Generating a unique verification token
+     * 3. Returning DNS configuration instructions
+     *
+     * The user must add a DNS TXT record to verify ownership.
+     *
+     * @param {AgentaApi.OrganizationDomainCreate} request
      * @param {OrganizationsClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link AgentaApi.UnprocessableEntityError}
      *
      * @example
      *     await client.organizations.createOrganizationDomain({
-     *         organization_id: "organization_id",
      *         domain: "domain"
      *     })
      */
     public createOrganizationDomain(
-        request: AgentaApi.CreateOrganizationDomainRequest,
+        request: AgentaApi.OrganizationDomainCreate,
         requestOptions?: OrganizationsClient.RequestOptions,
-    ): core.HttpResponsePromise<unknown> {
+    ): core.HttpResponsePromise<AgentaApi.OrganizationDomainResponse> {
         return core.HttpResponsePromise.fromPromise(this.__createOrganizationDomain(request, requestOptions));
     }
 
     private async __createOrganizationDomain(
-        request: AgentaApi.CreateOrganizationDomainRequest,
+        request: AgentaApi.OrganizationDomainCreate,
         requestOptions?: OrganizationsClient.RequestOptions,
-    ): Promise<core.WithRawResponse<unknown>> {
-        const { organization_id: organizationId, domain } = request;
-        const _queryParams: Record<string, unknown> = {
-            domain,
-        };
+    ): Promise<core.WithRawResponse<AgentaApi.OrganizationDomainResponse>> {
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
             _authRequest.headers,
@@ -141,11 +125,14 @@ export class OrganizationsClient {
                 (await core.Supplier.get(this._options.baseUrl)) ??
                     (await core.Supplier.get(this._options.environment)) ??
                     environments.AgentaApiEnvironment.Default,
-                `organizations/${core.url.encodePathParam(organizationId)}/domains`,
+                "organizations/domains/",
             ),
             method: "POST",
             headers: _headers,
-            queryParameters: { ..._queryParams, ...requestOptions?.queryParams },
+            contentType: "application/json",
+            queryParameters: requestOptions?.queryParams,
+            requestType: "json",
+            body: request,
             timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 30) * 1000,
             maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
             withCredentials: true,
@@ -154,7 +141,7 @@ export class OrganizationsClient {
             logging: this._options.logging,
         });
         if (_response.ok) {
-            return { data: _response.body, rawResponse: _response.rawResponse };
+            return { data: _response.body as AgentaApi.OrganizationDomainResponse, rawResponse: _response.rawResponse };
         }
 
         if (_response.error.reason === "status-code") {
@@ -173,40 +160,36 @@ export class OrganizationsClient {
             }
         }
 
-        return handleNonStatusCodeError(
-            _response.error,
-            _response.rawResponse,
-            "POST",
-            "/organizations/{organization_id}/domains",
-        );
+        return handleNonStatusCodeError(_response.error, _response.rawResponse, "POST", "/organizations/domains/");
     }
 
     /**
-     * Verify a domain (marks it as verified).
+     * Verify domain ownership via DNS TXT record.
      *
-     * @param {AgentaApi.VerifyOrganizationDomainRequest} request
+     * This endpoint checks for the presence of the verification TXT record
+     * and marks the domain as verified if found.
+     *
+     * @param {AgentaApi.OrganizationDomainVerify} request
      * @param {OrganizationsClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link AgentaApi.UnprocessableEntityError}
      *
      * @example
      *     await client.organizations.verifyOrganizationDomain({
-     *         organization_id: "organization_id",
      *         domain_id: "domain_id"
      *     })
      */
     public verifyOrganizationDomain(
-        request: AgentaApi.VerifyOrganizationDomainRequest,
+        request: AgentaApi.OrganizationDomainVerify,
         requestOptions?: OrganizationsClient.RequestOptions,
-    ): core.HttpResponsePromise<unknown> {
+    ): core.HttpResponsePromise<AgentaApi.OrganizationDomainResponse> {
         return core.HttpResponsePromise.fromPromise(this.__verifyOrganizationDomain(request, requestOptions));
     }
 
     private async __verifyOrganizationDomain(
-        request: AgentaApi.VerifyOrganizationDomainRequest,
+        request: AgentaApi.OrganizationDomainVerify,
         requestOptions?: OrganizationsClient.RequestOptions,
-    ): Promise<core.WithRawResponse<unknown>> {
-        const { organization_id: organizationId, domain_id: domainId } = request;
+    ): Promise<core.WithRawResponse<AgentaApi.OrganizationDomainResponse>> {
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
             _authRequest.headers,
@@ -218,11 +201,14 @@ export class OrganizationsClient {
                 (await core.Supplier.get(this._options.baseUrl)) ??
                     (await core.Supplier.get(this._options.environment)) ??
                     environments.AgentaApiEnvironment.Default,
-                `organizations/${core.url.encodePathParam(organizationId)}/domains/${core.url.encodePathParam(domainId)}/verify`,
+                "organizations/domains/verify",
             ),
             method: "POST",
             headers: _headers,
+            contentType: "application/json",
             queryParameters: requestOptions?.queryParams,
+            requestType: "json",
+            body: request,
             timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 30) * 1000,
             maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
             withCredentials: true,
@@ -231,7 +217,7 @@ export class OrganizationsClient {
             logging: this._options.logging,
         });
         if (_response.ok) {
-            return { data: _response.body, rawResponse: _response.rawResponse };
+            return { data: _response.body as AgentaApi.OrganizationDomainResponse, rawResponse: _response.rawResponse };
         }
 
         if (_response.error.reason === "status-code") {
@@ -254,7 +240,7 @@ export class OrganizationsClient {
             _response.error,
             _response.rawResponse,
             "POST",
-            "/organizations/{organization_id}/domains/{domain_id}/verify",
+            "/organizations/domains/verify",
         );
     }
 
@@ -417,7 +403,7 @@ export class OrganizationsClient {
     }
 
     /**
-     * Delete a domain from an organization.
+     * Delete a domain.
      *
      * @param {AgentaApi.DeleteOrganizationDomainRequest} request
      * @param {OrganizationsClient.RequestOptions} requestOptions - Request-specific configuration.
@@ -426,22 +412,21 @@ export class OrganizationsClient {
      *
      * @example
      *     await client.organizations.deleteOrganizationDomain({
-     *         organization_id: "organization_id",
      *         domain_id: "domain_id"
      *     })
      */
     public deleteOrganizationDomain(
         request: AgentaApi.DeleteOrganizationDomainRequest,
         requestOptions?: OrganizationsClient.RequestOptions,
-    ): core.HttpResponsePromise<unknown> {
+    ): core.HttpResponsePromise<void> {
         return core.HttpResponsePromise.fromPromise(this.__deleteOrganizationDomain(request, requestOptions));
     }
 
     private async __deleteOrganizationDomain(
         request: AgentaApi.DeleteOrganizationDomainRequest,
         requestOptions?: OrganizationsClient.RequestOptions,
-    ): Promise<core.WithRawResponse<unknown>> {
-        const { organization_id: organizationId, domain_id: domainId } = request;
+    ): Promise<core.WithRawResponse<void>> {
+        const { domain_id: domainId } = request;
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
             _authRequest.headers,
@@ -453,7 +438,7 @@ export class OrganizationsClient {
                 (await core.Supplier.get(this._options.baseUrl)) ??
                     (await core.Supplier.get(this._options.environment)) ??
                     environments.AgentaApiEnvironment.Default,
-                `organizations/${core.url.encodePathParam(organizationId)}/domains/${core.url.encodePathParam(domainId)}`,
+                `organizations/domains/${core.url.encodePathParam(domainId)}`,
             ),
             method: "DELETE",
             headers: _headers,
@@ -466,7 +451,7 @@ export class OrganizationsClient {
             logging: this._options.logging,
         });
         if (_response.ok) {
-            return { data: _response.body, rawResponse: _response.rawResponse };
+            return { data: undefined, rawResponse: _response.rawResponse };
         }
 
         if (_response.error.reason === "status-code") {
@@ -489,35 +474,27 @@ export class OrganizationsClient {
             _response.error,
             _response.rawResponse,
             "DELETE",
-            "/organizations/{organization_id}/domains/{domain_id}",
+            "/organizations/domains/{domain_id}",
         );
     }
 
     /**
-     * List all SSO providers for an organization.
+     * List all SSO providers for the organization.
      *
-     * @param {AgentaApi.ListOrganizationProvidersRequest} request
      * @param {OrganizationsClient.RequestOptions} requestOptions - Request-specific configuration.
      *
-     * @throws {@link AgentaApi.UnprocessableEntityError}
-     *
      * @example
-     *     await client.organizations.listOrganizationProviders({
-     *         organization_id: "organization_id"
-     *     })
+     *     await client.organizations.listOrganizationProviders()
      */
     public listOrganizationProviders(
-        request: AgentaApi.ListOrganizationProvidersRequest,
         requestOptions?: OrganizationsClient.RequestOptions,
-    ): core.HttpResponsePromise<unknown> {
-        return core.HttpResponsePromise.fromPromise(this.__listOrganizationProviders(request, requestOptions));
+    ): core.HttpResponsePromise<AgentaApi.OrganizationProviderResponse[]> {
+        return core.HttpResponsePromise.fromPromise(this.__listOrganizationProviders(requestOptions));
     }
 
     private async __listOrganizationProviders(
-        request: AgentaApi.ListOrganizationProvidersRequest,
         requestOptions?: OrganizationsClient.RequestOptions,
-    ): Promise<core.WithRawResponse<unknown>> {
-        const { organization_id: organizationId } = request;
+    ): Promise<core.WithRawResponse<AgentaApi.OrganizationProviderResponse[]>> {
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
             _authRequest.headers,
@@ -529,7 +506,7 @@ export class OrganizationsClient {
                 (await core.Supplier.get(this._options.baseUrl)) ??
                     (await core.Supplier.get(this._options.environment)) ??
                     environments.AgentaApiEnvironment.Default,
-                `organizations/${core.url.encodePathParam(organizationId)}/providers`,
+                "organizations/providers/",
             ),
             method: "GET",
             headers: _headers,
@@ -542,61 +519,54 @@ export class OrganizationsClient {
             logging: this._options.logging,
         });
         if (_response.ok) {
-            return { data: _response.body, rawResponse: _response.rawResponse };
+            return {
+                data: _response.body as AgentaApi.OrganizationProviderResponse[],
+                rawResponse: _response.rawResponse,
+            };
         }
 
         if (_response.error.reason === "status-code") {
-            switch (_response.error.statusCode) {
-                case 422:
-                    throw new AgentaApi.UnprocessableEntityError(
-                        _response.error.body as AgentaApi.HttpValidationError,
-                        _response.rawResponse,
-                    );
-                default:
-                    throw new errors.AgentaApiError({
-                        statusCode: _response.error.statusCode,
-                        body: _response.error.body,
-                        rawResponse: _response.rawResponse,
-                    });
-            }
+            throw new errors.AgentaApiError({
+                statusCode: _response.error.statusCode,
+                body: _response.error.body,
+                rawResponse: _response.rawResponse,
+            });
         }
 
-        return handleNonStatusCodeError(
-            _response.error,
-            _response.rawResponse,
-            "GET",
-            "/organizations/{organization_id}/providers",
-        );
+        return handleNonStatusCodeError(_response.error, _response.rawResponse, "GET", "/organizations/providers/");
     }
 
     /**
-     * Add a new SSO provider to an organization.
+     * Create a new SSO provider configuration.
      *
-     * @param {AgentaApi.CreateOrganizationProviderRequest} request
+     * Supported provider types:
+     * - oidc: OpenID Connect
+     * - saml: SAML 2.0 (coming soon)
+     *
+     * @param {AgentaApi.OrganizationProviderCreate} request
      * @param {OrganizationsClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link AgentaApi.UnprocessableEntityError}
      *
      * @example
      *     await client.organizations.createOrganizationProvider({
-     *         organization_id: "organization_id",
-     *         body: {
+     *         slug: "slug",
+     *         settings: {
      *             "key": "value"
      *         }
      *     })
      */
     public createOrganizationProvider(
-        request: AgentaApi.CreateOrganizationProviderRequest,
+        request: AgentaApi.OrganizationProviderCreate,
         requestOptions?: OrganizationsClient.RequestOptions,
-    ): core.HttpResponsePromise<unknown> {
+    ): core.HttpResponsePromise<AgentaApi.OrganizationProviderResponse> {
         return core.HttpResponsePromise.fromPromise(this.__createOrganizationProvider(request, requestOptions));
     }
 
     private async __createOrganizationProvider(
-        request: AgentaApi.CreateOrganizationProviderRequest,
+        request: AgentaApi.OrganizationProviderCreate,
         requestOptions?: OrganizationsClient.RequestOptions,
-    ): Promise<core.WithRawResponse<unknown>> {
-        const { organization_id: organizationId, body: _body } = request;
+    ): Promise<core.WithRawResponse<AgentaApi.OrganizationProviderResponse>> {
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
             _authRequest.headers,
@@ -608,14 +578,14 @@ export class OrganizationsClient {
                 (await core.Supplier.get(this._options.baseUrl)) ??
                     (await core.Supplier.get(this._options.environment)) ??
                     environments.AgentaApiEnvironment.Default,
-                `organizations/${core.url.encodePathParam(organizationId)}/providers`,
+                "organizations/providers/",
             ),
             method: "POST",
             headers: _headers,
             contentType: "application/json",
             queryParameters: requestOptions?.queryParams,
             requestType: "json",
-            body: _body,
+            body: request,
             timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 30) * 1000,
             maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
             withCredentials: true,
@@ -624,7 +594,10 @@ export class OrganizationsClient {
             logging: this._options.logging,
         });
         if (_response.ok) {
-            return { data: _response.body, rawResponse: _response.rawResponse };
+            return {
+                data: _response.body as AgentaApi.OrganizationProviderResponse,
+                rawResponse: _response.rawResponse,
+            };
         }
 
         if (_response.error.reason === "status-code") {
@@ -643,16 +616,11 @@ export class OrganizationsClient {
             }
         }
 
-        return handleNonStatusCodeError(
-            _response.error,
-            _response.rawResponse,
-            "POST",
-            "/organizations/{organization_id}/providers",
-        );
+        return handleNonStatusCodeError(_response.error, _response.rawResponse, "POST", "/organizations/providers/");
     }
 
     /**
-     * Delete an SSO provider from an organization.
+     * Delete an SSO provider configuration.
      *
      * @param {AgentaApi.DeleteOrganizationProviderRequest} request
      * @param {OrganizationsClient.RequestOptions} requestOptions - Request-specific configuration.
@@ -661,22 +629,21 @@ export class OrganizationsClient {
      *
      * @example
      *     await client.organizations.deleteOrganizationProvider({
-     *         organization_id: "organization_id",
      *         provider_id: "provider_id"
      *     })
      */
     public deleteOrganizationProvider(
         request: AgentaApi.DeleteOrganizationProviderRequest,
         requestOptions?: OrganizationsClient.RequestOptions,
-    ): core.HttpResponsePromise<unknown> {
+    ): core.HttpResponsePromise<void> {
         return core.HttpResponsePromise.fromPromise(this.__deleteOrganizationProvider(request, requestOptions));
     }
 
     private async __deleteOrganizationProvider(
         request: AgentaApi.DeleteOrganizationProviderRequest,
         requestOptions?: OrganizationsClient.RequestOptions,
-    ): Promise<core.WithRawResponse<unknown>> {
-        const { organization_id: organizationId, provider_id: providerId } = request;
+    ): Promise<core.WithRawResponse<void>> {
+        const { provider_id: providerId } = request;
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
             _authRequest.headers,
@@ -688,7 +655,7 @@ export class OrganizationsClient {
                 (await core.Supplier.get(this._options.baseUrl)) ??
                     (await core.Supplier.get(this._options.environment)) ??
                     environments.AgentaApiEnvironment.Default,
-                `organizations/${core.url.encodePathParam(organizationId)}/providers/${core.url.encodePathParam(providerId)}`,
+                `organizations/providers/${core.url.encodePathParam(providerId)}`,
             ),
             method: "DELETE",
             headers: _headers,
@@ -701,7 +668,7 @@ export class OrganizationsClient {
             logging: this._options.logging,
         });
         if (_response.ok) {
-            return { data: _response.body, rawResponse: _response.rawResponse };
+            return { data: undefined, rawResponse: _response.rawResponse };
         }
 
         if (_response.error.reason === "status-code") {
@@ -724,39 +691,35 @@ export class OrganizationsClient {
             _response.error,
             _response.rawResponse,
             "DELETE",
-            "/organizations/{organization_id}/providers/{provider_id}",
+            "/organizations/providers/{provider_id}",
         );
     }
 
     /**
-     * Update an SSO provider.
+     * Update an SSO provider configuration.
      *
-     * @param {AgentaApi.UpdateOrganizationProviderRequest} request
+     * @param {AgentaApi.OrganizationProviderUpdate} request
      * @param {OrganizationsClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link AgentaApi.UnprocessableEntityError}
      *
      * @example
      *     await client.organizations.updateOrganizationProvider({
-     *         organization_id: "organization_id",
-     *         provider_id: "provider_id",
-     *         body: {
-     *             "key": "value"
-     *         }
+     *         provider_id: "provider_id"
      *     })
      */
     public updateOrganizationProvider(
-        request: AgentaApi.UpdateOrganizationProviderRequest,
+        request: AgentaApi.OrganizationProviderUpdate,
         requestOptions?: OrganizationsClient.RequestOptions,
-    ): core.HttpResponsePromise<unknown> {
+    ): core.HttpResponsePromise<AgentaApi.OrganizationProviderResponse> {
         return core.HttpResponsePromise.fromPromise(this.__updateOrganizationProvider(request, requestOptions));
     }
 
     private async __updateOrganizationProvider(
-        request: AgentaApi.UpdateOrganizationProviderRequest,
+        request: AgentaApi.OrganizationProviderUpdate,
         requestOptions?: OrganizationsClient.RequestOptions,
-    ): Promise<core.WithRawResponse<unknown>> {
-        const { organization_id: organizationId, provider_id: providerId, body: _body } = request;
+    ): Promise<core.WithRawResponse<AgentaApi.OrganizationProviderResponse>> {
+        const { provider_id: providerId, ..._body } = request;
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
             _authRequest.headers,
@@ -768,7 +731,7 @@ export class OrganizationsClient {
                 (await core.Supplier.get(this._options.baseUrl)) ??
                     (await core.Supplier.get(this._options.environment)) ??
                     environments.AgentaApiEnvironment.Default,
-                `organizations/${core.url.encodePathParam(organizationId)}/providers/${core.url.encodePathParam(providerId)}`,
+                `organizations/providers/${core.url.encodePathParam(providerId)}`,
             ),
             method: "PATCH",
             headers: _headers,
@@ -784,7 +747,10 @@ export class OrganizationsClient {
             logging: this._options.logging,
         });
         if (_response.ok) {
-            return { data: _response.body, rawResponse: _response.rawResponse };
+            return {
+                data: _response.body as AgentaApi.OrganizationProviderResponse,
+                rawResponse: _response.rawResponse,
+            };
         }
 
         if (_response.error.reason === "status-code") {
@@ -807,7 +773,7 @@ export class OrganizationsClient {
             _response.error,
             _response.rawResponse,
             "PATCH",
-            "/organizations/{organization_id}/providers/{provider_id}",
+            "/organizations/providers/{provider_id}",
         );
     }
 
@@ -1574,160 +1540,6 @@ export class OrganizationsClient {
         }
 
         return handleNonStatusCodeError(_response.error, _response.rawResponse, "POST", "/organizations");
-    }
-
-    /**
-     * Get a single domain by ID.
-     *
-     * @param {AgentaApi.GetOrganizationDomainRequest} request
-     * @param {OrganizationsClient.RequestOptions} requestOptions - Request-specific configuration.
-     *
-     * @throws {@link AgentaApi.UnprocessableEntityError}
-     *
-     * @example
-     *     await client.organizations.getOrganizationDomain({
-     *         organization_id: "organization_id",
-     *         domain_id: "domain_id"
-     *     })
-     */
-    public getOrganizationDomain(
-        request: AgentaApi.GetOrganizationDomainRequest,
-        requestOptions?: OrganizationsClient.RequestOptions,
-    ): core.HttpResponsePromise<unknown> {
-        return core.HttpResponsePromise.fromPromise(this.__getOrganizationDomain(request, requestOptions));
-    }
-
-    private async __getOrganizationDomain(
-        request: AgentaApi.GetOrganizationDomainRequest,
-        requestOptions?: OrganizationsClient.RequestOptions,
-    ): Promise<core.WithRawResponse<unknown>> {
-        const { organization_id: organizationId, domain_id: domainId } = request;
-        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
-        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
-            _authRequest.headers,
-            this._options?.headers,
-            requestOptions?.headers,
-        );
-        const _response = await core.fetcher({
-            url: core.url.join(
-                (await core.Supplier.get(this._options.baseUrl)) ??
-                    (await core.Supplier.get(this._options.environment)) ??
-                    environments.AgentaApiEnvironment.Default,
-                `organizations/${core.url.encodePathParam(organizationId)}/domains/${core.url.encodePathParam(domainId)}`,
-            ),
-            method: "GET",
-            headers: _headers,
-            queryParameters: requestOptions?.queryParams,
-            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 30) * 1000,
-            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
-            withCredentials: true,
-            abortSignal: requestOptions?.abortSignal,
-            fetchFn: this._options?.fetch,
-            logging: this._options.logging,
-        });
-        if (_response.ok) {
-            return { data: _response.body, rawResponse: _response.rawResponse };
-        }
-
-        if (_response.error.reason === "status-code") {
-            switch (_response.error.statusCode) {
-                case 422:
-                    throw new AgentaApi.UnprocessableEntityError(
-                        _response.error.body as AgentaApi.HttpValidationError,
-                        _response.rawResponse,
-                    );
-                default:
-                    throw new errors.AgentaApiError({
-                        statusCode: _response.error.statusCode,
-                        body: _response.error.body,
-                        rawResponse: _response.rawResponse,
-                    });
-            }
-        }
-
-        return handleNonStatusCodeError(
-            _response.error,
-            _response.rawResponse,
-            "GET",
-            "/organizations/{organization_id}/domains/{domain_id}",
-        );
-    }
-
-    /**
-     * Get a single SSO provider by ID.
-     *
-     * @param {AgentaApi.GetOrganizationProviderRequest} request
-     * @param {OrganizationsClient.RequestOptions} requestOptions - Request-specific configuration.
-     *
-     * @throws {@link AgentaApi.UnprocessableEntityError}
-     *
-     * @example
-     *     await client.organizations.getOrganizationProvider({
-     *         organization_id: "organization_id",
-     *         provider_id: "provider_id"
-     *     })
-     */
-    public getOrganizationProvider(
-        request: AgentaApi.GetOrganizationProviderRequest,
-        requestOptions?: OrganizationsClient.RequestOptions,
-    ): core.HttpResponsePromise<unknown> {
-        return core.HttpResponsePromise.fromPromise(this.__getOrganizationProvider(request, requestOptions));
-    }
-
-    private async __getOrganizationProvider(
-        request: AgentaApi.GetOrganizationProviderRequest,
-        requestOptions?: OrganizationsClient.RequestOptions,
-    ): Promise<core.WithRawResponse<unknown>> {
-        const { organization_id: organizationId, provider_id: providerId } = request;
-        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
-        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
-            _authRequest.headers,
-            this._options?.headers,
-            requestOptions?.headers,
-        );
-        const _response = await core.fetcher({
-            url: core.url.join(
-                (await core.Supplier.get(this._options.baseUrl)) ??
-                    (await core.Supplier.get(this._options.environment)) ??
-                    environments.AgentaApiEnvironment.Default,
-                `organizations/${core.url.encodePathParam(organizationId)}/providers/${core.url.encodePathParam(providerId)}`,
-            ),
-            method: "GET",
-            headers: _headers,
-            queryParameters: requestOptions?.queryParams,
-            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 30) * 1000,
-            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
-            withCredentials: true,
-            abortSignal: requestOptions?.abortSignal,
-            fetchFn: this._options?.fetch,
-            logging: this._options.logging,
-        });
-        if (_response.ok) {
-            return { data: _response.body, rawResponse: _response.rawResponse };
-        }
-
-        if (_response.error.reason === "status-code") {
-            switch (_response.error.statusCode) {
-                case 422:
-                    throw new AgentaApi.UnprocessableEntityError(
-                        _response.error.body as AgentaApi.HttpValidationError,
-                        _response.rawResponse,
-                    );
-                default:
-                    throw new errors.AgentaApiError({
-                        statusCode: _response.error.statusCode,
-                        body: _response.error.body,
-                        rawResponse: _response.rawResponse,
-                    });
-            }
-        }
-
-        return handleNonStatusCodeError(
-            _response.error,
-            _response.rawResponse,
-            "GET",
-            "/organizations/{organization_id}/providers/{provider_id}",
-        );
     }
 
     /**

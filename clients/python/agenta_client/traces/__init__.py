@@ -5,8 +5,8 @@
 import typing
 from importlib import import_module
 if typing.TYPE_CHECKING:
-    from .types import FetchLegacyAnalyticsRequestNewest, FetchLegacyAnalyticsRequestOldest, QueryAnalyticsRequestNewest, QueryAnalyticsRequestOldest, QuerySpansRpcRequestNewest, QuerySpansRpcRequestOldest
-_dynamic_imports: typing.Dict[str, str] = {"FetchLegacyAnalyticsRequestNewest": ".types", "FetchLegacyAnalyticsRequestOldest": ".types", "QueryAnalyticsRequestNewest": ".types", "QueryAnalyticsRequestOldest": ".types", "QuerySpansRpcRequestNewest": ".types", "QuerySpansRpcRequestOldest": ".types"}
+    from .types import QuerySpansAnalyticsRequestNewest, QuerySpansAnalyticsRequestOldest
+_dynamic_imports: typing.Dict[str, str] = {"QuerySpansAnalyticsRequestNewest": ".types", "QuerySpansAnalyticsRequestOldest": ".types"}
 def __getattr__(attr_name: str) -> typing.Any:
     module_name = _dynamic_imports.get(attr_name)
     if module_name is None:
@@ -24,4 +24,4 @@ def __getattr__(attr_name: str) -> typing.Any:
 def __dir__():
     lazy_attrs = list(_dynamic_imports.keys())
     return sorted(lazy_attrs)
-__all__ = ["FetchLegacyAnalyticsRequestNewest", "FetchLegacyAnalyticsRequestOldest", "QueryAnalyticsRequestNewest", "QueryAnalyticsRequestOldest", "QuerySpansRpcRequestNewest", "QuerySpansRpcRequestOldest"]
+__all__ = ["QuerySpansAnalyticsRequestNewest", "QuerySpansAnalyticsRequestOldest"]

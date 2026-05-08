@@ -35,12 +35,12 @@ export declare namespace AgentaApiClient {
 
 export class AgentaApiClient {
     protected readonly _options: NormalizedClientOptionsWithAuth<AgentaApiClient.Options>;
-    protected _access: AccessClient | undefined;
     protected _billing: BillingClient | undefined;
     protected _organizations: OrganizationsClient | undefined;
     protected _workspaces: WorkspacesClient | undefined;
     protected _secrets: SecretsClient | undefined;
     protected _webhooks: WebhooksClient | undefined;
+    protected _access: AccessClient | undefined;
     protected _traces: TracesClient | undefined;
     protected _invocations: InvocationsClient | undefined;
     protected _annotations: AnnotationsClient | undefined;
@@ -63,10 +63,6 @@ export class AgentaApiClient {
         this._options = normalizeClientOptionsWithAuth(options);
     }
 
-    public get access(): AccessClient {
-        return (this._access ??= new AccessClient(this._options));
-    }
-
     public get billing(): BillingClient {
         return (this._billing ??= new BillingClient(this._options));
     }
@@ -85,6 +81,10 @@ export class AgentaApiClient {
 
     public get webhooks(): WebhooksClient {
         return (this._webhooks ??= new WebhooksClient(this._options));
+    }
+
+    public get access(): AccessClient {
+        return (this._access ??= new AccessClient(this._options));
     }
 
     public get traces(): TracesClient {

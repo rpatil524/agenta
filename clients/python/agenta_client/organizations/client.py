@@ -31,20 +31,18 @@ class OrganizationsClient:
         """
         return self._raw_client
     
-    def list_organization_domains(self, organization_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
+    def list_organization_domains(self, *, request_options: typing.Optional[RequestOptions] = None) -> typing.List[OrganizationDomainResponse]:
         """
-        List all domains for an organization.
+        List all domains for the organization.
         
         Parameters
         ----------
-        organization_id : str
-        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
         
         Returns
         -------
-        typing.Any
+        typing.List[OrganizationDomainResponse]
             Successful Response
         
         Examples
@@ -54,29 +52,36 @@ class OrganizationsClient:
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
-        client.organizations.list_organization_domains(
-            organization_id="organization_id",
-        )
+        client.organizations.list_organization_domains()
         """
-        _response = self._raw_client.list_organization_domains(organization_id, request_options=request_options)
+        _response = self._raw_client.list_organization_domains(request_options=request_options)
         return _response.data
     
-    def create_organization_domain(self, organization_id: str, *, domain: str, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
+    def create_organization_domain(self, *, domain: str, name: typing.Optional[str] = OMIT, description: typing.Optional[str] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> OrganizationDomainResponse:
         """
-        Add a new domain to an organization.
+        Create a new domain for verification.
+        
+        This endpoint initiates the domain verification process by:
+        1. Creating a domain record
+        2. Generating a unique verification token
+        3. Returning DNS configuration instructions
+        
+        The user must add a DNS TXT record to verify ownership.
         
         Parameters
         ----------
-        organization_id : str
-        
         domain : str
+        
+        name : typing.Optional[str]
+        
+        description : typing.Optional[str]
         
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
         
         Returns
         -------
-        typing.Any
+        OrganizationDomainResponse
             Successful Response
         
         Examples
@@ -87,21 +92,21 @@ class OrganizationsClient:
             api_key="YOUR_API_KEY",
         )
         client.organizations.create_organization_domain(
-            organization_id="organization_id",
             domain="domain",
         )
         """
-        _response = self._raw_client.create_organization_domain(organization_id, domain=domain, request_options=request_options)
+        _response = self._raw_client.create_organization_domain(domain=domain, name=name, description=description, request_options=request_options)
         return _response.data
     
-    def verify_organization_domain(self, organization_id: str, domain_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
+    def verify_organization_domain(self, *, domain_id: str, request_options: typing.Optional[RequestOptions] = None) -> OrganizationDomainResponse:
         """
-        Verify a domain (marks it as verified).
+        Verify domain ownership via DNS TXT record.
+        
+        This endpoint checks for the presence of the verification TXT record
+        and marks the domain as verified if found.
         
         Parameters
         ----------
-        organization_id : str
-        
         domain_id : str
         
         request_options : typing.Optional[RequestOptions]
@@ -109,7 +114,7 @@ class OrganizationsClient:
         
         Returns
         -------
-        typing.Any
+        OrganizationDomainResponse
             Successful Response
         
         Examples
@@ -120,11 +125,10 @@ class OrganizationsClient:
             api_key="YOUR_API_KEY",
         )
         client.organizations.verify_organization_domain(
-            organization_id="organization_id",
             domain_id="domain_id",
         )
         """
-        _response = self._raw_client.verify_organization_domain(organization_id, domain_id, request_options=request_options)
+        _response = self._raw_client.verify_organization_domain(domain_id=domain_id, request_options=request_options)
         return _response.data
     
     def refresh_organization_domain_token(self, domain_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> OrganizationDomainResponse:
@@ -193,14 +197,12 @@ class OrganizationsClient:
         _response = self._raw_client.reset_organization_domain(domain_id, request_options=request_options)
         return _response.data
     
-    def delete_organization_domain(self, organization_id: str, domain_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
+    def delete_organization_domain(self, domain_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Delete a domain from an organization.
+        Delete a domain.
         
         Parameters
         ----------
-        organization_id : str
-        
         domain_id : str
         
         request_options : typing.Optional[RequestOptions]
@@ -208,8 +210,7 @@ class OrganizationsClient:
         
         Returns
         -------
-        typing.Any
-            Successful Response
+        None
         
         Examples
         --------
@@ -219,27 +220,24 @@ class OrganizationsClient:
             api_key="YOUR_API_KEY",
         )
         client.organizations.delete_organization_domain(
-            organization_id="organization_id",
             domain_id="domain_id",
         )
         """
-        _response = self._raw_client.delete_organization_domain(organization_id, domain_id, request_options=request_options)
+        _response = self._raw_client.delete_organization_domain(domain_id, request_options=request_options)
         return _response.data
     
-    def list_organization_providers(self, organization_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
+    def list_organization_providers(self, *, request_options: typing.Optional[RequestOptions] = None) -> typing.List[OrganizationProviderResponse]:
         """
-        List all SSO providers for an organization.
+        List all SSO providers for the organization.
         
         Parameters
         ----------
-        organization_id : str
-        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
         
         Returns
         -------
-        typing.Any
+        typing.List[OrganizationProviderResponse]
             Successful Response
         
         Examples
@@ -249,29 +247,37 @@ class OrganizationsClient:
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
-        client.organizations.list_organization_providers(
-            organization_id="organization_id",
-        )
+        client.organizations.list_organization_providers()
         """
-        _response = self._raw_client.list_organization_providers(organization_id, request_options=request_options)
+        _response = self._raw_client.list_organization_providers(request_options=request_options)
         return _response.data
     
-    def create_organization_provider(self, organization_id: str, *, request: typing.Dict[str, typing.Any], request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
+    def create_organization_provider(self, *, slug: str, settings: typing.Dict[str, typing.Any], name: typing.Optional[str] = OMIT, description: typing.Optional[str] = OMIT, flags: typing.Optional[typing.Dict[str, typing.Any]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> OrganizationProviderResponse:
         """
-        Add a new SSO provider to an organization.
+        Create a new SSO provider configuration.
+        
+        Supported provider types:
+        - oidc: OpenID Connect
+        - saml: SAML 2.0 (coming soon)
         
         Parameters
         ----------
-        organization_id : str
+        slug : str
         
-        request : typing.Dict[str, typing.Any]
+        settings : typing.Dict[str, typing.Any]
+        
+        name : typing.Optional[str]
+        
+        description : typing.Optional[str]
+        
+        flags : typing.Optional[typing.Dict[str, typing.Any]]
         
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
         
         Returns
         -------
-        typing.Any
+        OrganizationProviderResponse
             Successful Response
         
         Examples
@@ -282,21 +288,19 @@ class OrganizationsClient:
             api_key="YOUR_API_KEY",
         )
         client.organizations.create_organization_provider(
-            organization_id="organization_id",
-            request={"key": "value"},
+            slug="slug",
+            settings={"key": "value"},
         )
         """
-        _response = self._raw_client.create_organization_provider(organization_id, request=request, request_options=request_options)
+        _response = self._raw_client.create_organization_provider(slug=slug, settings=settings, name=name, description=description, flags=flags, request_options=request_options)
         return _response.data
     
-    def delete_organization_provider(self, organization_id: str, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
+    def delete_organization_provider(self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Delete an SSO provider from an organization.
+        Delete an SSO provider configuration.
         
         Parameters
         ----------
-        organization_id : str
-        
         provider_id : str
         
         request_options : typing.Optional[RequestOptions]
@@ -304,8 +308,7 @@ class OrganizationsClient:
         
         Returns
         -------
-        typing.Any
-            Successful Response
+        None
         
         Examples
         --------
@@ -315,31 +318,36 @@ class OrganizationsClient:
             api_key="YOUR_API_KEY",
         )
         client.organizations.delete_organization_provider(
-            organization_id="organization_id",
             provider_id="provider_id",
         )
         """
-        _response = self._raw_client.delete_organization_provider(organization_id, provider_id, request_options=request_options)
+        _response = self._raw_client.delete_organization_provider(provider_id, request_options=request_options)
         return _response.data
     
-    def update_organization_provider(self, organization_id: str, provider_id: str, *, request: typing.Dict[str, typing.Any], request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
+    def update_organization_provider(self, provider_id: str, *, slug: typing.Optional[str] = OMIT, name: typing.Optional[str] = OMIT, description: typing.Optional[str] = OMIT, flags: typing.Optional[typing.Dict[str, typing.Any]] = OMIT, settings: typing.Optional[typing.Dict[str, typing.Any]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> OrganizationProviderResponse:
         """
-        Update an SSO provider.
+        Update an SSO provider configuration.
         
         Parameters
         ----------
-        organization_id : str
-        
         provider_id : str
         
-        request : typing.Dict[str, typing.Any]
+        slug : typing.Optional[str]
+        
+        name : typing.Optional[str]
+        
+        description : typing.Optional[str]
+        
+        flags : typing.Optional[typing.Dict[str, typing.Any]]
+        
+        settings : typing.Optional[typing.Dict[str, typing.Any]]
         
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
         
         Returns
         -------
-        typing.Any
+        OrganizationProviderResponse
             Successful Response
         
         Examples
@@ -350,12 +358,10 @@ class OrganizationsClient:
             api_key="YOUR_API_KEY",
         )
         client.organizations.update_organization_provider(
-            organization_id="organization_id",
             provider_id="provider_id",
-            request={"key": "value"},
         )
         """
-        _response = self._raw_client.update_organization_provider(organization_id, provider_id, request=request, request_options=request_options)
+        _response = self._raw_client.update_organization_provider(provider_id, slug=slug, name=name, description=description, flags=flags, settings=settings, request_options=request_options)
         return _response.data
     
     def test_organization_provider(self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> OrganizationProviderResponse:
@@ -695,72 +701,6 @@ class OrganizationsClient:
         _response = self._raw_client.create_organization(name=name, description=description, request_options=request_options)
         return _response.data
     
-    def get_organization_domain(self, organization_id: str, domain_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
-        """
-        Get a single domain by ID.
-        
-        Parameters
-        ----------
-        organization_id : str
-        
-        domain_id : str
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        typing.Any
-            Successful Response
-        
-        Examples
-        --------
-        from agenta import AgentaApi
-        
-        client = AgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        client.organizations.get_organization_domain(
-            organization_id="organization_id",
-            domain_id="domain_id",
-        )
-        """
-        _response = self._raw_client.get_organization_domain(organization_id, domain_id, request_options=request_options)
-        return _response.data
-    
-    def get_organization_provider(self, organization_id: str, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
-        """
-        Get a single SSO provider by ID.
-        
-        Parameters
-        ----------
-        organization_id : str
-        
-        provider_id : str
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        typing.Any
-            Successful Response
-        
-        Examples
-        --------
-        from agenta import AgentaApi
-        
-        client = AgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        client.organizations.get_organization_provider(
-            organization_id="organization_id",
-            provider_id="provider_id",
-        )
-        """
-        _response = self._raw_client.get_organization_provider(organization_id, provider_id, request_options=request_options)
-        return _response.data
-    
     def invite_user_to_workspace(self, organization_id: str, workspace_id: str, *, request: typing.Sequence[InviteRequest], request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
         """
         Assigns a role to a user in an organization.
@@ -921,20 +861,18 @@ class AsyncOrganizationsClient:
         """
         return self._raw_client
     
-    async def list_organization_domains(self, organization_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
+    async def list_organization_domains(self, *, request_options: typing.Optional[RequestOptions] = None) -> typing.List[OrganizationDomainResponse]:
         """
-        List all domains for an organization.
+        List all domains for the organization.
         
         Parameters
         ----------
-        organization_id : str
-        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
         
         Returns
         -------
-        typing.Any
+        typing.List[OrganizationDomainResponse]
             Successful Response
         
         Examples
@@ -949,32 +887,39 @@ class AsyncOrganizationsClient:
         
         
         async def main() -> None:
-            await client.organizations.list_organization_domains(
-                organization_id="organization_id",
-            )
+            await client.organizations.list_organization_domains()
         
         
         asyncio.run(main())
         """
-        _response = await self._raw_client.list_organization_domains(organization_id, request_options=request_options)
+        _response = await self._raw_client.list_organization_domains(request_options=request_options)
         return _response.data
     
-    async def create_organization_domain(self, organization_id: str, *, domain: str, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
+    async def create_organization_domain(self, *, domain: str, name: typing.Optional[str] = OMIT, description: typing.Optional[str] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> OrganizationDomainResponse:
         """
-        Add a new domain to an organization.
+        Create a new domain for verification.
+        
+        This endpoint initiates the domain verification process by:
+        1. Creating a domain record
+        2. Generating a unique verification token
+        3. Returning DNS configuration instructions
+        
+        The user must add a DNS TXT record to verify ownership.
         
         Parameters
         ----------
-        organization_id : str
-        
         domain : str
+        
+        name : typing.Optional[str]
+        
+        description : typing.Optional[str]
         
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
         
         Returns
         -------
-        typing.Any
+        OrganizationDomainResponse
             Successful Response
         
         Examples
@@ -990,24 +935,24 @@ class AsyncOrganizationsClient:
         
         async def main() -> None:
             await client.organizations.create_organization_domain(
-                organization_id="organization_id",
                 domain="domain",
             )
         
         
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_organization_domain(organization_id, domain=domain, request_options=request_options)
+        _response = await self._raw_client.create_organization_domain(domain=domain, name=name, description=description, request_options=request_options)
         return _response.data
     
-    async def verify_organization_domain(self, organization_id: str, domain_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
+    async def verify_organization_domain(self, *, domain_id: str, request_options: typing.Optional[RequestOptions] = None) -> OrganizationDomainResponse:
         """
-        Verify a domain (marks it as verified).
+        Verify domain ownership via DNS TXT record.
+        
+        This endpoint checks for the presence of the verification TXT record
+        and marks the domain as verified if found.
         
         Parameters
         ----------
-        organization_id : str
-        
         domain_id : str
         
         request_options : typing.Optional[RequestOptions]
@@ -1015,7 +960,7 @@ class AsyncOrganizationsClient:
         
         Returns
         -------
-        typing.Any
+        OrganizationDomainResponse
             Successful Response
         
         Examples
@@ -1031,14 +976,13 @@ class AsyncOrganizationsClient:
         
         async def main() -> None:
             await client.organizations.verify_organization_domain(
-                organization_id="organization_id",
                 domain_id="domain_id",
             )
         
         
         asyncio.run(main())
         """
-        _response = await self._raw_client.verify_organization_domain(organization_id, domain_id, request_options=request_options)
+        _response = await self._raw_client.verify_organization_domain(domain_id=domain_id, request_options=request_options)
         return _response.data
     
     async def refresh_organization_domain_token(self, domain_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> OrganizationDomainResponse:
@@ -1123,14 +1067,12 @@ class AsyncOrganizationsClient:
         _response = await self._raw_client.reset_organization_domain(domain_id, request_options=request_options)
         return _response.data
     
-    async def delete_organization_domain(self, organization_id: str, domain_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
+    async def delete_organization_domain(self, domain_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Delete a domain from an organization.
+        Delete a domain.
         
         Parameters
         ----------
-        organization_id : str
-        
         domain_id : str
         
         request_options : typing.Optional[RequestOptions]
@@ -1138,8 +1080,7 @@ class AsyncOrganizationsClient:
         
         Returns
         -------
-        typing.Any
-            Successful Response
+        None
         
         Examples
         --------
@@ -1154,30 +1095,27 @@ class AsyncOrganizationsClient:
         
         async def main() -> None:
             await client.organizations.delete_organization_domain(
-                organization_id="organization_id",
                 domain_id="domain_id",
             )
         
         
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_organization_domain(organization_id, domain_id, request_options=request_options)
+        _response = await self._raw_client.delete_organization_domain(domain_id, request_options=request_options)
         return _response.data
     
-    async def list_organization_providers(self, organization_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
+    async def list_organization_providers(self, *, request_options: typing.Optional[RequestOptions] = None) -> typing.List[OrganizationProviderResponse]:
         """
-        List all SSO providers for an organization.
+        List all SSO providers for the organization.
         
         Parameters
         ----------
-        organization_id : str
-        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
         
         Returns
         -------
-        typing.Any
+        typing.List[OrganizationProviderResponse]
             Successful Response
         
         Examples
@@ -1192,32 +1130,40 @@ class AsyncOrganizationsClient:
         
         
         async def main() -> None:
-            await client.organizations.list_organization_providers(
-                organization_id="organization_id",
-            )
+            await client.organizations.list_organization_providers()
         
         
         asyncio.run(main())
         """
-        _response = await self._raw_client.list_organization_providers(organization_id, request_options=request_options)
+        _response = await self._raw_client.list_organization_providers(request_options=request_options)
         return _response.data
     
-    async def create_organization_provider(self, organization_id: str, *, request: typing.Dict[str, typing.Any], request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
+    async def create_organization_provider(self, *, slug: str, settings: typing.Dict[str, typing.Any], name: typing.Optional[str] = OMIT, description: typing.Optional[str] = OMIT, flags: typing.Optional[typing.Dict[str, typing.Any]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> OrganizationProviderResponse:
         """
-        Add a new SSO provider to an organization.
+        Create a new SSO provider configuration.
+        
+        Supported provider types:
+        - oidc: OpenID Connect
+        - saml: SAML 2.0 (coming soon)
         
         Parameters
         ----------
-        organization_id : str
+        slug : str
         
-        request : typing.Dict[str, typing.Any]
+        settings : typing.Dict[str, typing.Any]
+        
+        name : typing.Optional[str]
+        
+        description : typing.Optional[str]
+        
+        flags : typing.Optional[typing.Dict[str, typing.Any]]
         
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
         
         Returns
         -------
-        typing.Any
+        OrganizationProviderResponse
             Successful Response
         
         Examples
@@ -1233,24 +1179,22 @@ class AsyncOrganizationsClient:
         
         async def main() -> None:
             await client.organizations.create_organization_provider(
-                organization_id="organization_id",
-                request={"key": "value"},
+                slug="slug",
+                settings={"key": "value"},
             )
         
         
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_organization_provider(organization_id, request=request, request_options=request_options)
+        _response = await self._raw_client.create_organization_provider(slug=slug, settings=settings, name=name, description=description, flags=flags, request_options=request_options)
         return _response.data
     
-    async def delete_organization_provider(self, organization_id: str, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
+    async def delete_organization_provider(self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Delete an SSO provider from an organization.
+        Delete an SSO provider configuration.
         
         Parameters
         ----------
-        organization_id : str
-        
         provider_id : str
         
         request_options : typing.Optional[RequestOptions]
@@ -1258,8 +1202,7 @@ class AsyncOrganizationsClient:
         
         Returns
         -------
-        typing.Any
-            Successful Response
+        None
         
         Examples
         --------
@@ -1274,34 +1217,39 @@ class AsyncOrganizationsClient:
         
         async def main() -> None:
             await client.organizations.delete_organization_provider(
-                organization_id="organization_id",
                 provider_id="provider_id",
             )
         
         
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_organization_provider(organization_id, provider_id, request_options=request_options)
+        _response = await self._raw_client.delete_organization_provider(provider_id, request_options=request_options)
         return _response.data
     
-    async def update_organization_provider(self, organization_id: str, provider_id: str, *, request: typing.Dict[str, typing.Any], request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
+    async def update_organization_provider(self, provider_id: str, *, slug: typing.Optional[str] = OMIT, name: typing.Optional[str] = OMIT, description: typing.Optional[str] = OMIT, flags: typing.Optional[typing.Dict[str, typing.Any]] = OMIT, settings: typing.Optional[typing.Dict[str, typing.Any]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> OrganizationProviderResponse:
         """
-        Update an SSO provider.
+        Update an SSO provider configuration.
         
         Parameters
         ----------
-        organization_id : str
-        
         provider_id : str
         
-        request : typing.Dict[str, typing.Any]
+        slug : typing.Optional[str]
+        
+        name : typing.Optional[str]
+        
+        description : typing.Optional[str]
+        
+        flags : typing.Optional[typing.Dict[str, typing.Any]]
+        
+        settings : typing.Optional[typing.Dict[str, typing.Any]]
         
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
         
         Returns
         -------
-        typing.Any
+        OrganizationProviderResponse
             Successful Response
         
         Examples
@@ -1317,15 +1265,13 @@ class AsyncOrganizationsClient:
         
         async def main() -> None:
             await client.organizations.update_organization_provider(
-                organization_id="organization_id",
                 provider_id="provider_id",
-                request={"key": "value"},
             )
         
         
         asyncio.run(main())
         """
-        _response = await self._raw_client.update_organization_provider(organization_id, provider_id, request=request, request_options=request_options)
+        _response = await self._raw_client.update_organization_provider(provider_id, slug=slug, name=name, description=description, flags=flags, settings=settings, request_options=request_options)
         return _response.data
     
     async def test_organization_provider(self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> OrganizationProviderResponse:
@@ -1743,88 +1689,6 @@ class AsyncOrganizationsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.create_organization(name=name, description=description, request_options=request_options)
-        return _response.data
-    
-    async def get_organization_domain(self, organization_id: str, domain_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
-        """
-        Get a single domain by ID.
-        
-        Parameters
-        ----------
-        organization_id : str
-        
-        domain_id : str
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        typing.Any
-            Successful Response
-        
-        Examples
-        --------
-        import asyncio
-        
-        from agenta import AsyncAgentaApi
-        
-        client = AsyncAgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        
-        
-        async def main() -> None:
-            await client.organizations.get_organization_domain(
-                organization_id="organization_id",
-                domain_id="domain_id",
-            )
-        
-        
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.get_organization_domain(organization_id, domain_id, request_options=request_options)
-        return _response.data
-    
-    async def get_organization_provider(self, organization_id: str, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> typing.Any:
-        """
-        Get a single SSO provider by ID.
-        
-        Parameters
-        ----------
-        organization_id : str
-        
-        provider_id : str
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        typing.Any
-            Successful Response
-        
-        Examples
-        --------
-        import asyncio
-        
-        from agenta import AsyncAgentaApi
-        
-        client = AsyncAgentaApi(
-            api_key="YOUR_API_KEY",
-        )
-        
-        
-        async def main() -> None:
-            await client.organizations.get_organization_provider(
-                organization_id="organization_id",
-                provider_id="provider_id",
-            )
-        
-        
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.get_organization_provider(organization_id, provider_id, request_options=request_options)
         return _response.data
     
     async def invite_user_to_workspace(self, organization_id: str, workspace_id: str, *, request: typing.Sequence[InviteRequest], request_options: typing.Optional[RequestOptions] = None) -> typing.Any:

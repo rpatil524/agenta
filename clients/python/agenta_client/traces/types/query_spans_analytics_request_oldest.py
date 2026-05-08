@@ -2,4 +2,4 @@
 
 import typing
 
-QuerySpansRpcRequestOldest = typing.Union[str, int]
+QuerySpansAnalyticsRequestOldest = typing.Union[str, int]

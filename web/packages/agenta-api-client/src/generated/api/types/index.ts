@@ -476,6 +476,7 @@ export * from "./TraceInput.js";
 export * from "./TraceOutput.js";
 export * from "./TraceRequest.js";
 export * from "./TraceResponse.js";
+export * from "./TracesRequest.js";
 export * from "./TracesResponse.js";
 export * from "./TraceType.js";
 export * from "./TracingQuery.js";

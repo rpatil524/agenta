@@ -21,7 +21,6 @@ from ee.src.apis.fastapi.billing.router import BillingRouter
 from ee.src.apis.fastapi.organizations.router import (
     router as organization_router,
 )
-from oss.src.apis.fastapi.auth.router import auth_router
 
 # DBS --------------------------------------------------------------------------
 
@@ -60,12 +59,6 @@ log = get_module_logger(__name__)
 
 def extend_main(app: FastAPI):
     # ROUTES -------------------------------------------------------------------
-
-    app.include_router(
-        auth_router,
-        prefix="/auth",
-        tags=["Access"],
-    )
 
     app.include_router(
         router=billing_router.router,

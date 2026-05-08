@@ -2,4 +2,4 @@
 
 import typing
 
-FetchLegacyAnalyticsRequestOldest = typing.Union[str, int]
+QuerySpansAnalyticsRequestNewest = typing.Union[str, int]

@@ -3,11 +3,11 @@
 /**
  * @example
  *     {
- *         organization_id: "organization_id",
  *         domain: "domain"
  *     }
  */
-export interface CreateOrganizationDomainRequest {
-    organization_id: string;
+export interface OrganizationDomainCreate {
+    name?: string | null;
+    description?: string | null;
     domain: string;
 }

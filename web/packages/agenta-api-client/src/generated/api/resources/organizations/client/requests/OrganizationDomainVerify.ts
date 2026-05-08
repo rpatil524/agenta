@@ -3,9 +3,9 @@
 /**
  * @example
  *     {
- *         trace_id: "trace_id"
+ *         domain_id: "domain_id"
  *     }
  */
-export interface DeleteTraceTracingRequest {
-    trace_id: string;
+export interface OrganizationDomainVerify {
+    domain_id: string;
 }

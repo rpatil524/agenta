@@ -3,7 +3,6 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import ORJSONResponse
 from supertokens_python import get_all_cors_headers as get_all_supertokens_cors_headers
 from supertokens_python.framework.fastapi import (
     get_middleware as get_supertokens_middleware,
@@ -308,7 +307,6 @@ app = FastAPI(
     lifespan=lifespan,
     openapi_tags=_OPENAPI_TAGS,
     root_path="/api",
-    default_response_class=ORJSONResponse,
 )
 # MIDDLEWARE -------------------------------------------------------------------
 
@@ -718,6 +716,7 @@ app.include_router(
     router=tracing.router,
     prefix="/preview/tracing",
     tags=["Deprecated"],
+    deprecated=True,
     include_in_schema=False,
 )
 ## DEPRECATED
@@ -725,7 +724,8 @@ app.include_router(
 app.include_router(
     router=tracing.router,
     prefix="/tracing",
-    tags=["Traces"],
+    tags=["Deprecated"],
+    deprecated=True,
 )
 
 app.include_router(
@@ -735,9 +735,16 @@ app.include_router(
 )
 
 app.include_router(
+    router=traces.deprecated_router,
+    prefix="/traces",
+    tags=["Deprecated"],
+)
+
+app.include_router(
     router=traces.router,
     prefix="/preview/traces",
-    tags=["Traces"],
+    tags=["Deprecated"],
+    deprecated=True,
     include_in_schema=False,
 )
 
@@ -750,7 +757,8 @@ app.include_router(
 app.include_router(
     router=spans.router,
     prefix="/preview/spans",
-    tags=["Traces"],
+    tags=["Deprecated"],
+    deprecated=True,
     include_in_schema=False,
 )
 
