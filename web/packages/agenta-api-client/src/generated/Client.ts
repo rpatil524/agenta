@@ -10,6 +10,7 @@ import { EvaluatorsClient } from "./api/resources/evaluators/client/Client.js";
 import { FoldersClient } from "./api/resources/folders/client/Client.js";
 import { InvocationsClient } from "./api/resources/invocations/client/Client.js";
 import { KeysClient } from "./api/resources/keys/client/Client.js";
+import { LegacyClient } from "./api/resources/legacy/client/Client.js";
 import { OrganizationsClient } from "./api/resources/organizations/client/Client.js";
 import { ProjectsClient } from "./api/resources/projects/client/Client.js";
 import { QueriesClient } from "./api/resources/queries/client/Client.js";
@@ -41,6 +42,7 @@ export class AgentaApiClient {
     protected _secrets: SecretsClient | undefined;
     protected _webhooks: WebhooksClient | undefined;
     protected _access: AccessClient | undefined;
+    protected _legacy: LegacyClient | undefined;
     protected _traces: TracesClient | undefined;
     protected _invocations: InvocationsClient | undefined;
     protected _annotations: AnnotationsClient | undefined;
@@ -85,6 +87,10 @@ export class AgentaApiClient {
 
     public get access(): AccessClient {
         return (this._access ??= new AccessClient(this._options));
+    }
+
+    public get legacy(): LegacyClient {
+        return (this._legacy ??= new LegacyClient(this._options));
     }
 
     public get traces(): TracesClient {

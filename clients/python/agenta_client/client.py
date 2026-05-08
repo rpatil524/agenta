@@ -19,6 +19,7 @@ if typing.TYPE_CHECKING:
     from .folders.client import AsyncFoldersClient, FoldersClient
     from .invocations.client import AsyncInvocationsClient, InvocationsClient
     from .keys.client import AsyncKeysClient, KeysClient
+    from .legacy.client import AsyncLegacyClient, LegacyClient
     from .organizations.client import AsyncOrganizationsClient, OrganizationsClient
     from .projects.client import AsyncProjectsClient, ProjectsClient
     from .queries.client import AsyncQueriesClient, QueriesClient
@@ -82,6 +83,7 @@ class AgentaApi:
         self._secrets: typing.Optional[SecretsClient] = None
         self._webhooks: typing.Optional[WebhooksClient] = None
         self._access: typing.Optional[AccessClient] = None
+        self._legacy: typing.Optional[LegacyClient] = None
         self._traces: typing.Optional[TracesClient] = None
         self._invocations: typing.Optional[InvocationsClient] = None
         self._annotations: typing.Optional[AnnotationsClient] = None
@@ -141,6 +143,13 @@ class AgentaApi:
             from .access.client import AccessClient  # noqa: E402
             self._access = AccessClient(client_wrapper=self._client_wrapper)
         return self._access
+    
+    @property
+    def legacy(self):
+        if self._legacy is None:
+            from .legacy.client import LegacyClient  # noqa: E402
+            self._legacy = LegacyClient(client_wrapper=self._client_wrapper)
+        return self._legacy
     
     @property
     def traces(self):
@@ -310,6 +319,7 @@ class AsyncAgentaApi:
         self._secrets: typing.Optional[AsyncSecretsClient] = None
         self._webhooks: typing.Optional[AsyncWebhooksClient] = None
         self._access: typing.Optional[AsyncAccessClient] = None
+        self._legacy: typing.Optional[AsyncLegacyClient] = None
         self._traces: typing.Optional[AsyncTracesClient] = None
         self._invocations: typing.Optional[AsyncInvocationsClient] = None
         self._annotations: typing.Optional[AsyncAnnotationsClient] = None
@@ -369,6 +379,13 @@ class AsyncAgentaApi:
             from .access.client import AsyncAccessClient  # noqa: E402
             self._access = AsyncAccessClient(client_wrapper=self._client_wrapper)
         return self._access
+    
+    @property
+    def legacy(self):
+        if self._legacy is None:
+            from .legacy.client import AsyncLegacyClient  # noqa: E402
+            self._legacy = AsyncLegacyClient(client_wrapper=self._client_wrapper)
+        return self._legacy
     
     @property
     def traces(self):

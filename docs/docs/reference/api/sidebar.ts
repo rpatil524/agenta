@@ -2616,6 +2616,22 @@ const sidebar: SidebarsConfig = {
     },
     {
       type: "category",
+      label: "Legacy",
+      link: {
+        type: "doc",
+        id: "reference/api/legacy",
+      },
+      items: [
+        {
+          type: "doc",
+          id: "reference/api/fetch-legacy-analytics",
+          label: "Fetch Legacy Analytics",
+          className: "api-method post",
+        },
+      ],
+    },
+    {
+      type: "category",
       label: "Deprecated",
       link: {
         type: "doc",
@@ -2632,12 +2648,6 @@ const sidebar: SidebarsConfig = {
           type: "doc",
           id: "reference/api/query-spans-rpc",
           label: "Query Spans",
-          className: "menu__list-item--deprecated api-method post",
-        },
-        {
-          type: "doc",
-          id: "reference/api/fetch-legacy-analytics",
-          label: "Fetch Legacy Analytics",
           className: "menu__list-item--deprecated api-method post",
         },
         {

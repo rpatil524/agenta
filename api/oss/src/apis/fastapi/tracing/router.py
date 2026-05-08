@@ -73,6 +73,7 @@ class TracingRouter:
         self.service = tracing_service
 
         self.router = APIRouter()
+        self.legacy_router = APIRouter()
 
         ### SPANS
 
@@ -97,7 +98,7 @@ class TracingRouter:
             response_model_exclude_none=True,
         )
 
-        self.router.add_api_route(
+        self.legacy_router.add_api_route(
             "/spans/analytics",
             self.fetch_legacy_analytics,
             methods=["POST"],
@@ -105,7 +106,6 @@ class TracingRouter:
             status_code=status.HTTP_200_OK,
             response_model=OldAnalyticsResponse,
             response_model_exclude_none=True,
-            deprecated=True,
         )
 
         self.router.add_api_route(

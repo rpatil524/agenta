@@ -298,8 +298,13 @@ _OPENAPI_TAGS = [
     },
     # --
     {
+        "name": "Legacy",
+        "description": "Stable legacy endpoints retained for existing integrations — not deprecated, but new integrations should prefer the canonical surface.",
+    },
+    # --
+    {
         "name": "Deprecated",
-        "description": "Legacy endpoints kept for backwards compatibility — avoid in new integrations.",
+        "description": "Deprecated endpoints kept for backwards compatibility — avoid in new integrations.",
     },
 ]
 
@@ -726,6 +731,12 @@ app.include_router(
     prefix="/tracing",
     tags=["Deprecated"],
     deprecated=True,
+)
+
+app.include_router(
+    router=tracing.legacy_router,
+    prefix="/tracing",
+    tags=["Legacy"],
 )
 
 app.include_router(
