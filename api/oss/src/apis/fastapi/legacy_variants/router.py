@@ -81,7 +81,6 @@ class LegacyVariantsRouter:
             status_code=status.HTTP_200_OK,
             response_model=ConfigResponseModel,
             deprecated=True,
-            tags=["Deprecated"],
         )
 
     async def _check_view_access(self, request: Request) -> None:

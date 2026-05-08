@@ -4,8 +4,10 @@ Working notes and tooling for keeping the FastAPI surface, the OpenAPI spec, the
 
 ## Files
 
-- [`api_routers_and_endpoints.md`](api_routers_and_endpoints.md) — generated table mapping every static FastAPI route to its operation_id, generated client method, and handler.
-- [`generate.py`](generate.py) — regenerates the table above by walking `application/api/` routers and cross-referencing the Fern clients.
+- [`endpoints.md`](endpoints.md) — generated table mapping every static FastAPI route to its operation_id, generated client method, and handler.
+- [`summary.md`](summary.md) — high-level summary of the cleanup that just shipped (canonical surface, deprecations, follow-ups).
+- [`tracing-cleanup.md`](tracing-cleanup.md) — design + scope of the tracing-API cleanup.
+- [`generate.py`](generate.py) — regenerates `endpoints.md` by walking `application/api/` routers and cross-referencing the Fern clients.
 - [`research.md`](research.md) — design / cleanup notes.
 
 ## Commands
@@ -47,7 +49,7 @@ Reads:
 - routers under `application/api/oss/src/apis/fastapi/*/router.py`, `application/api/oss/src/routers/*.py`, and `application/api/ee/src/apis/fastapi/*/router.py`
 - the generated Fern clients in [`clients/python/agenta_client/`](../../clients/python/agenta_client/) and [`web/packages/agenta-api-client/src/generated/`](../../web/packages/agenta-api-client/src/generated/)
 
-Writes [`api_routers_and_endpoints.md`](api_routers_and_endpoints.md). Routes are split into a *mapped* table (operation_id resolves to a generated client method) and an *unmapped* table (admin-stripped or hidden from the public OpenAPI spec).
+Writes [`endpoints.md`](endpoints.md). Routes are split into a *mapped* table (operation_id resolves to a generated client method) and an *unmapped* table (admin-stripped or hidden from the public OpenAPI spec).
 
 ## Typical workflow
 
