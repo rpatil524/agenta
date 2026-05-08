@@ -378,6 +378,75 @@ export class TracesClient {
     }
 
     /**
+     * @param {AgentaApi.DeleteTraceRequest} request
+     * @param {TracesClient.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link AgentaApi.UnprocessableEntityError}
+     *
+     * @example
+     *     await client.traces.deleteTrace({
+     *         trace_id: "trace_id"
+     *     })
+     */
+    public deleteTrace(
+        request: AgentaApi.DeleteTraceRequest,
+        requestOptions?: TracesClient.RequestOptions,
+    ): core.HttpResponsePromise<AgentaApi.TraceIdResponse> {
+        return core.HttpResponsePromise.fromPromise(this.__deleteTrace(request, requestOptions));
+    }
+
+    private async __deleteTrace(
+        request: AgentaApi.DeleteTraceRequest,
+        requestOptions?: TracesClient.RequestOptions,
+    ): Promise<core.WithRawResponse<AgentaApi.TraceIdResponse>> {
+        const { trace_id: traceId } = request;
+        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
+            _authRequest.headers,
+            this._options?.headers,
+            requestOptions?.headers,
+        );
+        const _response = await core.fetcher({
+            url: core.url.join(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.AgentaApiEnvironment.Default,
+                `traces/${core.url.encodePathParam(traceId)}`,
+            ),
+            method: "DELETE",
+            headers: _headers,
+            queryParameters: requestOptions?.queryParams,
+            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 30) * 1000,
+            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
+            withCredentials: true,
+            abortSignal: requestOptions?.abortSignal,
+            fetchFn: this._options?.fetch,
+            logging: this._options.logging,
+        });
+        if (_response.ok) {
+            return { data: _response.body as AgentaApi.TraceIdResponse, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 422:
+                    throw new AgentaApi.UnprocessableEntityError(
+                        _response.error.body as AgentaApi.HttpValidationError,
+                        _response.rawResponse,
+                    );
+                default:
+                    throw new errors.AgentaApiError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        return handleNonStatusCodeError(_response.error, _response.rawResponse, "DELETE", "/traces/{trace_id}");
+    }
+
+    /**
      * @param {AgentaApi.FetchSpansRequest} request
      * @param {TracesClient.RequestOptions} requestOptions - Request-specific configuration.
      *

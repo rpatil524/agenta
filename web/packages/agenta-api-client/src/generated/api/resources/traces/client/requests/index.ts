@@ -1,4 +1,5 @@
 export type { DeleteSimpleTraceRequest } from "./DeleteSimpleTraceRequest.js";
+export type { DeleteTraceRequest } from "./DeleteTraceRequest.js";
 export type { EditTraceRequest } from "./EditTraceRequest.js";
 export type { FetchSimpleTraceRequest } from "./FetchSimpleTraceRequest.js";
 export type { FetchSpanRequest } from "./FetchSpanRequest.js";

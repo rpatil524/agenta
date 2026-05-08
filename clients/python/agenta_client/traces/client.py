@@ -192,6 +192,34 @@ class TracesClient:
         _response = self._raw_client.edit_trace(trace_id, trace=trace, request_options=request_options)
         return _response.data
     
+    def delete_trace(self, trace_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> TraceIdResponse:
+        """
+        Parameters
+        ----------
+        trace_id : str
+        
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+        
+        Returns
+        -------
+        TraceIdResponse
+            Successful Response
+        
+        Examples
+        --------
+        from agenta import AgentaApi
+        
+        client = AgentaApi(
+            api_key="YOUR_API_KEY",
+        )
+        client.traces.delete_trace(
+            trace_id="trace_id",
+        )
+        """
+        _response = self._raw_client.delete_trace(trace_id, request_options=request_options)
+        return _response.data
+    
     def fetch_spans(self, *, trace_id: typing.Optional[typing.Sequence[str]] = None, trace_ids: typing.Optional[str] = None, span_id: typing.Optional[typing.Sequence[str]] = None, span_ids: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> SpansResponse:
         """
         Parameters
@@ -739,6 +767,42 @@ class AsyncTracesClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.edit_trace(trace_id, trace=trace, request_options=request_options)
+        return _response.data
+    
+    async def delete_trace(self, trace_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> TraceIdResponse:
+        """
+        Parameters
+        ----------
+        trace_id : str
+        
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+        
+        Returns
+        -------
+        TraceIdResponse
+            Successful Response
+        
+        Examples
+        --------
+        import asyncio
+        
+        from agenta import AsyncAgentaApi
+        
+        client = AsyncAgentaApi(
+            api_key="YOUR_API_KEY",
+        )
+        
+        
+        async def main() -> None:
+            await client.traces.delete_trace(
+                trace_id="trace_id",
+            )
+        
+        
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.delete_trace(trace_id, request_options=request_options)
         return _response.data
     
     async def fetch_spans(self, *, trace_id: typing.Optional[typing.Sequence[str]] = None, trace_ids: typing.Optional[str] = None, span_id: typing.Optional[typing.Sequence[str]] = None, span_ids: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> SpansResponse:

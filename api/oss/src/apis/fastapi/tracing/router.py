@@ -85,7 +85,6 @@ class TracingRouter:
             response_model=OTelLinksResponse,
             response_model_exclude_none=True,
             deprecated=True,
-            tags=["Deprecated"],
         )
 
         self.router.add_api_route(
@@ -107,7 +106,6 @@ class TracingRouter:
             response_model=OldAnalyticsResponse,
             response_model_exclude_none=True,
             deprecated=True,
-            tags=["Deprecated"],
         )
 
         self.router.add_api_route(
@@ -1134,6 +1132,16 @@ class TracesRouter:
             response_model_exclude_none=True,
         )
 
+        self.router.add_api_route(
+            "/{trace_id}",
+            self.delete_trace,
+            methods=["DELETE"],
+            operation_id="delete_trace",
+            status_code=status.HTTP_202_ACCEPTED,
+            response_model=TraceIdResponse,
+            response_model_exclude_none=True,
+        )
+
     def _extract_trace_map(
         self, traces_request: TracesRequest
     ) -> Optional[OTelTraceTree]:
@@ -1485,4 +1493,36 @@ class TracesRouter:
         return TraceResponse(
             count=1 if trace else 0,
             trace=trace,
+        )
+
+    @intercept_exceptions()
+    async def delete_trace(  # DELETE
+        self,
+        request: Request,
+        trace_id: str,
+    ) -> TraceIdResponse:
+        if is_ee():
+            if not await check_action_access(  # type: ignore
+                user_uid=request.state.user_id,
+                project_id=request.state.project_id,
+                permission=Permission.EDIT_SPANS,  # type: ignore
+            ):
+                raise FORBIDDEN_EXCEPTION  # type: ignore
+
+        try:
+            links = await self.service.delete_trace(
+                project_id=UUID(request.state.project_id),
+                trace_id=trace_id,
+            )
+        except TypeError as e:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid trace_id",
+            ) from e
+
+        trace_ids = self._trace_ids_from_links(links)
+        trace_id_out = trace_ids[0] if trace_ids else None
+        return TraceIdResponse(
+            count=1 if trace_id_out else 0,
+            trace_id=trace_id_out,
         )

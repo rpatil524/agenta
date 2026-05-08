@@ -281,6 +281,46 @@ class RawTracesClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
     
+    def delete_trace(self, trace_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TraceIdResponse]:
+        """
+        Parameters
+        ----------
+        trace_id : str
+        
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+        
+        Returns
+        -------
+        HttpResponse[TraceIdResponse]
+            Successful Response
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"traces/{jsonable_encoder(trace_id)}",method="DELETE",
+            request_options=request_options,)
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    TraceIdResponse,
+                    parse_obj_as(
+                        type_ =TraceIdResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
     def fetch_spans(self, *, trace_id: typing.Optional[typing.Sequence[str]] = None, trace_ids: typing.Optional[str] = None, span_id: typing.Optional[typing.Sequence[str]] = None, span_ids: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[SpansResponse]:
         """
         Parameters
@@ -1034,6 +1074,46 @@ class AsyncRawTracesClient:
             ,
             request_options=request_options,omit=OMIT,
         )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    TraceIdResponse,
+                    parse_obj_as(
+                        type_ =TraceIdResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def delete_trace(self, trace_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TraceIdResponse]:
+        """
+        Parameters
+        ----------
+        trace_id : str
+        
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+        
+        Returns
+        -------
+        AsyncHttpResponse[TraceIdResponse]
+            Successful Response
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"traces/{jsonable_encoder(trace_id)}",method="DELETE",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(

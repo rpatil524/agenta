@@ -22,7 +22,7 @@ APP = HERE.parents[2]  # application/
 API_ROOT = APP / "api"
 TS_RES = APP / "web/packages/agenta-api-client/src/generated/api/resources"
 PY_ROOT = APP / "clients/python/agenta_client"
-OUT_PATH = APP / "docs/openapi-cleanup/api_routers_and_endpoints.md"
+OUT_PATH = APP / "docs/openapi-cleanup/endpoints.md"
 
 ROUTER_GLOBS = [
     API_ROOT / "oss/src/apis/fastapi",  # */router.py

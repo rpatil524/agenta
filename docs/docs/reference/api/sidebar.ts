@@ -1426,6 +1426,12 @@ const sidebar: SidebarsConfig = {
         },
         {
           type: "doc",
+          id: "reference/api/delete-trace",
+          label: "Delete Trace",
+          className: "api-method delete",
+        },
+        {
+          type: "doc",
           id: "reference/api/fetch-spans",
           label: "Fetch Spans",
           className: "api-method get",
