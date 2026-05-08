@@ -1,4 +1,4 @@
-FROM node:20.18-slim
+FROM node:24-slim
 
 ENV TURBO_TELEMETRY_DISABLED=1
 
@@ -38,7 +38,7 @@ COPY tests/package.json ./tests/
 
 COPY ./pnpm-workspace.yaml ./turbo.json ./
 
-COPY ./entrypoint.sh /app/entrypoint.sh   
+COPY ./entrypoint.sh /app/entrypoint.sh
 
 RUN groupadd --gid 10001 agenta && \
     useradd --uid 10001 --gid 10001 --shell /bin/false --create-home agenta && \
