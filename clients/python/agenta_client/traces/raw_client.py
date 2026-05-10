@@ -17,9 +17,6 @@ from ..types.focus import Focus
 from ..types.format import Format
 from ..types.http_validation_error import HttpValidationError
 from ..types.o_tel_link_input import OTelLinkInput
-from ..types.o_tel_links_response import OTelLinksResponse
-from ..types.o_tel_tracing_response import OTelTracingResponse
-from ..types.old_analytics_response import OldAnalyticsResponse
 from ..types.reference import Reference
 from ..types.session_ids_response import SessionIdsResponse
 from ..types.simple_trace_create import SimpleTraceCreate
@@ -28,529 +25,22 @@ from ..types.simple_trace_link_response import SimpleTraceLinkResponse
 from ..types.simple_trace_query import SimpleTraceQuery
 from ..types.simple_trace_response import SimpleTraceResponse
 from ..types.simple_traces_response import SimpleTracesResponse
-from ..types.span_input import SpanInput
 from ..types.span_response import SpanResponse
 from ..types.spans_response import SpansResponse
-from ..types.spans_tree_input import SpansTreeInput
 from ..types.trace_id_response import TraceIdResponse
-from ..types.trace_ids_response import TraceIdsResponse
 from ..types.trace_input import TraceInput
 from ..types.trace_response import TraceResponse
 from ..types.traces_response import TracesResponse
 from ..types.user_ids_response import UserIdsResponse
 from ..types.windowing import Windowing
-from .types.fetch_analytics_request_newest import FetchAnalyticsRequestNewest
-from .types.fetch_analytics_request_oldest import FetchAnalyticsRequestOldest
-from .types.fetch_legacy_analytics_request_newest import FetchLegacyAnalyticsRequestNewest
-from .types.fetch_legacy_analytics_request_oldest import FetchLegacyAnalyticsRequestOldest
-from .types.query_spans_rpc_request_newest import QuerySpansRpcRequestNewest
-from .types.query_spans_rpc_request_oldest import QuerySpansRpcRequestOldest
+from .types.query_spans_analytics_request_newest import QuerySpansAnalyticsRequestNewest
+from .types.query_spans_analytics_request_oldest import QuerySpansAnalyticsRequestOldest
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
 class RawTracesClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
-    
-    def ingest_spans_rpc(self, *, spans: typing.Optional[typing.Sequence[SpanInput]] = OMIT, traces: typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[OTelLinksResponse]:
-        """
-        Parameters
-        ----------
-        spans : typing.Optional[typing.Sequence[SpanInput]]
-        
-        traces : typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        HttpResponse[OTelLinksResponse]
-            Successful Response
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "tracing/spans/ingest",method="POST",
-            json={
-                "spans": convert_and_respect_annotation_metadata(object_=spans, annotation=typing.Optional[typing.Sequence[SpanInput]], direction="write"),
-                "traces": convert_and_respect_annotation_metadata(object_=traces, annotation=typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]], direction="write"),
-            }
-            ,
-            headers={"content-type": "application/json", }
-            ,
-            request_options=request_options,omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    OTelLinksResponse,
-                    parse_obj_as(
-                        type_ =OTelLinksResponse,  # type: ignore
-                        object_ =_response.json()
-                    )
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 422:
-                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
-                    HttpValidationError,
-                    parse_obj_as(
-                        type_ =HttpValidationError,  # type: ignore
-                        object_ =_response.json()
-                    )
-                ))
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-    
-    def query_spans_rpc(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[QuerySpansRpcRequestOldest] = None, newest: typing.Optional[QuerySpansRpcRequestNewest] = None, limit: typing.Optional[int] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[OTelTracingResponse]:
-        """
-        Parameters
-        ----------
-        focus : typing.Optional[Focus]
-        
-        format : typing.Optional[Format]
-        
-        oldest : typing.Optional[QuerySpansRpcRequestOldest]
-        
-        newest : typing.Optional[QuerySpansRpcRequestNewest]
-        
-        limit : typing.Optional[int]
-        
-        interval : typing.Optional[int]
-        
-        rate : typing.Optional[float]
-        
-        filter : typing.Optional[str]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        HttpResponse[OTelTracingResponse]
-            Successful Response
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "tracing/spans/query",method="POST",
-            params={"focus": focus, "format": format, "oldest": oldest, "newest": newest, "limit": limit, "interval": interval, "rate": rate, "filter": filter, }
-            ,
-            request_options=request_options,)
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    OTelTracingResponse,
-                    parse_obj_as(
-                        type_ =OTelTracingResponse,  # type: ignore
-                        object_ =_response.json()
-                    )
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 422:
-                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
-                    HttpValidationError,
-                    parse_obj_as(
-                        type_ =HttpValidationError,  # type: ignore
-                        object_ =_response.json()
-                    )
-                ))
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-    
-    def fetch_legacy_analytics(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[FetchLegacyAnalyticsRequestOldest] = None, newest: typing.Optional[FetchLegacyAnalyticsRequestNewest] = None, limit: typing.Optional[int] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[OldAnalyticsResponse]:
-        """
-        Parameters
-        ----------
-        focus : typing.Optional[Focus]
-        
-        format : typing.Optional[Format]
-        
-        oldest : typing.Optional[FetchLegacyAnalyticsRequestOldest]
-        
-        newest : typing.Optional[FetchLegacyAnalyticsRequestNewest]
-        
-        limit : typing.Optional[int]
-        
-        interval : typing.Optional[int]
-        
-        rate : typing.Optional[float]
-        
-        filter : typing.Optional[str]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        HttpResponse[OldAnalyticsResponse]
-            Successful Response
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "tracing/spans/analytics",method="POST",
-            params={"focus": focus, "format": format, "oldest": oldest, "newest": newest, "limit": limit, "interval": interval, "rate": rate, "filter": filter, }
-            ,
-            request_options=request_options,)
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    OldAnalyticsResponse,
-                    parse_obj_as(
-                        type_ =OldAnalyticsResponse,  # type: ignore
-                        object_ =_response.json()
-                    )
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 422:
-                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
-                    HttpValidationError,
-                    parse_obj_as(
-                        type_ =HttpValidationError,  # type: ignore
-                        object_ =_response.json()
-                    )
-                ))
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-    
-    def fetch_analytics(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[FetchAnalyticsRequestOldest] = None, newest: typing.Optional[FetchAnalyticsRequestNewest] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, specs: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AnalyticsResponse]:
-        """
-        Parameters
-        ----------
-        focus : typing.Optional[Focus]
-        
-        format : typing.Optional[Format]
-        
-        oldest : typing.Optional[FetchAnalyticsRequestOldest]
-        
-        newest : typing.Optional[FetchAnalyticsRequestNewest]
-        
-        interval : typing.Optional[int]
-        
-        rate : typing.Optional[float]
-        
-        filter : typing.Optional[str]
-        
-        specs : typing.Optional[str]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        HttpResponse[AnalyticsResponse]
-            Successful Response
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "tracing/analytics/query",method="POST",
-            params={"focus": focus, "format": format, "oldest": oldest, "newest": newest, "interval": interval, "rate": rate, "filter": filter, "specs": specs, }
-            ,
-            request_options=request_options,)
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    AnalyticsResponse,
-                    parse_obj_as(
-                        type_ =AnalyticsResponse,  # type: ignore
-                        object_ =_response.json()
-                    )
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 422:
-                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
-                    HttpValidationError,
-                    parse_obj_as(
-                        type_ =HttpValidationError,  # type: ignore
-                        object_ =_response.json()
-                    )
-                ))
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-    
-    def create_trace_tracing(self, *, spans: typing.Optional[typing.Sequence[SpanInput]] = OMIT, traces: typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[OTelLinksResponse]:
-        """
-        Parameters
-        ----------
-        spans : typing.Optional[typing.Sequence[SpanInput]]
-        
-        traces : typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        HttpResponse[OTelLinksResponse]
-            Successful Response
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "tracing/traces/",method="POST",
-            json={
-                "spans": convert_and_respect_annotation_metadata(object_=spans, annotation=typing.Optional[typing.Sequence[SpanInput]], direction="write"),
-                "traces": convert_and_respect_annotation_metadata(object_=traces, annotation=typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]], direction="write"),
-            }
-            ,
-            headers={"content-type": "application/json", }
-            ,
-            request_options=request_options,omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    OTelLinksResponse,
-                    parse_obj_as(
-                        type_ =OTelLinksResponse,  # type: ignore
-                        object_ =_response.json()
-                    )
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 422:
-                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
-                    HttpValidationError,
-                    parse_obj_as(
-                        type_ =HttpValidationError,  # type: ignore
-                        object_ =_response.json()
-                    )
-                ))
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-    
-    def fetch_trace_tracing(self, trace_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[OTelTracingResponse]:
-        """
-        Parameters
-        ----------
-        trace_id : str
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        HttpResponse[OTelTracingResponse]
-            Successful Response
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"tracing/traces/{jsonable_encoder(trace_id)}",method="GET",
-            request_options=request_options,)
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    OTelTracingResponse,
-                    parse_obj_as(
-                        type_ =OTelTracingResponse,  # type: ignore
-                        object_ =_response.json()
-                    )
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 422:
-                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
-                    HttpValidationError,
-                    parse_obj_as(
-                        type_ =HttpValidationError,  # type: ignore
-                        object_ =_response.json()
-                    )
-                ))
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-    
-    def edit_trace_tracing(self, trace_id: str, *, spans: typing.Optional[typing.Sequence[SpanInput]] = OMIT, traces: typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[OTelLinksResponse]:
-        """
-        Parameters
-        ----------
-        trace_id : str
-        
-        spans : typing.Optional[typing.Sequence[SpanInput]]
-        
-        traces : typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        HttpResponse[OTelLinksResponse]
-            Successful Response
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"tracing/traces/{jsonable_encoder(trace_id)}",method="PUT",
-            json={
-                "spans": convert_and_respect_annotation_metadata(object_=spans, annotation=typing.Optional[typing.Sequence[SpanInput]], direction="write"),
-                "traces": convert_and_respect_annotation_metadata(object_=traces, annotation=typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]], direction="write"),
-            }
-            ,
-            headers={"content-type": "application/json", }
-            ,
-            request_options=request_options,omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    OTelLinksResponse,
-                    parse_obj_as(
-                        type_ =OTelLinksResponse,  # type: ignore
-                        object_ =_response.json()
-                    )
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 422:
-                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
-                    HttpValidationError,
-                    parse_obj_as(
-                        type_ =HttpValidationError,  # type: ignore
-                        object_ =_response.json()
-                    )
-                ))
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-    
-    def delete_trace_tracing(self, trace_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[OTelLinksResponse]:
-        """
-        Parameters
-        ----------
-        trace_id : str
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        HttpResponse[OTelLinksResponse]
-            Successful Response
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"tracing/traces/{jsonable_encoder(trace_id)}",method="DELETE",
-            request_options=request_options,)
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    OTelLinksResponse,
-                    parse_obj_as(
-                        type_ =OTelLinksResponse,  # type: ignore
-                        object_ =_response.json()
-                    )
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 422:
-                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
-                    HttpValidationError,
-                    parse_obj_as(
-                        type_ =HttpValidationError,  # type: ignore
-                        object_ =_response.json()
-                    )
-                ))
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-    
-    def list_sessions(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[SessionIdsResponse]:
-        """
-        Parameters
-        ----------
-        realtime : typing.Optional[bool]
-        
-        windowing : typing.Optional[Windowing]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        HttpResponse[SessionIdsResponse]
-            Successful Response
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "tracing/sessions/query",method="POST",
-            json={
-                "realtime": realtime,
-                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
-            }
-            ,
-            headers={"content-type": "application/json", }
-            ,
-            request_options=request_options,omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    SessionIdsResponse,
-                    parse_obj_as(
-                        type_ =SessionIdsResponse,  # type: ignore
-                        object_ =_response.json()
-                    )
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 422:
-                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
-                    HttpValidationError,
-                    parse_obj_as(
-                        type_ =HttpValidationError,  # type: ignore
-                        object_ =_response.json()
-                    )
-                ))
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-    
-    def list_users(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[UserIdsResponse]:
-        """
-        Parameters
-        ----------
-        realtime : typing.Optional[bool]
-        
-        windowing : typing.Optional[Windowing]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        HttpResponse[UserIdsResponse]
-            Successful Response
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "tracing/users/query",method="POST",
-            json={
-                "realtime": realtime,
-                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
-            }
-            ,
-            headers={"content-type": "application/json", }
-            ,
-            request_options=request_options,omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    UserIdsResponse,
-                    parse_obj_as(
-                        type_ =UserIdsResponse,  # type: ignore
-                        object_ =_response.json()
-                    )
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 422:
-                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
-                    HttpValidationError,
-                    parse_obj_as(
-                        type_ =HttpValidationError,  # type: ignore
-                        object_ =_response.json()
-                    )
-                ))
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
     
     def fetch_traces(self, *, trace_id: typing.Optional[typing.Sequence[str]] = None, trace_ids: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TracesResponse]:
         """
@@ -702,53 +192,6 @@ class RawTracesClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
     
-    def ingest_traces(self, *, traces: typing.Optional[typing.Sequence[TraceInput]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TraceIdsResponse]:
-        """
-        Parameters
-        ----------
-        traces : typing.Optional[typing.Sequence[TraceInput]]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        HttpResponse[TraceIdsResponse]
-            Successful Response
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "traces/ingest",method="POST",
-            json={
-                "traces": convert_and_respect_annotation_metadata(object_=traces, annotation=typing.Optional[typing.Sequence[TraceInput]], direction="write"),
-            }
-            ,
-            headers={"content-type": "application/json", }
-            ,
-            request_options=request_options,omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    TraceIdsResponse,
-                    parse_obj_as(
-                        type_ =TraceIdsResponse,  # type: ignore
-                        object_ =_response.json()
-                    )
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 422:
-                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
-                    HttpValidationError,
-                    parse_obj_as(
-                        type_ =HttpValidationError,  # type: ignore
-                        object_ =_response.json()
-                    )
-                ))
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-    
     def fetch_trace(self, trace_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TraceResponse]:
         """
         Parameters
@@ -815,6 +258,46 @@ class RawTracesClient:
             ,
             request_options=request_options,omit=OMIT,
         )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    TraceIdResponse,
+                    parse_obj_as(
+                        type_ =TraceIdResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def delete_trace(self, trace_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TraceIdResponse]:
+        """
+        Parameters
+        ----------
+        trace_id : str
+        
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+        
+        Returns
+        -------
+        HttpResponse[TraceIdResponse]
+            Successful Response
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"traces/{jsonable_encoder(trace_id)}",method="DELETE",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
@@ -928,6 +411,162 @@ class RawTracesClient:
                     SpansResponse,
                     parse_obj_as(
                         type_ =SpansResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def query_spans_analytics(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[QuerySpansAnalyticsRequestOldest] = None, newest: typing.Optional[QuerySpansAnalyticsRequestNewest] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, specs: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[AnalyticsResponse]:
+        """
+        Parameters
+        ----------
+        focus : typing.Optional[Focus]
+        
+        format : typing.Optional[Format]
+        
+        oldest : typing.Optional[QuerySpansAnalyticsRequestOldest]
+        
+        newest : typing.Optional[QuerySpansAnalyticsRequestNewest]
+        
+        interval : typing.Optional[int]
+        
+        rate : typing.Optional[float]
+        
+        filter : typing.Optional[str]
+        
+        specs : typing.Optional[str]
+        
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+        
+        Returns
+        -------
+        HttpResponse[AnalyticsResponse]
+            Successful Response
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "spans/analytics/query",method="POST",
+            params={"focus": focus, "format": format, "oldest": oldest, "newest": newest, "interval": interval, "rate": rate, "filter": filter, "specs": specs, }
+            ,
+            request_options=request_options,)
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    AnalyticsResponse,
+                    parse_obj_as(
+                        type_ =AnalyticsResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def query_spans_sessions(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[SessionIdsResponse]:
+        """
+        Parameters
+        ----------
+        realtime : typing.Optional[bool]
+        
+        windowing : typing.Optional[Windowing]
+        
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+        
+        Returns
+        -------
+        HttpResponse[SessionIdsResponse]
+            Successful Response
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "spans/sessions/query",method="POST",
+            json={
+                "realtime": realtime,
+                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    SessionIdsResponse,
+                    parse_obj_as(
+                        type_ =SessionIdsResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def query_spans_users(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[UserIdsResponse]:
+        """
+        Parameters
+        ----------
+        realtime : typing.Optional[bool]
+        
+        windowing : typing.Optional[Windowing]
+        
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+        
+        Returns
+        -------
+        HttpResponse[UserIdsResponse]
+            Successful Response
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "spans/users/query",method="POST",
+            json={
+                "realtime": realtime,
+                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    UserIdsResponse,
+                    parse_obj_as(
+                        type_ =UserIdsResponse,  # type: ignore
                         object_ =_response.json()
                     )
                 )
@@ -1219,506 +858,6 @@ class AsyncRawTracesClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._client_wrapper = client_wrapper
     
-    async def ingest_spans_rpc(self, *, spans: typing.Optional[typing.Sequence[SpanInput]] = OMIT, traces: typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[OTelLinksResponse]:
-        """
-        Parameters
-        ----------
-        spans : typing.Optional[typing.Sequence[SpanInput]]
-        
-        traces : typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        AsyncHttpResponse[OTelLinksResponse]
-            Successful Response
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "tracing/spans/ingest",method="POST",
-            json={
-                "spans": convert_and_respect_annotation_metadata(object_=spans, annotation=typing.Optional[typing.Sequence[SpanInput]], direction="write"),
-                "traces": convert_and_respect_annotation_metadata(object_=traces, annotation=typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]], direction="write"),
-            }
-            ,
-            headers={"content-type": "application/json", }
-            ,
-            request_options=request_options,omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    OTelLinksResponse,
-                    parse_obj_as(
-                        type_ =OTelLinksResponse,  # type: ignore
-                        object_ =_response.json()
-                    )
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 422:
-                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
-                    HttpValidationError,
-                    parse_obj_as(
-                        type_ =HttpValidationError,  # type: ignore
-                        object_ =_response.json()
-                    )
-                ))
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-    
-    async def query_spans_rpc(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[QuerySpansRpcRequestOldest] = None, newest: typing.Optional[QuerySpansRpcRequestNewest] = None, limit: typing.Optional[int] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[OTelTracingResponse]:
-        """
-        Parameters
-        ----------
-        focus : typing.Optional[Focus]
-        
-        format : typing.Optional[Format]
-        
-        oldest : typing.Optional[QuerySpansRpcRequestOldest]
-        
-        newest : typing.Optional[QuerySpansRpcRequestNewest]
-        
-        limit : typing.Optional[int]
-        
-        interval : typing.Optional[int]
-        
-        rate : typing.Optional[float]
-        
-        filter : typing.Optional[str]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        AsyncHttpResponse[OTelTracingResponse]
-            Successful Response
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "tracing/spans/query",method="POST",
-            params={"focus": focus, "format": format, "oldest": oldest, "newest": newest, "limit": limit, "interval": interval, "rate": rate, "filter": filter, }
-            ,
-            request_options=request_options,)
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    OTelTracingResponse,
-                    parse_obj_as(
-                        type_ =OTelTracingResponse,  # type: ignore
-                        object_ =_response.json()
-                    )
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 422:
-                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
-                    HttpValidationError,
-                    parse_obj_as(
-                        type_ =HttpValidationError,  # type: ignore
-                        object_ =_response.json()
-                    )
-                ))
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-    
-    async def fetch_legacy_analytics(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[FetchLegacyAnalyticsRequestOldest] = None, newest: typing.Optional[FetchLegacyAnalyticsRequestNewest] = None, limit: typing.Optional[int] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[OldAnalyticsResponse]:
-        """
-        Parameters
-        ----------
-        focus : typing.Optional[Focus]
-        
-        format : typing.Optional[Format]
-        
-        oldest : typing.Optional[FetchLegacyAnalyticsRequestOldest]
-        
-        newest : typing.Optional[FetchLegacyAnalyticsRequestNewest]
-        
-        limit : typing.Optional[int]
-        
-        interval : typing.Optional[int]
-        
-        rate : typing.Optional[float]
-        
-        filter : typing.Optional[str]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        AsyncHttpResponse[OldAnalyticsResponse]
-            Successful Response
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "tracing/spans/analytics",method="POST",
-            params={"focus": focus, "format": format, "oldest": oldest, "newest": newest, "limit": limit, "interval": interval, "rate": rate, "filter": filter, }
-            ,
-            request_options=request_options,)
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    OldAnalyticsResponse,
-                    parse_obj_as(
-                        type_ =OldAnalyticsResponse,  # type: ignore
-                        object_ =_response.json()
-                    )
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 422:
-                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
-                    HttpValidationError,
-                    parse_obj_as(
-                        type_ =HttpValidationError,  # type: ignore
-                        object_ =_response.json()
-                    )
-                ))
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-    
-    async def fetch_analytics(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[FetchAnalyticsRequestOldest] = None, newest: typing.Optional[FetchAnalyticsRequestNewest] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, specs: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AnalyticsResponse]:
-        """
-        Parameters
-        ----------
-        focus : typing.Optional[Focus]
-        
-        format : typing.Optional[Format]
-        
-        oldest : typing.Optional[FetchAnalyticsRequestOldest]
-        
-        newest : typing.Optional[FetchAnalyticsRequestNewest]
-        
-        interval : typing.Optional[int]
-        
-        rate : typing.Optional[float]
-        
-        filter : typing.Optional[str]
-        
-        specs : typing.Optional[str]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        AsyncHttpResponse[AnalyticsResponse]
-            Successful Response
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "tracing/analytics/query",method="POST",
-            params={"focus": focus, "format": format, "oldest": oldest, "newest": newest, "interval": interval, "rate": rate, "filter": filter, "specs": specs, }
-            ,
-            request_options=request_options,)
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    AnalyticsResponse,
-                    parse_obj_as(
-                        type_ =AnalyticsResponse,  # type: ignore
-                        object_ =_response.json()
-                    )
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 422:
-                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
-                    HttpValidationError,
-                    parse_obj_as(
-                        type_ =HttpValidationError,  # type: ignore
-                        object_ =_response.json()
-                    )
-                ))
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-    
-    async def create_trace_tracing(self, *, spans: typing.Optional[typing.Sequence[SpanInput]] = OMIT, traces: typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[OTelLinksResponse]:
-        """
-        Parameters
-        ----------
-        spans : typing.Optional[typing.Sequence[SpanInput]]
-        
-        traces : typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        AsyncHttpResponse[OTelLinksResponse]
-            Successful Response
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "tracing/traces/",method="POST",
-            json={
-                "spans": convert_and_respect_annotation_metadata(object_=spans, annotation=typing.Optional[typing.Sequence[SpanInput]], direction="write"),
-                "traces": convert_and_respect_annotation_metadata(object_=traces, annotation=typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]], direction="write"),
-            }
-            ,
-            headers={"content-type": "application/json", }
-            ,
-            request_options=request_options,omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    OTelLinksResponse,
-                    parse_obj_as(
-                        type_ =OTelLinksResponse,  # type: ignore
-                        object_ =_response.json()
-                    )
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 422:
-                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
-                    HttpValidationError,
-                    parse_obj_as(
-                        type_ =HttpValidationError,  # type: ignore
-                        object_ =_response.json()
-                    )
-                ))
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-    
-    async def fetch_trace_tracing(self, trace_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[OTelTracingResponse]:
-        """
-        Parameters
-        ----------
-        trace_id : str
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        AsyncHttpResponse[OTelTracingResponse]
-            Successful Response
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"tracing/traces/{jsonable_encoder(trace_id)}",method="GET",
-            request_options=request_options,)
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    OTelTracingResponse,
-                    parse_obj_as(
-                        type_ =OTelTracingResponse,  # type: ignore
-                        object_ =_response.json()
-                    )
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 422:
-                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
-                    HttpValidationError,
-                    parse_obj_as(
-                        type_ =HttpValidationError,  # type: ignore
-                        object_ =_response.json()
-                    )
-                ))
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-    
-    async def edit_trace_tracing(self, trace_id: str, *, spans: typing.Optional[typing.Sequence[SpanInput]] = OMIT, traces: typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[OTelLinksResponse]:
-        """
-        Parameters
-        ----------
-        trace_id : str
-        
-        spans : typing.Optional[typing.Sequence[SpanInput]]
-        
-        traces : typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        AsyncHttpResponse[OTelLinksResponse]
-            Successful Response
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"tracing/traces/{jsonable_encoder(trace_id)}",method="PUT",
-            json={
-                "spans": convert_and_respect_annotation_metadata(object_=spans, annotation=typing.Optional[typing.Sequence[SpanInput]], direction="write"),
-                "traces": convert_and_respect_annotation_metadata(object_=traces, annotation=typing.Optional[typing.Dict[str, typing.Optional[SpansTreeInput]]], direction="write"),
-            }
-            ,
-            headers={"content-type": "application/json", }
-            ,
-            request_options=request_options,omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    OTelLinksResponse,
-                    parse_obj_as(
-                        type_ =OTelLinksResponse,  # type: ignore
-                        object_ =_response.json()
-                    )
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 422:
-                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
-                    HttpValidationError,
-                    parse_obj_as(
-                        type_ =HttpValidationError,  # type: ignore
-                        object_ =_response.json()
-                    )
-                ))
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-    
-    async def delete_trace_tracing(self, trace_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[OTelLinksResponse]:
-        """
-        Parameters
-        ----------
-        trace_id : str
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        AsyncHttpResponse[OTelLinksResponse]
-            Successful Response
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"tracing/traces/{jsonable_encoder(trace_id)}",method="DELETE",
-            request_options=request_options,)
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    OTelLinksResponse,
-                    parse_obj_as(
-                        type_ =OTelLinksResponse,  # type: ignore
-                        object_ =_response.json()
-                    )
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 422:
-                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
-                    HttpValidationError,
-                    parse_obj_as(
-                        type_ =HttpValidationError,  # type: ignore
-                        object_ =_response.json()
-                    )
-                ))
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-    
-    async def list_sessions(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[SessionIdsResponse]:
-        """
-        Parameters
-        ----------
-        realtime : typing.Optional[bool]
-        
-        windowing : typing.Optional[Windowing]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        AsyncHttpResponse[SessionIdsResponse]
-            Successful Response
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "tracing/sessions/query",method="POST",
-            json={
-                "realtime": realtime,
-                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
-            }
-            ,
-            headers={"content-type": "application/json", }
-            ,
-            request_options=request_options,omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    SessionIdsResponse,
-                    parse_obj_as(
-                        type_ =SessionIdsResponse,  # type: ignore
-                        object_ =_response.json()
-                    )
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 422:
-                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
-                    HttpValidationError,
-                    parse_obj_as(
-                        type_ =HttpValidationError,  # type: ignore
-                        object_ =_response.json()
-                    )
-                ))
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-    
-    async def list_users(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[UserIdsResponse]:
-        """
-        Parameters
-        ----------
-        realtime : typing.Optional[bool]
-        
-        windowing : typing.Optional[Windowing]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        AsyncHttpResponse[UserIdsResponse]
-            Successful Response
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "tracing/users/query",method="POST",
-            json={
-                "realtime": realtime,
-                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
-            }
-            ,
-            headers={"content-type": "application/json", }
-            ,
-            request_options=request_options,omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    UserIdsResponse,
-                    parse_obj_as(
-                        type_ =UserIdsResponse,  # type: ignore
-                        object_ =_response.json()
-                    )
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 422:
-                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
-                    HttpValidationError,
-                    parse_obj_as(
-                        type_ =HttpValidationError,  # type: ignore
-                        object_ =_response.json()
-                    )
-                ))
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-    
     async def fetch_traces(self, *, trace_id: typing.Optional[typing.Sequence[str]] = None, trace_ids: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TracesResponse]:
         """
         Parameters
@@ -1869,53 +1008,6 @@ class AsyncRawTracesClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
     
-    async def ingest_traces(self, *, traces: typing.Optional[typing.Sequence[TraceInput]] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TraceIdsResponse]:
-        """
-        Parameters
-        ----------
-        traces : typing.Optional[typing.Sequence[TraceInput]]
-        
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-        
-        Returns
-        -------
-        AsyncHttpResponse[TraceIdsResponse]
-            Successful Response
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "traces/ingest",method="POST",
-            json={
-                "traces": convert_and_respect_annotation_metadata(object_=traces, annotation=typing.Optional[typing.Sequence[TraceInput]], direction="write"),
-            }
-            ,
-            headers={"content-type": "application/json", }
-            ,
-            request_options=request_options,omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    TraceIdsResponse,
-                    parse_obj_as(
-                        type_ =TraceIdsResponse,  # type: ignore
-                        object_ =_response.json()
-                    )
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 422:
-                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
-                    HttpValidationError,
-                    parse_obj_as(
-                        type_ =HttpValidationError,  # type: ignore
-                        object_ =_response.json()
-                    )
-                ))
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-    
     async def fetch_trace(self, trace_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TraceResponse]:
         """
         Parameters
@@ -1982,6 +1074,46 @@ class AsyncRawTracesClient:
             ,
             request_options=request_options,omit=OMIT,
         )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    TraceIdResponse,
+                    parse_obj_as(
+                        type_ =TraceIdResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def delete_trace(self, trace_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TraceIdResponse]:
+        """
+        Parameters
+        ----------
+        trace_id : str
+        
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+        
+        Returns
+        -------
+        AsyncHttpResponse[TraceIdResponse]
+            Successful Response
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"traces/{jsonable_encoder(trace_id)}",method="DELETE",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
@@ -2095,6 +1227,162 @@ class AsyncRawTracesClient:
                     SpansResponse,
                     parse_obj_as(
                         type_ =SpansResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def query_spans_analytics(self, *, focus: typing.Optional[Focus] = None, format: typing.Optional[Format] = None, oldest: typing.Optional[QuerySpansAnalyticsRequestOldest] = None, newest: typing.Optional[QuerySpansAnalyticsRequestNewest] = None, interval: typing.Optional[int] = None, rate: typing.Optional[float] = None, filter: typing.Optional[str] = None, specs: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[AnalyticsResponse]:
+        """
+        Parameters
+        ----------
+        focus : typing.Optional[Focus]
+        
+        format : typing.Optional[Format]
+        
+        oldest : typing.Optional[QuerySpansAnalyticsRequestOldest]
+        
+        newest : typing.Optional[QuerySpansAnalyticsRequestNewest]
+        
+        interval : typing.Optional[int]
+        
+        rate : typing.Optional[float]
+        
+        filter : typing.Optional[str]
+        
+        specs : typing.Optional[str]
+        
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+        
+        Returns
+        -------
+        AsyncHttpResponse[AnalyticsResponse]
+            Successful Response
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "spans/analytics/query",method="POST",
+            params={"focus": focus, "format": format, "oldest": oldest, "newest": newest, "interval": interval, "rate": rate, "filter": filter, "specs": specs, }
+            ,
+            request_options=request_options,)
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    AnalyticsResponse,
+                    parse_obj_as(
+                        type_ =AnalyticsResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def query_spans_sessions(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[SessionIdsResponse]:
+        """
+        Parameters
+        ----------
+        realtime : typing.Optional[bool]
+        
+        windowing : typing.Optional[Windowing]
+        
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+        
+        Returns
+        -------
+        AsyncHttpResponse[SessionIdsResponse]
+            Successful Response
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "spans/sessions/query",method="POST",
+            json={
+                "realtime": realtime,
+                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    SessionIdsResponse,
+                    parse_obj_as(
+                        type_ =SessionIdsResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def query_spans_users(self, *, realtime: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[UserIdsResponse]:
+        """
+        Parameters
+        ----------
+        realtime : typing.Optional[bool]
+        
+        windowing : typing.Optional[Windowing]
+        
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+        
+        Returns
+        -------
+        AsyncHttpResponse[UserIdsResponse]
+            Successful Response
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "spans/users/query",method="POST",
+            json={
+                "realtime": realtime,
+                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    UserIdsResponse,
+                    parse_obj_as(
+                        type_ =UserIdsResponse,  # type: ignore
                         object_ =_response.json()
                     )
                 )
