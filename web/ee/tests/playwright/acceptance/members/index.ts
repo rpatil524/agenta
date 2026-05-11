@@ -77,6 +77,7 @@ const membersTests = () => {
                 const basePath = apiHelpers.getProjectScopedBasePath()
                 await page.goto(`${basePath}/settings`, {waitUntil: "domcontentloaded"})
                 await uiHelpers.expectPath("/settings")
+                await page.waitForLoadState("networkidle")
                 await expect(page.getByRole("button", {name: "Invite Members"})).toBeVisible({
                     timeout: 15000,
                 })
