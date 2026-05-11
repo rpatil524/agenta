@@ -2,6 +2,4 @@
 
 import typing
 
-EvaluationRunDataStepOrigin = typing.Union[
-    typing.Literal["custom", "human", "auto"], typing.Any
-]
+EvaluationRunDataStepOrigin = typing.Union[typing.Literal["custom", "human", "auto"], typing.Any]

@@ -17,13 +17,10 @@ class AdminDeletedEntitiesDto(UniversalBaseModel):
     workspace_memberships: typing.Optional[typing.List[AdminDeletedEntityDto]] = None
     project_memberships: typing.Optional[typing.List[AdminDeletedEntityDto]] = None
     api_keys: typing.Optional[typing.List[AdminDeletedEntityDto]] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

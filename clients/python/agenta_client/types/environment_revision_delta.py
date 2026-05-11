@@ -12,27 +12,16 @@ from .reference import Reference
 class EnvironmentRevisionDelta(UniversalBaseModel):
     """
     Delta operations on environment revision references.
-
+    
     - ``set``: references to add or update (key → dict of entity → Reference).
     - ``remove``: reference keys to remove.
     """
-
-    set_: typing_extensions.Annotated[
-        typing.Optional[
-            typing.Dict[
-                str, typing.Optional[typing.Dict[str, typing.Optional[Reference]]]
-            ]
-        ],
-        FieldMetadata(alias="set"),
-    ] = pydantic.Field(alias="set", default=None)
+    set_: typing_extensions.Annotated[typing.Optional[typing.Dict[str, typing.Optional[typing.Dict[str, typing.Optional[Reference]]]]], FieldMetadata(alias="set")] = pydantic.Field(alias="set", default=None)
     remove: typing.Optional[typing.List[str]] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

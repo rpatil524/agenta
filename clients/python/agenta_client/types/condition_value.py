@@ -2,6 +2,4 @@
 
 import typing
 
-ConditionValue = typing.Union[
-    str, int, float, bool, typing.List[typing.Any], typing.Dict[str, typing.Any]
-]
+ConditionValue = typing.Union[str, int, float, bool, typing.List[typing.Any], typing.Dict[str, typing.Any]]

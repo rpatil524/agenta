@@ -9,16 +9,11 @@ from ..core.serialization import FieldMetadata
 
 
 class ListOptions(UniversalBaseModel):
-    all_: typing_extensions.Annotated[
-        typing.Optional[bool], FieldMetadata(alias="all")
-    ] = pydantic.Field(alias="all", default=None)
-
+    all_: typing_extensions.Annotated[typing.Optional[bool], FieldMetadata(alias="all")] = pydantic.Field(alias="all", default=None)
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

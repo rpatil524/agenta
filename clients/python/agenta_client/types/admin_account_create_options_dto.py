@@ -14,13 +14,10 @@ class AdminAccountCreateOptionsDto(UniversalBaseModel):
     return_api_keys: typing.Optional[bool] = None
     seed_defaults: typing.Optional[bool] = None
     reason: typing.Optional[str] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

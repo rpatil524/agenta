@@ -23,8 +23,9 @@ COPY --chown=agenta:agenta ./entrypoints /app/entrypoints/
 
 ENV PYTHONPATH=/sdks/python:/clients/python:$PYTHONPATH
 
-RUN echo "/clients/python" > /usr/local/lib/python3.11/site-packages/agenta_client_path.pth \
-    && echo "/sdks/python" >> /usr/local/lib/python3.11/site-packages/agenta_client_path.pth
+RUN site_packages="$(python -c 'import site; print(site.getsitepackages()[0])')" \
+    && echo "/clients/python" > "${site_packages}/agenta_client_path.pth" \
+    && echo "/sdks/python" >> "${site_packages}/agenta_client_path.pth"
 
 USER 10001
 

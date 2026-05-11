@@ -12,13 +12,10 @@ class EvaluationQueueIdsResponse(UniversalBaseModel):
     support_ts: typing.Optional[dt.datetime] = None
     count: typing.Optional[int] = None
     queue_ids: typing.Optional[typing.List[str]] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

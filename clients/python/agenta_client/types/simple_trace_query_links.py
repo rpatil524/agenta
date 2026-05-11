@@ -4,6 +4,4 @@ import typing
 
 from .o_tel_link_input import OTelLinkInput
 
-SimpleTraceQueryLinks = typing.Union[
-    typing.Dict[str, OTelLinkInput], typing.List[OTelLinkInput]
-]
+SimpleTraceQueryLinks = typing.Union[typing.Dict[str, OTelLinkInput], typing.List[OTelLinkInput]]

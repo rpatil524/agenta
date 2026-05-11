@@ -2,10 +2,6 @@
 
 import typing
 
-from .simple_evaluation_data_application_steps_one_value import (
-    SimpleEvaluationDataApplicationStepsOneValue,
-)
+from .simple_evaluation_data_application_steps_one_value import SimpleEvaluationDataApplicationStepsOneValue
 
-SimpleEvaluationDataApplicationSteps = typing.Union[
-    typing.List[str], typing.Dict[str, SimpleEvaluationDataApplicationStepsOneValue]
-]
+SimpleEvaluationDataApplicationSteps = typing.Union[typing.List[str], typing.Dict[str, SimpleEvaluationDataApplicationStepsOneValue]]

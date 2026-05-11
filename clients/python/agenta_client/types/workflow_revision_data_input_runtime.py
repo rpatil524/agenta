@@ -2,6 +2,4 @@
 
 import typing
 
-WorkflowRevisionDataInputRuntime = typing.Union[
-    typing.Literal["python", "typescript", "javascript"], typing.Any
-]
+WorkflowRevisionDataInputRuntime = typing.Union[typing.Literal["python", "typescript", "javascript"], typing.Any]

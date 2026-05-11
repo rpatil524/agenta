@@ -2,6 +2,4 @@
 
 import typing
 
-SimpleTraceChannel = typing.Union[
-    typing.Literal["otlp", "web", "sdk", "api"], typing.Any
-]
+SimpleTraceChannel = typing.Union[typing.Literal["otlp", "web", "sdk", "api"], typing.Any]

@@ -15,52 +15,43 @@ from ..types.webhook_subscription_response import WebhookSubscriptionResponse
 from ..types.webhook_subscriptions_response import WebhookSubscriptionsResponse
 from ..types.windowing import Windowing
 from .raw_client import AsyncRawWebhooksClient, RawWebhooksClient
-from .types.webhook_subscription_test_request_subscription import (
-    WebhookSubscriptionTestRequestSubscription,
-)
+from .types.webhook_subscription_test_request_subscription import WebhookSubscriptionTestRequestSubscription
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
-
-
 class WebhooksClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._raw_client = RawWebhooksClient(client_wrapper=client_wrapper)
-
+    
     @property
     def with_raw_response(self) -> RawWebhooksClient:
         """
         Retrieves a raw implementation of this client that returns raw responses.
-
+        
         Returns
         -------
         RawWebhooksClient
         """
         return self._raw_client
-
-    def create_webhook_subscription(
-        self,
-        *,
-        subscription: WebhookSubscriptionCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WebhookSubscriptionResponse:
+    
+    def create_webhook_subscription(self, *, subscription: WebhookSubscriptionCreate, request_options: typing.Optional[RequestOptions] = None) -> WebhookSubscriptionResponse:
         """
         Parameters
         ----------
         subscription : WebhookSubscriptionCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WebhookSubscriptionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, WebhookSubscriptionCreate, WebhookSubscriptionData
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -72,74 +63,55 @@ class WebhooksClient:
             ),
         )
         """
-        _response = self._raw_client.create_webhook_subscription(
-            subscription=subscription, request_options=request_options
-        )
+        _response = self._raw_client.create_webhook_subscription(subscription=subscription, request_options=request_options)
         return _response.data
-
-    def test_webhook_subscription(
-        self,
-        *,
-        subscription_id: typing.Optional[str] = OMIT,
-        subscription: typing.Optional[
-            WebhookSubscriptionTestRequestSubscription
-        ] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WebhookDeliveryResponse:
+    
+    def test_webhook_subscription(self, *, subscription_id: typing.Optional[str] = OMIT, subscription: typing.Optional[WebhookSubscriptionTestRequestSubscription] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> WebhookDeliveryResponse:
         """
         Parameters
         ----------
         subscription_id : typing.Optional[str]
-
+        
         subscription : typing.Optional[WebhookSubscriptionTestRequestSubscription]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WebhookDeliveryResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.webhooks.test_webhook_subscription()
         """
-        _response = self._raw_client.test_webhook_subscription(
-            subscription_id=subscription_id,
-            subscription=subscription,
-            request_options=request_options,
-        )
+        _response = self._raw_client.test_webhook_subscription(subscription_id=subscription_id, subscription=subscription, request_options=request_options)
         return _response.data
-
-    def fetch_webhook_subscription(
-        self,
-        subscription_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WebhookSubscriptionResponse:
+    
+    def fetch_webhook_subscription(self, subscription_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WebhookSubscriptionResponse:
         """
         Parameters
         ----------
         subscription_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WebhookSubscriptionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -147,37 +119,29 @@ class WebhooksClient:
             subscription_id="subscription_id",
         )
         """
-        _response = self._raw_client.fetch_webhook_subscription(
-            subscription_id, request_options=request_options
-        )
+        _response = self._raw_client.fetch_webhook_subscription(subscription_id, request_options=request_options)
         return _response.data
-
-    def edit_webhook_subscription(
-        self,
-        subscription_id: str,
-        *,
-        subscription: WebhookSubscriptionEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WebhookSubscriptionResponse:
+    
+    def edit_webhook_subscription(self, subscription_id: str, *, subscription: WebhookSubscriptionEdit, request_options: typing.Optional[RequestOptions] = None) -> WebhookSubscriptionResponse:
         """
         Parameters
         ----------
         subscription_id : str
-
+        
         subscription : WebhookSubscriptionEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WebhookSubscriptionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, WebhookSubscriptionData, WebhookSubscriptionEdit
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -190,33 +154,26 @@ class WebhooksClient:
             ),
         )
         """
-        _response = self._raw_client.edit_webhook_subscription(
-            subscription_id, subscription=subscription, request_options=request_options
-        )
+        _response = self._raw_client.edit_webhook_subscription(subscription_id, subscription=subscription, request_options=request_options)
         return _response.data
-
-    def delete_webhook_subscription(
-        self,
-        subscription_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> None:
+    
+    def delete_webhook_subscription(self, subscription_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
         Parameters
         ----------
         subscription_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         None
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -224,76 +181,57 @@ class WebhooksClient:
             subscription_id="subscription_id",
         )
         """
-        _response = self._raw_client.delete_webhook_subscription(
-            subscription_id, request_options=request_options
-        )
+        _response = self._raw_client.delete_webhook_subscription(subscription_id, request_options=request_options)
         return _response.data
-
-    def query_webhook_subscriptions(
-        self,
-        *,
-        subscription: typing.Optional[WebhookSubscriptionQuery] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WebhookSubscriptionsResponse:
+    
+    def query_webhook_subscriptions(self, *, subscription: typing.Optional[WebhookSubscriptionQuery] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> WebhookSubscriptionsResponse:
         """
         Parameters
         ----------
         subscription : typing.Optional[WebhookSubscriptionQuery]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WebhookSubscriptionsResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.webhooks.query_webhook_subscriptions()
         """
-        _response = self._raw_client.query_webhook_subscriptions(
-            subscription=subscription,
-            include_archived=include_archived,
-            windowing=windowing,
-            request_options=request_options,
-        )
+        _response = self._raw_client.query_webhook_subscriptions(subscription=subscription, include_archived=include_archived, windowing=windowing, request_options=request_options)
         return _response.data
-
-    def create_webhook_delivery(
-        self,
-        *,
-        delivery: WebhookDeliveryCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WebhookDeliveryResponse:
+    
+    def create_webhook_delivery(self, *, delivery: WebhookDeliveryCreate, request_options: typing.Optional[RequestOptions] = None) -> WebhookDeliveryResponse:
         """
         Parameters
         ----------
         delivery : WebhookDeliveryCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WebhookDeliveryResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, Status, WebhookDeliveryCreate
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -305,34 +243,27 @@ class WebhooksClient:
             ),
         )
         """
-        _response = self._raw_client.create_webhook_delivery(
-            delivery=delivery, request_options=request_options
-        )
+        _response = self._raw_client.create_webhook_delivery(delivery=delivery, request_options=request_options)
         return _response.data
-
-    def fetch_webhook_delivery(
-        self,
-        delivery_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WebhookDeliveryResponse:
+    
+    def fetch_webhook_delivery(self, delivery_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WebhookDeliveryResponse:
         """
         Parameters
         ----------
         delivery_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WebhookDeliveryResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -340,103 +271,82 @@ class WebhooksClient:
             delivery_id="delivery_id",
         )
         """
-        _response = self._raw_client.fetch_webhook_delivery(
-            delivery_id, request_options=request_options
-        )
+        _response = self._raw_client.fetch_webhook_delivery(delivery_id, request_options=request_options)
         return _response.data
-
-    def query_webhook_deliveries(
-        self,
-        *,
-        delivery: typing.Optional[WebhookDeliveryQuery] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WebhookDeliveriesResponse:
+    
+    def query_webhook_deliveries(self, *, delivery: typing.Optional[WebhookDeliveryQuery] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> WebhookDeliveriesResponse:
         """
         Parameters
         ----------
         delivery : typing.Optional[WebhookDeliveryQuery]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WebhookDeliveriesResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.webhooks.query_webhook_deliveries()
         """
-        _response = self._raw_client.query_webhook_deliveries(
-            delivery=delivery,
-            include_archived=include_archived,
-            windowing=windowing,
-            request_options=request_options,
-        )
+        _response = self._raw_client.query_webhook_deliveries(delivery=delivery, include_archived=include_archived, windowing=windowing, request_options=request_options)
         return _response.data
-
-
 class AsyncWebhooksClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._raw_client = AsyncRawWebhooksClient(client_wrapper=client_wrapper)
-
+    
     @property
     def with_raw_response(self) -> AsyncRawWebhooksClient:
         """
         Retrieves a raw implementation of this client that returns raw responses.
-
+        
         Returns
         -------
         AsyncRawWebhooksClient
         """
         return self._raw_client
-
-    async def create_webhook_subscription(
-        self,
-        *,
-        subscription: WebhookSubscriptionCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WebhookSubscriptionResponse:
+    
+    async def create_webhook_subscription(self, *, subscription: WebhookSubscriptionCreate, request_options: typing.Optional[RequestOptions] = None) -> WebhookSubscriptionResponse:
         """
         Parameters
         ----------
         subscription : WebhookSubscriptionCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WebhookSubscriptionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import (
             AsyncAgentaApi,
             WebhookSubscriptionCreate,
             WebhookSubscriptionData,
         )
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.webhooks.create_webhook_subscription(
                 subscription=WebhookSubscriptionCreate(
@@ -445,143 +355,116 @@ class AsyncWebhooksClient:
                     ),
                 ),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_webhook_subscription(
-            subscription=subscription, request_options=request_options
-        )
+        _response = await self._raw_client.create_webhook_subscription(subscription=subscription, request_options=request_options)
         return _response.data
-
-    async def test_webhook_subscription(
-        self,
-        *,
-        subscription_id: typing.Optional[str] = OMIT,
-        subscription: typing.Optional[
-            WebhookSubscriptionTestRequestSubscription
-        ] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WebhookDeliveryResponse:
+    
+    async def test_webhook_subscription(self, *, subscription_id: typing.Optional[str] = OMIT, subscription: typing.Optional[WebhookSubscriptionTestRequestSubscription] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> WebhookDeliveryResponse:
         """
         Parameters
         ----------
         subscription_id : typing.Optional[str]
-
+        
         subscription : typing.Optional[WebhookSubscriptionTestRequestSubscription]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WebhookDeliveryResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.webhooks.test_webhook_subscription()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.test_webhook_subscription(
-            subscription_id=subscription_id,
-            subscription=subscription,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.test_webhook_subscription(subscription_id=subscription_id, subscription=subscription, request_options=request_options)
         return _response.data
-
-    async def fetch_webhook_subscription(
-        self,
-        subscription_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WebhookSubscriptionResponse:
+    
+    async def fetch_webhook_subscription(self, subscription_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WebhookSubscriptionResponse:
         """
         Parameters
         ----------
         subscription_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WebhookSubscriptionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.webhooks.fetch_webhook_subscription(
                 subscription_id="subscription_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.fetch_webhook_subscription(
-            subscription_id, request_options=request_options
-        )
+        _response = await self._raw_client.fetch_webhook_subscription(subscription_id, request_options=request_options)
         return _response.data
-
-    async def edit_webhook_subscription(
-        self,
-        subscription_id: str,
-        *,
-        subscription: WebhookSubscriptionEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WebhookSubscriptionResponse:
+    
+    async def edit_webhook_subscription(self, subscription_id: str, *, subscription: WebhookSubscriptionEdit, request_options: typing.Optional[RequestOptions] = None) -> WebhookSubscriptionResponse:
         """
         Parameters
         ----------
         subscription_id : str
-
+        
         subscription : WebhookSubscriptionEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WebhookSubscriptionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import (
             AsyncAgentaApi,
             WebhookSubscriptionData,
             WebhookSubscriptionEdit,
         )
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.webhooks.edit_webhook_subscription(
                 subscription_id="subscription_id",
@@ -591,137 +474,111 @@ class AsyncWebhooksClient:
                     ),
                 ),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.edit_webhook_subscription(
-            subscription_id, subscription=subscription, request_options=request_options
-        )
+        _response = await self._raw_client.edit_webhook_subscription(subscription_id, subscription=subscription, request_options=request_options)
         return _response.data
-
-    async def delete_webhook_subscription(
-        self,
-        subscription_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> None:
+    
+    async def delete_webhook_subscription(self, subscription_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
         Parameters
         ----------
         subscription_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         None
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.webhooks.delete_webhook_subscription(
                 subscription_id="subscription_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_webhook_subscription(
-            subscription_id, request_options=request_options
-        )
+        _response = await self._raw_client.delete_webhook_subscription(subscription_id, request_options=request_options)
         return _response.data
-
-    async def query_webhook_subscriptions(
-        self,
-        *,
-        subscription: typing.Optional[WebhookSubscriptionQuery] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WebhookSubscriptionsResponse:
+    
+    async def query_webhook_subscriptions(self, *, subscription: typing.Optional[WebhookSubscriptionQuery] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> WebhookSubscriptionsResponse:
         """
         Parameters
         ----------
         subscription : typing.Optional[WebhookSubscriptionQuery]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WebhookSubscriptionsResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.webhooks.query_webhook_subscriptions()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.query_webhook_subscriptions(
-            subscription=subscription,
-            include_archived=include_archived,
-            windowing=windowing,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.query_webhook_subscriptions(subscription=subscription, include_archived=include_archived, windowing=windowing, request_options=request_options)
         return _response.data
-
-    async def create_webhook_delivery(
-        self,
-        *,
-        delivery: WebhookDeliveryCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WebhookDeliveryResponse:
+    
+    async def create_webhook_delivery(self, *, delivery: WebhookDeliveryCreate, request_options: typing.Optional[RequestOptions] = None) -> WebhookDeliveryResponse:
         """
         Parameters
         ----------
         delivery : WebhookDeliveryCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WebhookDeliveryResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, Status, WebhookDeliveryCreate
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.webhooks.create_webhook_delivery(
                 delivery=WebhookDeliveryCreate(
@@ -730,104 +587,83 @@ class AsyncWebhooksClient:
                     event_id="event_id",
                 ),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_webhook_delivery(
-            delivery=delivery, request_options=request_options
-        )
+        _response = await self._raw_client.create_webhook_delivery(delivery=delivery, request_options=request_options)
         return _response.data
-
-    async def fetch_webhook_delivery(
-        self,
-        delivery_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WebhookDeliveryResponse:
+    
+    async def fetch_webhook_delivery(self, delivery_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WebhookDeliveryResponse:
         """
         Parameters
         ----------
         delivery_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WebhookDeliveryResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.webhooks.fetch_webhook_delivery(
                 delivery_id="delivery_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.fetch_webhook_delivery(
-            delivery_id, request_options=request_options
-        )
+        _response = await self._raw_client.fetch_webhook_delivery(delivery_id, request_options=request_options)
         return _response.data
-
-    async def query_webhook_deliveries(
-        self,
-        *,
-        delivery: typing.Optional[WebhookDeliveryQuery] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WebhookDeliveriesResponse:
+    
+    async def query_webhook_deliveries(self, *, delivery: typing.Optional[WebhookDeliveryQuery] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> WebhookDeliveriesResponse:
         """
         Parameters
         ----------
         delivery : typing.Optional[WebhookDeliveryQuery]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WebhookDeliveriesResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.webhooks.query_webhook_deliveries()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.query_webhook_deliveries(
-            delivery=delivery,
-            include_archived=include_archived,
-            windowing=windowing,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.query_webhook_deliveries(delivery=delivery, include_archived=include_archived, windowing=windowing, request_options=request_options)
         return _response.data

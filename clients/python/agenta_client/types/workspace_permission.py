@@ -12,13 +12,10 @@ class WorkspacePermission(UniversalBaseModel):
     role_name: WorkspaceRole
     role_description: typing.Optional[str] = None
     permissions: typing.Optional[typing.List[Permission]] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

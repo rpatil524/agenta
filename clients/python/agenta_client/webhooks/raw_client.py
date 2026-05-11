@@ -22,1249 +22,835 @@ from ..types.webhook_subscription_query import WebhookSubscriptionQuery
 from ..types.webhook_subscription_response import WebhookSubscriptionResponse
 from ..types.webhook_subscriptions_response import WebhookSubscriptionsResponse
 from ..types.windowing import Windowing
-from .types.webhook_subscription_test_request_subscription import (
-    WebhookSubscriptionTestRequestSubscription,
-)
+from .types.webhook_subscription_test_request_subscription import WebhookSubscriptionTestRequestSubscription
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
-
-
 class RawWebhooksClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
-
-    def create_webhook_subscription(
-        self,
-        *,
-        subscription: WebhookSubscriptionCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[WebhookSubscriptionResponse]:
+    
+    def create_webhook_subscription(self, *, subscription: WebhookSubscriptionCreate, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[WebhookSubscriptionResponse]:
         """
         Parameters
         ----------
         subscription : WebhookSubscriptionCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[WebhookSubscriptionResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "webhooks/subscriptions/",
-            method="POST",
+            "webhooks/subscriptions/",method="POST",
             json={
-                "subscription": convert_and_respect_annotation_metadata(
-                    object_=subscription,
-                    annotation=WebhookSubscriptionCreate,
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "subscription": convert_and_respect_annotation_metadata(object_=subscription, annotation=WebhookSubscriptionCreate, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     WebhookSubscriptionResponse,
                     parse_obj_as(
-                        type_=WebhookSubscriptionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =WebhookSubscriptionResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def test_webhook_subscription(
-        self,
-        *,
-        subscription_id: typing.Optional[str] = OMIT,
-        subscription: typing.Optional[
-            WebhookSubscriptionTestRequestSubscription
-        ] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[WebhookDeliveryResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def test_webhook_subscription(self, *, subscription_id: typing.Optional[str] = OMIT, subscription: typing.Optional[WebhookSubscriptionTestRequestSubscription] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[WebhookDeliveryResponse]:
         """
         Parameters
         ----------
         subscription_id : typing.Optional[str]
-
+        
         subscription : typing.Optional[WebhookSubscriptionTestRequestSubscription]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[WebhookDeliveryResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "webhooks/subscriptions/test",
-            method="POST",
+            "webhooks/subscriptions/test",method="POST",
             json={
                 "subscription_id": subscription_id,
-                "subscription": convert_and_respect_annotation_metadata(
-                    object_=subscription,
-                    annotation=typing.Optional[
-                        WebhookSubscriptionTestRequestSubscription
-                    ],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "subscription": convert_and_respect_annotation_metadata(object_=subscription, annotation=typing.Optional[WebhookSubscriptionTestRequestSubscription], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     WebhookDeliveryResponse,
                     parse_obj_as(
-                        type_=WebhookDeliveryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =WebhookDeliveryResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def fetch_webhook_subscription(
-        self,
-        subscription_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[WebhookSubscriptionResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def fetch_webhook_subscription(self, subscription_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[WebhookSubscriptionResponse]:
         """
         Parameters
         ----------
         subscription_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[WebhookSubscriptionResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"webhooks/subscriptions/{jsonable_encoder(subscription_id)}",
-            method="GET",
-            request_options=request_options,
-        )
+            f"webhooks/subscriptions/{jsonable_encoder(subscription_id)}",method="GET",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     WebhookSubscriptionResponse,
                     parse_obj_as(
-                        type_=WebhookSubscriptionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =WebhookSubscriptionResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def edit_webhook_subscription(
-        self,
-        subscription_id: str,
-        *,
-        subscription: WebhookSubscriptionEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[WebhookSubscriptionResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def edit_webhook_subscription(self, subscription_id: str, *, subscription: WebhookSubscriptionEdit, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[WebhookSubscriptionResponse]:
         """
         Parameters
         ----------
         subscription_id : str
-
+        
         subscription : WebhookSubscriptionEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[WebhookSubscriptionResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"webhooks/subscriptions/{jsonable_encoder(subscription_id)}",
-            method="PUT",
+            f"webhooks/subscriptions/{jsonable_encoder(subscription_id)}",method="PUT",
             json={
-                "subscription": convert_and_respect_annotation_metadata(
-                    object_=subscription,
-                    annotation=WebhookSubscriptionEdit,
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "subscription": convert_and_respect_annotation_metadata(object_=subscription, annotation=WebhookSubscriptionEdit, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     WebhookSubscriptionResponse,
                     parse_obj_as(
-                        type_=WebhookSubscriptionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =WebhookSubscriptionResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def delete_webhook_subscription(
-        self,
-        subscription_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[None]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def delete_webhook_subscription(self, subscription_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[None]:
         """
         Parameters
         ----------
         subscription_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[None]
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"webhooks/subscriptions/{jsonable_encoder(subscription_id)}",
-            method="DELETE",
-            request_options=request_options,
-        )
+            f"webhooks/subscriptions/{jsonable_encoder(subscription_id)}",method="DELETE",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 return HttpResponse(response=_response, data=None)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def query_webhook_subscriptions(
-        self,
-        *,
-        subscription: typing.Optional[WebhookSubscriptionQuery] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[WebhookSubscriptionsResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def query_webhook_subscriptions(self, *, subscription: typing.Optional[WebhookSubscriptionQuery] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[WebhookSubscriptionsResponse]:
         """
         Parameters
         ----------
         subscription : typing.Optional[WebhookSubscriptionQuery]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[WebhookSubscriptionsResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "webhooks/subscriptions/query",
-            method="POST",
+            "webhooks/subscriptions/query",method="POST",
             json={
-                "subscription": convert_and_respect_annotation_metadata(
-                    object_=subscription,
-                    annotation=typing.Optional[WebhookSubscriptionQuery],
-                    direction="write",
-                ),
+                "subscription": convert_and_respect_annotation_metadata(object_=subscription, annotation=typing.Optional[WebhookSubscriptionQuery], direction="write"),
                 "include_archived": include_archived,
-                "windowing": convert_and_respect_annotation_metadata(
-                    object_=windowing,
-                    annotation=typing.Optional[Windowing],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     WebhookSubscriptionsResponse,
                     parse_obj_as(
-                        type_=WebhookSubscriptionsResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =WebhookSubscriptionsResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def create_webhook_delivery(
-        self,
-        *,
-        delivery: WebhookDeliveryCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[WebhookDeliveryResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def create_webhook_delivery(self, *, delivery: WebhookDeliveryCreate, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[WebhookDeliveryResponse]:
         """
         Parameters
         ----------
         delivery : WebhookDeliveryCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[WebhookDeliveryResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "webhooks/deliveries",
-            method="POST",
+            "webhooks/deliveries",method="POST",
             json={
-                "delivery": convert_and_respect_annotation_metadata(
-                    object_=delivery,
-                    annotation=WebhookDeliveryCreate,
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "delivery": convert_and_respect_annotation_metadata(object_=delivery, annotation=WebhookDeliveryCreate, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     WebhookDeliveryResponse,
                     parse_obj_as(
-                        type_=WebhookDeliveryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =WebhookDeliveryResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def fetch_webhook_delivery(
-        self,
-        delivery_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[WebhookDeliveryResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def fetch_webhook_delivery(self, delivery_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[WebhookDeliveryResponse]:
         """
         Parameters
         ----------
         delivery_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[WebhookDeliveryResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"webhooks/deliveries/{jsonable_encoder(delivery_id)}",
-            method="GET",
-            request_options=request_options,
-        )
+            f"webhooks/deliveries/{jsonable_encoder(delivery_id)}",method="GET",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     WebhookDeliveryResponse,
                     parse_obj_as(
-                        type_=WebhookDeliveryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =WebhookDeliveryResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def query_webhook_deliveries(
-        self,
-        *,
-        delivery: typing.Optional[WebhookDeliveryQuery] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[WebhookDeliveriesResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def query_webhook_deliveries(self, *, delivery: typing.Optional[WebhookDeliveryQuery] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[WebhookDeliveriesResponse]:
         """
         Parameters
         ----------
         delivery : typing.Optional[WebhookDeliveryQuery]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[WebhookDeliveriesResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "webhooks/deliveries/query",
-            method="POST",
+            "webhooks/deliveries/query",method="POST",
             json={
-                "delivery": convert_and_respect_annotation_metadata(
-                    object_=delivery,
-                    annotation=typing.Optional[WebhookDeliveryQuery],
-                    direction="write",
-                ),
+                "delivery": convert_and_respect_annotation_metadata(object_=delivery, annotation=typing.Optional[WebhookDeliveryQuery], direction="write"),
                 "include_archived": include_archived,
-                "windowing": convert_and_respect_annotation_metadata(
-                    object_=windowing,
-                    annotation=typing.Optional[Windowing],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     WebhookDeliveriesResponse,
                     parse_obj_as(
-                        type_=WebhookDeliveriesResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =WebhookDeliveriesResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 class AsyncRawWebhooksClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._client_wrapper = client_wrapper
-
-    async def create_webhook_subscription(
-        self,
-        *,
-        subscription: WebhookSubscriptionCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[WebhookSubscriptionResponse]:
+    
+    async def create_webhook_subscription(self, *, subscription: WebhookSubscriptionCreate, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[WebhookSubscriptionResponse]:
         """
         Parameters
         ----------
         subscription : WebhookSubscriptionCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[WebhookSubscriptionResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "webhooks/subscriptions/",
-            method="POST",
+            "webhooks/subscriptions/",method="POST",
             json={
-                "subscription": convert_and_respect_annotation_metadata(
-                    object_=subscription,
-                    annotation=WebhookSubscriptionCreate,
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "subscription": convert_and_respect_annotation_metadata(object_=subscription, annotation=WebhookSubscriptionCreate, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     WebhookSubscriptionResponse,
                     parse_obj_as(
-                        type_=WebhookSubscriptionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =WebhookSubscriptionResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def test_webhook_subscription(
-        self,
-        *,
-        subscription_id: typing.Optional[str] = OMIT,
-        subscription: typing.Optional[
-            WebhookSubscriptionTestRequestSubscription
-        ] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[WebhookDeliveryResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def test_webhook_subscription(self, *, subscription_id: typing.Optional[str] = OMIT, subscription: typing.Optional[WebhookSubscriptionTestRequestSubscription] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[WebhookDeliveryResponse]:
         """
         Parameters
         ----------
         subscription_id : typing.Optional[str]
-
+        
         subscription : typing.Optional[WebhookSubscriptionTestRequestSubscription]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[WebhookDeliveryResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "webhooks/subscriptions/test",
-            method="POST",
+            "webhooks/subscriptions/test",method="POST",
             json={
                 "subscription_id": subscription_id,
-                "subscription": convert_and_respect_annotation_metadata(
-                    object_=subscription,
-                    annotation=typing.Optional[
-                        WebhookSubscriptionTestRequestSubscription
-                    ],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "subscription": convert_and_respect_annotation_metadata(object_=subscription, annotation=typing.Optional[WebhookSubscriptionTestRequestSubscription], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     WebhookDeliveryResponse,
                     parse_obj_as(
-                        type_=WebhookDeliveryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =WebhookDeliveryResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def fetch_webhook_subscription(
-        self,
-        subscription_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[WebhookSubscriptionResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def fetch_webhook_subscription(self, subscription_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[WebhookSubscriptionResponse]:
         """
         Parameters
         ----------
         subscription_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[WebhookSubscriptionResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"webhooks/subscriptions/{jsonable_encoder(subscription_id)}",
-            method="GET",
-            request_options=request_options,
-        )
+            f"webhooks/subscriptions/{jsonable_encoder(subscription_id)}",method="GET",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     WebhookSubscriptionResponse,
                     parse_obj_as(
-                        type_=WebhookSubscriptionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =WebhookSubscriptionResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def edit_webhook_subscription(
-        self,
-        subscription_id: str,
-        *,
-        subscription: WebhookSubscriptionEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[WebhookSubscriptionResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def edit_webhook_subscription(self, subscription_id: str, *, subscription: WebhookSubscriptionEdit, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[WebhookSubscriptionResponse]:
         """
         Parameters
         ----------
         subscription_id : str
-
+        
         subscription : WebhookSubscriptionEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[WebhookSubscriptionResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"webhooks/subscriptions/{jsonable_encoder(subscription_id)}",
-            method="PUT",
+            f"webhooks/subscriptions/{jsonable_encoder(subscription_id)}",method="PUT",
             json={
-                "subscription": convert_and_respect_annotation_metadata(
-                    object_=subscription,
-                    annotation=WebhookSubscriptionEdit,
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "subscription": convert_and_respect_annotation_metadata(object_=subscription, annotation=WebhookSubscriptionEdit, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     WebhookSubscriptionResponse,
                     parse_obj_as(
-                        type_=WebhookSubscriptionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =WebhookSubscriptionResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def delete_webhook_subscription(
-        self,
-        subscription_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[None]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def delete_webhook_subscription(self, subscription_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[None]:
         """
         Parameters
         ----------
         subscription_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[None]
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"webhooks/subscriptions/{jsonable_encoder(subscription_id)}",
-            method="DELETE",
-            request_options=request_options,
-        )
+            f"webhooks/subscriptions/{jsonable_encoder(subscription_id)}",method="DELETE",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 return AsyncHttpResponse(response=_response, data=None)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def query_webhook_subscriptions(
-        self,
-        *,
-        subscription: typing.Optional[WebhookSubscriptionQuery] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[WebhookSubscriptionsResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def query_webhook_subscriptions(self, *, subscription: typing.Optional[WebhookSubscriptionQuery] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[WebhookSubscriptionsResponse]:
         """
         Parameters
         ----------
         subscription : typing.Optional[WebhookSubscriptionQuery]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[WebhookSubscriptionsResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "webhooks/subscriptions/query",
-            method="POST",
+            "webhooks/subscriptions/query",method="POST",
             json={
-                "subscription": convert_and_respect_annotation_metadata(
-                    object_=subscription,
-                    annotation=typing.Optional[WebhookSubscriptionQuery],
-                    direction="write",
-                ),
+                "subscription": convert_and_respect_annotation_metadata(object_=subscription, annotation=typing.Optional[WebhookSubscriptionQuery], direction="write"),
                 "include_archived": include_archived,
-                "windowing": convert_and_respect_annotation_metadata(
-                    object_=windowing,
-                    annotation=typing.Optional[Windowing],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     WebhookSubscriptionsResponse,
                     parse_obj_as(
-                        type_=WebhookSubscriptionsResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =WebhookSubscriptionsResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def create_webhook_delivery(
-        self,
-        *,
-        delivery: WebhookDeliveryCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[WebhookDeliveryResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def create_webhook_delivery(self, *, delivery: WebhookDeliveryCreate, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[WebhookDeliveryResponse]:
         """
         Parameters
         ----------
         delivery : WebhookDeliveryCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[WebhookDeliveryResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "webhooks/deliveries",
-            method="POST",
+            "webhooks/deliveries",method="POST",
             json={
-                "delivery": convert_and_respect_annotation_metadata(
-                    object_=delivery,
-                    annotation=WebhookDeliveryCreate,
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "delivery": convert_and_respect_annotation_metadata(object_=delivery, annotation=WebhookDeliveryCreate, direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     WebhookDeliveryResponse,
                     parse_obj_as(
-                        type_=WebhookDeliveryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =WebhookDeliveryResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def fetch_webhook_delivery(
-        self,
-        delivery_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[WebhookDeliveryResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def fetch_webhook_delivery(self, delivery_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[WebhookDeliveryResponse]:
         """
         Parameters
         ----------
         delivery_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[WebhookDeliveryResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"webhooks/deliveries/{jsonable_encoder(delivery_id)}",
-            method="GET",
-            request_options=request_options,
-        )
+            f"webhooks/deliveries/{jsonable_encoder(delivery_id)}",method="GET",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     WebhookDeliveryResponse,
                     parse_obj_as(
-                        type_=WebhookDeliveryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =WebhookDeliveryResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def query_webhook_deliveries(
-        self,
-        *,
-        delivery: typing.Optional[WebhookDeliveryQuery] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[WebhookDeliveriesResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def query_webhook_deliveries(self, *, delivery: typing.Optional[WebhookDeliveryQuery] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[WebhookDeliveriesResponse]:
         """
         Parameters
         ----------
         delivery : typing.Optional[WebhookDeliveryQuery]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[WebhookDeliveriesResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "webhooks/deliveries/query",
-            method="POST",
+            "webhooks/deliveries/query",method="POST",
             json={
-                "delivery": convert_and_respect_annotation_metadata(
-                    object_=delivery,
-                    annotation=typing.Optional[WebhookDeliveryQuery],
-                    direction="write",
-                ),
+                "delivery": convert_and_respect_annotation_metadata(object_=delivery, annotation=typing.Optional[WebhookDeliveryQuery], direction="write"),
                 "include_archived": include_archived,
-                "windowing": convert_and_respect_annotation_metadata(
-                    object_=windowing,
-                    annotation=typing.Optional[Windowing],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     WebhookDeliveriesResponse,
                     parse_obj_as(
-                        type_=WebhookDeliveriesResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =WebhookDeliveriesResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)

@@ -2,6 +2,4 @@
 
 import typing
 
-EvaluationRunDataStepType = typing.Union[
-    typing.Literal["input", "invocation", "annotation"], typing.Any
-]
+EvaluationRunDataStepType = typing.Union[typing.Literal["input", "invocation", "annotation"], typing.Any]

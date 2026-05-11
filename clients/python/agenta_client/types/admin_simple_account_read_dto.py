@@ -18,44 +18,26 @@ from .admin_workspace_read_dto import AdminWorkspaceReadDto
 class AdminSimpleAccountReadDto(UniversalBaseModel):
     """
     Per-account entry in the simple-accounts response.
-
+    
     ``user`` is a flat object (there is always exactly one per account).
     ``organizations``, ``workspaces``, ``projects`` are named dicts (keys match
     the ref keys used internally, e.g. "org", "wrk", "prj").
     ``api_keys`` maps ref names to raw key values (plain strings, not DTOs).
     """
-
     user: typing.Optional[AdminUserReadDto] = None
     user_identities: typing.Optional[typing.List[AdminUserIdentityReadDto]] = None
-    organizations: typing.Optional[
-        typing.Dict[str, typing.Optional[AdminOrganizationReadDto]]
-    ] = None
-    workspaces: typing.Optional[
-        typing.Dict[str, typing.Optional[AdminWorkspaceReadDto]]
-    ] = None
-    projects: typing.Optional[
-        typing.Dict[str, typing.Optional[AdminProjectReadDto]]
-    ] = None
-    organization_memberships: typing.Optional[
-        typing.List[AdminOrganizationMembershipReadDto]
-    ] = None
-    workspace_memberships: typing.Optional[
-        typing.List[AdminWorkspaceMembershipReadDto]
-    ] = None
-    project_memberships: typing.Optional[typing.List[AdminProjectMembershipReadDto]] = (
-        None
-    )
-    subscriptions: typing.Optional[
-        typing.Dict[str, typing.Optional[AdminSubscriptionReadDto]]
-    ] = None
+    organizations: typing.Optional[typing.Dict[str, typing.Optional[AdminOrganizationReadDto]]] = None
+    workspaces: typing.Optional[typing.Dict[str, typing.Optional[AdminWorkspaceReadDto]]] = None
+    projects: typing.Optional[typing.Dict[str, typing.Optional[AdminProjectReadDto]]] = None
+    organization_memberships: typing.Optional[typing.List[AdminOrganizationMembershipReadDto]] = None
+    workspace_memberships: typing.Optional[typing.List[AdminWorkspaceMembershipReadDto]] = None
+    project_memberships: typing.Optional[typing.List[AdminProjectMembershipReadDto]] = None
+    subscriptions: typing.Optional[typing.Dict[str, typing.Optional[AdminSubscriptionReadDto]]] = None
     api_keys: typing.Optional[typing.Dict[str, typing.Optional[str]]] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

@@ -4,6 +4,4 @@ import typing
 
 from .o_tel_link_input import OTelLinkInput
 
-SimpleTraceCreateLinks = typing.Union[
-    typing.Dict[str, OTelLinkInput], typing.List[OTelLinkInput]
-]
+SimpleTraceCreateLinks = typing.Union[typing.Dict[str, OTelLinkInput], typing.List[OTelLinkInput]]

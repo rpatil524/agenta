@@ -19,461 +19,301 @@ from ..types.windowing import Windowing
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
-
-
 class RawTestcasesClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
-
-    def fetch_testcases(
-        self,
-        *,
-        testcase_id: typing.Optional[typing.Sequence[str]] = None,
-        testcase_ids: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TestcasesResponse]:
+    
+    def fetch_testcases(self, *, testcase_id: typing.Optional[typing.Sequence[str]] = None, testcase_ids: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TestcasesResponse]:
         """
         Parameters
         ----------
         testcase_id : typing.Optional[typing.Sequence[str]]
-
+        
         testcase_ids : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[TestcasesResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "testcases/",
-            method="GET",
-            params={
-                "testcase_id": testcase_id,
-                "testcase_ids": testcase_ids,
-            },
-            request_options=request_options,
-        )
+            "testcases/",method="GET",
+            params={"testcase_id": testcase_id, "testcase_ids": testcase_ids, }
+            ,
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestcasesResponse,
                     parse_obj_as(
-                        type_=TestcasesResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestcasesResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def fetch_testcase(
-        self,
-        testcase_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TestcaseResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def fetch_testcase(self, testcase_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TestcaseResponse]:
         """
         Parameters
         ----------
         testcase_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[TestcaseResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"testcases/{jsonable_encoder(testcase_id)}",
-            method="GET",
-            request_options=request_options,
-        )
+            f"testcases/{jsonable_encoder(testcase_id)}",method="GET",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestcaseResponse,
                     parse_obj_as(
-                        type_=TestcaseResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestcaseResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    def query_testcases(
-        self,
-        *,
-        testcase_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        testset_id: typing.Optional[str] = OMIT,
-        testset_ref: typing.Optional[Reference] = OMIT,
-        testset_variant_ref: typing.Optional[Reference] = OMIT,
-        testset_revision_ref: typing.Optional[Reference] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TestcasesResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    def query_testcases(self, *, testcase_ids: typing.Optional[typing.Sequence[str]] = OMIT, testset_id: typing.Optional[str] = OMIT, testset_ref: typing.Optional[Reference] = OMIT, testset_variant_ref: typing.Optional[Reference] = OMIT, testset_revision_ref: typing.Optional[Reference] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[TestcasesResponse]:
         """
         Parameters
         ----------
         testcase_ids : typing.Optional[typing.Sequence[str]]
-
+        
         testset_id : typing.Optional[str]
-
+        
         testset_ref : typing.Optional[Reference]
-
+        
         testset_variant_ref : typing.Optional[Reference]
-
+        
         testset_revision_ref : typing.Optional[Reference]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         HttpResponse[TestcasesResponse]
             Successful Response
         """
         _response = self._client_wrapper.httpx_client.request(
-            "testcases/query",
-            method="POST",
+            "testcases/query",method="POST",
             json={
                 "testcase_ids": testcase_ids,
                 "testset_id": testset_id,
-                "testset_ref": convert_and_respect_annotation_metadata(
-                    object_=testset_ref,
-                    annotation=typing.Optional[Reference],
-                    direction="write",
-                ),
-                "testset_variant_ref": convert_and_respect_annotation_metadata(
-                    object_=testset_variant_ref,
-                    annotation=typing.Optional[Reference],
-                    direction="write",
-                ),
-                "testset_revision_ref": convert_and_respect_annotation_metadata(
-                    object_=testset_revision_ref,
-                    annotation=typing.Optional[Reference],
-                    direction="write",
-                ),
-                "windowing": convert_and_respect_annotation_metadata(
-                    object_=windowing,
-                    annotation=typing.Optional[Windowing],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "testset_ref": convert_and_respect_annotation_metadata(object_=testset_ref, annotation=typing.Optional[Reference], direction="write"),
+                "testset_variant_ref": convert_and_respect_annotation_metadata(object_=testset_variant_ref, annotation=typing.Optional[Reference], direction="write"),
+                "testset_revision_ref": convert_and_respect_annotation_metadata(object_=testset_revision_ref, annotation=typing.Optional[Reference], direction="write"),
+                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestcasesResponse,
                     parse_obj_as(
-                        type_=TestcasesResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestcasesResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 class AsyncRawTestcasesClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._client_wrapper = client_wrapper
-
-    async def fetch_testcases(
-        self,
-        *,
-        testcase_id: typing.Optional[typing.Sequence[str]] = None,
-        testcase_ids: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TestcasesResponse]:
+    
+    async def fetch_testcases(self, *, testcase_id: typing.Optional[typing.Sequence[str]] = None, testcase_ids: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TestcasesResponse]:
         """
         Parameters
         ----------
         testcase_id : typing.Optional[typing.Sequence[str]]
-
+        
         testcase_ids : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[TestcasesResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "testcases/",
-            method="GET",
-            params={
-                "testcase_id": testcase_id,
-                "testcase_ids": testcase_ids,
-            },
-            request_options=request_options,
-        )
+            "testcases/",method="GET",
+            params={"testcase_id": testcase_id, "testcase_ids": testcase_ids, }
+            ,
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestcasesResponse,
                     parse_obj_as(
-                        type_=TestcasesResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestcasesResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def fetch_testcase(
-        self,
-        testcase_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TestcaseResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def fetch_testcase(self, testcase_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TestcaseResponse]:
         """
         Parameters
         ----------
         testcase_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[TestcaseResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"testcases/{jsonable_encoder(testcase_id)}",
-            method="GET",
-            request_options=request_options,
-        )
+            f"testcases/{jsonable_encoder(testcase_id)}",method="GET",
+            request_options=request_options,)
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestcaseResponse,
                     parse_obj_as(
-                        type_=TestcaseResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestcaseResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
-
-    async def query_testcases(
-        self,
-        *,
-        testcase_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        testset_id: typing.Optional[str] = OMIT,
-        testset_ref: typing.Optional[Reference] = OMIT,
-        testset_variant_ref: typing.Optional[Reference] = OMIT,
-        testset_revision_ref: typing.Optional[Reference] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TestcasesResponse]:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+    
+    async def query_testcases(self, *, testcase_ids: typing.Optional[typing.Sequence[str]] = OMIT, testset_id: typing.Optional[str] = OMIT, testset_ref: typing.Optional[Reference] = OMIT, testset_variant_ref: typing.Optional[Reference] = OMIT, testset_revision_ref: typing.Optional[Reference] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[TestcasesResponse]:
         """
         Parameters
         ----------
         testcase_ids : typing.Optional[typing.Sequence[str]]
-
+        
         testset_id : typing.Optional[str]
-
+        
         testset_ref : typing.Optional[Reference]
-
+        
         testset_variant_ref : typing.Optional[Reference]
-
+        
         testset_revision_ref : typing.Optional[Reference]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         AsyncHttpResponse[TestcasesResponse]
             Successful Response
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "testcases/query",
-            method="POST",
+            "testcases/query",method="POST",
             json={
                 "testcase_ids": testcase_ids,
                 "testset_id": testset_id,
-                "testset_ref": convert_and_respect_annotation_metadata(
-                    object_=testset_ref,
-                    annotation=typing.Optional[Reference],
-                    direction="write",
-                ),
-                "testset_variant_ref": convert_and_respect_annotation_metadata(
-                    object_=testset_variant_ref,
-                    annotation=typing.Optional[Reference],
-                    direction="write",
-                ),
-                "testset_revision_ref": convert_and_respect_annotation_metadata(
-                    object_=testset_revision_ref,
-                    annotation=typing.Optional[Reference],
-                    direction="write",
-                ),
-                "windowing": convert_and_respect_annotation_metadata(
-                    object_=windowing,
-                    annotation=typing.Optional[Windowing],
-                    direction="write",
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
+                "testset_ref": convert_and_respect_annotation_metadata(object_=testset_ref, annotation=typing.Optional[Reference], direction="write"),
+                "testset_variant_ref": convert_and_respect_annotation_metadata(object_=testset_variant_ref, annotation=typing.Optional[Reference], direction="write"),
+                "testset_revision_ref": convert_and_respect_annotation_metadata(object_=testset_revision_ref, annotation=typing.Optional[Reference], direction="write"),
+                "windowing": convert_and_respect_annotation_metadata(object_=windowing, annotation=typing.Optional[Windowing], direction="write"),
+            }
+            ,
+            headers={"content-type": "application/json", }
+            ,
+            request_options=request_options,omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
                     TestcasesResponse,
                     parse_obj_as(
-                        type_=TestcasesResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
+                        type_ =TestcasesResponse,  # type: ignore
+                        object_ =_response.json()
+                    )
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 422:
-                raise UnprocessableEntityError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        HttpValidationError,
-                        parse_obj_as(
-                            type_=HttpValidationError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                raise UnprocessableEntityError(headers=dict(_response.headers), body=typing.cast(
+                    HttpValidationError,
+                    parse_obj_as(
+                        type_ =HttpValidationError,  # type: ignore
+                        object_ =_response.json()
+                    )
+                ))
             _response_json = _response.json()
         except JSONDecodeError:
-            raise ApiError(
-                status_code=_response.status_code,
-                headers=dict(_response.headers),
-                body=_response.text,
-            )
-        raise ApiError(
-            status_code=_response.status_code,
-            headers=dict(_response.headers),
-            body=_response_json,
-        )
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)

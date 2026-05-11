@@ -37,81 +37,69 @@ from ..types.workflow_variant_response import WorkflowVariantResponse
 from ..types.workflow_variants_response import WorkflowVariantsResponse
 from ..types.workflows_response import WorkflowsResponse
 from .raw_client import AsyncRawWorkflowsClient, RawWorkflowsClient
-from .types.query_workflow_revisions_request_order import (
-    QueryWorkflowRevisionsRequestOrder,
-)
-from .types.query_workflow_variants_request_order import (
-    QueryWorkflowVariantsRequestOrder,
-)
+from .types.query_workflow_revisions_request_order import QueryWorkflowRevisionsRequestOrder
+from .types.query_workflow_variants_request_order import QueryWorkflowVariantsRequestOrder
 from .types.query_workflows_request_order import QueryWorkflowsRequestOrder
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
-
-
 class WorkflowsClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._raw_client = RawWorkflowsClient(client_wrapper=client_wrapper)
-
+    
     @property
     def with_raw_response(self) -> RawWorkflowsClient:
         """
         Retrieves a raw implementation of this client that returns raw responses.
-
+        
         Returns
         -------
         RawWorkflowsClient
         """
         return self._raw_client
-
-    def list_workflow_catalog_types(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> WorkflowCatalogTypesResponse:
+    
+    def list_workflow_catalog_types(self, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowCatalogTypesResponse:
         """
         Parameters
         ----------
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowCatalogTypesResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.workflows.list_workflow_catalog_types()
         """
-        _response = self._raw_client.list_workflow_catalog_types(
-            request_options=request_options
-        )
+        _response = self._raw_client.list_workflow_catalog_types(request_options=request_options)
         return _response.data
-
-    def fetch_workflow_catalog_type(
-        self, ag_type: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> WorkflowCatalogTypeResponse:
+    
+    def fetch_workflow_catalog_type(self, ag_type: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowCatalogTypeResponse:
         """
         Parameters
         ----------
         ag_type : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowCatalogTypeResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -119,80 +107,59 @@ class WorkflowsClient:
             ag_type="ag_type",
         )
         """
-        _response = self._raw_client.fetch_workflow_catalog_type(
-            ag_type, request_options=request_options
-        )
+        _response = self._raw_client.fetch_workflow_catalog_type(ag_type, request_options=request_options)
         return _response.data
-
-    def list_workflow_catalog_templates(
-        self,
-        *,
-        include_archived: typing.Optional[bool] = None,
-        is_application: typing.Optional[bool] = None,
-        is_evaluator: typing.Optional[bool] = None,
-        is_snippet: typing.Optional[bool] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowCatalogTemplatesResponse:
+    
+    def list_workflow_catalog_templates(self, *, include_archived: typing.Optional[bool] = None, is_application: typing.Optional[bool] = None, is_evaluator: typing.Optional[bool] = None, is_snippet: typing.Optional[bool] = None, request_options: typing.Optional[RequestOptions] = None) -> WorkflowCatalogTemplatesResponse:
         """
         Parameters
         ----------
         include_archived : typing.Optional[bool]
-
+        
         is_application : typing.Optional[bool]
-
+        
         is_evaluator : typing.Optional[bool]
-
+        
         is_snippet : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowCatalogTemplatesResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.workflows.list_workflow_catalog_templates()
         """
-        _response = self._raw_client.list_workflow_catalog_templates(
-            include_archived=include_archived,
-            is_application=is_application,
-            is_evaluator=is_evaluator,
-            is_snippet=is_snippet,
-            request_options=request_options,
-        )
+        _response = self._raw_client.list_workflow_catalog_templates(include_archived=include_archived, is_application=is_application, is_evaluator=is_evaluator, is_snippet=is_snippet, request_options=request_options)
         return _response.data
-
-    def fetch_workflow_catalog_template(
-        self,
-        template_key: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowCatalogTemplateResponse:
+    
+    def fetch_workflow_catalog_template(self, template_key: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowCatalogTemplateResponse:
         """
         Parameters
         ----------
         template_key : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowCatalogTemplateResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -200,37 +167,29 @@ class WorkflowsClient:
             template_key="template_key",
         )
         """
-        _response = self._raw_client.fetch_workflow_catalog_template(
-            template_key, request_options=request_options
-        )
+        _response = self._raw_client.fetch_workflow_catalog_template(template_key, request_options=request_options)
         return _response.data
-
-    def list_workflow_catalog_presets(
-        self,
-        template_key: str,
-        *,
-        include_archived: typing.Optional[bool] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowCatalogPresetsResponse:
+    
+    def list_workflow_catalog_presets(self, template_key: str, *, include_archived: typing.Optional[bool] = None, request_options: typing.Optional[RequestOptions] = None) -> WorkflowCatalogPresetsResponse:
         """
         Parameters
         ----------
         template_key : str
-
+        
         include_archived : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowCatalogPresetsResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -238,39 +197,29 @@ class WorkflowsClient:
             template_key="template_key",
         )
         """
-        _response = self._raw_client.list_workflow_catalog_presets(
-            template_key,
-            include_archived=include_archived,
-            request_options=request_options,
-        )
+        _response = self._raw_client.list_workflow_catalog_presets(template_key, include_archived=include_archived, request_options=request_options)
         return _response.data
-
-    def fetch_workflow_catalog_preset(
-        self,
-        template_key: str,
-        preset_key: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowCatalogPresetResponse:
+    
+    def fetch_workflow_catalog_preset(self, template_key: str, preset_key: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowCatalogPresetResponse:
         """
         Parameters
         ----------
         template_key : str
-
+        
         preset_key : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowCatalogPresetResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -279,34 +228,27 @@ class WorkflowsClient:
             preset_key="preset_key",
         )
         """
-        _response = self._raw_client.fetch_workflow_catalog_preset(
-            template_key, preset_key, request_options=request_options
-        )
+        _response = self._raw_client.fetch_workflow_catalog_preset(template_key, preset_key, request_options=request_options)
         return _response.data
-
-    def create_workflow(
-        self,
-        *,
-        workflow: WorkflowCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowResponse:
+    
+    def create_workflow(self, *, workflow: WorkflowCreate, request_options: typing.Optional[RequestOptions] = None) -> WorkflowResponse:
         """
         Parameters
         ----------
         workflow : WorkflowCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, WorkflowCreate
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -314,34 +256,27 @@ class WorkflowsClient:
             workflow=WorkflowCreate(),
         )
         """
-        _response = self._raw_client.create_workflow(
-            workflow=workflow, request_options=request_options
-        )
+        _response = self._raw_client.create_workflow(workflow=workflow, request_options=request_options)
         return _response.data
-
-    def fetch_workflow(
-        self,
-        workflow_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowResponse:
+    
+    def fetch_workflow(self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowResponse:
         """
         Parameters
         ----------
         workflow_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -349,37 +284,29 @@ class WorkflowsClient:
             workflow_id="workflow_id",
         )
         """
-        _response = self._raw_client.fetch_workflow(
-            workflow_id, request_options=request_options
-        )
+        _response = self._raw_client.fetch_workflow(workflow_id, request_options=request_options)
         return _response.data
-
-    def edit_workflow(
-        self,
-        workflow_id: str,
-        *,
-        workflow: WorkflowEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowResponse:
+    
+    def edit_workflow(self, workflow_id: str, *, workflow: WorkflowEdit, request_options: typing.Optional[RequestOptions] = None) -> WorkflowResponse:
         """
         Parameters
         ----------
         workflow_id : str
-
+        
         workflow : WorkflowEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, WorkflowEdit
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -388,34 +315,27 @@ class WorkflowsClient:
             workflow=WorkflowEdit(),
         )
         """
-        _response = self._raw_client.edit_workflow(
-            workflow_id, workflow=workflow, request_options=request_options
-        )
+        _response = self._raw_client.edit_workflow(workflow_id, workflow=workflow, request_options=request_options)
         return _response.data
-
-    def archive_workflow(
-        self,
-        workflow_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowResponse:
+    
+    def archive_workflow(self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowResponse:
         """
         Parameters
         ----------
         workflow_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -423,34 +343,27 @@ class WorkflowsClient:
             workflow_id="workflow_id",
         )
         """
-        _response = self._raw_client.archive_workflow(
-            workflow_id, request_options=request_options
-        )
+        _response = self._raw_client.archive_workflow(workflow_id, request_options=request_options)
         return _response.data
-
-    def unarchive_workflow(
-        self,
-        workflow_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowResponse:
+    
+    def unarchive_workflow(self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowResponse:
         """
         Parameters
         ----------
         workflow_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -458,124 +371,81 @@ class WorkflowsClient:
             workflow_id="workflow_id",
         )
         """
-        _response = self._raw_client.unarchive_workflow(
-            workflow_id, request_options=request_options
-        )
+        _response = self._raw_client.unarchive_workflow(workflow_id, request_options=request_options)
         return _response.data
-
-    def query_workflows(
-        self,
-        *,
-        workflow_id: typing.Optional[str] = None,
-        workflow_ids: typing.Optional[typing.Sequence[str]] = None,
-        workflow_slug: typing.Optional[str] = None,
-        workflow_slugs: typing.Optional[typing.Sequence[str]] = None,
-        name: typing.Optional[str] = None,
-        description: typing.Optional[str] = None,
-        flags: typing.Optional[str] = None,
-        tags: typing.Optional[str] = None,
-        meta: typing.Optional[str] = None,
-        include_archived: typing.Optional[bool] = None,
-        next: typing.Optional[str] = None,
-        newest: typing.Optional[dt.datetime] = None,
-        oldest: typing.Optional[dt.datetime] = None,
-        limit: typing.Optional[int] = None,
-        order: typing.Optional[QueryWorkflowsRequestOrder] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowsResponse:
+    
+    def query_workflows(self, *, workflow_id: typing.Optional[str] = None, workflow_ids: typing.Optional[typing.Sequence[str]] = None, workflow_slug: typing.Optional[str] = None, workflow_slugs: typing.Optional[typing.Sequence[str]] = None, name: typing.Optional[str] = None, description: typing.Optional[str] = None, flags: typing.Optional[str] = None, tags: typing.Optional[str] = None, meta: typing.Optional[str] = None, include_archived: typing.Optional[bool] = None, next: typing.Optional[str] = None, newest: typing.Optional[dt.datetime] = None, oldest: typing.Optional[dt.datetime] = None, limit: typing.Optional[int] = None, order: typing.Optional[QueryWorkflowsRequestOrder] = None, request_options: typing.Optional[RequestOptions] = None) -> WorkflowsResponse:
         """
         Parameters
         ----------
         workflow_id : typing.Optional[str]
-
+        
         workflow_ids : typing.Optional[typing.Sequence[str]]
-
+        
         workflow_slug : typing.Optional[str]
-
+        
         workflow_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         name : typing.Optional[str]
-
+        
         description : typing.Optional[str]
-
+        
         flags : typing.Optional[str]
-
+        
         tags : typing.Optional[str]
-
+        
         meta : typing.Optional[str]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         next : typing.Optional[str]
-
+        
         newest : typing.Optional[dt.datetime]
-
+        
         oldest : typing.Optional[dt.datetime]
-
+        
         limit : typing.Optional[int]
-
+        
         order : typing.Optional[QueryWorkflowsRequestOrder]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowsResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.workflows.query_workflows()
         """
-        _response = self._raw_client.query_workflows(
-            workflow_id=workflow_id,
-            workflow_ids=workflow_ids,
-            workflow_slug=workflow_slug,
-            workflow_slugs=workflow_slugs,
-            name=name,
-            description=description,
-            flags=flags,
-            tags=tags,
-            meta=meta,
-            include_archived=include_archived,
-            next=next,
-            newest=newest,
-            oldest=oldest,
-            limit=limit,
-            order=order,
-            request_options=request_options,
-        )
+        _response = self._raw_client.query_workflows(workflow_id=workflow_id, workflow_ids=workflow_ids, workflow_slug=workflow_slug, workflow_slugs=workflow_slugs, name=name, description=description, flags=flags, tags=tags, meta=meta, include_archived=include_archived, next=next, newest=newest, oldest=oldest, limit=limit, order=order, request_options=request_options)
         return _response.data
-
-    def create_workflow_variant(
-        self,
-        *,
-        workflow_variant: WorkflowVariantCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowVariantResponse:
+    
+    def create_workflow_variant(self, *, workflow_variant: WorkflowVariantCreate, request_options: typing.Optional[RequestOptions] = None) -> WorkflowVariantResponse:
         """
         Parameters
         ----------
         workflow_variant : WorkflowVariantCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowVariantResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, WorkflowVariantCreate
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -583,34 +453,27 @@ class WorkflowsClient:
             workflow_variant=WorkflowVariantCreate(),
         )
         """
-        _response = self._raw_client.create_workflow_variant(
-            workflow_variant=workflow_variant, request_options=request_options
-        )
+        _response = self._raw_client.create_workflow_variant(workflow_variant=workflow_variant, request_options=request_options)
         return _response.data
-
-    def fetch_workflow_variant(
-        self,
-        workflow_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowVariantResponse:
+    
+    def fetch_workflow_variant(self, workflow_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowVariantResponse:
         """
         Parameters
         ----------
         workflow_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowVariantResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -618,37 +481,29 @@ class WorkflowsClient:
             workflow_variant_id="workflow_variant_id",
         )
         """
-        _response = self._raw_client.fetch_workflow_variant(
-            workflow_variant_id, request_options=request_options
-        )
+        _response = self._raw_client.fetch_workflow_variant(workflow_variant_id, request_options=request_options)
         return _response.data
-
-    def edit_workflow_variant(
-        self,
-        workflow_variant_id: str,
-        *,
-        workflow_variant: WorkflowVariantEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowVariantResponse:
+    
+    def edit_workflow_variant(self, workflow_variant_id: str, *, workflow_variant: WorkflowVariantEdit, request_options: typing.Optional[RequestOptions] = None) -> WorkflowVariantResponse:
         """
         Parameters
         ----------
         workflow_variant_id : str
-
+        
         workflow_variant : WorkflowVariantEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowVariantResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, WorkflowVariantEdit
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -657,36 +512,27 @@ class WorkflowsClient:
             workflow_variant=WorkflowVariantEdit(),
         )
         """
-        _response = self._raw_client.edit_workflow_variant(
-            workflow_variant_id,
-            workflow_variant=workflow_variant,
-            request_options=request_options,
-        )
+        _response = self._raw_client.edit_workflow_variant(workflow_variant_id, workflow_variant=workflow_variant, request_options=request_options)
         return _response.data
-
-    def archive_workflow_variant(
-        self,
-        workflow_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowVariantResponse:
+    
+    def archive_workflow_variant(self, workflow_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowVariantResponse:
         """
         Parameters
         ----------
         workflow_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowVariantResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -694,34 +540,27 @@ class WorkflowsClient:
             workflow_variant_id="workflow_variant_id",
         )
         """
-        _response = self._raw_client.archive_workflow_variant(
-            workflow_variant_id, request_options=request_options
-        )
+        _response = self._raw_client.archive_workflow_variant(workflow_variant_id, request_options=request_options)
         return _response.data
-
-    def unarchive_workflow_variant(
-        self,
-        workflow_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowVariantResponse:
+    
+    def unarchive_workflow_variant(self, workflow_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowVariantResponse:
         """
         Parameters
         ----------
         workflow_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowVariantResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -729,140 +568,89 @@ class WorkflowsClient:
             workflow_variant_id="workflow_variant_id",
         )
         """
-        _response = self._raw_client.unarchive_workflow_variant(
-            workflow_variant_id, request_options=request_options
-        )
+        _response = self._raw_client.unarchive_workflow_variant(workflow_variant_id, request_options=request_options)
         return _response.data
-
-    def query_workflow_variants(
-        self,
-        *,
-        workflow_id: typing.Optional[str] = None,
-        workflow_ids: typing.Optional[typing.Sequence[str]] = None,
-        workflow_slug: typing.Optional[str] = None,
-        workflow_slugs: typing.Optional[typing.Sequence[str]] = None,
-        workflow_variant_id: typing.Optional[str] = None,
-        workflow_variant_ids: typing.Optional[typing.Sequence[str]] = None,
-        workflow_variant_slug: typing.Optional[str] = None,
-        workflow_variant_slugs: typing.Optional[typing.Sequence[str]] = None,
-        name: typing.Optional[str] = None,
-        description: typing.Optional[str] = None,
-        flags: typing.Optional[str] = None,
-        tags: typing.Optional[str] = None,
-        meta: typing.Optional[str] = None,
-        include_archived: typing.Optional[bool] = None,
-        next: typing.Optional[str] = None,
-        newest: typing.Optional[dt.datetime] = None,
-        oldest: typing.Optional[dt.datetime] = None,
-        limit: typing.Optional[int] = None,
-        order: typing.Optional[QueryWorkflowVariantsRequestOrder] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowVariantsResponse:
+    
+    def query_workflow_variants(self, *, workflow_id: typing.Optional[str] = None, workflow_ids: typing.Optional[typing.Sequence[str]] = None, workflow_slug: typing.Optional[str] = None, workflow_slugs: typing.Optional[typing.Sequence[str]] = None, workflow_variant_id: typing.Optional[str] = None, workflow_variant_ids: typing.Optional[typing.Sequence[str]] = None, workflow_variant_slug: typing.Optional[str] = None, workflow_variant_slugs: typing.Optional[typing.Sequence[str]] = None, name: typing.Optional[str] = None, description: typing.Optional[str] = None, flags: typing.Optional[str] = None, tags: typing.Optional[str] = None, meta: typing.Optional[str] = None, include_archived: typing.Optional[bool] = None, next: typing.Optional[str] = None, newest: typing.Optional[dt.datetime] = None, oldest: typing.Optional[dt.datetime] = None, limit: typing.Optional[int] = None, order: typing.Optional[QueryWorkflowVariantsRequestOrder] = None, request_options: typing.Optional[RequestOptions] = None) -> WorkflowVariantsResponse:
         """
         Parameters
         ----------
         workflow_id : typing.Optional[str]
-
+        
         workflow_ids : typing.Optional[typing.Sequence[str]]
-
+        
         workflow_slug : typing.Optional[str]
-
+        
         workflow_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         workflow_variant_id : typing.Optional[str]
-
+        
         workflow_variant_ids : typing.Optional[typing.Sequence[str]]
-
+        
         workflow_variant_slug : typing.Optional[str]
-
+        
         workflow_variant_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         name : typing.Optional[str]
-
+        
         description : typing.Optional[str]
-
+        
         flags : typing.Optional[str]
-
+        
         tags : typing.Optional[str]
-
+        
         meta : typing.Optional[str]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         next : typing.Optional[str]
-
+        
         newest : typing.Optional[dt.datetime]
-
+        
         oldest : typing.Optional[dt.datetime]
-
+        
         limit : typing.Optional[int]
-
+        
         order : typing.Optional[QueryWorkflowVariantsRequestOrder]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowVariantsResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.workflows.query_workflow_variants()
         """
-        _response = self._raw_client.query_workflow_variants(
-            workflow_id=workflow_id,
-            workflow_ids=workflow_ids,
-            workflow_slug=workflow_slug,
-            workflow_slugs=workflow_slugs,
-            workflow_variant_id=workflow_variant_id,
-            workflow_variant_ids=workflow_variant_ids,
-            workflow_variant_slug=workflow_variant_slug,
-            workflow_variant_slugs=workflow_variant_slugs,
-            name=name,
-            description=description,
-            flags=flags,
-            tags=tags,
-            meta=meta,
-            include_archived=include_archived,
-            next=next,
-            newest=newest,
-            oldest=oldest,
-            limit=limit,
-            order=order,
-            request_options=request_options,
-        )
+        _response = self._raw_client.query_workflow_variants(workflow_id=workflow_id, workflow_ids=workflow_ids, workflow_slug=workflow_slug, workflow_slugs=workflow_slugs, workflow_variant_id=workflow_variant_id, workflow_variant_ids=workflow_variant_ids, workflow_variant_slug=workflow_variant_slug, workflow_variant_slugs=workflow_variant_slugs, name=name, description=description, flags=flags, tags=tags, meta=meta, include_archived=include_archived, next=next, newest=newest, oldest=oldest, limit=limit, order=order, request_options=request_options)
         return _response.data
-
-    def fork_workflow_variant(
-        self,
-        *,
-        workflow: WorkflowFork,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowVariantResponse:
+    
+    def fork_workflow_variant(self, *, workflow: WorkflowFork, request_options: typing.Optional[RequestOptions] = None) -> WorkflowVariantResponse:
         """
         Parameters
         ----------
         workflow : WorkflowFork
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowVariantResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, WorkflowFork
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -870,158 +658,107 @@ class WorkflowsClient:
             workflow=WorkflowFork(),
         )
         """
-        _response = self._raw_client.fork_workflow_variant(
-            workflow=workflow, request_options=request_options
-        )
+        _response = self._raw_client.fork_workflow_variant(workflow=workflow, request_options=request_options)
         return _response.data
-
-    def retrieve_workflow_revision(
-        self,
-        *,
-        workflow_ref: typing.Optional[Reference] = OMIT,
-        workflow_variant_ref: typing.Optional[Reference] = OMIT,
-        workflow_revision_ref: typing.Optional[Reference] = OMIT,
-        environment_ref: typing.Optional[Reference] = OMIT,
-        environment_variant_ref: typing.Optional[Reference] = OMIT,
-        environment_revision_ref: typing.Optional[Reference] = OMIT,
-        key: typing.Optional[str] = OMIT,
-        resolve: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowRevisionResponse:
+    
+    def retrieve_workflow_revision(self, *, workflow_ref: typing.Optional[Reference] = OMIT, workflow_variant_ref: typing.Optional[Reference] = OMIT, workflow_revision_ref: typing.Optional[Reference] = OMIT, environment_ref: typing.Optional[Reference] = OMIT, environment_variant_ref: typing.Optional[Reference] = OMIT, environment_revision_ref: typing.Optional[Reference] = OMIT, key: typing.Optional[str] = OMIT, resolve: typing.Optional[bool] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResponse:
         """
         Parameters
         ----------
         workflow_ref : typing.Optional[Reference]
-
+        
         workflow_variant_ref : typing.Optional[Reference]
-
+        
         workflow_revision_ref : typing.Optional[Reference]
-
+        
         environment_ref : typing.Optional[Reference]
-
+        
         environment_variant_ref : typing.Optional[Reference]
-
+        
         environment_revision_ref : typing.Optional[Reference]
-
+        
         key : typing.Optional[str]
-
+        
         resolve : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.workflows.retrieve_workflow_revision()
         """
-        _response = self._raw_client.retrieve_workflow_revision(
-            workflow_ref=workflow_ref,
-            workflow_variant_ref=workflow_variant_ref,
-            workflow_revision_ref=workflow_revision_ref,
-            environment_ref=environment_ref,
-            environment_variant_ref=environment_variant_ref,
-            environment_revision_ref=environment_revision_ref,
-            key=key,
-            resolve=resolve,
-            request_options=request_options,
-        )
+        _response = self._raw_client.retrieve_workflow_revision(workflow_ref=workflow_ref, workflow_variant_ref=workflow_variant_ref, workflow_revision_ref=workflow_revision_ref, environment_ref=environment_ref, environment_variant_ref=environment_variant_ref, environment_revision_ref=environment_revision_ref, key=key, resolve=resolve, request_options=request_options)
         return _response.data
-
-    def deploy_workflow_revision(
-        self,
-        *,
-        workflow_ref: typing.Optional[Reference] = OMIT,
-        workflow_variant_ref: typing.Optional[Reference] = OMIT,
-        workflow_revision_ref: typing.Optional[Reference] = OMIT,
-        environment_ref: typing.Optional[Reference] = OMIT,
-        environment_variant_ref: typing.Optional[Reference] = OMIT,
-        environment_revision_ref: typing.Optional[Reference] = OMIT,
-        key: typing.Optional[str] = OMIT,
-        message: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowRevisionResponse:
+    
+    def deploy_workflow_revision(self, *, workflow_ref: typing.Optional[Reference] = OMIT, workflow_variant_ref: typing.Optional[Reference] = OMIT, workflow_revision_ref: typing.Optional[Reference] = OMIT, environment_ref: typing.Optional[Reference] = OMIT, environment_variant_ref: typing.Optional[Reference] = OMIT, environment_revision_ref: typing.Optional[Reference] = OMIT, key: typing.Optional[str] = OMIT, message: typing.Optional[str] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResponse:
         """
         Parameters
         ----------
         workflow_ref : typing.Optional[Reference]
-
+        
         workflow_variant_ref : typing.Optional[Reference]
-
+        
         workflow_revision_ref : typing.Optional[Reference]
-
+        
         environment_ref : typing.Optional[Reference]
-
+        
         environment_variant_ref : typing.Optional[Reference]
-
+        
         environment_revision_ref : typing.Optional[Reference]
-
+        
         key : typing.Optional[str]
-
+        
         message : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.workflows.deploy_workflow_revision()
         """
-        _response = self._raw_client.deploy_workflow_revision(
-            workflow_ref=workflow_ref,
-            workflow_variant_ref=workflow_variant_ref,
-            workflow_revision_ref=workflow_revision_ref,
-            environment_ref=environment_ref,
-            environment_variant_ref=environment_variant_ref,
-            environment_revision_ref=environment_revision_ref,
-            key=key,
-            message=message,
-            request_options=request_options,
-        )
+        _response = self._raw_client.deploy_workflow_revision(workflow_ref=workflow_ref, workflow_variant_ref=workflow_variant_ref, workflow_revision_ref=workflow_revision_ref, environment_ref=environment_ref, environment_variant_ref=environment_variant_ref, environment_revision_ref=environment_revision_ref, key=key, message=message, request_options=request_options)
         return _response.data
-
-    def create_workflow_revision(
-        self,
-        *,
-        workflow_revision: WorkflowRevisionCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowRevisionResponse:
+    
+    def create_workflow_revision(self, *, workflow_revision: WorkflowRevisionCreate, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResponse:
         """
         Parameters
         ----------
         workflow_revision : WorkflowRevisionCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, WorkflowRevisionCreate
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1029,34 +766,27 @@ class WorkflowsClient:
             workflow_revision=WorkflowRevisionCreate(),
         )
         """
-        _response = self._raw_client.create_workflow_revision(
-            workflow_revision=workflow_revision, request_options=request_options
-        )
+        _response = self._raw_client.create_workflow_revision(workflow_revision=workflow_revision, request_options=request_options)
         return _response.data
-
-    def fetch_workflow_revision(
-        self,
-        workflow_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowRevisionResponse:
+    
+    def fetch_workflow_revision(self, workflow_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResponse:
         """
         Parameters
         ----------
         workflow_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1064,37 +794,29 @@ class WorkflowsClient:
             workflow_revision_id="workflow_revision_id",
         )
         """
-        _response = self._raw_client.fetch_workflow_revision(
-            workflow_revision_id, request_options=request_options
-        )
+        _response = self._raw_client.fetch_workflow_revision(workflow_revision_id, request_options=request_options)
         return _response.data
-
-    def edit_workflow_revision(
-        self,
-        workflow_revision_id: str,
-        *,
-        workflow_revision: WorkflowRevisionEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowRevisionResponse:
+    
+    def edit_workflow_revision(self, workflow_revision_id: str, *, workflow_revision: WorkflowRevisionEdit, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResponse:
         """
         Parameters
         ----------
         workflow_revision_id : str
-
+        
         workflow_revision : WorkflowRevisionEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, WorkflowRevisionEdit
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1103,36 +825,27 @@ class WorkflowsClient:
             workflow_revision=WorkflowRevisionEdit(),
         )
         """
-        _response = self._raw_client.edit_workflow_revision(
-            workflow_revision_id,
-            workflow_revision=workflow_revision,
-            request_options=request_options,
-        )
+        _response = self._raw_client.edit_workflow_revision(workflow_revision_id, workflow_revision=workflow_revision, request_options=request_options)
         return _response.data
-
-    def archive_workflow_revision_rpc(
-        self,
-        workflow_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowRevisionResponse:
+    
+    def archive_workflow_revision_rpc(self, workflow_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResponse:
         """
         Parameters
         ----------
         workflow_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1140,34 +853,27 @@ class WorkflowsClient:
             workflow_revision_id="workflow_revision_id",
         )
         """
-        _response = self._raw_client.archive_workflow_revision_rpc(
-            workflow_revision_id, request_options=request_options
-        )
+        _response = self._raw_client.archive_workflow_revision_rpc(workflow_revision_id, request_options=request_options)
         return _response.data
-
-    def unarchive_workflow_revision_rpc(
-        self,
-        workflow_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowRevisionResponse:
+    
+    def unarchive_workflow_revision_rpc(self, workflow_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResponse:
         """
         Parameters
         ----------
         workflow_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1175,167 +881,103 @@ class WorkflowsClient:
             workflow_revision_id="workflow_revision_id",
         )
         """
-        _response = self._raw_client.unarchive_workflow_revision_rpc(
-            workflow_revision_id, request_options=request_options
-        )
+        _response = self._raw_client.unarchive_workflow_revision_rpc(workflow_revision_id, request_options=request_options)
         return _response.data
-
-    def query_workflow_revisions(
-        self,
-        *,
-        workflow_id: typing.Optional[str] = None,
-        workflow_ids: typing.Optional[typing.Sequence[str]] = None,
-        workflow_slug: typing.Optional[str] = None,
-        workflow_slugs: typing.Optional[typing.Sequence[str]] = None,
-        workflow_variant_id: typing.Optional[str] = None,
-        workflow_variant_ids: typing.Optional[typing.Sequence[str]] = None,
-        workflow_variant_slug: typing.Optional[str] = None,
-        workflow_variant_slugs: typing.Optional[typing.Sequence[str]] = None,
-        workflow_revision_id: typing.Optional[str] = None,
-        workflow_revision_ids: typing.Optional[typing.Sequence[str]] = None,
-        workflow_revision_slug: typing.Optional[str] = None,
-        workflow_revision_slugs: typing.Optional[typing.Sequence[str]] = None,
-        workflow_revision_version: typing.Optional[str] = None,
-        workflow_revision_versions: typing.Optional[typing.Sequence[str]] = None,
-        name: typing.Optional[str] = None,
-        description: typing.Optional[str] = None,
-        flags: typing.Optional[str] = None,
-        tags: typing.Optional[str] = None,
-        meta: typing.Optional[str] = None,
-        include_archived: typing.Optional[bool] = None,
-        next: typing.Optional[str] = None,
-        newest: typing.Optional[dt.datetime] = None,
-        oldest: typing.Optional[dt.datetime] = None,
-        limit: typing.Optional[int] = None,
-        order: typing.Optional[QueryWorkflowRevisionsRequestOrder] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowRevisionsResponse:
+    
+    def query_workflow_revisions(self, *, workflow_id: typing.Optional[str] = None, workflow_ids: typing.Optional[typing.Sequence[str]] = None, workflow_slug: typing.Optional[str] = None, workflow_slugs: typing.Optional[typing.Sequence[str]] = None, workflow_variant_id: typing.Optional[str] = None, workflow_variant_ids: typing.Optional[typing.Sequence[str]] = None, workflow_variant_slug: typing.Optional[str] = None, workflow_variant_slugs: typing.Optional[typing.Sequence[str]] = None, workflow_revision_id: typing.Optional[str] = None, workflow_revision_ids: typing.Optional[typing.Sequence[str]] = None, workflow_revision_slug: typing.Optional[str] = None, workflow_revision_slugs: typing.Optional[typing.Sequence[str]] = None, workflow_revision_version: typing.Optional[str] = None, workflow_revision_versions: typing.Optional[typing.Sequence[str]] = None, name: typing.Optional[str] = None, description: typing.Optional[str] = None, flags: typing.Optional[str] = None, tags: typing.Optional[str] = None, meta: typing.Optional[str] = None, include_archived: typing.Optional[bool] = None, next: typing.Optional[str] = None, newest: typing.Optional[dt.datetime] = None, oldest: typing.Optional[dt.datetime] = None, limit: typing.Optional[int] = None, order: typing.Optional[QueryWorkflowRevisionsRequestOrder] = None, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionsResponse:
         """
         Parameters
         ----------
         workflow_id : typing.Optional[str]
-
+        
         workflow_ids : typing.Optional[typing.Sequence[str]]
-
+        
         workflow_slug : typing.Optional[str]
-
+        
         workflow_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         workflow_variant_id : typing.Optional[str]
-
+        
         workflow_variant_ids : typing.Optional[typing.Sequence[str]]
-
+        
         workflow_variant_slug : typing.Optional[str]
-
+        
         workflow_variant_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         workflow_revision_id : typing.Optional[str]
-
+        
         workflow_revision_ids : typing.Optional[typing.Sequence[str]]
-
+        
         workflow_revision_slug : typing.Optional[str]
-
+        
         workflow_revision_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         workflow_revision_version : typing.Optional[str]
-
+        
         workflow_revision_versions : typing.Optional[typing.Sequence[str]]
-
+        
         name : typing.Optional[str]
-
+        
         description : typing.Optional[str]
-
+        
         flags : typing.Optional[str]
-
+        
         tags : typing.Optional[str]
-
+        
         meta : typing.Optional[str]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         next : typing.Optional[str]
-
+        
         newest : typing.Optional[dt.datetime]
-
+        
         oldest : typing.Optional[dt.datetime]
-
+        
         limit : typing.Optional[int]
-
+        
         order : typing.Optional[QueryWorkflowRevisionsRequestOrder]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowRevisionsResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.workflows.query_workflow_revisions()
         """
-        _response = self._raw_client.query_workflow_revisions(
-            workflow_id=workflow_id,
-            workflow_ids=workflow_ids,
-            workflow_slug=workflow_slug,
-            workflow_slugs=workflow_slugs,
-            workflow_variant_id=workflow_variant_id,
-            workflow_variant_ids=workflow_variant_ids,
-            workflow_variant_slug=workflow_variant_slug,
-            workflow_variant_slugs=workflow_variant_slugs,
-            workflow_revision_id=workflow_revision_id,
-            workflow_revision_ids=workflow_revision_ids,
-            workflow_revision_slug=workflow_revision_slug,
-            workflow_revision_slugs=workflow_revision_slugs,
-            workflow_revision_version=workflow_revision_version,
-            workflow_revision_versions=workflow_revision_versions,
-            name=name,
-            description=description,
-            flags=flags,
-            tags=tags,
-            meta=meta,
-            include_archived=include_archived,
-            next=next,
-            newest=newest,
-            oldest=oldest,
-            limit=limit,
-            order=order,
-            request_options=request_options,
-        )
+        _response = self._raw_client.query_workflow_revisions(workflow_id=workflow_id, workflow_ids=workflow_ids, workflow_slug=workflow_slug, workflow_slugs=workflow_slugs, workflow_variant_id=workflow_variant_id, workflow_variant_ids=workflow_variant_ids, workflow_variant_slug=workflow_variant_slug, workflow_variant_slugs=workflow_variant_slugs, workflow_revision_id=workflow_revision_id, workflow_revision_ids=workflow_revision_ids, workflow_revision_slug=workflow_revision_slug, workflow_revision_slugs=workflow_revision_slugs, workflow_revision_version=workflow_revision_version, workflow_revision_versions=workflow_revision_versions, name=name, description=description, flags=flags, tags=tags, meta=meta, include_archived=include_archived, next=next, newest=newest, oldest=oldest, limit=limit, order=order, request_options=request_options)
         return _response.data
-
-    def commit_workflow_revision(
-        self,
-        *,
-        workflow_revision: WorkflowRevisionCommit,
-        workflow_variant_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowRevisionResponse:
+    
+    def commit_workflow_revision(self, *, workflow_revision: WorkflowRevisionCommit, workflow_variant_id: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResponse:
         """
         Parameters
         ----------
         workflow_revision : WorkflowRevisionCommit
-
+        
         workflow_variant_id : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, WorkflowRevisionCommit
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1343,36 +985,27 @@ class WorkflowsClient:
             workflow_revision=WorkflowRevisionCommit(),
         )
         """
-        _response = self._raw_client.commit_workflow_revision(
-            workflow_revision=workflow_revision,
-            workflow_variant_id=workflow_variant_id,
-            request_options=request_options,
-        )
+        _response = self._raw_client.commit_workflow_revision(workflow_revision=workflow_revision, workflow_variant_id=workflow_variant_id, request_options=request_options)
         return _response.data
-
-    def log_workflow_revisions(
-        self,
-        *,
-        workflow: WorkflowRevisionsLog,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowRevisionsResponse:
+    
+    def log_workflow_revisions(self, *, workflow: WorkflowRevisionsLog, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionsResponse:
         """
         Parameters
         ----------
         workflow : WorkflowRevisionsLog
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowRevisionsResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, WorkflowRevisionsLog
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1380,102 +1013,74 @@ class WorkflowsClient:
             workflow=WorkflowRevisionsLog(),
         )
         """
-        _response = self._raw_client.log_workflow_revisions(
-            workflow=workflow, request_options=request_options
-        )
+        _response = self._raw_client.log_workflow_revisions(workflow=workflow, request_options=request_options)
         return _response.data
-
-    def resolve_workflow_revision(
-        self,
-        *,
-        workflow_ref: typing.Optional[Reference] = OMIT,
-        workflow_variant_ref: typing.Optional[Reference] = OMIT,
-        workflow_revision_ref: typing.Optional[Reference] = OMIT,
-        workflow_revision: typing.Optional[WorkflowRevisionInput] = OMIT,
-        max_depth: typing.Optional[int] = OMIT,
-        max_embeds: typing.Optional[int] = OMIT,
-        error_policy: typing.Optional[ErrorPolicy] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowRevisionResolveResponse:
+    
+    def resolve_workflow_revision(self, *, workflow_ref: typing.Optional[Reference] = OMIT, workflow_variant_ref: typing.Optional[Reference] = OMIT, workflow_revision_ref: typing.Optional[Reference] = OMIT, workflow_revision: typing.Optional[WorkflowRevisionInput] = OMIT, max_depth: typing.Optional[int] = OMIT, max_embeds: typing.Optional[int] = OMIT, error_policy: typing.Optional[ErrorPolicy] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResolveResponse:
         """
         Resolve embedded references in a workflow revision configuration.
-
+        
         This endpoint:
         1. Fetches the workflow revision
         2. Resolves all @ag.references tokens in the configuration
         3. Returns the revision with resolved configuration + metadata
-
+        
         Parameters
         ----------
         workflow_ref : typing.Optional[Reference]
-
+        
         workflow_variant_ref : typing.Optional[Reference]
-
+        
         workflow_revision_ref : typing.Optional[Reference]
-
+        
         workflow_revision : typing.Optional[WorkflowRevisionInput]
-
+        
         max_depth : typing.Optional[int]
-
+        
         max_embeds : typing.Optional[int]
-
+        
         error_policy : typing.Optional[ErrorPolicy]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowRevisionResolveResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.workflows.resolve_workflow_revision()
         """
-        _response = self._raw_client.resolve_workflow_revision(
-            workflow_ref=workflow_ref,
-            workflow_variant_ref=workflow_variant_ref,
-            workflow_revision_ref=workflow_revision_ref,
-            workflow_revision=workflow_revision,
-            max_depth=max_depth,
-            max_embeds=max_embeds,
-            error_policy=error_policy,
-            request_options=request_options,
-        )
+        _response = self._raw_client.resolve_workflow_revision(workflow_ref=workflow_ref, workflow_variant_ref=workflow_variant_ref, workflow_revision_ref=workflow_revision_ref, workflow_revision=workflow_revision, max_depth=max_depth, max_embeds=max_embeds, error_policy=error_policy, request_options=request_options)
         return _response.data
-
-    def create_simple_workflow(
-        self,
-        *,
-        workflow: SimpleWorkflowCreate,
-        workflow_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleWorkflowResponse:
+    
+    def create_simple_workflow(self, *, workflow: SimpleWorkflowCreate, workflow_id: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> SimpleWorkflowResponse:
         """
         Parameters
         ----------
         workflow : SimpleWorkflowCreate
-
+        
         workflow_id : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleWorkflowResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, SimpleWorkflowCreate
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1483,34 +1088,27 @@ class WorkflowsClient:
             workflow=SimpleWorkflowCreate(),
         )
         """
-        _response = self._raw_client.create_simple_workflow(
-            workflow=workflow, workflow_id=workflow_id, request_options=request_options
-        )
+        _response = self._raw_client.create_simple_workflow(workflow=workflow, workflow_id=workflow_id, request_options=request_options)
         return _response.data
-
-    def fetch_simple_workflow(
-        self,
-        workflow_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleWorkflowResponse:
+    
+    def fetch_simple_workflow(self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleWorkflowResponse:
         """
         Parameters
         ----------
         workflow_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleWorkflowResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1518,37 +1116,29 @@ class WorkflowsClient:
             workflow_id="workflow_id",
         )
         """
-        _response = self._raw_client.fetch_simple_workflow(
-            workflow_id, request_options=request_options
-        )
+        _response = self._raw_client.fetch_simple_workflow(workflow_id, request_options=request_options)
         return _response.data
-
-    def edit_simple_workflow(
-        self,
-        workflow_id: str,
-        *,
-        workflow: SimpleWorkflowEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleWorkflowResponse:
+    
+    def edit_simple_workflow(self, workflow_id: str, *, workflow: SimpleWorkflowEdit, request_options: typing.Optional[RequestOptions] = None) -> SimpleWorkflowResponse:
         """
         Parameters
         ----------
         workflow_id : str
-
+        
         workflow : SimpleWorkflowEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleWorkflowResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, SimpleWorkflowEdit
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1557,34 +1147,27 @@ class WorkflowsClient:
             workflow=SimpleWorkflowEdit(),
         )
         """
-        _response = self._raw_client.edit_simple_workflow(
-            workflow_id, workflow=workflow, request_options=request_options
-        )
+        _response = self._raw_client.edit_simple_workflow(workflow_id, workflow=workflow, request_options=request_options)
         return _response.data
-
-    def archive_simple_workflow(
-        self,
-        workflow_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleWorkflowResponse:
+    
+    def archive_simple_workflow(self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleWorkflowResponse:
         """
         Parameters
         ----------
         workflow_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleWorkflowResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1592,34 +1175,27 @@ class WorkflowsClient:
             workflow_id="workflow_id",
         )
         """
-        _response = self._raw_client.archive_simple_workflow(
-            workflow_id, request_options=request_options
-        )
+        _response = self._raw_client.archive_simple_workflow(workflow_id, request_options=request_options)
         return _response.data
-
-    def unarchive_simple_workflow(
-        self,
-        workflow_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleWorkflowResponse:
+    
+    def unarchive_simple_workflow(self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleWorkflowResponse:
         """
         Parameters
         ----------
         workflow_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleWorkflowResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1627,1971 +1203,1519 @@ class WorkflowsClient:
             workflow_id="workflow_id",
         )
         """
-        _response = self._raw_client.unarchive_simple_workflow(
-            workflow_id, request_options=request_options
-        )
+        _response = self._raw_client.unarchive_simple_workflow(workflow_id, request_options=request_options)
         return _response.data
-
-    def query_simple_workflows(
-        self,
-        *,
-        workflow: typing.Optional[SimpleWorkflowQuery] = OMIT,
-        workflow_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleWorkflowsResponse:
+    
+    def query_simple_workflows(self, *, workflow: typing.Optional[SimpleWorkflowQuery] = OMIT, workflow_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> SimpleWorkflowsResponse:
         """
         Parameters
         ----------
         workflow : typing.Optional[SimpleWorkflowQuery]
-
+        
         workflow_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleWorkflowsResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.workflows.query_simple_workflows()
         """
-        _response = self._raw_client.query_simple_workflows(
-            workflow=workflow,
-            workflow_refs=workflow_refs,
-            include_archived=include_archived,
-            windowing=windowing,
-            request_options=request_options,
-        )
+        _response = self._raw_client.query_simple_workflows(workflow=workflow, workflow_refs=workflow_refs, include_archived=include_archived, windowing=windowing, request_options=request_options)
         return _response.data
-
-
 class AsyncWorkflowsClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._raw_client = AsyncRawWorkflowsClient(client_wrapper=client_wrapper)
-
+    
     @property
     def with_raw_response(self) -> AsyncRawWorkflowsClient:
         """
         Retrieves a raw implementation of this client that returns raw responses.
-
+        
         Returns
         -------
         AsyncRawWorkflowsClient
         """
         return self._raw_client
-
-    async def list_workflow_catalog_types(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> WorkflowCatalogTypesResponse:
+    
+    async def list_workflow_catalog_types(self, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowCatalogTypesResponse:
         """
         Parameters
         ----------
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowCatalogTypesResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.list_workflow_catalog_types()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.list_workflow_catalog_types(
-            request_options=request_options
-        )
+        _response = await self._raw_client.list_workflow_catalog_types(request_options=request_options)
         return _response.data
-
-    async def fetch_workflow_catalog_type(
-        self, ag_type: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> WorkflowCatalogTypeResponse:
+    
+    async def fetch_workflow_catalog_type(self, ag_type: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowCatalogTypeResponse:
         """
         Parameters
         ----------
         ag_type : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowCatalogTypeResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.fetch_workflow_catalog_type(
                 ag_type="ag_type",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.fetch_workflow_catalog_type(
-            ag_type, request_options=request_options
-        )
+        _response = await self._raw_client.fetch_workflow_catalog_type(ag_type, request_options=request_options)
         return _response.data
-
-    async def list_workflow_catalog_templates(
-        self,
-        *,
-        include_archived: typing.Optional[bool] = None,
-        is_application: typing.Optional[bool] = None,
-        is_evaluator: typing.Optional[bool] = None,
-        is_snippet: typing.Optional[bool] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowCatalogTemplatesResponse:
+    
+    async def list_workflow_catalog_templates(self, *, include_archived: typing.Optional[bool] = None, is_application: typing.Optional[bool] = None, is_evaluator: typing.Optional[bool] = None, is_snippet: typing.Optional[bool] = None, request_options: typing.Optional[RequestOptions] = None) -> WorkflowCatalogTemplatesResponse:
         """
         Parameters
         ----------
         include_archived : typing.Optional[bool]
-
+        
         is_application : typing.Optional[bool]
-
+        
         is_evaluator : typing.Optional[bool]
-
+        
         is_snippet : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowCatalogTemplatesResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.list_workflow_catalog_templates()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.list_workflow_catalog_templates(
-            include_archived=include_archived,
-            is_application=is_application,
-            is_evaluator=is_evaluator,
-            is_snippet=is_snippet,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.list_workflow_catalog_templates(include_archived=include_archived, is_application=is_application, is_evaluator=is_evaluator, is_snippet=is_snippet, request_options=request_options)
         return _response.data
-
-    async def fetch_workflow_catalog_template(
-        self,
-        template_key: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowCatalogTemplateResponse:
+    
+    async def fetch_workflow_catalog_template(self, template_key: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowCatalogTemplateResponse:
         """
         Parameters
         ----------
         template_key : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowCatalogTemplateResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.fetch_workflow_catalog_template(
                 template_key="template_key",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.fetch_workflow_catalog_template(
-            template_key, request_options=request_options
-        )
+        _response = await self._raw_client.fetch_workflow_catalog_template(template_key, request_options=request_options)
         return _response.data
-
-    async def list_workflow_catalog_presets(
-        self,
-        template_key: str,
-        *,
-        include_archived: typing.Optional[bool] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowCatalogPresetsResponse:
+    
+    async def list_workflow_catalog_presets(self, template_key: str, *, include_archived: typing.Optional[bool] = None, request_options: typing.Optional[RequestOptions] = None) -> WorkflowCatalogPresetsResponse:
         """
         Parameters
         ----------
         template_key : str
-
+        
         include_archived : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowCatalogPresetsResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.list_workflow_catalog_presets(
                 template_key="template_key",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.list_workflow_catalog_presets(
-            template_key,
-            include_archived=include_archived,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.list_workflow_catalog_presets(template_key, include_archived=include_archived, request_options=request_options)
         return _response.data
-
-    async def fetch_workflow_catalog_preset(
-        self,
-        template_key: str,
-        preset_key: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowCatalogPresetResponse:
+    
+    async def fetch_workflow_catalog_preset(self, template_key: str, preset_key: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowCatalogPresetResponse:
         """
         Parameters
         ----------
         template_key : str
-
+        
         preset_key : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowCatalogPresetResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.fetch_workflow_catalog_preset(
                 template_key="template_key",
                 preset_key="preset_key",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.fetch_workflow_catalog_preset(
-            template_key, preset_key, request_options=request_options
-        )
+        _response = await self._raw_client.fetch_workflow_catalog_preset(template_key, preset_key, request_options=request_options)
         return _response.data
-
-    async def create_workflow(
-        self,
-        *,
-        workflow: WorkflowCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowResponse:
+    
+    async def create_workflow(self, *, workflow: WorkflowCreate, request_options: typing.Optional[RequestOptions] = None) -> WorkflowResponse:
         """
         Parameters
         ----------
         workflow : WorkflowCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, WorkflowCreate
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.create_workflow(
                 workflow=WorkflowCreate(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_workflow(
-            workflow=workflow, request_options=request_options
-        )
+        _response = await self._raw_client.create_workflow(workflow=workflow, request_options=request_options)
         return _response.data
-
-    async def fetch_workflow(
-        self,
-        workflow_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowResponse:
+    
+    async def fetch_workflow(self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowResponse:
         """
         Parameters
         ----------
         workflow_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.fetch_workflow(
                 workflow_id="workflow_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.fetch_workflow(
-            workflow_id, request_options=request_options
-        )
+        _response = await self._raw_client.fetch_workflow(workflow_id, request_options=request_options)
         return _response.data
-
-    async def edit_workflow(
-        self,
-        workflow_id: str,
-        *,
-        workflow: WorkflowEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowResponse:
+    
+    async def edit_workflow(self, workflow_id: str, *, workflow: WorkflowEdit, request_options: typing.Optional[RequestOptions] = None) -> WorkflowResponse:
         """
         Parameters
         ----------
         workflow_id : str
-
+        
         workflow : WorkflowEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, WorkflowEdit
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.edit_workflow(
                 workflow_id="workflow_id",
                 workflow=WorkflowEdit(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.edit_workflow(
-            workflow_id, workflow=workflow, request_options=request_options
-        )
+        _response = await self._raw_client.edit_workflow(workflow_id, workflow=workflow, request_options=request_options)
         return _response.data
-
-    async def archive_workflow(
-        self,
-        workflow_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowResponse:
+    
+    async def archive_workflow(self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowResponse:
         """
         Parameters
         ----------
         workflow_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.archive_workflow(
                 workflow_id="workflow_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.archive_workflow(
-            workflow_id, request_options=request_options
-        )
+        _response = await self._raw_client.archive_workflow(workflow_id, request_options=request_options)
         return _response.data
-
-    async def unarchive_workflow(
-        self,
-        workflow_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowResponse:
+    
+    async def unarchive_workflow(self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowResponse:
         """
         Parameters
         ----------
         workflow_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.unarchive_workflow(
                 workflow_id="workflow_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.unarchive_workflow(
-            workflow_id, request_options=request_options
-        )
+        _response = await self._raw_client.unarchive_workflow(workflow_id, request_options=request_options)
         return _response.data
-
-    async def query_workflows(
-        self,
-        *,
-        workflow_id: typing.Optional[str] = None,
-        workflow_ids: typing.Optional[typing.Sequence[str]] = None,
-        workflow_slug: typing.Optional[str] = None,
-        workflow_slugs: typing.Optional[typing.Sequence[str]] = None,
-        name: typing.Optional[str] = None,
-        description: typing.Optional[str] = None,
-        flags: typing.Optional[str] = None,
-        tags: typing.Optional[str] = None,
-        meta: typing.Optional[str] = None,
-        include_archived: typing.Optional[bool] = None,
-        next: typing.Optional[str] = None,
-        newest: typing.Optional[dt.datetime] = None,
-        oldest: typing.Optional[dt.datetime] = None,
-        limit: typing.Optional[int] = None,
-        order: typing.Optional[QueryWorkflowsRequestOrder] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowsResponse:
+    
+    async def query_workflows(self, *, workflow_id: typing.Optional[str] = None, workflow_ids: typing.Optional[typing.Sequence[str]] = None, workflow_slug: typing.Optional[str] = None, workflow_slugs: typing.Optional[typing.Sequence[str]] = None, name: typing.Optional[str] = None, description: typing.Optional[str] = None, flags: typing.Optional[str] = None, tags: typing.Optional[str] = None, meta: typing.Optional[str] = None, include_archived: typing.Optional[bool] = None, next: typing.Optional[str] = None, newest: typing.Optional[dt.datetime] = None, oldest: typing.Optional[dt.datetime] = None, limit: typing.Optional[int] = None, order: typing.Optional[QueryWorkflowsRequestOrder] = None, request_options: typing.Optional[RequestOptions] = None) -> WorkflowsResponse:
         """
         Parameters
         ----------
         workflow_id : typing.Optional[str]
-
+        
         workflow_ids : typing.Optional[typing.Sequence[str]]
-
+        
         workflow_slug : typing.Optional[str]
-
+        
         workflow_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         name : typing.Optional[str]
-
+        
         description : typing.Optional[str]
-
+        
         flags : typing.Optional[str]
-
+        
         tags : typing.Optional[str]
-
+        
         meta : typing.Optional[str]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         next : typing.Optional[str]
-
+        
         newest : typing.Optional[dt.datetime]
-
+        
         oldest : typing.Optional[dt.datetime]
-
+        
         limit : typing.Optional[int]
-
+        
         order : typing.Optional[QueryWorkflowsRequestOrder]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowsResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.query_workflows()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.query_workflows(
-            workflow_id=workflow_id,
-            workflow_ids=workflow_ids,
-            workflow_slug=workflow_slug,
-            workflow_slugs=workflow_slugs,
-            name=name,
-            description=description,
-            flags=flags,
-            tags=tags,
-            meta=meta,
-            include_archived=include_archived,
-            next=next,
-            newest=newest,
-            oldest=oldest,
-            limit=limit,
-            order=order,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.query_workflows(workflow_id=workflow_id, workflow_ids=workflow_ids, workflow_slug=workflow_slug, workflow_slugs=workflow_slugs, name=name, description=description, flags=flags, tags=tags, meta=meta, include_archived=include_archived, next=next, newest=newest, oldest=oldest, limit=limit, order=order, request_options=request_options)
         return _response.data
-
-    async def create_workflow_variant(
-        self,
-        *,
-        workflow_variant: WorkflowVariantCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowVariantResponse:
+    
+    async def create_workflow_variant(self, *, workflow_variant: WorkflowVariantCreate, request_options: typing.Optional[RequestOptions] = None) -> WorkflowVariantResponse:
         """
         Parameters
         ----------
         workflow_variant : WorkflowVariantCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowVariantResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, WorkflowVariantCreate
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.create_workflow_variant(
                 workflow_variant=WorkflowVariantCreate(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_workflow_variant(
-            workflow_variant=workflow_variant, request_options=request_options
-        )
+        _response = await self._raw_client.create_workflow_variant(workflow_variant=workflow_variant, request_options=request_options)
         return _response.data
-
-    async def fetch_workflow_variant(
-        self,
-        workflow_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowVariantResponse:
+    
+    async def fetch_workflow_variant(self, workflow_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowVariantResponse:
         """
         Parameters
         ----------
         workflow_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowVariantResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.fetch_workflow_variant(
                 workflow_variant_id="workflow_variant_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.fetch_workflow_variant(
-            workflow_variant_id, request_options=request_options
-        )
+        _response = await self._raw_client.fetch_workflow_variant(workflow_variant_id, request_options=request_options)
         return _response.data
-
-    async def edit_workflow_variant(
-        self,
-        workflow_variant_id: str,
-        *,
-        workflow_variant: WorkflowVariantEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowVariantResponse:
+    
+    async def edit_workflow_variant(self, workflow_variant_id: str, *, workflow_variant: WorkflowVariantEdit, request_options: typing.Optional[RequestOptions] = None) -> WorkflowVariantResponse:
         """
         Parameters
         ----------
         workflow_variant_id : str
-
+        
         workflow_variant : WorkflowVariantEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowVariantResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, WorkflowVariantEdit
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.edit_workflow_variant(
                 workflow_variant_id="workflow_variant_id",
                 workflow_variant=WorkflowVariantEdit(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.edit_workflow_variant(
-            workflow_variant_id,
-            workflow_variant=workflow_variant,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.edit_workflow_variant(workflow_variant_id, workflow_variant=workflow_variant, request_options=request_options)
         return _response.data
-
-    async def archive_workflow_variant(
-        self,
-        workflow_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowVariantResponse:
+    
+    async def archive_workflow_variant(self, workflow_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowVariantResponse:
         """
         Parameters
         ----------
         workflow_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowVariantResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.archive_workflow_variant(
                 workflow_variant_id="workflow_variant_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.archive_workflow_variant(
-            workflow_variant_id, request_options=request_options
-        )
+        _response = await self._raw_client.archive_workflow_variant(workflow_variant_id, request_options=request_options)
         return _response.data
-
-    async def unarchive_workflow_variant(
-        self,
-        workflow_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowVariantResponse:
+    
+    async def unarchive_workflow_variant(self, workflow_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowVariantResponse:
         """
         Parameters
         ----------
         workflow_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowVariantResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.unarchive_workflow_variant(
                 workflow_variant_id="workflow_variant_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.unarchive_workflow_variant(
-            workflow_variant_id, request_options=request_options
-        )
+        _response = await self._raw_client.unarchive_workflow_variant(workflow_variant_id, request_options=request_options)
         return _response.data
-
-    async def query_workflow_variants(
-        self,
-        *,
-        workflow_id: typing.Optional[str] = None,
-        workflow_ids: typing.Optional[typing.Sequence[str]] = None,
-        workflow_slug: typing.Optional[str] = None,
-        workflow_slugs: typing.Optional[typing.Sequence[str]] = None,
-        workflow_variant_id: typing.Optional[str] = None,
-        workflow_variant_ids: typing.Optional[typing.Sequence[str]] = None,
-        workflow_variant_slug: typing.Optional[str] = None,
-        workflow_variant_slugs: typing.Optional[typing.Sequence[str]] = None,
-        name: typing.Optional[str] = None,
-        description: typing.Optional[str] = None,
-        flags: typing.Optional[str] = None,
-        tags: typing.Optional[str] = None,
-        meta: typing.Optional[str] = None,
-        include_archived: typing.Optional[bool] = None,
-        next: typing.Optional[str] = None,
-        newest: typing.Optional[dt.datetime] = None,
-        oldest: typing.Optional[dt.datetime] = None,
-        limit: typing.Optional[int] = None,
-        order: typing.Optional[QueryWorkflowVariantsRequestOrder] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowVariantsResponse:
+    
+    async def query_workflow_variants(self, *, workflow_id: typing.Optional[str] = None, workflow_ids: typing.Optional[typing.Sequence[str]] = None, workflow_slug: typing.Optional[str] = None, workflow_slugs: typing.Optional[typing.Sequence[str]] = None, workflow_variant_id: typing.Optional[str] = None, workflow_variant_ids: typing.Optional[typing.Sequence[str]] = None, workflow_variant_slug: typing.Optional[str] = None, workflow_variant_slugs: typing.Optional[typing.Sequence[str]] = None, name: typing.Optional[str] = None, description: typing.Optional[str] = None, flags: typing.Optional[str] = None, tags: typing.Optional[str] = None, meta: typing.Optional[str] = None, include_archived: typing.Optional[bool] = None, next: typing.Optional[str] = None, newest: typing.Optional[dt.datetime] = None, oldest: typing.Optional[dt.datetime] = None, limit: typing.Optional[int] = None, order: typing.Optional[QueryWorkflowVariantsRequestOrder] = None, request_options: typing.Optional[RequestOptions] = None) -> WorkflowVariantsResponse:
         """
         Parameters
         ----------
         workflow_id : typing.Optional[str]
-
+        
         workflow_ids : typing.Optional[typing.Sequence[str]]
-
+        
         workflow_slug : typing.Optional[str]
-
+        
         workflow_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         workflow_variant_id : typing.Optional[str]
-
+        
         workflow_variant_ids : typing.Optional[typing.Sequence[str]]
-
+        
         workflow_variant_slug : typing.Optional[str]
-
+        
         workflow_variant_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         name : typing.Optional[str]
-
+        
         description : typing.Optional[str]
-
+        
         flags : typing.Optional[str]
-
+        
         tags : typing.Optional[str]
-
+        
         meta : typing.Optional[str]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         next : typing.Optional[str]
-
+        
         newest : typing.Optional[dt.datetime]
-
+        
         oldest : typing.Optional[dt.datetime]
-
+        
         limit : typing.Optional[int]
-
+        
         order : typing.Optional[QueryWorkflowVariantsRequestOrder]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowVariantsResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.query_workflow_variants()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.query_workflow_variants(
-            workflow_id=workflow_id,
-            workflow_ids=workflow_ids,
-            workflow_slug=workflow_slug,
-            workflow_slugs=workflow_slugs,
-            workflow_variant_id=workflow_variant_id,
-            workflow_variant_ids=workflow_variant_ids,
-            workflow_variant_slug=workflow_variant_slug,
-            workflow_variant_slugs=workflow_variant_slugs,
-            name=name,
-            description=description,
-            flags=flags,
-            tags=tags,
-            meta=meta,
-            include_archived=include_archived,
-            next=next,
-            newest=newest,
-            oldest=oldest,
-            limit=limit,
-            order=order,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.query_workflow_variants(workflow_id=workflow_id, workflow_ids=workflow_ids, workflow_slug=workflow_slug, workflow_slugs=workflow_slugs, workflow_variant_id=workflow_variant_id, workflow_variant_ids=workflow_variant_ids, workflow_variant_slug=workflow_variant_slug, workflow_variant_slugs=workflow_variant_slugs, name=name, description=description, flags=flags, tags=tags, meta=meta, include_archived=include_archived, next=next, newest=newest, oldest=oldest, limit=limit, order=order, request_options=request_options)
         return _response.data
-
-    async def fork_workflow_variant(
-        self,
-        *,
-        workflow: WorkflowFork,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowVariantResponse:
+    
+    async def fork_workflow_variant(self, *, workflow: WorkflowFork, request_options: typing.Optional[RequestOptions] = None) -> WorkflowVariantResponse:
         """
         Parameters
         ----------
         workflow : WorkflowFork
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowVariantResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, WorkflowFork
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.fork_workflow_variant(
                 workflow=WorkflowFork(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.fork_workflow_variant(
-            workflow=workflow, request_options=request_options
-        )
+        _response = await self._raw_client.fork_workflow_variant(workflow=workflow, request_options=request_options)
         return _response.data
-
-    async def retrieve_workflow_revision(
-        self,
-        *,
-        workflow_ref: typing.Optional[Reference] = OMIT,
-        workflow_variant_ref: typing.Optional[Reference] = OMIT,
-        workflow_revision_ref: typing.Optional[Reference] = OMIT,
-        environment_ref: typing.Optional[Reference] = OMIT,
-        environment_variant_ref: typing.Optional[Reference] = OMIT,
-        environment_revision_ref: typing.Optional[Reference] = OMIT,
-        key: typing.Optional[str] = OMIT,
-        resolve: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowRevisionResponse:
+    
+    async def retrieve_workflow_revision(self, *, workflow_ref: typing.Optional[Reference] = OMIT, workflow_variant_ref: typing.Optional[Reference] = OMIT, workflow_revision_ref: typing.Optional[Reference] = OMIT, environment_ref: typing.Optional[Reference] = OMIT, environment_variant_ref: typing.Optional[Reference] = OMIT, environment_revision_ref: typing.Optional[Reference] = OMIT, key: typing.Optional[str] = OMIT, resolve: typing.Optional[bool] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResponse:
         """
         Parameters
         ----------
         workflow_ref : typing.Optional[Reference]
-
+        
         workflow_variant_ref : typing.Optional[Reference]
-
+        
         workflow_revision_ref : typing.Optional[Reference]
-
+        
         environment_ref : typing.Optional[Reference]
-
+        
         environment_variant_ref : typing.Optional[Reference]
-
+        
         environment_revision_ref : typing.Optional[Reference]
-
+        
         key : typing.Optional[str]
-
+        
         resolve : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.retrieve_workflow_revision()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.retrieve_workflow_revision(
-            workflow_ref=workflow_ref,
-            workflow_variant_ref=workflow_variant_ref,
-            workflow_revision_ref=workflow_revision_ref,
-            environment_ref=environment_ref,
-            environment_variant_ref=environment_variant_ref,
-            environment_revision_ref=environment_revision_ref,
-            key=key,
-            resolve=resolve,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.retrieve_workflow_revision(workflow_ref=workflow_ref, workflow_variant_ref=workflow_variant_ref, workflow_revision_ref=workflow_revision_ref, environment_ref=environment_ref, environment_variant_ref=environment_variant_ref, environment_revision_ref=environment_revision_ref, key=key, resolve=resolve, request_options=request_options)
         return _response.data
-
-    async def deploy_workflow_revision(
-        self,
-        *,
-        workflow_ref: typing.Optional[Reference] = OMIT,
-        workflow_variant_ref: typing.Optional[Reference] = OMIT,
-        workflow_revision_ref: typing.Optional[Reference] = OMIT,
-        environment_ref: typing.Optional[Reference] = OMIT,
-        environment_variant_ref: typing.Optional[Reference] = OMIT,
-        environment_revision_ref: typing.Optional[Reference] = OMIT,
-        key: typing.Optional[str] = OMIT,
-        message: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowRevisionResponse:
+    
+    async def deploy_workflow_revision(self, *, workflow_ref: typing.Optional[Reference] = OMIT, workflow_variant_ref: typing.Optional[Reference] = OMIT, workflow_revision_ref: typing.Optional[Reference] = OMIT, environment_ref: typing.Optional[Reference] = OMIT, environment_variant_ref: typing.Optional[Reference] = OMIT, environment_revision_ref: typing.Optional[Reference] = OMIT, key: typing.Optional[str] = OMIT, message: typing.Optional[str] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResponse:
         """
         Parameters
         ----------
         workflow_ref : typing.Optional[Reference]
-
+        
         workflow_variant_ref : typing.Optional[Reference]
-
+        
         workflow_revision_ref : typing.Optional[Reference]
-
+        
         environment_ref : typing.Optional[Reference]
-
+        
         environment_variant_ref : typing.Optional[Reference]
-
+        
         environment_revision_ref : typing.Optional[Reference]
-
+        
         key : typing.Optional[str]
-
+        
         message : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.deploy_workflow_revision()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.deploy_workflow_revision(
-            workflow_ref=workflow_ref,
-            workflow_variant_ref=workflow_variant_ref,
-            workflow_revision_ref=workflow_revision_ref,
-            environment_ref=environment_ref,
-            environment_variant_ref=environment_variant_ref,
-            environment_revision_ref=environment_revision_ref,
-            key=key,
-            message=message,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.deploy_workflow_revision(workflow_ref=workflow_ref, workflow_variant_ref=workflow_variant_ref, workflow_revision_ref=workflow_revision_ref, environment_ref=environment_ref, environment_variant_ref=environment_variant_ref, environment_revision_ref=environment_revision_ref, key=key, message=message, request_options=request_options)
         return _response.data
-
-    async def create_workflow_revision(
-        self,
-        *,
-        workflow_revision: WorkflowRevisionCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowRevisionResponse:
+    
+    async def create_workflow_revision(self, *, workflow_revision: WorkflowRevisionCreate, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResponse:
         """
         Parameters
         ----------
         workflow_revision : WorkflowRevisionCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, WorkflowRevisionCreate
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.create_workflow_revision(
                 workflow_revision=WorkflowRevisionCreate(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_workflow_revision(
-            workflow_revision=workflow_revision, request_options=request_options
-        )
+        _response = await self._raw_client.create_workflow_revision(workflow_revision=workflow_revision, request_options=request_options)
         return _response.data
-
-    async def fetch_workflow_revision(
-        self,
-        workflow_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowRevisionResponse:
+    
+    async def fetch_workflow_revision(self, workflow_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResponse:
         """
         Parameters
         ----------
         workflow_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.fetch_workflow_revision(
                 workflow_revision_id="workflow_revision_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.fetch_workflow_revision(
-            workflow_revision_id, request_options=request_options
-        )
+        _response = await self._raw_client.fetch_workflow_revision(workflow_revision_id, request_options=request_options)
         return _response.data
-
-    async def edit_workflow_revision(
-        self,
-        workflow_revision_id: str,
-        *,
-        workflow_revision: WorkflowRevisionEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowRevisionResponse:
+    
+    async def edit_workflow_revision(self, workflow_revision_id: str, *, workflow_revision: WorkflowRevisionEdit, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResponse:
         """
         Parameters
         ----------
         workflow_revision_id : str
-
+        
         workflow_revision : WorkflowRevisionEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, WorkflowRevisionEdit
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.edit_workflow_revision(
                 workflow_revision_id="workflow_revision_id",
                 workflow_revision=WorkflowRevisionEdit(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.edit_workflow_revision(
-            workflow_revision_id,
-            workflow_revision=workflow_revision,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.edit_workflow_revision(workflow_revision_id, workflow_revision=workflow_revision, request_options=request_options)
         return _response.data
-
-    async def archive_workflow_revision_rpc(
-        self,
-        workflow_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowRevisionResponse:
+    
+    async def archive_workflow_revision_rpc(self, workflow_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResponse:
         """
         Parameters
         ----------
         workflow_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.archive_workflow_revision_rpc(
                 workflow_revision_id="workflow_revision_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.archive_workflow_revision_rpc(
-            workflow_revision_id, request_options=request_options
-        )
+        _response = await self._raw_client.archive_workflow_revision_rpc(workflow_revision_id, request_options=request_options)
         return _response.data
-
-    async def unarchive_workflow_revision_rpc(
-        self,
-        workflow_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowRevisionResponse:
+    
+    async def unarchive_workflow_revision_rpc(self, workflow_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResponse:
         """
         Parameters
         ----------
         workflow_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.unarchive_workflow_revision_rpc(
                 workflow_revision_id="workflow_revision_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.unarchive_workflow_revision_rpc(
-            workflow_revision_id, request_options=request_options
-        )
+        _response = await self._raw_client.unarchive_workflow_revision_rpc(workflow_revision_id, request_options=request_options)
         return _response.data
-
-    async def query_workflow_revisions(
-        self,
-        *,
-        workflow_id: typing.Optional[str] = None,
-        workflow_ids: typing.Optional[typing.Sequence[str]] = None,
-        workflow_slug: typing.Optional[str] = None,
-        workflow_slugs: typing.Optional[typing.Sequence[str]] = None,
-        workflow_variant_id: typing.Optional[str] = None,
-        workflow_variant_ids: typing.Optional[typing.Sequence[str]] = None,
-        workflow_variant_slug: typing.Optional[str] = None,
-        workflow_variant_slugs: typing.Optional[typing.Sequence[str]] = None,
-        workflow_revision_id: typing.Optional[str] = None,
-        workflow_revision_ids: typing.Optional[typing.Sequence[str]] = None,
-        workflow_revision_slug: typing.Optional[str] = None,
-        workflow_revision_slugs: typing.Optional[typing.Sequence[str]] = None,
-        workflow_revision_version: typing.Optional[str] = None,
-        workflow_revision_versions: typing.Optional[typing.Sequence[str]] = None,
-        name: typing.Optional[str] = None,
-        description: typing.Optional[str] = None,
-        flags: typing.Optional[str] = None,
-        tags: typing.Optional[str] = None,
-        meta: typing.Optional[str] = None,
-        include_archived: typing.Optional[bool] = None,
-        next: typing.Optional[str] = None,
-        newest: typing.Optional[dt.datetime] = None,
-        oldest: typing.Optional[dt.datetime] = None,
-        limit: typing.Optional[int] = None,
-        order: typing.Optional[QueryWorkflowRevisionsRequestOrder] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowRevisionsResponse:
+    
+    async def query_workflow_revisions(self, *, workflow_id: typing.Optional[str] = None, workflow_ids: typing.Optional[typing.Sequence[str]] = None, workflow_slug: typing.Optional[str] = None, workflow_slugs: typing.Optional[typing.Sequence[str]] = None, workflow_variant_id: typing.Optional[str] = None, workflow_variant_ids: typing.Optional[typing.Sequence[str]] = None, workflow_variant_slug: typing.Optional[str] = None, workflow_variant_slugs: typing.Optional[typing.Sequence[str]] = None, workflow_revision_id: typing.Optional[str] = None, workflow_revision_ids: typing.Optional[typing.Sequence[str]] = None, workflow_revision_slug: typing.Optional[str] = None, workflow_revision_slugs: typing.Optional[typing.Sequence[str]] = None, workflow_revision_version: typing.Optional[str] = None, workflow_revision_versions: typing.Optional[typing.Sequence[str]] = None, name: typing.Optional[str] = None, description: typing.Optional[str] = None, flags: typing.Optional[str] = None, tags: typing.Optional[str] = None, meta: typing.Optional[str] = None, include_archived: typing.Optional[bool] = None, next: typing.Optional[str] = None, newest: typing.Optional[dt.datetime] = None, oldest: typing.Optional[dt.datetime] = None, limit: typing.Optional[int] = None, order: typing.Optional[QueryWorkflowRevisionsRequestOrder] = None, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionsResponse:
         """
         Parameters
         ----------
         workflow_id : typing.Optional[str]
-
+        
         workflow_ids : typing.Optional[typing.Sequence[str]]
-
+        
         workflow_slug : typing.Optional[str]
-
+        
         workflow_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         workflow_variant_id : typing.Optional[str]
-
+        
         workflow_variant_ids : typing.Optional[typing.Sequence[str]]
-
+        
         workflow_variant_slug : typing.Optional[str]
-
+        
         workflow_variant_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         workflow_revision_id : typing.Optional[str]
-
+        
         workflow_revision_ids : typing.Optional[typing.Sequence[str]]
-
+        
         workflow_revision_slug : typing.Optional[str]
-
+        
         workflow_revision_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         workflow_revision_version : typing.Optional[str]
-
+        
         workflow_revision_versions : typing.Optional[typing.Sequence[str]]
-
+        
         name : typing.Optional[str]
-
+        
         description : typing.Optional[str]
-
+        
         flags : typing.Optional[str]
-
+        
         tags : typing.Optional[str]
-
+        
         meta : typing.Optional[str]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         next : typing.Optional[str]
-
+        
         newest : typing.Optional[dt.datetime]
-
+        
         oldest : typing.Optional[dt.datetime]
-
+        
         limit : typing.Optional[int]
-
+        
         order : typing.Optional[QueryWorkflowRevisionsRequestOrder]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowRevisionsResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.query_workflow_revisions()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.query_workflow_revisions(
-            workflow_id=workflow_id,
-            workflow_ids=workflow_ids,
-            workflow_slug=workflow_slug,
-            workflow_slugs=workflow_slugs,
-            workflow_variant_id=workflow_variant_id,
-            workflow_variant_ids=workflow_variant_ids,
-            workflow_variant_slug=workflow_variant_slug,
-            workflow_variant_slugs=workflow_variant_slugs,
-            workflow_revision_id=workflow_revision_id,
-            workflow_revision_ids=workflow_revision_ids,
-            workflow_revision_slug=workflow_revision_slug,
-            workflow_revision_slugs=workflow_revision_slugs,
-            workflow_revision_version=workflow_revision_version,
-            workflow_revision_versions=workflow_revision_versions,
-            name=name,
-            description=description,
-            flags=flags,
-            tags=tags,
-            meta=meta,
-            include_archived=include_archived,
-            next=next,
-            newest=newest,
-            oldest=oldest,
-            limit=limit,
-            order=order,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.query_workflow_revisions(workflow_id=workflow_id, workflow_ids=workflow_ids, workflow_slug=workflow_slug, workflow_slugs=workflow_slugs, workflow_variant_id=workflow_variant_id, workflow_variant_ids=workflow_variant_ids, workflow_variant_slug=workflow_variant_slug, workflow_variant_slugs=workflow_variant_slugs, workflow_revision_id=workflow_revision_id, workflow_revision_ids=workflow_revision_ids, workflow_revision_slug=workflow_revision_slug, workflow_revision_slugs=workflow_revision_slugs, workflow_revision_version=workflow_revision_version, workflow_revision_versions=workflow_revision_versions, name=name, description=description, flags=flags, tags=tags, meta=meta, include_archived=include_archived, next=next, newest=newest, oldest=oldest, limit=limit, order=order, request_options=request_options)
         return _response.data
-
-    async def commit_workflow_revision(
-        self,
-        *,
-        workflow_revision: WorkflowRevisionCommit,
-        workflow_variant_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowRevisionResponse:
+    
+    async def commit_workflow_revision(self, *, workflow_revision: WorkflowRevisionCommit, workflow_variant_id: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResponse:
         """
         Parameters
         ----------
         workflow_revision : WorkflowRevisionCommit
-
+        
         workflow_variant_id : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, WorkflowRevisionCommit
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.commit_workflow_revision(
                 workflow_revision=WorkflowRevisionCommit(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.commit_workflow_revision(
-            workflow_revision=workflow_revision,
-            workflow_variant_id=workflow_variant_id,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.commit_workflow_revision(workflow_revision=workflow_revision, workflow_variant_id=workflow_variant_id, request_options=request_options)
         return _response.data
-
-    async def log_workflow_revisions(
-        self,
-        *,
-        workflow: WorkflowRevisionsLog,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowRevisionsResponse:
+    
+    async def log_workflow_revisions(self, *, workflow: WorkflowRevisionsLog, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionsResponse:
         """
         Parameters
         ----------
         workflow : WorkflowRevisionsLog
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowRevisionsResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, WorkflowRevisionsLog
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.log_workflow_revisions(
                 workflow=WorkflowRevisionsLog(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.log_workflow_revisions(
-            workflow=workflow, request_options=request_options
-        )
+        _response = await self._raw_client.log_workflow_revisions(workflow=workflow, request_options=request_options)
         return _response.data
-
-    async def resolve_workflow_revision(
-        self,
-        *,
-        workflow_ref: typing.Optional[Reference] = OMIT,
-        workflow_variant_ref: typing.Optional[Reference] = OMIT,
-        workflow_revision_ref: typing.Optional[Reference] = OMIT,
-        workflow_revision: typing.Optional[WorkflowRevisionInput] = OMIT,
-        max_depth: typing.Optional[int] = OMIT,
-        max_embeds: typing.Optional[int] = OMIT,
-        error_policy: typing.Optional[ErrorPolicy] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowRevisionResolveResponse:
+    
+    async def resolve_workflow_revision(self, *, workflow_ref: typing.Optional[Reference] = OMIT, workflow_variant_ref: typing.Optional[Reference] = OMIT, workflow_revision_ref: typing.Optional[Reference] = OMIT, workflow_revision: typing.Optional[WorkflowRevisionInput] = OMIT, max_depth: typing.Optional[int] = OMIT, max_embeds: typing.Optional[int] = OMIT, error_policy: typing.Optional[ErrorPolicy] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> WorkflowRevisionResolveResponse:
         """
         Resolve embedded references in a workflow revision configuration.
-
+        
         This endpoint:
         1. Fetches the workflow revision
         2. Resolves all @ag.references tokens in the configuration
         3. Returns the revision with resolved configuration + metadata
-
+        
         Parameters
         ----------
         workflow_ref : typing.Optional[Reference]
-
+        
         workflow_variant_ref : typing.Optional[Reference]
-
+        
         workflow_revision_ref : typing.Optional[Reference]
-
+        
         workflow_revision : typing.Optional[WorkflowRevisionInput]
-
+        
         max_depth : typing.Optional[int]
-
+        
         max_embeds : typing.Optional[int]
-
+        
         error_policy : typing.Optional[ErrorPolicy]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         WorkflowRevisionResolveResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.resolve_workflow_revision()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.resolve_workflow_revision(
-            workflow_ref=workflow_ref,
-            workflow_variant_ref=workflow_variant_ref,
-            workflow_revision_ref=workflow_revision_ref,
-            workflow_revision=workflow_revision,
-            max_depth=max_depth,
-            max_embeds=max_embeds,
-            error_policy=error_policy,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.resolve_workflow_revision(workflow_ref=workflow_ref, workflow_variant_ref=workflow_variant_ref, workflow_revision_ref=workflow_revision_ref, workflow_revision=workflow_revision, max_depth=max_depth, max_embeds=max_embeds, error_policy=error_policy, request_options=request_options)
         return _response.data
-
-    async def create_simple_workflow(
-        self,
-        *,
-        workflow: SimpleWorkflowCreate,
-        workflow_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleWorkflowResponse:
+    
+    async def create_simple_workflow(self, *, workflow: SimpleWorkflowCreate, workflow_id: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> SimpleWorkflowResponse:
         """
         Parameters
         ----------
         workflow : SimpleWorkflowCreate
-
+        
         workflow_id : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleWorkflowResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, SimpleWorkflowCreate
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.create_simple_workflow(
                 workflow=SimpleWorkflowCreate(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_simple_workflow(
-            workflow=workflow, workflow_id=workflow_id, request_options=request_options
-        )
+        _response = await self._raw_client.create_simple_workflow(workflow=workflow, workflow_id=workflow_id, request_options=request_options)
         return _response.data
-
-    async def fetch_simple_workflow(
-        self,
-        workflow_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleWorkflowResponse:
+    
+    async def fetch_simple_workflow(self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleWorkflowResponse:
         """
         Parameters
         ----------
         workflow_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleWorkflowResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.fetch_simple_workflow(
                 workflow_id="workflow_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.fetch_simple_workflow(
-            workflow_id, request_options=request_options
-        )
+        _response = await self._raw_client.fetch_simple_workflow(workflow_id, request_options=request_options)
         return _response.data
-
-    async def edit_simple_workflow(
-        self,
-        workflow_id: str,
-        *,
-        workflow: SimpleWorkflowEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleWorkflowResponse:
+    
+    async def edit_simple_workflow(self, workflow_id: str, *, workflow: SimpleWorkflowEdit, request_options: typing.Optional[RequestOptions] = None) -> SimpleWorkflowResponse:
         """
         Parameters
         ----------
         workflow_id : str
-
+        
         workflow : SimpleWorkflowEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleWorkflowResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, SimpleWorkflowEdit
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.edit_simple_workflow(
                 workflow_id="workflow_id",
                 workflow=SimpleWorkflowEdit(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.edit_simple_workflow(
-            workflow_id, workflow=workflow, request_options=request_options
-        )
+        _response = await self._raw_client.edit_simple_workflow(workflow_id, workflow=workflow, request_options=request_options)
         return _response.data
-
-    async def archive_simple_workflow(
-        self,
-        workflow_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleWorkflowResponse:
+    
+    async def archive_simple_workflow(self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleWorkflowResponse:
         """
         Parameters
         ----------
         workflow_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleWorkflowResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.archive_simple_workflow(
                 workflow_id="workflow_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.archive_simple_workflow(
-            workflow_id, request_options=request_options
-        )
+        _response = await self._raw_client.archive_simple_workflow(workflow_id, request_options=request_options)
         return _response.data
-
-    async def unarchive_simple_workflow(
-        self,
-        workflow_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleWorkflowResponse:
+    
+    async def unarchive_simple_workflow(self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleWorkflowResponse:
         """
         Parameters
         ----------
         workflow_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleWorkflowResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.unarchive_simple_workflow(
                 workflow_id="workflow_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.unarchive_simple_workflow(
-            workflow_id, request_options=request_options
-        )
+        _response = await self._raw_client.unarchive_simple_workflow(workflow_id, request_options=request_options)
         return _response.data
-
-    async def query_simple_workflows(
-        self,
-        *,
-        workflow: typing.Optional[SimpleWorkflowQuery] = OMIT,
-        workflow_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleWorkflowsResponse:
+    
+    async def query_simple_workflows(self, *, workflow: typing.Optional[SimpleWorkflowQuery] = OMIT, workflow_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> SimpleWorkflowsResponse:
         """
         Parameters
         ----------
         workflow : typing.Optional[SimpleWorkflowQuery]
-
+        
         workflow_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleWorkflowsResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.workflows.query_simple_workflows()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.query_simple_workflows(
-            workflow=workflow,
-            workflow_refs=workflow_refs,
-            include_archived=include_archived,
-            windowing=windowing,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.query_simple_workflows(workflow=workflow, workflow_refs=workflow_refs, include_archived=include_archived, windowing=windowing, request_options=request_options)
         return _response.data

@@ -2,6 +2,4 @@
 
 import typing
 
-AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeWorkspacesZero = (
-    typing.Union[typing.Literal["all"], typing.Any]
-)
+AdminSimpleAccountsOrganizationsTransferOwnershipDtoIncludeWorkspacesZero = typing.Union[typing.Literal["all"], typing.Any]

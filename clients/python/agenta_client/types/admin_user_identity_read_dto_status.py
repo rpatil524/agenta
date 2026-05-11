@@ -2,7 +2,4 @@
 
 import typing
 
-AdminUserIdentityReadDtoStatus = typing.Union[
-    typing.Literal["created", "linked", "pending_confirmation", "skipped", "failed"],
-    typing.Any,
-]
+AdminUserIdentityReadDtoStatus = typing.Union[typing.Literal["created", "linked", "pending_confirmation", "skipped", "failed"], typing.Any]

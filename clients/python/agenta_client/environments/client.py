@@ -11,9 +11,7 @@ from ..types.environment_response import EnvironmentResponse
 from ..types.environment_revision_commit import EnvironmentRevisionCommit
 from ..types.environment_revision_create import EnvironmentRevisionCreate
 from ..types.environment_revision_edit import EnvironmentRevisionEdit
-from ..types.environment_revision_resolve_response import (
-    EnvironmentRevisionResolveResponse,
-)
+from ..types.environment_revision_resolve_response import EnvironmentRevisionResolveResponse
 from ..types.environment_revision_response import EnvironmentRevisionResponse
 from ..types.environment_revisions_log import EnvironmentRevisionsLog
 from ..types.environment_revisions_response import EnvironmentRevisionsResponse
@@ -31,59 +29,47 @@ from ..types.simple_environment_response import SimpleEnvironmentResponse
 from ..types.simple_environments_response import SimpleEnvironmentsResponse
 from ..types.windowing import Windowing
 from .raw_client import AsyncRawEnvironmentsClient, RawEnvironmentsClient
-from .types.query_environment_revisions_request_order import (
-    QueryEnvironmentRevisionsRequestOrder,
-)
-from .types.query_environment_variants_request_order import (
-    QueryEnvironmentVariantsRequestOrder,
-)
+from .types.query_environment_revisions_request_order import QueryEnvironmentRevisionsRequestOrder
+from .types.query_environment_variants_request_order import QueryEnvironmentVariantsRequestOrder
 from .types.query_environments_request_order import QueryEnvironmentsRequestOrder
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
-
-
 class EnvironmentsClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._raw_client = RawEnvironmentsClient(client_wrapper=client_wrapper)
-
+    
     @property
     def with_raw_response(self) -> RawEnvironmentsClient:
         """
         Retrieves a raw implementation of this client that returns raw responses.
-
+        
         Returns
         -------
         RawEnvironmentsClient
         """
         return self._raw_client
-
-    def create_environment(
-        self,
-        *,
-        environment: EnvironmentCreate,
-        environment_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentResponse:
+    
+    def create_environment(self, *, environment: EnvironmentCreate, environment_id: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentResponse:
         """
         Parameters
         ----------
         environment : EnvironmentCreate
-
+        
         environment_id : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, EnvironmentCreate
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -91,36 +77,27 @@ class EnvironmentsClient:
             environment=EnvironmentCreate(),
         )
         """
-        _response = self._raw_client.create_environment(
-            environment=environment,
-            environment_id=environment_id,
-            request_options=request_options,
-        )
+        _response = self._raw_client.create_environment(environment=environment, environment_id=environment_id, request_options=request_options)
         return _response.data
-
-    def fetch_environment(
-        self,
-        environment_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentResponse:
+    
+    def fetch_environment(self, environment_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentResponse:
         """
         Parameters
         ----------
         environment_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -128,37 +105,29 @@ class EnvironmentsClient:
             environment_id="environment_id",
         )
         """
-        _response = self._raw_client.fetch_environment(
-            environment_id, request_options=request_options
-        )
+        _response = self._raw_client.fetch_environment(environment_id, request_options=request_options)
         return _response.data
-
-    def edit_environment(
-        self,
-        environment_id: str,
-        *,
-        environment: EnvironmentEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentResponse:
+    
+    def edit_environment(self, environment_id: str, *, environment: EnvironmentEdit, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentResponse:
         """
         Parameters
         ----------
         environment_id : str
-
+        
         environment : EnvironmentEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, EnvironmentEdit
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -167,34 +136,27 @@ class EnvironmentsClient:
             environment=EnvironmentEdit(),
         )
         """
-        _response = self._raw_client.edit_environment(
-            environment_id, environment=environment, request_options=request_options
-        )
+        _response = self._raw_client.edit_environment(environment_id, environment=environment, request_options=request_options)
         return _response.data
-
-    def archive_environment(
-        self,
-        environment_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentResponse:
+    
+    def archive_environment(self, environment_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentResponse:
         """
         Parameters
         ----------
         environment_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -202,34 +164,27 @@ class EnvironmentsClient:
             environment_id="environment_id",
         )
         """
-        _response = self._raw_client.archive_environment(
-            environment_id, request_options=request_options
-        )
+        _response = self._raw_client.archive_environment(environment_id, request_options=request_options)
         return _response.data
-
-    def unarchive_environment(
-        self,
-        environment_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentResponse:
+    
+    def unarchive_environment(self, environment_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentResponse:
         """
         Parameters
         ----------
         environment_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -237,120 +192,79 @@ class EnvironmentsClient:
             environment_id="environment_id",
         )
         """
-        _response = self._raw_client.unarchive_environment(
-            environment_id, request_options=request_options
-        )
+        _response = self._raw_client.unarchive_environment(environment_id, request_options=request_options)
         return _response.data
-
-    def query_environments(
-        self,
-        *,
-        environment_id: typing.Optional[str] = None,
-        environment_ids: typing.Optional[typing.Sequence[str]] = None,
-        environment_slug: typing.Optional[str] = None,
-        environment_slugs: typing.Optional[typing.Sequence[str]] = None,
-        name: typing.Optional[str] = None,
-        description: typing.Optional[str] = None,
-        tags: typing.Optional[str] = None,
-        meta: typing.Optional[str] = None,
-        include_archived: typing.Optional[bool] = None,
-        next: typing.Optional[str] = None,
-        newest: typing.Optional[dt.datetime] = None,
-        oldest: typing.Optional[dt.datetime] = None,
-        limit: typing.Optional[int] = None,
-        order: typing.Optional[QueryEnvironmentsRequestOrder] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentsResponse:
+    
+    def query_environments(self, *, environment_id: typing.Optional[str] = None, environment_ids: typing.Optional[typing.Sequence[str]] = None, environment_slug: typing.Optional[str] = None, environment_slugs: typing.Optional[typing.Sequence[str]] = None, name: typing.Optional[str] = None, description: typing.Optional[str] = None, tags: typing.Optional[str] = None, meta: typing.Optional[str] = None, include_archived: typing.Optional[bool] = None, next: typing.Optional[str] = None, newest: typing.Optional[dt.datetime] = None, oldest: typing.Optional[dt.datetime] = None, limit: typing.Optional[int] = None, order: typing.Optional[QueryEnvironmentsRequestOrder] = None, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentsResponse:
         """
         Parameters
         ----------
         environment_id : typing.Optional[str]
-
+        
         environment_ids : typing.Optional[typing.Sequence[str]]
-
+        
         environment_slug : typing.Optional[str]
-
+        
         environment_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         name : typing.Optional[str]
-
+        
         description : typing.Optional[str]
-
+        
         tags : typing.Optional[str]
-
+        
         meta : typing.Optional[str]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         next : typing.Optional[str]
-
+        
         newest : typing.Optional[dt.datetime]
-
+        
         oldest : typing.Optional[dt.datetime]
-
+        
         limit : typing.Optional[int]
-
+        
         order : typing.Optional[QueryEnvironmentsRequestOrder]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentsResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.environments.query_environments()
         """
-        _response = self._raw_client.query_environments(
-            environment_id=environment_id,
-            environment_ids=environment_ids,
-            environment_slug=environment_slug,
-            environment_slugs=environment_slugs,
-            name=name,
-            description=description,
-            tags=tags,
-            meta=meta,
-            include_archived=include_archived,
-            next=next,
-            newest=newest,
-            oldest=oldest,
-            limit=limit,
-            order=order,
-            request_options=request_options,
-        )
+        _response = self._raw_client.query_environments(environment_id=environment_id, environment_ids=environment_ids, environment_slug=environment_slug, environment_slugs=environment_slugs, name=name, description=description, tags=tags, meta=meta, include_archived=include_archived, next=next, newest=newest, oldest=oldest, limit=limit, order=order, request_options=request_options)
         return _response.data
-
-    def create_environment_variant(
-        self,
-        *,
-        environment_variant: EnvironmentVariantCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentVariantResponse:
+    
+    def create_environment_variant(self, *, environment_variant: EnvironmentVariantCreate, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentVariantResponse:
         """
         Parameters
         ----------
         environment_variant : EnvironmentVariantCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentVariantResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, EnvironmentVariantCreate
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -358,34 +272,27 @@ class EnvironmentsClient:
             environment_variant=EnvironmentVariantCreate(),
         )
         """
-        _response = self._raw_client.create_environment_variant(
-            environment_variant=environment_variant, request_options=request_options
-        )
+        _response = self._raw_client.create_environment_variant(environment_variant=environment_variant, request_options=request_options)
         return _response.data
-
-    def fetch_environment_variant(
-        self,
-        environment_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentVariantResponse:
+    
+    def fetch_environment_variant(self, environment_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentVariantResponse:
         """
         Parameters
         ----------
         environment_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentVariantResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -393,37 +300,29 @@ class EnvironmentsClient:
             environment_variant_id="environment_variant_id",
         )
         """
-        _response = self._raw_client.fetch_environment_variant(
-            environment_variant_id, request_options=request_options
-        )
+        _response = self._raw_client.fetch_environment_variant(environment_variant_id, request_options=request_options)
         return _response.data
-
-    def edit_environment_variant(
-        self,
-        environment_variant_id: str,
-        *,
-        environment_variant: EnvironmentVariantEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentVariantResponse:
+    
+    def edit_environment_variant(self, environment_variant_id: str, *, environment_variant: EnvironmentVariantEdit, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentVariantResponse:
         """
         Parameters
         ----------
         environment_variant_id : str
-
+        
         environment_variant : EnvironmentVariantEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentVariantResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, EnvironmentVariantEdit
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -432,36 +331,27 @@ class EnvironmentsClient:
             environment_variant=EnvironmentVariantEdit(),
         )
         """
-        _response = self._raw_client.edit_environment_variant(
-            environment_variant_id,
-            environment_variant=environment_variant,
-            request_options=request_options,
-        )
+        _response = self._raw_client.edit_environment_variant(environment_variant_id, environment_variant=environment_variant, request_options=request_options)
         return _response.data
-
-    def archive_environment_variant(
-        self,
-        environment_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentVariantResponse:
+    
+    def archive_environment_variant(self, environment_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentVariantResponse:
         """
         Parameters
         ----------
         environment_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentVariantResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -469,34 +359,27 @@ class EnvironmentsClient:
             environment_variant_id="environment_variant_id",
         )
         """
-        _response = self._raw_client.archive_environment_variant(
-            environment_variant_id, request_options=request_options
-        )
+        _response = self._raw_client.archive_environment_variant(environment_variant_id, request_options=request_options)
         return _response.data
-
-    def unarchive_environment_variant(
-        self,
-        environment_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentVariantResponse:
+    
+    def unarchive_environment_variant(self, environment_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentVariantResponse:
         """
         Parameters
         ----------
         environment_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentVariantResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -504,182 +387,119 @@ class EnvironmentsClient:
             environment_variant_id="environment_variant_id",
         )
         """
-        _response = self._raw_client.unarchive_environment_variant(
-            environment_variant_id, request_options=request_options
-        )
+        _response = self._raw_client.unarchive_environment_variant(environment_variant_id, request_options=request_options)
         return _response.data
-
-    def query_environment_variants(
-        self,
-        *,
-        environment_id: typing.Optional[str] = None,
-        environment_ids: typing.Optional[typing.Sequence[str]] = None,
-        environment_slug: typing.Optional[str] = None,
-        environment_slugs: typing.Optional[typing.Sequence[str]] = None,
-        environment_variant_id: typing.Optional[str] = None,
-        environment_variant_ids: typing.Optional[typing.Sequence[str]] = None,
-        environment_variant_slug: typing.Optional[str] = None,
-        environment_variant_slugs: typing.Optional[typing.Sequence[str]] = None,
-        name: typing.Optional[str] = None,
-        description: typing.Optional[str] = None,
-        tags: typing.Optional[str] = None,
-        meta: typing.Optional[str] = None,
-        include_archived: typing.Optional[bool] = None,
-        next: typing.Optional[str] = None,
-        newest: typing.Optional[dt.datetime] = None,
-        oldest: typing.Optional[dt.datetime] = None,
-        limit: typing.Optional[int] = None,
-        order: typing.Optional[QueryEnvironmentVariantsRequestOrder] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentVariantsResponse:
+    
+    def query_environment_variants(self, *, environment_id: typing.Optional[str] = None, environment_ids: typing.Optional[typing.Sequence[str]] = None, environment_slug: typing.Optional[str] = None, environment_slugs: typing.Optional[typing.Sequence[str]] = None, environment_variant_id: typing.Optional[str] = None, environment_variant_ids: typing.Optional[typing.Sequence[str]] = None, environment_variant_slug: typing.Optional[str] = None, environment_variant_slugs: typing.Optional[typing.Sequence[str]] = None, name: typing.Optional[str] = None, description: typing.Optional[str] = None, tags: typing.Optional[str] = None, meta: typing.Optional[str] = None, include_archived: typing.Optional[bool] = None, next: typing.Optional[str] = None, newest: typing.Optional[dt.datetime] = None, oldest: typing.Optional[dt.datetime] = None, limit: typing.Optional[int] = None, order: typing.Optional[QueryEnvironmentVariantsRequestOrder] = None, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentVariantsResponse:
         """
         Parameters
         ----------
         environment_id : typing.Optional[str]
-
+        
         environment_ids : typing.Optional[typing.Sequence[str]]
-
+        
         environment_slug : typing.Optional[str]
-
+        
         environment_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         environment_variant_id : typing.Optional[str]
-
+        
         environment_variant_ids : typing.Optional[typing.Sequence[str]]
-
+        
         environment_variant_slug : typing.Optional[str]
-
+        
         environment_variant_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         name : typing.Optional[str]
-
+        
         description : typing.Optional[str]
-
+        
         tags : typing.Optional[str]
-
+        
         meta : typing.Optional[str]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         next : typing.Optional[str]
-
+        
         newest : typing.Optional[dt.datetime]
-
+        
         oldest : typing.Optional[dt.datetime]
-
+        
         limit : typing.Optional[int]
-
+        
         order : typing.Optional[QueryEnvironmentVariantsRequestOrder]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentVariantsResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.environments.query_environment_variants()
         """
-        _response = self._raw_client.query_environment_variants(
-            environment_id=environment_id,
-            environment_ids=environment_ids,
-            environment_slug=environment_slug,
-            environment_slugs=environment_slugs,
-            environment_variant_id=environment_variant_id,
-            environment_variant_ids=environment_variant_ids,
-            environment_variant_slug=environment_variant_slug,
-            environment_variant_slugs=environment_variant_slugs,
-            name=name,
-            description=description,
-            tags=tags,
-            meta=meta,
-            include_archived=include_archived,
-            next=next,
-            newest=newest,
-            oldest=oldest,
-            limit=limit,
-            order=order,
-            request_options=request_options,
-        )
+        _response = self._raw_client.query_environment_variants(environment_id=environment_id, environment_ids=environment_ids, environment_slug=environment_slug, environment_slugs=environment_slugs, environment_variant_id=environment_variant_id, environment_variant_ids=environment_variant_ids, environment_variant_slug=environment_variant_slug, environment_variant_slugs=environment_variant_slugs, name=name, description=description, tags=tags, meta=meta, include_archived=include_archived, next=next, newest=newest, oldest=oldest, limit=limit, order=order, request_options=request_options)
         return _response.data
-
-    def retrieve_environment_revision(
-        self,
-        *,
-        environment_ref: typing.Optional[Reference] = OMIT,
-        environment_variant_ref: typing.Optional[Reference] = OMIT,
-        environment_revision_ref: typing.Optional[Reference] = OMIT,
-        resolve: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentRevisionResponse:
+    
+    def retrieve_environment_revision(self, *, environment_ref: typing.Optional[Reference] = OMIT, environment_variant_ref: typing.Optional[Reference] = OMIT, environment_revision_ref: typing.Optional[Reference] = OMIT, resolve: typing.Optional[bool] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentRevisionResponse:
         """
         Parameters
         ----------
         environment_ref : typing.Optional[Reference]
-
+        
         environment_variant_ref : typing.Optional[Reference]
-
+        
         environment_revision_ref : typing.Optional[Reference]
-
+        
         resolve : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.environments.retrieve_environment_revision()
         """
-        _response = self._raw_client.retrieve_environment_revision(
-            environment_ref=environment_ref,
-            environment_variant_ref=environment_variant_ref,
-            environment_revision_ref=environment_revision_ref,
-            resolve=resolve,
-            request_options=request_options,
-        )
+        _response = self._raw_client.retrieve_environment_revision(environment_ref=environment_ref, environment_variant_ref=environment_variant_ref, environment_revision_ref=environment_revision_ref, resolve=resolve, request_options=request_options)
         return _response.data
-
-    def create_environment_revision(
-        self,
-        *,
-        environment_revision: EnvironmentRevisionCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentRevisionResponse:
+    
+    def create_environment_revision(self, *, environment_revision: EnvironmentRevisionCreate, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentRevisionResponse:
         """
         Parameters
         ----------
         environment_revision : EnvironmentRevisionCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, EnvironmentRevisionCreate
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -687,34 +507,27 @@ class EnvironmentsClient:
             environment_revision=EnvironmentRevisionCreate(),
         )
         """
-        _response = self._raw_client.create_environment_revision(
-            environment_revision=environment_revision, request_options=request_options
-        )
+        _response = self._raw_client.create_environment_revision(environment_revision=environment_revision, request_options=request_options)
         return _response.data
-
-    def fetch_environment_revision(
-        self,
-        environment_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentRevisionResponse:
+    
+    def fetch_environment_revision(self, environment_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentRevisionResponse:
         """
         Parameters
         ----------
         environment_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -722,37 +535,29 @@ class EnvironmentsClient:
             environment_revision_id="environment_revision_id",
         )
         """
-        _response = self._raw_client.fetch_environment_revision(
-            environment_revision_id, request_options=request_options
-        )
+        _response = self._raw_client.fetch_environment_revision(environment_revision_id, request_options=request_options)
         return _response.data
-
-    def edit_environment_revision(
-        self,
-        environment_revision_id: str,
-        *,
-        environment_revision: EnvironmentRevisionEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentRevisionResponse:
+    
+    def edit_environment_revision(self, environment_revision_id: str, *, environment_revision: EnvironmentRevisionEdit, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentRevisionResponse:
         """
         Parameters
         ----------
         environment_revision_id : str
-
+        
         environment_revision : EnvironmentRevisionEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, EnvironmentRevisionEdit
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -761,36 +566,27 @@ class EnvironmentsClient:
             environment_revision=EnvironmentRevisionEdit(),
         )
         """
-        _response = self._raw_client.edit_environment_revision(
-            environment_revision_id,
-            environment_revision=environment_revision,
-            request_options=request_options,
-        )
+        _response = self._raw_client.edit_environment_revision(environment_revision_id, environment_revision=environment_revision, request_options=request_options)
         return _response.data
-
-    def archive_environment_revision(
-        self,
-        environment_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentRevisionResponse:
+    
+    def archive_environment_revision(self, environment_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentRevisionResponse:
         """
         Parameters
         ----------
         environment_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -798,34 +594,27 @@ class EnvironmentsClient:
             environment_revision_id="environment_revision_id",
         )
         """
-        _response = self._raw_client.archive_environment_revision(
-            environment_revision_id, request_options=request_options
-        )
+        _response = self._raw_client.archive_environment_revision(environment_revision_id, request_options=request_options)
         return _response.data
-
-    def unarchive_environment_revision(
-        self,
-        environment_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentRevisionResponse:
+    
+    def unarchive_environment_revision(self, environment_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentRevisionResponse:
         """
         Parameters
         ----------
         environment_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -833,160 +622,99 @@ class EnvironmentsClient:
             environment_revision_id="environment_revision_id",
         )
         """
-        _response = self._raw_client.unarchive_environment_revision(
-            environment_revision_id, request_options=request_options
-        )
+        _response = self._raw_client.unarchive_environment_revision(environment_revision_id, request_options=request_options)
         return _response.data
-
-    def query_environment_revisions(
-        self,
-        *,
-        environment_id: typing.Optional[str] = None,
-        environment_ids: typing.Optional[typing.Sequence[str]] = None,
-        environment_slug: typing.Optional[str] = None,
-        environment_slugs: typing.Optional[typing.Sequence[str]] = None,
-        environment_variant_id: typing.Optional[str] = None,
-        environment_variant_ids: typing.Optional[typing.Sequence[str]] = None,
-        environment_variant_slug: typing.Optional[str] = None,
-        environment_variant_slugs: typing.Optional[typing.Sequence[str]] = None,
-        environment_revision_id: typing.Optional[str] = None,
-        environment_revision_ids: typing.Optional[typing.Sequence[str]] = None,
-        environment_revision_slug: typing.Optional[str] = None,
-        environment_revision_slugs: typing.Optional[typing.Sequence[str]] = None,
-        environment_revision_version: typing.Optional[str] = None,
-        environment_revision_versions: typing.Optional[typing.Sequence[str]] = None,
-        name: typing.Optional[str] = None,
-        description: typing.Optional[str] = None,
-        tags: typing.Optional[str] = None,
-        meta: typing.Optional[str] = None,
-        include_archived: typing.Optional[bool] = None,
-        next: typing.Optional[str] = None,
-        newest: typing.Optional[dt.datetime] = None,
-        oldest: typing.Optional[dt.datetime] = None,
-        limit: typing.Optional[int] = None,
-        order: typing.Optional[QueryEnvironmentRevisionsRequestOrder] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentRevisionsResponse:
+    
+    def query_environment_revisions(self, *, environment_id: typing.Optional[str] = None, environment_ids: typing.Optional[typing.Sequence[str]] = None, environment_slug: typing.Optional[str] = None, environment_slugs: typing.Optional[typing.Sequence[str]] = None, environment_variant_id: typing.Optional[str] = None, environment_variant_ids: typing.Optional[typing.Sequence[str]] = None, environment_variant_slug: typing.Optional[str] = None, environment_variant_slugs: typing.Optional[typing.Sequence[str]] = None, environment_revision_id: typing.Optional[str] = None, environment_revision_ids: typing.Optional[typing.Sequence[str]] = None, environment_revision_slug: typing.Optional[str] = None, environment_revision_slugs: typing.Optional[typing.Sequence[str]] = None, environment_revision_version: typing.Optional[str] = None, environment_revision_versions: typing.Optional[typing.Sequence[str]] = None, name: typing.Optional[str] = None, description: typing.Optional[str] = None, tags: typing.Optional[str] = None, meta: typing.Optional[str] = None, include_archived: typing.Optional[bool] = None, next: typing.Optional[str] = None, newest: typing.Optional[dt.datetime] = None, oldest: typing.Optional[dt.datetime] = None, limit: typing.Optional[int] = None, order: typing.Optional[QueryEnvironmentRevisionsRequestOrder] = None, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentRevisionsResponse:
         """
         Parameters
         ----------
         environment_id : typing.Optional[str]
-
+        
         environment_ids : typing.Optional[typing.Sequence[str]]
-
+        
         environment_slug : typing.Optional[str]
-
+        
         environment_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         environment_variant_id : typing.Optional[str]
-
+        
         environment_variant_ids : typing.Optional[typing.Sequence[str]]
-
+        
         environment_variant_slug : typing.Optional[str]
-
+        
         environment_variant_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         environment_revision_id : typing.Optional[str]
-
+        
         environment_revision_ids : typing.Optional[typing.Sequence[str]]
-
+        
         environment_revision_slug : typing.Optional[str]
-
+        
         environment_revision_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         environment_revision_version : typing.Optional[str]
-
+        
         environment_revision_versions : typing.Optional[typing.Sequence[str]]
-
+        
         name : typing.Optional[str]
-
+        
         description : typing.Optional[str]
-
+        
         tags : typing.Optional[str]
-
+        
         meta : typing.Optional[str]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         next : typing.Optional[str]
-
+        
         newest : typing.Optional[dt.datetime]
-
+        
         oldest : typing.Optional[dt.datetime]
-
+        
         limit : typing.Optional[int]
-
+        
         order : typing.Optional[QueryEnvironmentRevisionsRequestOrder]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentRevisionsResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.environments.query_environment_revisions()
         """
-        _response = self._raw_client.query_environment_revisions(
-            environment_id=environment_id,
-            environment_ids=environment_ids,
-            environment_slug=environment_slug,
-            environment_slugs=environment_slugs,
-            environment_variant_id=environment_variant_id,
-            environment_variant_ids=environment_variant_ids,
-            environment_variant_slug=environment_variant_slug,
-            environment_variant_slugs=environment_variant_slugs,
-            environment_revision_id=environment_revision_id,
-            environment_revision_ids=environment_revision_ids,
-            environment_revision_slug=environment_revision_slug,
-            environment_revision_slugs=environment_revision_slugs,
-            environment_revision_version=environment_revision_version,
-            environment_revision_versions=environment_revision_versions,
-            name=name,
-            description=description,
-            tags=tags,
-            meta=meta,
-            include_archived=include_archived,
-            next=next,
-            newest=newest,
-            oldest=oldest,
-            limit=limit,
-            order=order,
-            request_options=request_options,
-        )
+        _response = self._raw_client.query_environment_revisions(environment_id=environment_id, environment_ids=environment_ids, environment_slug=environment_slug, environment_slugs=environment_slugs, environment_variant_id=environment_variant_id, environment_variant_ids=environment_variant_ids, environment_variant_slug=environment_variant_slug, environment_variant_slugs=environment_variant_slugs, environment_revision_id=environment_revision_id, environment_revision_ids=environment_revision_ids, environment_revision_slug=environment_revision_slug, environment_revision_slugs=environment_revision_slugs, environment_revision_version=environment_revision_version, environment_revision_versions=environment_revision_versions, name=name, description=description, tags=tags, meta=meta, include_archived=include_archived, next=next, newest=newest, oldest=oldest, limit=limit, order=order, request_options=request_options)
         return _response.data
-
-    def commit_environment_revision(
-        self,
-        *,
-        environment_revision_commit: EnvironmentRevisionCommit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentRevisionResponse:
+    
+    def commit_environment_revision(self, *, environment_revision_commit: EnvironmentRevisionCommit, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentRevisionResponse:
         """
         Parameters
         ----------
         environment_revision_commit : EnvironmentRevisionCommit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, EnvironmentRevisionCommit
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -994,35 +722,27 @@ class EnvironmentsClient:
             environment_revision_commit=EnvironmentRevisionCommit(),
         )
         """
-        _response = self._raw_client.commit_environment_revision(
-            environment_revision_commit=environment_revision_commit,
-            request_options=request_options,
-        )
+        _response = self._raw_client.commit_environment_revision(environment_revision_commit=environment_revision_commit, request_options=request_options)
         return _response.data
-
-    def log_environment_revisions(
-        self,
-        *,
-        environment: EnvironmentRevisionsLog,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentRevisionsResponse:
+    
+    def log_environment_revisions(self, *, environment: EnvironmentRevisionsLog, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentRevisionsResponse:
         """
         Parameters
         ----------
         environment : EnvironmentRevisionsLog
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentRevisionsResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, EnvironmentRevisionsLog
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1030,98 +750,72 @@ class EnvironmentsClient:
             environment=EnvironmentRevisionsLog(),
         )
         """
-        _response = self._raw_client.log_environment_revisions(
-            environment=environment, request_options=request_options
-        )
+        _response = self._raw_client.log_environment_revisions(environment=environment, request_options=request_options)
         return _response.data
-
-    def resolve_environment_revision(
-        self,
-        *,
-        environment_ref: typing.Optional[Reference] = OMIT,
-        environment_variant_ref: typing.Optional[Reference] = OMIT,
-        environment_revision_ref: typing.Optional[Reference] = OMIT,
-        max_depth: typing.Optional[int] = OMIT,
-        max_embeds: typing.Optional[int] = OMIT,
-        error_policy: typing.Optional[ErrorPolicy] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentRevisionResolveResponse:
+    
+    def resolve_environment_revision(self, *, environment_ref: typing.Optional[Reference] = OMIT, environment_variant_ref: typing.Optional[Reference] = OMIT, environment_revision_ref: typing.Optional[Reference] = OMIT, max_depth: typing.Optional[int] = OMIT, max_embeds: typing.Optional[int] = OMIT, error_policy: typing.Optional[ErrorPolicy] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentRevisionResolveResponse:
         """
         Resolve embedded references in an environment revision configuration.
-
+        
         This endpoint:
         1. Fetches the environment revision
         2. Resolves all @ag.references tokens in the configuration
         3. Returns the revision with resolved configuration + metadata
-
+        
         Parameters
         ----------
         environment_ref : typing.Optional[Reference]
-
+        
         environment_variant_ref : typing.Optional[Reference]
-
+        
         environment_revision_ref : typing.Optional[Reference]
-
+        
         max_depth : typing.Optional[int]
-
+        
         max_embeds : typing.Optional[int]
-
+        
         error_policy : typing.Optional[ErrorPolicy]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentRevisionResolveResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.environments.resolve_environment_revision()
         """
-        _response = self._raw_client.resolve_environment_revision(
-            environment_ref=environment_ref,
-            environment_variant_ref=environment_variant_ref,
-            environment_revision_ref=environment_revision_ref,
-            max_depth=max_depth,
-            max_embeds=max_embeds,
-            error_policy=error_policy,
-            request_options=request_options,
-        )
+        _response = self._raw_client.resolve_environment_revision(environment_ref=environment_ref, environment_variant_ref=environment_variant_ref, environment_revision_ref=environment_revision_ref, max_depth=max_depth, max_embeds=max_embeds, error_policy=error_policy, request_options=request_options)
         return _response.data
-
-    def create_simple_environment(
-        self,
-        *,
-        environment: SimpleEnvironmentCreate,
-        environment_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleEnvironmentResponse:
+    
+    def create_simple_environment(self, *, environment: SimpleEnvironmentCreate, environment_id: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> SimpleEnvironmentResponse:
         """
         Parameters
         ----------
         environment : SimpleEnvironmentCreate
-
+        
         environment_id : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleEnvironmentResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, SimpleEnvironmentCreate
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1129,36 +823,27 @@ class EnvironmentsClient:
             environment=SimpleEnvironmentCreate(),
         )
         """
-        _response = self._raw_client.create_simple_environment(
-            environment=environment,
-            environment_id=environment_id,
-            request_options=request_options,
-        )
+        _response = self._raw_client.create_simple_environment(environment=environment, environment_id=environment_id, request_options=request_options)
         return _response.data
-
-    def fetch_simple_environment(
-        self,
-        environment_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleEnvironmentResponse:
+    
+    def fetch_simple_environment(self, environment_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleEnvironmentResponse:
         """
         Parameters
         ----------
         environment_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleEnvironmentResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1166,37 +851,29 @@ class EnvironmentsClient:
             environment_id="environment_id",
         )
         """
-        _response = self._raw_client.fetch_simple_environment(
-            environment_id, request_options=request_options
-        )
+        _response = self._raw_client.fetch_simple_environment(environment_id, request_options=request_options)
         return _response.data
-
-    def edit_simple_environment(
-        self,
-        environment_id: str,
-        *,
-        environment: SimpleEnvironmentEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleEnvironmentResponse:
+    
+    def edit_simple_environment(self, environment_id: str, *, environment: SimpleEnvironmentEdit, request_options: typing.Optional[RequestOptions] = None) -> SimpleEnvironmentResponse:
         """
         Parameters
         ----------
         environment_id : str
-
+        
         environment : SimpleEnvironmentEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleEnvironmentResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, SimpleEnvironmentEdit
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1205,34 +882,27 @@ class EnvironmentsClient:
             environment=SimpleEnvironmentEdit(),
         )
         """
-        _response = self._raw_client.edit_simple_environment(
-            environment_id, environment=environment, request_options=request_options
-        )
+        _response = self._raw_client.edit_simple_environment(environment_id, environment=environment, request_options=request_options)
         return _response.data
-
-    def archive_simple_environment(
-        self,
-        environment_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleEnvironmentResponse:
+    
+    def archive_simple_environment(self, environment_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleEnvironmentResponse:
         """
         Parameters
         ----------
         environment_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleEnvironmentResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1240,34 +910,27 @@ class EnvironmentsClient:
             environment_id="environment_id",
         )
         """
-        _response = self._raw_client.archive_simple_environment(
-            environment_id, request_options=request_options
-        )
+        _response = self._raw_client.archive_simple_environment(environment_id, request_options=request_options)
         return _response.data
-
-    def unarchive_simple_environment(
-        self,
-        environment_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleEnvironmentResponse:
+    
+    def unarchive_simple_environment(self, environment_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleEnvironmentResponse:
         """
         Parameters
         ----------
         environment_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleEnvironmentResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1275,80 +938,59 @@ class EnvironmentsClient:
             environment_id="environment_id",
         )
         """
-        _response = self._raw_client.unarchive_simple_environment(
-            environment_id, request_options=request_options
-        )
+        _response = self._raw_client.unarchive_simple_environment(environment_id, request_options=request_options)
         return _response.data
-
-    def query_simple_environments(
-        self,
-        *,
-        environment: typing.Optional[SimpleEnvironmentQuery] = OMIT,
-        environment_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleEnvironmentsResponse:
+    
+    def query_simple_environments(self, *, environment: typing.Optional[SimpleEnvironmentQuery] = OMIT, environment_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> SimpleEnvironmentsResponse:
         """
         Parameters
         ----------
         environment : typing.Optional[SimpleEnvironmentQuery]
-
+        
         environment_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleEnvironmentsResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.environments.query_simple_environments()
         """
-        _response = self._raw_client.query_simple_environments(
-            environment=environment,
-            environment_refs=environment_refs,
-            include_archived=include_archived,
-            windowing=windowing,
-            request_options=request_options,
-        )
+        _response = self._raw_client.query_simple_environments(environment=environment, environment_refs=environment_refs, include_archived=include_archived, windowing=windowing, request_options=request_options)
         return _response.data
-
-    def guard_simple_environment(
-        self,
-        environment_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleEnvironmentResponse:
+    
+    def guard_simple_environment(self, environment_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleEnvironmentResponse:
         """
         Parameters
         ----------
         environment_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleEnvironmentResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1356,34 +998,27 @@ class EnvironmentsClient:
             environment_id="environment_id",
         )
         """
-        _response = self._raw_client.guard_simple_environment(
-            environment_id, request_options=request_options
-        )
+        _response = self._raw_client.guard_simple_environment(environment_id, request_options=request_options)
         return _response.data
-
-    def unguard_simple_environment(
-        self,
-        environment_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleEnvironmentResponse:
+    
+    def unguard_simple_environment(self, environment_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleEnvironmentResponse:
         """
         Parameters
         ----------
         environment_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleEnvironmentResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1391,1601 +1026,1238 @@ class EnvironmentsClient:
             environment_id="environment_id",
         )
         """
-        _response = self._raw_client.unguard_simple_environment(
-            environment_id, request_options=request_options
-        )
+        _response = self._raw_client.unguard_simple_environment(environment_id, request_options=request_options)
         return _response.data
-
-
 class AsyncEnvironmentsClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._raw_client = AsyncRawEnvironmentsClient(client_wrapper=client_wrapper)
-
+    
     @property
     def with_raw_response(self) -> AsyncRawEnvironmentsClient:
         """
         Retrieves a raw implementation of this client that returns raw responses.
-
+        
         Returns
         -------
         AsyncRawEnvironmentsClient
         """
         return self._raw_client
-
-    async def create_environment(
-        self,
-        *,
-        environment: EnvironmentCreate,
-        environment_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentResponse:
+    
+    async def create_environment(self, *, environment: EnvironmentCreate, environment_id: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentResponse:
         """
         Parameters
         ----------
         environment : EnvironmentCreate
-
+        
         environment_id : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, EnvironmentCreate
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.create_environment(
                 environment=EnvironmentCreate(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_environment(
-            environment=environment,
-            environment_id=environment_id,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.create_environment(environment=environment, environment_id=environment_id, request_options=request_options)
         return _response.data
-
-    async def fetch_environment(
-        self,
-        environment_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentResponse:
+    
+    async def fetch_environment(self, environment_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentResponse:
         """
         Parameters
         ----------
         environment_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.fetch_environment(
                 environment_id="environment_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.fetch_environment(
-            environment_id, request_options=request_options
-        )
+        _response = await self._raw_client.fetch_environment(environment_id, request_options=request_options)
         return _response.data
-
-    async def edit_environment(
-        self,
-        environment_id: str,
-        *,
-        environment: EnvironmentEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentResponse:
+    
+    async def edit_environment(self, environment_id: str, *, environment: EnvironmentEdit, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentResponse:
         """
         Parameters
         ----------
         environment_id : str
-
+        
         environment : EnvironmentEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, EnvironmentEdit
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.edit_environment(
                 environment_id="environment_id",
                 environment=EnvironmentEdit(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.edit_environment(
-            environment_id, environment=environment, request_options=request_options
-        )
+        _response = await self._raw_client.edit_environment(environment_id, environment=environment, request_options=request_options)
         return _response.data
-
-    async def archive_environment(
-        self,
-        environment_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentResponse:
+    
+    async def archive_environment(self, environment_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentResponse:
         """
         Parameters
         ----------
         environment_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.archive_environment(
                 environment_id="environment_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.archive_environment(
-            environment_id, request_options=request_options
-        )
+        _response = await self._raw_client.archive_environment(environment_id, request_options=request_options)
         return _response.data
-
-    async def unarchive_environment(
-        self,
-        environment_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentResponse:
+    
+    async def unarchive_environment(self, environment_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentResponse:
         """
         Parameters
         ----------
         environment_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.unarchive_environment(
                 environment_id="environment_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.unarchive_environment(
-            environment_id, request_options=request_options
-        )
+        _response = await self._raw_client.unarchive_environment(environment_id, request_options=request_options)
         return _response.data
-
-    async def query_environments(
-        self,
-        *,
-        environment_id: typing.Optional[str] = None,
-        environment_ids: typing.Optional[typing.Sequence[str]] = None,
-        environment_slug: typing.Optional[str] = None,
-        environment_slugs: typing.Optional[typing.Sequence[str]] = None,
-        name: typing.Optional[str] = None,
-        description: typing.Optional[str] = None,
-        tags: typing.Optional[str] = None,
-        meta: typing.Optional[str] = None,
-        include_archived: typing.Optional[bool] = None,
-        next: typing.Optional[str] = None,
-        newest: typing.Optional[dt.datetime] = None,
-        oldest: typing.Optional[dt.datetime] = None,
-        limit: typing.Optional[int] = None,
-        order: typing.Optional[QueryEnvironmentsRequestOrder] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentsResponse:
+    
+    async def query_environments(self, *, environment_id: typing.Optional[str] = None, environment_ids: typing.Optional[typing.Sequence[str]] = None, environment_slug: typing.Optional[str] = None, environment_slugs: typing.Optional[typing.Sequence[str]] = None, name: typing.Optional[str] = None, description: typing.Optional[str] = None, tags: typing.Optional[str] = None, meta: typing.Optional[str] = None, include_archived: typing.Optional[bool] = None, next: typing.Optional[str] = None, newest: typing.Optional[dt.datetime] = None, oldest: typing.Optional[dt.datetime] = None, limit: typing.Optional[int] = None, order: typing.Optional[QueryEnvironmentsRequestOrder] = None, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentsResponse:
         """
         Parameters
         ----------
         environment_id : typing.Optional[str]
-
+        
         environment_ids : typing.Optional[typing.Sequence[str]]
-
+        
         environment_slug : typing.Optional[str]
-
+        
         environment_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         name : typing.Optional[str]
-
+        
         description : typing.Optional[str]
-
+        
         tags : typing.Optional[str]
-
+        
         meta : typing.Optional[str]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         next : typing.Optional[str]
-
+        
         newest : typing.Optional[dt.datetime]
-
+        
         oldest : typing.Optional[dt.datetime]
-
+        
         limit : typing.Optional[int]
-
+        
         order : typing.Optional[QueryEnvironmentsRequestOrder]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentsResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.query_environments()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.query_environments(
-            environment_id=environment_id,
-            environment_ids=environment_ids,
-            environment_slug=environment_slug,
-            environment_slugs=environment_slugs,
-            name=name,
-            description=description,
-            tags=tags,
-            meta=meta,
-            include_archived=include_archived,
-            next=next,
-            newest=newest,
-            oldest=oldest,
-            limit=limit,
-            order=order,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.query_environments(environment_id=environment_id, environment_ids=environment_ids, environment_slug=environment_slug, environment_slugs=environment_slugs, name=name, description=description, tags=tags, meta=meta, include_archived=include_archived, next=next, newest=newest, oldest=oldest, limit=limit, order=order, request_options=request_options)
         return _response.data
-
-    async def create_environment_variant(
-        self,
-        *,
-        environment_variant: EnvironmentVariantCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentVariantResponse:
+    
+    async def create_environment_variant(self, *, environment_variant: EnvironmentVariantCreate, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentVariantResponse:
         """
         Parameters
         ----------
         environment_variant : EnvironmentVariantCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentVariantResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, EnvironmentVariantCreate
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.create_environment_variant(
                 environment_variant=EnvironmentVariantCreate(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_environment_variant(
-            environment_variant=environment_variant, request_options=request_options
-        )
+        _response = await self._raw_client.create_environment_variant(environment_variant=environment_variant, request_options=request_options)
         return _response.data
-
-    async def fetch_environment_variant(
-        self,
-        environment_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentVariantResponse:
+    
+    async def fetch_environment_variant(self, environment_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentVariantResponse:
         """
         Parameters
         ----------
         environment_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentVariantResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.fetch_environment_variant(
                 environment_variant_id="environment_variant_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.fetch_environment_variant(
-            environment_variant_id, request_options=request_options
-        )
+        _response = await self._raw_client.fetch_environment_variant(environment_variant_id, request_options=request_options)
         return _response.data
-
-    async def edit_environment_variant(
-        self,
-        environment_variant_id: str,
-        *,
-        environment_variant: EnvironmentVariantEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentVariantResponse:
+    
+    async def edit_environment_variant(self, environment_variant_id: str, *, environment_variant: EnvironmentVariantEdit, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentVariantResponse:
         """
         Parameters
         ----------
         environment_variant_id : str
-
+        
         environment_variant : EnvironmentVariantEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentVariantResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, EnvironmentVariantEdit
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.edit_environment_variant(
                 environment_variant_id="environment_variant_id",
                 environment_variant=EnvironmentVariantEdit(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.edit_environment_variant(
-            environment_variant_id,
-            environment_variant=environment_variant,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.edit_environment_variant(environment_variant_id, environment_variant=environment_variant, request_options=request_options)
         return _response.data
-
-    async def archive_environment_variant(
-        self,
-        environment_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentVariantResponse:
+    
+    async def archive_environment_variant(self, environment_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentVariantResponse:
         """
         Parameters
         ----------
         environment_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentVariantResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.archive_environment_variant(
                 environment_variant_id="environment_variant_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.archive_environment_variant(
-            environment_variant_id, request_options=request_options
-        )
+        _response = await self._raw_client.archive_environment_variant(environment_variant_id, request_options=request_options)
         return _response.data
-
-    async def unarchive_environment_variant(
-        self,
-        environment_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentVariantResponse:
+    
+    async def unarchive_environment_variant(self, environment_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentVariantResponse:
         """
         Parameters
         ----------
         environment_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentVariantResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.unarchive_environment_variant(
                 environment_variant_id="environment_variant_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.unarchive_environment_variant(
-            environment_variant_id, request_options=request_options
-        )
+        _response = await self._raw_client.unarchive_environment_variant(environment_variant_id, request_options=request_options)
         return _response.data
-
-    async def query_environment_variants(
-        self,
-        *,
-        environment_id: typing.Optional[str] = None,
-        environment_ids: typing.Optional[typing.Sequence[str]] = None,
-        environment_slug: typing.Optional[str] = None,
-        environment_slugs: typing.Optional[typing.Sequence[str]] = None,
-        environment_variant_id: typing.Optional[str] = None,
-        environment_variant_ids: typing.Optional[typing.Sequence[str]] = None,
-        environment_variant_slug: typing.Optional[str] = None,
-        environment_variant_slugs: typing.Optional[typing.Sequence[str]] = None,
-        name: typing.Optional[str] = None,
-        description: typing.Optional[str] = None,
-        tags: typing.Optional[str] = None,
-        meta: typing.Optional[str] = None,
-        include_archived: typing.Optional[bool] = None,
-        next: typing.Optional[str] = None,
-        newest: typing.Optional[dt.datetime] = None,
-        oldest: typing.Optional[dt.datetime] = None,
-        limit: typing.Optional[int] = None,
-        order: typing.Optional[QueryEnvironmentVariantsRequestOrder] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentVariantsResponse:
+    
+    async def query_environment_variants(self, *, environment_id: typing.Optional[str] = None, environment_ids: typing.Optional[typing.Sequence[str]] = None, environment_slug: typing.Optional[str] = None, environment_slugs: typing.Optional[typing.Sequence[str]] = None, environment_variant_id: typing.Optional[str] = None, environment_variant_ids: typing.Optional[typing.Sequence[str]] = None, environment_variant_slug: typing.Optional[str] = None, environment_variant_slugs: typing.Optional[typing.Sequence[str]] = None, name: typing.Optional[str] = None, description: typing.Optional[str] = None, tags: typing.Optional[str] = None, meta: typing.Optional[str] = None, include_archived: typing.Optional[bool] = None, next: typing.Optional[str] = None, newest: typing.Optional[dt.datetime] = None, oldest: typing.Optional[dt.datetime] = None, limit: typing.Optional[int] = None, order: typing.Optional[QueryEnvironmentVariantsRequestOrder] = None, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentVariantsResponse:
         """
         Parameters
         ----------
         environment_id : typing.Optional[str]
-
+        
         environment_ids : typing.Optional[typing.Sequence[str]]
-
+        
         environment_slug : typing.Optional[str]
-
+        
         environment_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         environment_variant_id : typing.Optional[str]
-
+        
         environment_variant_ids : typing.Optional[typing.Sequence[str]]
-
+        
         environment_variant_slug : typing.Optional[str]
-
+        
         environment_variant_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         name : typing.Optional[str]
-
+        
         description : typing.Optional[str]
-
+        
         tags : typing.Optional[str]
-
+        
         meta : typing.Optional[str]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         next : typing.Optional[str]
-
+        
         newest : typing.Optional[dt.datetime]
-
+        
         oldest : typing.Optional[dt.datetime]
-
+        
         limit : typing.Optional[int]
-
+        
         order : typing.Optional[QueryEnvironmentVariantsRequestOrder]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentVariantsResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.query_environment_variants()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.query_environment_variants(
-            environment_id=environment_id,
-            environment_ids=environment_ids,
-            environment_slug=environment_slug,
-            environment_slugs=environment_slugs,
-            environment_variant_id=environment_variant_id,
-            environment_variant_ids=environment_variant_ids,
-            environment_variant_slug=environment_variant_slug,
-            environment_variant_slugs=environment_variant_slugs,
-            name=name,
-            description=description,
-            tags=tags,
-            meta=meta,
-            include_archived=include_archived,
-            next=next,
-            newest=newest,
-            oldest=oldest,
-            limit=limit,
-            order=order,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.query_environment_variants(environment_id=environment_id, environment_ids=environment_ids, environment_slug=environment_slug, environment_slugs=environment_slugs, environment_variant_id=environment_variant_id, environment_variant_ids=environment_variant_ids, environment_variant_slug=environment_variant_slug, environment_variant_slugs=environment_variant_slugs, name=name, description=description, tags=tags, meta=meta, include_archived=include_archived, next=next, newest=newest, oldest=oldest, limit=limit, order=order, request_options=request_options)
         return _response.data
-
-    async def retrieve_environment_revision(
-        self,
-        *,
-        environment_ref: typing.Optional[Reference] = OMIT,
-        environment_variant_ref: typing.Optional[Reference] = OMIT,
-        environment_revision_ref: typing.Optional[Reference] = OMIT,
-        resolve: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentRevisionResponse:
+    
+    async def retrieve_environment_revision(self, *, environment_ref: typing.Optional[Reference] = OMIT, environment_variant_ref: typing.Optional[Reference] = OMIT, environment_revision_ref: typing.Optional[Reference] = OMIT, resolve: typing.Optional[bool] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentRevisionResponse:
         """
         Parameters
         ----------
         environment_ref : typing.Optional[Reference]
-
+        
         environment_variant_ref : typing.Optional[Reference]
-
+        
         environment_revision_ref : typing.Optional[Reference]
-
+        
         resolve : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.retrieve_environment_revision()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.retrieve_environment_revision(
-            environment_ref=environment_ref,
-            environment_variant_ref=environment_variant_ref,
-            environment_revision_ref=environment_revision_ref,
-            resolve=resolve,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.retrieve_environment_revision(environment_ref=environment_ref, environment_variant_ref=environment_variant_ref, environment_revision_ref=environment_revision_ref, resolve=resolve, request_options=request_options)
         return _response.data
-
-    async def create_environment_revision(
-        self,
-        *,
-        environment_revision: EnvironmentRevisionCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentRevisionResponse:
+    
+    async def create_environment_revision(self, *, environment_revision: EnvironmentRevisionCreate, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentRevisionResponse:
         """
         Parameters
         ----------
         environment_revision : EnvironmentRevisionCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, EnvironmentRevisionCreate
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.create_environment_revision(
                 environment_revision=EnvironmentRevisionCreate(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_environment_revision(
-            environment_revision=environment_revision, request_options=request_options
-        )
+        _response = await self._raw_client.create_environment_revision(environment_revision=environment_revision, request_options=request_options)
         return _response.data
-
-    async def fetch_environment_revision(
-        self,
-        environment_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentRevisionResponse:
+    
+    async def fetch_environment_revision(self, environment_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentRevisionResponse:
         """
         Parameters
         ----------
         environment_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.fetch_environment_revision(
                 environment_revision_id="environment_revision_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.fetch_environment_revision(
-            environment_revision_id, request_options=request_options
-        )
+        _response = await self._raw_client.fetch_environment_revision(environment_revision_id, request_options=request_options)
         return _response.data
-
-    async def edit_environment_revision(
-        self,
-        environment_revision_id: str,
-        *,
-        environment_revision: EnvironmentRevisionEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentRevisionResponse:
+    
+    async def edit_environment_revision(self, environment_revision_id: str, *, environment_revision: EnvironmentRevisionEdit, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentRevisionResponse:
         """
         Parameters
         ----------
         environment_revision_id : str
-
+        
         environment_revision : EnvironmentRevisionEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, EnvironmentRevisionEdit
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.edit_environment_revision(
                 environment_revision_id="environment_revision_id",
                 environment_revision=EnvironmentRevisionEdit(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.edit_environment_revision(
-            environment_revision_id,
-            environment_revision=environment_revision,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.edit_environment_revision(environment_revision_id, environment_revision=environment_revision, request_options=request_options)
         return _response.data
-
-    async def archive_environment_revision(
-        self,
-        environment_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentRevisionResponse:
+    
+    async def archive_environment_revision(self, environment_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentRevisionResponse:
         """
         Parameters
         ----------
         environment_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.archive_environment_revision(
                 environment_revision_id="environment_revision_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.archive_environment_revision(
-            environment_revision_id, request_options=request_options
-        )
+        _response = await self._raw_client.archive_environment_revision(environment_revision_id, request_options=request_options)
         return _response.data
-
-    async def unarchive_environment_revision(
-        self,
-        environment_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentRevisionResponse:
+    
+    async def unarchive_environment_revision(self, environment_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentRevisionResponse:
         """
         Parameters
         ----------
         environment_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.unarchive_environment_revision(
                 environment_revision_id="environment_revision_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.unarchive_environment_revision(
-            environment_revision_id, request_options=request_options
-        )
+        _response = await self._raw_client.unarchive_environment_revision(environment_revision_id, request_options=request_options)
         return _response.data
-
-    async def query_environment_revisions(
-        self,
-        *,
-        environment_id: typing.Optional[str] = None,
-        environment_ids: typing.Optional[typing.Sequence[str]] = None,
-        environment_slug: typing.Optional[str] = None,
-        environment_slugs: typing.Optional[typing.Sequence[str]] = None,
-        environment_variant_id: typing.Optional[str] = None,
-        environment_variant_ids: typing.Optional[typing.Sequence[str]] = None,
-        environment_variant_slug: typing.Optional[str] = None,
-        environment_variant_slugs: typing.Optional[typing.Sequence[str]] = None,
-        environment_revision_id: typing.Optional[str] = None,
-        environment_revision_ids: typing.Optional[typing.Sequence[str]] = None,
-        environment_revision_slug: typing.Optional[str] = None,
-        environment_revision_slugs: typing.Optional[typing.Sequence[str]] = None,
-        environment_revision_version: typing.Optional[str] = None,
-        environment_revision_versions: typing.Optional[typing.Sequence[str]] = None,
-        name: typing.Optional[str] = None,
-        description: typing.Optional[str] = None,
-        tags: typing.Optional[str] = None,
-        meta: typing.Optional[str] = None,
-        include_archived: typing.Optional[bool] = None,
-        next: typing.Optional[str] = None,
-        newest: typing.Optional[dt.datetime] = None,
-        oldest: typing.Optional[dt.datetime] = None,
-        limit: typing.Optional[int] = None,
-        order: typing.Optional[QueryEnvironmentRevisionsRequestOrder] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentRevisionsResponse:
+    
+    async def query_environment_revisions(self, *, environment_id: typing.Optional[str] = None, environment_ids: typing.Optional[typing.Sequence[str]] = None, environment_slug: typing.Optional[str] = None, environment_slugs: typing.Optional[typing.Sequence[str]] = None, environment_variant_id: typing.Optional[str] = None, environment_variant_ids: typing.Optional[typing.Sequence[str]] = None, environment_variant_slug: typing.Optional[str] = None, environment_variant_slugs: typing.Optional[typing.Sequence[str]] = None, environment_revision_id: typing.Optional[str] = None, environment_revision_ids: typing.Optional[typing.Sequence[str]] = None, environment_revision_slug: typing.Optional[str] = None, environment_revision_slugs: typing.Optional[typing.Sequence[str]] = None, environment_revision_version: typing.Optional[str] = None, environment_revision_versions: typing.Optional[typing.Sequence[str]] = None, name: typing.Optional[str] = None, description: typing.Optional[str] = None, tags: typing.Optional[str] = None, meta: typing.Optional[str] = None, include_archived: typing.Optional[bool] = None, next: typing.Optional[str] = None, newest: typing.Optional[dt.datetime] = None, oldest: typing.Optional[dt.datetime] = None, limit: typing.Optional[int] = None, order: typing.Optional[QueryEnvironmentRevisionsRequestOrder] = None, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentRevisionsResponse:
         """
         Parameters
         ----------
         environment_id : typing.Optional[str]
-
+        
         environment_ids : typing.Optional[typing.Sequence[str]]
-
+        
         environment_slug : typing.Optional[str]
-
+        
         environment_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         environment_variant_id : typing.Optional[str]
-
+        
         environment_variant_ids : typing.Optional[typing.Sequence[str]]
-
+        
         environment_variant_slug : typing.Optional[str]
-
+        
         environment_variant_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         environment_revision_id : typing.Optional[str]
-
+        
         environment_revision_ids : typing.Optional[typing.Sequence[str]]
-
+        
         environment_revision_slug : typing.Optional[str]
-
+        
         environment_revision_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         environment_revision_version : typing.Optional[str]
-
+        
         environment_revision_versions : typing.Optional[typing.Sequence[str]]
-
+        
         name : typing.Optional[str]
-
+        
         description : typing.Optional[str]
-
+        
         tags : typing.Optional[str]
-
+        
         meta : typing.Optional[str]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         next : typing.Optional[str]
-
+        
         newest : typing.Optional[dt.datetime]
-
+        
         oldest : typing.Optional[dt.datetime]
-
+        
         limit : typing.Optional[int]
-
+        
         order : typing.Optional[QueryEnvironmentRevisionsRequestOrder]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentRevisionsResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.query_environment_revisions()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.query_environment_revisions(
-            environment_id=environment_id,
-            environment_ids=environment_ids,
-            environment_slug=environment_slug,
-            environment_slugs=environment_slugs,
-            environment_variant_id=environment_variant_id,
-            environment_variant_ids=environment_variant_ids,
-            environment_variant_slug=environment_variant_slug,
-            environment_variant_slugs=environment_variant_slugs,
-            environment_revision_id=environment_revision_id,
-            environment_revision_ids=environment_revision_ids,
-            environment_revision_slug=environment_revision_slug,
-            environment_revision_slugs=environment_revision_slugs,
-            environment_revision_version=environment_revision_version,
-            environment_revision_versions=environment_revision_versions,
-            name=name,
-            description=description,
-            tags=tags,
-            meta=meta,
-            include_archived=include_archived,
-            next=next,
-            newest=newest,
-            oldest=oldest,
-            limit=limit,
-            order=order,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.query_environment_revisions(environment_id=environment_id, environment_ids=environment_ids, environment_slug=environment_slug, environment_slugs=environment_slugs, environment_variant_id=environment_variant_id, environment_variant_ids=environment_variant_ids, environment_variant_slug=environment_variant_slug, environment_variant_slugs=environment_variant_slugs, environment_revision_id=environment_revision_id, environment_revision_ids=environment_revision_ids, environment_revision_slug=environment_revision_slug, environment_revision_slugs=environment_revision_slugs, environment_revision_version=environment_revision_version, environment_revision_versions=environment_revision_versions, name=name, description=description, tags=tags, meta=meta, include_archived=include_archived, next=next, newest=newest, oldest=oldest, limit=limit, order=order, request_options=request_options)
         return _response.data
-
-    async def commit_environment_revision(
-        self,
-        *,
-        environment_revision_commit: EnvironmentRevisionCommit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentRevisionResponse:
+    
+    async def commit_environment_revision(self, *, environment_revision_commit: EnvironmentRevisionCommit, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentRevisionResponse:
         """
         Parameters
         ----------
         environment_revision_commit : EnvironmentRevisionCommit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, EnvironmentRevisionCommit
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.commit_environment_revision(
                 environment_revision_commit=EnvironmentRevisionCommit(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.commit_environment_revision(
-            environment_revision_commit=environment_revision_commit,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.commit_environment_revision(environment_revision_commit=environment_revision_commit, request_options=request_options)
         return _response.data
-
-    async def log_environment_revisions(
-        self,
-        *,
-        environment: EnvironmentRevisionsLog,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentRevisionsResponse:
+    
+    async def log_environment_revisions(self, *, environment: EnvironmentRevisionsLog, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentRevisionsResponse:
         """
         Parameters
         ----------
         environment : EnvironmentRevisionsLog
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentRevisionsResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, EnvironmentRevisionsLog
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.log_environment_revisions(
                 environment=EnvironmentRevisionsLog(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.log_environment_revisions(
-            environment=environment, request_options=request_options
-        )
+        _response = await self._raw_client.log_environment_revisions(environment=environment, request_options=request_options)
         return _response.data
-
-    async def resolve_environment_revision(
-        self,
-        *,
-        environment_ref: typing.Optional[Reference] = OMIT,
-        environment_variant_ref: typing.Optional[Reference] = OMIT,
-        environment_revision_ref: typing.Optional[Reference] = OMIT,
-        max_depth: typing.Optional[int] = OMIT,
-        max_embeds: typing.Optional[int] = OMIT,
-        error_policy: typing.Optional[ErrorPolicy] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> EnvironmentRevisionResolveResponse:
+    
+    async def resolve_environment_revision(self, *, environment_ref: typing.Optional[Reference] = OMIT, environment_variant_ref: typing.Optional[Reference] = OMIT, environment_revision_ref: typing.Optional[Reference] = OMIT, max_depth: typing.Optional[int] = OMIT, max_embeds: typing.Optional[int] = OMIT, error_policy: typing.Optional[ErrorPolicy] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> EnvironmentRevisionResolveResponse:
         """
         Resolve embedded references in an environment revision configuration.
-
+        
         This endpoint:
         1. Fetches the environment revision
         2. Resolves all @ag.references tokens in the configuration
         3. Returns the revision with resolved configuration + metadata
-
+        
         Parameters
         ----------
         environment_ref : typing.Optional[Reference]
-
+        
         environment_variant_ref : typing.Optional[Reference]
-
+        
         environment_revision_ref : typing.Optional[Reference]
-
+        
         max_depth : typing.Optional[int]
-
+        
         max_embeds : typing.Optional[int]
-
+        
         error_policy : typing.Optional[ErrorPolicy]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         EnvironmentRevisionResolveResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.resolve_environment_revision()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.resolve_environment_revision(
-            environment_ref=environment_ref,
-            environment_variant_ref=environment_variant_ref,
-            environment_revision_ref=environment_revision_ref,
-            max_depth=max_depth,
-            max_embeds=max_embeds,
-            error_policy=error_policy,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.resolve_environment_revision(environment_ref=environment_ref, environment_variant_ref=environment_variant_ref, environment_revision_ref=environment_revision_ref, max_depth=max_depth, max_embeds=max_embeds, error_policy=error_policy, request_options=request_options)
         return _response.data
-
-    async def create_simple_environment(
-        self,
-        *,
-        environment: SimpleEnvironmentCreate,
-        environment_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleEnvironmentResponse:
+    
+    async def create_simple_environment(self, *, environment: SimpleEnvironmentCreate, environment_id: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> SimpleEnvironmentResponse:
         """
         Parameters
         ----------
         environment : SimpleEnvironmentCreate
-
+        
         environment_id : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleEnvironmentResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, SimpleEnvironmentCreate
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.create_simple_environment(
                 environment=SimpleEnvironmentCreate(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_simple_environment(
-            environment=environment,
-            environment_id=environment_id,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.create_simple_environment(environment=environment, environment_id=environment_id, request_options=request_options)
         return _response.data
-
-    async def fetch_simple_environment(
-        self,
-        environment_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleEnvironmentResponse:
+    
+    async def fetch_simple_environment(self, environment_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleEnvironmentResponse:
         """
         Parameters
         ----------
         environment_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleEnvironmentResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.fetch_simple_environment(
                 environment_id="environment_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.fetch_simple_environment(
-            environment_id, request_options=request_options
-        )
+        _response = await self._raw_client.fetch_simple_environment(environment_id, request_options=request_options)
         return _response.data
-
-    async def edit_simple_environment(
-        self,
-        environment_id: str,
-        *,
-        environment: SimpleEnvironmentEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleEnvironmentResponse:
+    
+    async def edit_simple_environment(self, environment_id: str, *, environment: SimpleEnvironmentEdit, request_options: typing.Optional[RequestOptions] = None) -> SimpleEnvironmentResponse:
         """
         Parameters
         ----------
         environment_id : str
-
+        
         environment : SimpleEnvironmentEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleEnvironmentResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, SimpleEnvironmentEdit
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.edit_simple_environment(
                 environment_id="environment_id",
                 environment=SimpleEnvironmentEdit(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.edit_simple_environment(
-            environment_id, environment=environment, request_options=request_options
-        )
+        _response = await self._raw_client.edit_simple_environment(environment_id, environment=environment, request_options=request_options)
         return _response.data
-
-    async def archive_simple_environment(
-        self,
-        environment_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleEnvironmentResponse:
+    
+    async def archive_simple_environment(self, environment_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleEnvironmentResponse:
         """
         Parameters
         ----------
         environment_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleEnvironmentResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.archive_simple_environment(
                 environment_id="environment_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.archive_simple_environment(
-            environment_id, request_options=request_options
-        )
+        _response = await self._raw_client.archive_simple_environment(environment_id, request_options=request_options)
         return _response.data
-
-    async def unarchive_simple_environment(
-        self,
-        environment_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleEnvironmentResponse:
+    
+    async def unarchive_simple_environment(self, environment_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleEnvironmentResponse:
         """
         Parameters
         ----------
         environment_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleEnvironmentResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.unarchive_simple_environment(
                 environment_id="environment_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.unarchive_simple_environment(
-            environment_id, request_options=request_options
-        )
+        _response = await self._raw_client.unarchive_simple_environment(environment_id, request_options=request_options)
         return _response.data
-
-    async def query_simple_environments(
-        self,
-        *,
-        environment: typing.Optional[SimpleEnvironmentQuery] = OMIT,
-        environment_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleEnvironmentsResponse:
+    
+    async def query_simple_environments(self, *, environment: typing.Optional[SimpleEnvironmentQuery] = OMIT, environment_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> SimpleEnvironmentsResponse:
         """
         Parameters
         ----------
         environment : typing.Optional[SimpleEnvironmentQuery]
-
+        
         environment_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleEnvironmentsResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.query_simple_environments()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.query_simple_environments(
-            environment=environment,
-            environment_refs=environment_refs,
-            include_archived=include_archived,
-            windowing=windowing,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.query_simple_environments(environment=environment, environment_refs=environment_refs, include_archived=include_archived, windowing=windowing, request_options=request_options)
         return _response.data
-
-    async def guard_simple_environment(
-        self,
-        environment_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleEnvironmentResponse:
+    
+    async def guard_simple_environment(self, environment_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleEnvironmentResponse:
         """
         Parameters
         ----------
         environment_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleEnvironmentResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.guard_simple_environment(
                 environment_id="environment_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.guard_simple_environment(
-            environment_id, request_options=request_options
-        )
+        _response = await self._raw_client.guard_simple_environment(environment_id, request_options=request_options)
         return _response.data
-
-    async def unguard_simple_environment(
-        self,
-        environment_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleEnvironmentResponse:
+    
+    async def unguard_simple_environment(self, environment_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleEnvironmentResponse:
         """
         Parameters
         ----------
         environment_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleEnvironmentResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.environments.unguard_simple_environment(
                 environment_id="environment_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.unguard_simple_environment(
-            environment_id, request_options=request_options
-        )
+        _response = await self._raw_client.unguard_simple_environment(environment_id, request_options=request_options)
         return _response.data

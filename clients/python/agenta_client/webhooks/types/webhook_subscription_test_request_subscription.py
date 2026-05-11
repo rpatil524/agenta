@@ -5,6 +5,4 @@ import typing
 from ...types.webhook_subscription_create import WebhookSubscriptionCreate
 from ...types.webhook_subscription_edit import WebhookSubscriptionEdit
 
-WebhookSubscriptionTestRequestSubscription = typing.Union[
-    WebhookSubscriptionEdit, WebhookSubscriptionCreate
-]
+WebhookSubscriptionTestRequestSubscription = typing.Union[WebhookSubscriptionEdit, WebhookSubscriptionCreate]

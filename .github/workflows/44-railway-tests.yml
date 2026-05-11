@@ -278,7 +278,7 @@ jobs:
         if: steps.auth_bootstrap.outputs.enabled == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "24"
 
       - name: Install pnpm
         if: steps.auth_bootstrap.outputs.enabled == 'true'
@@ -336,7 +336,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
 
       - name: Cache Python dependencies
         uses: actions/cache@v4
@@ -350,7 +350,7 @@ jobs:
         run: |
           pip install "uv==0.11.9"
           cd api
-          uv sync --locked --python 3.11
+          uv sync --locked --python 3.13
           uv pip install --python .venv/bin/python --editable ../sdks/python/
 
       - name: Run API tests
@@ -437,7 +437,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
 
       - name: Cache Python dependencies
         uses: actions/cache@v4
@@ -451,7 +451,7 @@ jobs:
         run: |
           pip install "uv==0.11.9"
           cd sdks/python
-          uv sync --locked --python 3.11
+          uv sync --locked --python 3.13
 
       - name: Run SDK tests
         run: |
@@ -538,13 +538,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
 
       - name: Cache Python dependencies
         uses: actions/cache@v4
         with:
           path: ~/.cache/uv
-          key: ${{ runner.os }}-railway-services-uv-${{ hashFiles('services/pyproject.toml', 'services/uv.lock', 'sdk/pyproject.toml', 'sdk/uv.lock') }}
+          key: ${{ runner.os }}-railway-services-uv-${{ hashFiles('services/pyproject.toml', 'services/uv.lock', 'sdks/python/pyproject.toml', 'sdks/python/uv.lock', 'clients/python/pyproject.toml') }}
           restore-keys: |
             ${{ runner.os }}-railway-services-uv-
 
@@ -552,8 +552,8 @@ jobs:
         run: |
           pip install "uv==0.11.9"
           cd services
-          uv sync --locked --python 3.11
-          uv pip install --python .venv/bin/python --editable ../sdk/
+          uv sync --locked --python 3.13
+          uv pip install --python .venv/bin/python --editable ../sdks/python/
 
       - name: Run services tests
         run: |
@@ -647,7 +647,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "24"
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4

@@ -9,19 +9,16 @@ from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 class TestsetFlags(UniversalBaseModel):
     """
     Placeholder for testset-level flags.
-
+    
     This model is intentionally empty but kept as a dedicated type so that:
     - existing references to `flags: Optional[TestsetFlags]` remain valid, and
     - structured flags can be added here in the future without breaking the
       surrounding DTOs.
     """
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

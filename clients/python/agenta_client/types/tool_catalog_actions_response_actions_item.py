@@ -5,6 +5,4 @@ import typing
 from .tool_catalog_action import ToolCatalogAction
 from .tool_catalog_action_details import ToolCatalogActionDetails
 
-ToolCatalogActionsResponseActionsItem = typing.Union[
-    ToolCatalogAction, ToolCatalogActionDetails
-]
+ToolCatalogActionsResponseActionsItem = typing.Union[ToolCatalogAction, ToolCatalogActionDetails]

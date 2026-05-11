@@ -2,6 +2,4 @@
 
 import typing
 
-SimpleApplicationDataOutputRuntime = typing.Union[
-    typing.Literal["python", "typescript", "javascript"], typing.Any
-]
+SimpleApplicationDataOutputRuntime = typing.Union[typing.Literal["python", "typescript", "javascript"], typing.Any]

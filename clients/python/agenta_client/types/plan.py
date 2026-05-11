@@ -2,15 +2,4 @@
 
 import typing
 
-Plan = typing.Union[
-    typing.Literal[
-        "cloud_v0_hobby",
-        "cloud_v0_pro",
-        "cloud_v0_business",
-        "cloud_v0_humanity_labs",
-        "cloud_v0_x_labs",
-        "cloud_v0_agenta_ai",
-        "self_hosted_enterprise",
-    ],
-    typing.Any,
-]
+Plan = typing.Union[typing.Literal["cloud_v0_hobby", "cloud_v0_pro", "cloud_v0_business", "cloud_v0_humanity_labs", "cloud_v0_x_labs", "cloud_v0_agenta_ai", "self_hosted_enterprise"], typing.Any]

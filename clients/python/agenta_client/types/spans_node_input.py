@@ -6,11 +6,7 @@ import datetime as dt
 import typing
 
 import pydantic
-from ..core.pydantic_utilities import (
-    IS_PYDANTIC_V2,
-    UniversalBaseModel,
-    update_forward_refs,
-)
+from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel, update_forward_refs
 from .o_tel_event_input import OTelEventInput
 from .o_tel_hash_input import OTelHashInput
 from .o_tel_link_input import OTelLinkInput
@@ -24,9 +20,7 @@ from .trace_type import TraceType
 
 
 class SpansNodeInput(UniversalBaseModel):
-    spans: typing.Optional[
-        typing.Dict[str, typing.Optional["SpansNodeInputSpansValue"]]
-    ] = None
+    spans: typing.Optional[typing.Dict[str, typing.Optional["SpansNodeInputSpansValue"]]] = None
     created_at: typing.Optional[dt.datetime] = None
     updated_at: typing.Optional[dt.datetime] = None
     deleted_at: typing.Optional[dt.datetime] = None
@@ -50,24 +44,14 @@ class SpansNodeInput(UniversalBaseModel):
     hashes: typing.Optional[typing.List[OTelHashInput]] = None
     exception: typing.Optional[typing.Dict[str, typing.Any]] = None
     events: typing.Optional[typing.List[OTelEventInput]] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True
             extra = pydantic.Extra.allow
-
-
-from .spans_node_input_spans_value import SpansNodeInputSpansValue  # noqa: E402, I001
-from .full_json_input import FullJsonInput  # noqa: E402, I001
-
-update_forward_refs(
-    SpansNodeInput,
-    FullJsonInput=FullJsonInput,
-    SpansNodeInputSpansValue=SpansNodeInputSpansValue,
-)
+from .spans_node_input_spans_value import SpansNodeInputSpansValue # noqa: E402, I001
+from .full_json_input import FullJsonInput # noqa: E402, I001
+update_forward_refs(SpansNodeInput, FullJsonInput=FullJsonInput, SpansNodeInputSpansValue=SpansNodeInputSpansValue)

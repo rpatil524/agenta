@@ -4,4 +4,4 @@ from __future__ import annotations
 
 import typing
 
-FullJsonInput = typing.Any
+FullJsonInput = typing.Union[str, int, float, bool, typing.Dict[str, typing.Any], typing.List[typing.Any]]

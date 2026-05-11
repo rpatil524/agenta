@@ -2,20 +2,4 @@
 
 import typing
 
-SpanType = typing.Union[
-    typing.Literal[
-        "agent",
-        "chain",
-        "workflow",
-        "task",
-        "tool",
-        "embedding",
-        "query",
-        "llm",
-        "completion",
-        "chat",
-        "rerank",
-        "unknown",
-    ],
-    typing.Any,
-]
+SpanType = typing.Union[typing.Literal["agent", "chain", "workflow", "task", "tool", "embedding", "query", "llm", "completion", "chat", "rerank", "unknown"], typing.Any]

@@ -6,15 +6,9 @@ import typing
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
 from ..types.application_catalog_preset_response import ApplicationCatalogPresetResponse
-from ..types.application_catalog_presets_response import (
-    ApplicationCatalogPresetsResponse,
-)
-from ..types.application_catalog_template_response import (
-    ApplicationCatalogTemplateResponse,
-)
-from ..types.application_catalog_templates_response import (
-    ApplicationCatalogTemplatesResponse,
-)
+from ..types.application_catalog_presets_response import ApplicationCatalogPresetsResponse
+from ..types.application_catalog_template_response import ApplicationCatalogTemplateResponse
+from ..types.application_catalog_templates_response import ApplicationCatalogTemplatesResponse
 from ..types.application_catalog_types_response import ApplicationCatalogTypesResponse
 from ..types.application_create import ApplicationCreate
 from ..types.application_edit import ApplicationEdit
@@ -25,9 +19,7 @@ from ..types.application_revision_commit import ApplicationRevisionCommit
 from ..types.application_revision_create import ApplicationRevisionCreate
 from ..types.application_revision_edit import ApplicationRevisionEdit
 from ..types.application_revision_query import ApplicationRevisionQuery
-from ..types.application_revision_resolve_response import (
-    ApplicationRevisionResolveResponse,
-)
+from ..types.application_revision_resolve_response import ApplicationRevisionResolveResponse
 from ..types.application_revision_response import ApplicationRevisionResponse
 from ..types.application_revisions_log import ApplicationRevisionsLog
 from ..types.application_revisions_response import ApplicationRevisionsResponse
@@ -45,113 +37,93 @@ from ..types.simple_application_response import SimpleApplicationResponse
 from ..types.simple_applications_response import SimpleApplicationsResponse
 from ..types.windowing import Windowing
 from .raw_client import AsyncRawApplicationsClient, RawApplicationsClient
-from .types.query_application_variants_request_order import (
-    QueryApplicationVariantsRequestOrder,
-)
+from .types.query_application_variants_request_order import QueryApplicationVariantsRequestOrder
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
-
-
 class ApplicationsClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._raw_client = RawApplicationsClient(client_wrapper=client_wrapper)
-
+    
     @property
     def with_raw_response(self) -> RawApplicationsClient:
         """
         Retrieves a raw implementation of this client that returns raw responses.
-
+        
         Returns
         -------
         RawApplicationsClient
         """
         return self._raw_client
-
-    def list_application_catalog_types(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> ApplicationCatalogTypesResponse:
+    
+    def list_application_catalog_types(self, *, request_options: typing.Optional[RequestOptions] = None) -> ApplicationCatalogTypesResponse:
         """
         Parameters
         ----------
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationCatalogTypesResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.applications.list_application_catalog_types()
         """
-        _response = self._raw_client.list_application_catalog_types(
-            request_options=request_options
-        )
+        _response = self._raw_client.list_application_catalog_types(request_options=request_options)
         return _response.data
-
-    def list_application_catalog_templates(
-        self,
-        *,
-        include_archived: typing.Optional[bool] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationCatalogTemplatesResponse:
+    
+    def list_application_catalog_templates(self, *, include_archived: typing.Optional[bool] = None, request_options: typing.Optional[RequestOptions] = None) -> ApplicationCatalogTemplatesResponse:
         """
         Parameters
         ----------
         include_archived : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationCatalogTemplatesResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.applications.list_application_catalog_templates()
         """
-        _response = self._raw_client.list_application_catalog_templates(
-            include_archived=include_archived, request_options=request_options
-        )
+        _response = self._raw_client.list_application_catalog_templates(include_archived=include_archived, request_options=request_options)
         return _response.data
-
-    def fetch_application_catalog_template(
-        self,
-        template_key: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationCatalogTemplateResponse:
+    
+    def fetch_application_catalog_template(self, template_key: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApplicationCatalogTemplateResponse:
         """
         Parameters
         ----------
         template_key : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationCatalogTemplateResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -159,37 +131,29 @@ class ApplicationsClient:
             template_key="template_key",
         )
         """
-        _response = self._raw_client.fetch_application_catalog_template(
-            template_key, request_options=request_options
-        )
+        _response = self._raw_client.fetch_application_catalog_template(template_key, request_options=request_options)
         return _response.data
-
-    def list_application_catalog_presets(
-        self,
-        template_key: str,
-        *,
-        include_archived: typing.Optional[bool] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationCatalogPresetsResponse:
+    
+    def list_application_catalog_presets(self, template_key: str, *, include_archived: typing.Optional[bool] = None, request_options: typing.Optional[RequestOptions] = None) -> ApplicationCatalogPresetsResponse:
         """
         Parameters
         ----------
         template_key : str
-
+        
         include_archived : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationCatalogPresetsResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -197,39 +161,29 @@ class ApplicationsClient:
             template_key="template_key",
         )
         """
-        _response = self._raw_client.list_application_catalog_presets(
-            template_key,
-            include_archived=include_archived,
-            request_options=request_options,
-        )
+        _response = self._raw_client.list_application_catalog_presets(template_key, include_archived=include_archived, request_options=request_options)
         return _response.data
-
-    def fetch_application_catalog_preset(
-        self,
-        template_key: str,
-        preset_key: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationCatalogPresetResponse:
+    
+    def fetch_application_catalog_preset(self, template_key: str, preset_key: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApplicationCatalogPresetResponse:
         """
         Parameters
         ----------
         template_key : str
-
+        
         preset_key : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationCatalogPresetResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -238,37 +192,29 @@ class ApplicationsClient:
             preset_key="preset_key",
         )
         """
-        _response = self._raw_client.fetch_application_catalog_preset(
-            template_key, preset_key, request_options=request_options
-        )
+        _response = self._raw_client.fetch_application_catalog_preset(template_key, preset_key, request_options=request_options)
         return _response.data
-
-    def create_application(
-        self,
-        *,
-        application: ApplicationCreate,
-        application_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationResponse:
+    
+    def create_application(self, *, application: ApplicationCreate, application_id: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> ApplicationResponse:
         """
         Parameters
         ----------
         application : ApplicationCreate
-
+        
         application_id : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, ApplicationCreate
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -276,36 +222,27 @@ class ApplicationsClient:
             application=ApplicationCreate(),
         )
         """
-        _response = self._raw_client.create_application(
-            application=application,
-            application_id=application_id,
-            request_options=request_options,
-        )
+        _response = self._raw_client.create_application(application=application, application_id=application_id, request_options=request_options)
         return _response.data
-
-    def fetch_application(
-        self,
-        application_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationResponse:
+    
+    def fetch_application(self, application_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApplicationResponse:
         """
         Parameters
         ----------
         application_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -313,37 +250,29 @@ class ApplicationsClient:
             application_id="application_id",
         )
         """
-        _response = self._raw_client.fetch_application(
-            application_id, request_options=request_options
-        )
+        _response = self._raw_client.fetch_application(application_id, request_options=request_options)
         return _response.data
-
-    def edit_application(
-        self,
-        application_id: str,
-        *,
-        application: ApplicationEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationResponse:
+    
+    def edit_application(self, application_id: str, *, application: ApplicationEdit, request_options: typing.Optional[RequestOptions] = None) -> ApplicationResponse:
         """
         Parameters
         ----------
         application_id : str
-
+        
         application : ApplicationEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, ApplicationEdit
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -352,34 +281,27 @@ class ApplicationsClient:
             application=ApplicationEdit(),
         )
         """
-        _response = self._raw_client.edit_application(
-            application_id, application=application, request_options=request_options
-        )
+        _response = self._raw_client.edit_application(application_id, application=application, request_options=request_options)
         return _response.data
-
-    def archive_application(
-        self,
-        application_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationResponse:
+    
+    def archive_application(self, application_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApplicationResponse:
         """
         Parameters
         ----------
         application_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -387,34 +309,27 @@ class ApplicationsClient:
             application_id="application_id",
         )
         """
-        _response = self._raw_client.archive_application(
-            application_id, request_options=request_options
-        )
+        _response = self._raw_client.archive_application(application_id, request_options=request_options)
         return _response.data
-
-    def unarchive_application(
-        self,
-        application_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationResponse:
+    
+    def unarchive_application(self, application_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApplicationResponse:
         """
         Parameters
         ----------
         application_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -422,80 +337,59 @@ class ApplicationsClient:
             application_id="application_id",
         )
         """
-        _response = self._raw_client.unarchive_application(
-            application_id, request_options=request_options
-        )
+        _response = self._raw_client.unarchive_application(application_id, request_options=request_options)
         return _response.data
-
-    def query_applications(
-        self,
-        *,
-        application: typing.Optional[ApplicationQuery] = OMIT,
-        application_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationsResponse:
+    
+    def query_applications(self, *, application: typing.Optional[ApplicationQuery] = OMIT, application_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> ApplicationsResponse:
         """
         Parameters
         ----------
         application : typing.Optional[ApplicationQuery]
-
+        
         application_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationsResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.applications.query_applications()
         """
-        _response = self._raw_client.query_applications(
-            application=application,
-            application_refs=application_refs,
-            include_archived=include_archived,
-            windowing=windowing,
-            request_options=request_options,
-        )
+        _response = self._raw_client.query_applications(application=application, application_refs=application_refs, include_archived=include_archived, windowing=windowing, request_options=request_options)
         return _response.data
-
-    def create_application_variant(
-        self,
-        *,
-        application_variant: ApplicationVariantCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationVariantResponse:
+    
+    def create_application_variant(self, *, application_variant: ApplicationVariantCreate, request_options: typing.Optional[RequestOptions] = None) -> ApplicationVariantResponse:
         """
         Parameters
         ----------
         application_variant : ApplicationVariantCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationVariantResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, ApplicationVariantCreate
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -503,34 +397,27 @@ class ApplicationsClient:
             application_variant=ApplicationVariantCreate(),
         )
         """
-        _response = self._raw_client.create_application_variant(
-            application_variant=application_variant, request_options=request_options
-        )
+        _response = self._raw_client.create_application_variant(application_variant=application_variant, request_options=request_options)
         return _response.data
-
-    def fetch_application_variant(
-        self,
-        application_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationVariantResponse:
+    
+    def fetch_application_variant(self, application_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApplicationVariantResponse:
         """
         Parameters
         ----------
         application_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationVariantResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -538,37 +425,29 @@ class ApplicationsClient:
             application_variant_id="application_variant_id",
         )
         """
-        _response = self._raw_client.fetch_application_variant(
-            application_variant_id, request_options=request_options
-        )
+        _response = self._raw_client.fetch_application_variant(application_variant_id, request_options=request_options)
         return _response.data
-
-    def edit_application_variant(
-        self,
-        application_variant_id: str,
-        *,
-        application_variant: ApplicationVariantEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationVariantResponse:
+    
+    def edit_application_variant(self, application_variant_id: str, *, application_variant: ApplicationVariantEdit, request_options: typing.Optional[RequestOptions] = None) -> ApplicationVariantResponse:
         """
         Parameters
         ----------
         application_variant_id : str
-
+        
         application_variant : ApplicationVariantEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationVariantResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, ApplicationVariantEdit
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -577,36 +456,27 @@ class ApplicationsClient:
             application_variant=ApplicationVariantEdit(),
         )
         """
-        _response = self._raw_client.edit_application_variant(
-            application_variant_id,
-            application_variant=application_variant,
-            request_options=request_options,
-        )
+        _response = self._raw_client.edit_application_variant(application_variant_id, application_variant=application_variant, request_options=request_options)
         return _response.data
-
-    def archive_application_variant(
-        self,
-        application_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationVariantResponse:
+    
+    def archive_application_variant(self, application_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApplicationVariantResponse:
         """
         Parameters
         ----------
         application_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationVariantResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -614,34 +484,27 @@ class ApplicationsClient:
             application_variant_id="application_variant_id",
         )
         """
-        _response = self._raw_client.archive_application_variant(
-            application_variant_id, request_options=request_options
-        )
+        _response = self._raw_client.archive_application_variant(application_variant_id, request_options=request_options)
         return _response.data
-
-    def unarchive_application_variant(
-        self,
-        application_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationVariantResponse:
+    
+    def unarchive_application_variant(self, application_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApplicationVariantResponse:
         """
         Parameters
         ----------
         application_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationVariantResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -649,143 +512,91 @@ class ApplicationsClient:
             application_variant_id="application_variant_id",
         )
         """
-        _response = self._raw_client.unarchive_application_variant(
-            application_variant_id, request_options=request_options
-        )
+        _response = self._raw_client.unarchive_application_variant(application_variant_id, request_options=request_options)
         return _response.data
-
-    def query_application_variants(
-        self,
-        *,
-        application_id: typing.Optional[str] = None,
-        application_ids: typing.Optional[typing.Sequence[str]] = None,
-        application_slug: typing.Optional[str] = None,
-        application_slugs: typing.Optional[typing.Sequence[str]] = None,
-        application_variant_id: typing.Optional[str] = None,
-        application_variant_ids: typing.Optional[typing.Sequence[str]] = None,
-        application_variant_slug: typing.Optional[str] = None,
-        application_variant_slugs: typing.Optional[typing.Sequence[str]] = None,
-        name: typing.Optional[str] = None,
-        description: typing.Optional[str] = None,
-        flags: typing.Optional[str] = None,
-        tags: typing.Optional[str] = None,
-        meta: typing.Optional[str] = None,
-        include_archived: typing.Optional[bool] = None,
-        next: typing.Optional[str] = None,
-        newest: typing.Optional[dt.datetime] = None,
-        oldest: typing.Optional[dt.datetime] = None,
-        limit: typing.Optional[int] = None,
-        order: typing.Optional[QueryApplicationVariantsRequestOrder] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationVariantsResponse:
+    
+    def query_application_variants(self, *, application_id: typing.Optional[str] = None, application_ids: typing.Optional[typing.Sequence[str]] = None, application_slug: typing.Optional[str] = None, application_slugs: typing.Optional[typing.Sequence[str]] = None, application_variant_id: typing.Optional[str] = None, application_variant_ids: typing.Optional[typing.Sequence[str]] = None, application_variant_slug: typing.Optional[str] = None, application_variant_slugs: typing.Optional[typing.Sequence[str]] = None, name: typing.Optional[str] = None, description: typing.Optional[str] = None, flags: typing.Optional[str] = None, tags: typing.Optional[str] = None, meta: typing.Optional[str] = None, include_archived: typing.Optional[bool] = None, next: typing.Optional[str] = None, newest: typing.Optional[dt.datetime] = None, oldest: typing.Optional[dt.datetime] = None, limit: typing.Optional[int] = None, order: typing.Optional[QueryApplicationVariantsRequestOrder] = None, request_options: typing.Optional[RequestOptions] = None) -> ApplicationVariantsResponse:
         """
         Parameters
         ----------
         application_id : typing.Optional[str]
-
+        
         application_ids : typing.Optional[typing.Sequence[str]]
-
+        
         application_slug : typing.Optional[str]
-
+        
         application_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         application_variant_id : typing.Optional[str]
-
+        
         application_variant_ids : typing.Optional[typing.Sequence[str]]
-
+        
         application_variant_slug : typing.Optional[str]
-
+        
         application_variant_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         name : typing.Optional[str]
-
+        
         description : typing.Optional[str]
-
+        
         flags : typing.Optional[str]
-
+        
         tags : typing.Optional[str]
-
+        
         meta : typing.Optional[str]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         next : typing.Optional[str]
-
+        
         newest : typing.Optional[dt.datetime]
-
+        
         oldest : typing.Optional[dt.datetime]
-
+        
         limit : typing.Optional[int]
-
+        
         order : typing.Optional[QueryApplicationVariantsRequestOrder]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationVariantsResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.applications.query_application_variants()
         """
-        _response = self._raw_client.query_application_variants(
-            application_id=application_id,
-            application_ids=application_ids,
-            application_slug=application_slug,
-            application_slugs=application_slugs,
-            application_variant_id=application_variant_id,
-            application_variant_ids=application_variant_ids,
-            application_variant_slug=application_variant_slug,
-            application_variant_slugs=application_variant_slugs,
-            name=name,
-            description=description,
-            flags=flags,
-            tags=tags,
-            meta=meta,
-            include_archived=include_archived,
-            next=next,
-            newest=newest,
-            oldest=oldest,
-            limit=limit,
-            order=order,
-            request_options=request_options,
-        )
+        _response = self._raw_client.query_application_variants(application_id=application_id, application_ids=application_ids, application_slug=application_slug, application_slugs=application_slugs, application_variant_id=application_variant_id, application_variant_ids=application_variant_ids, application_variant_slug=application_variant_slug, application_variant_slugs=application_variant_slugs, name=name, description=description, flags=flags, tags=tags, meta=meta, include_archived=include_archived, next=next, newest=newest, oldest=oldest, limit=limit, order=order, request_options=request_options)
         return _response.data
-
-    def fork_application_variant(
-        self,
-        *,
-        application: ApplicationFork,
-        application_variant_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationVariantResponse:
+    
+    def fork_application_variant(self, *, application: ApplicationFork, application_variant_id: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> ApplicationVariantResponse:
         """
         Parameters
         ----------
         application : ApplicationFork
-
+        
         application_variant_id : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationVariantResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, ApplicationFork
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -793,160 +604,107 @@ class ApplicationsClient:
             application=ApplicationFork(),
         )
         """
-        _response = self._raw_client.fork_application_variant(
-            application=application,
-            application_variant_id=application_variant_id,
-            request_options=request_options,
-        )
+        _response = self._raw_client.fork_application_variant(application=application, application_variant_id=application_variant_id, request_options=request_options)
         return _response.data
-
-    def retrieve_application_revision(
-        self,
-        *,
-        application_ref: typing.Optional[Reference] = OMIT,
-        application_variant_ref: typing.Optional[Reference] = OMIT,
-        application_revision_ref: typing.Optional[Reference] = OMIT,
-        environment_ref: typing.Optional[Reference] = OMIT,
-        environment_variant_ref: typing.Optional[Reference] = OMIT,
-        environment_revision_ref: typing.Optional[Reference] = OMIT,
-        key: typing.Optional[str] = OMIT,
-        resolve: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationRevisionResponse:
+    
+    def retrieve_application_revision(self, *, application_ref: typing.Optional[Reference] = OMIT, application_variant_ref: typing.Optional[Reference] = OMIT, application_revision_ref: typing.Optional[Reference] = OMIT, environment_ref: typing.Optional[Reference] = OMIT, environment_variant_ref: typing.Optional[Reference] = OMIT, environment_revision_ref: typing.Optional[Reference] = OMIT, key: typing.Optional[str] = OMIT, resolve: typing.Optional[bool] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> ApplicationRevisionResponse:
         """
         Parameters
         ----------
         application_ref : typing.Optional[Reference]
-
+        
         application_variant_ref : typing.Optional[Reference]
-
+        
         application_revision_ref : typing.Optional[Reference]
-
+        
         environment_ref : typing.Optional[Reference]
-
+        
         environment_variant_ref : typing.Optional[Reference]
-
+        
         environment_revision_ref : typing.Optional[Reference]
-
+        
         key : typing.Optional[str]
-
+        
         resolve : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.applications.retrieve_application_revision()
         """
-        _response = self._raw_client.retrieve_application_revision(
-            application_ref=application_ref,
-            application_variant_ref=application_variant_ref,
-            application_revision_ref=application_revision_ref,
-            environment_ref=environment_ref,
-            environment_variant_ref=environment_variant_ref,
-            environment_revision_ref=environment_revision_ref,
-            key=key,
-            resolve=resolve,
-            request_options=request_options,
-        )
+        _response = self._raw_client.retrieve_application_revision(application_ref=application_ref, application_variant_ref=application_variant_ref, application_revision_ref=application_revision_ref, environment_ref=environment_ref, environment_variant_ref=environment_variant_ref, environment_revision_ref=environment_revision_ref, key=key, resolve=resolve, request_options=request_options)
         return _response.data
-
-    def deploy_application_revision(
-        self,
-        *,
-        application_ref: typing.Optional[Reference] = OMIT,
-        application_variant_ref: typing.Optional[Reference] = OMIT,
-        application_revision_ref: typing.Optional[Reference] = OMIT,
-        environment_ref: typing.Optional[Reference] = OMIT,
-        environment_variant_ref: typing.Optional[Reference] = OMIT,
-        environment_revision_ref: typing.Optional[Reference] = OMIT,
-        key: typing.Optional[str] = OMIT,
-        message: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationRevisionResponse:
+    
+    def deploy_application_revision(self, *, application_ref: typing.Optional[Reference] = OMIT, application_variant_ref: typing.Optional[Reference] = OMIT, application_revision_ref: typing.Optional[Reference] = OMIT, environment_ref: typing.Optional[Reference] = OMIT, environment_variant_ref: typing.Optional[Reference] = OMIT, environment_revision_ref: typing.Optional[Reference] = OMIT, key: typing.Optional[str] = OMIT, message: typing.Optional[str] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> ApplicationRevisionResponse:
         """
         Parameters
         ----------
         application_ref : typing.Optional[Reference]
-
+        
         application_variant_ref : typing.Optional[Reference]
-
+        
         application_revision_ref : typing.Optional[Reference]
-
+        
         environment_ref : typing.Optional[Reference]
-
+        
         environment_variant_ref : typing.Optional[Reference]
-
+        
         environment_revision_ref : typing.Optional[Reference]
-
+        
         key : typing.Optional[str]
-
+        
         message : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.applications.deploy_application_revision()
         """
-        _response = self._raw_client.deploy_application_revision(
-            application_ref=application_ref,
-            application_variant_ref=application_variant_ref,
-            application_revision_ref=application_revision_ref,
-            environment_ref=environment_ref,
-            environment_variant_ref=environment_variant_ref,
-            environment_revision_ref=environment_revision_ref,
-            key=key,
-            message=message,
-            request_options=request_options,
-        )
+        _response = self._raw_client.deploy_application_revision(application_ref=application_ref, application_variant_ref=application_variant_ref, application_revision_ref=application_revision_ref, environment_ref=environment_ref, environment_variant_ref=environment_variant_ref, environment_revision_ref=environment_revision_ref, key=key, message=message, request_options=request_options)
         return _response.data
-
-    def create_application_revision(
-        self,
-        *,
-        application_revision: ApplicationRevisionCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationRevisionResponse:
+    
+    def create_application_revision(self, *, application_revision: ApplicationRevisionCreate, request_options: typing.Optional[RequestOptions] = None) -> ApplicationRevisionResponse:
         """
         Parameters
         ----------
         application_revision : ApplicationRevisionCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, ApplicationRevisionCreate
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -954,34 +712,27 @@ class ApplicationsClient:
             application_revision=ApplicationRevisionCreate(),
         )
         """
-        _response = self._raw_client.create_application_revision(
-            application_revision=application_revision, request_options=request_options
-        )
+        _response = self._raw_client.create_application_revision(application_revision=application_revision, request_options=request_options)
         return _response.data
-
-    def fetch_application_revision(
-        self,
-        application_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationRevisionResponse:
+    
+    def fetch_application_revision(self, application_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApplicationRevisionResponse:
         """
         Parameters
         ----------
         application_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -989,37 +740,29 @@ class ApplicationsClient:
             application_revision_id="application_revision_id",
         )
         """
-        _response = self._raw_client.fetch_application_revision(
-            application_revision_id, request_options=request_options
-        )
+        _response = self._raw_client.fetch_application_revision(application_revision_id, request_options=request_options)
         return _response.data
-
-    def edit_application_revision(
-        self,
-        application_revision_id: str,
-        *,
-        application_revision: ApplicationRevisionEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationRevisionResponse:
+    
+    def edit_application_revision(self, application_revision_id: str, *, application_revision: ApplicationRevisionEdit, request_options: typing.Optional[RequestOptions] = None) -> ApplicationRevisionResponse:
         """
         Parameters
         ----------
         application_revision_id : str
-
+        
         application_revision : ApplicationRevisionEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, ApplicationRevisionEdit
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1028,36 +771,27 @@ class ApplicationsClient:
             application_revision=ApplicationRevisionEdit(),
         )
         """
-        _response = self._raw_client.edit_application_revision(
-            application_revision_id,
-            application_revision=application_revision,
-            request_options=request_options,
-        )
+        _response = self._raw_client.edit_application_revision(application_revision_id, application_revision=application_revision, request_options=request_options)
         return _response.data
-
-    def archive_application_revision(
-        self,
-        application_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationRevisionResponse:
+    
+    def archive_application_revision(self, application_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApplicationRevisionResponse:
         """
         Parameters
         ----------
         application_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1065,34 +799,27 @@ class ApplicationsClient:
             application_revision_id="application_revision_id",
         )
         """
-        _response = self._raw_client.archive_application_revision(
-            application_revision_id, request_options=request_options
-        )
+        _response = self._raw_client.archive_application_revision(application_revision_id, request_options=request_options)
         return _response.data
-
-    def unarchive_application_revision(
-        self,
-        application_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationRevisionResponse:
+    
+    def unarchive_application_revision(self, application_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApplicationRevisionResponse:
         """
         Parameters
         ----------
         application_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1100,92 +827,65 @@ class ApplicationsClient:
             application_revision_id="application_revision_id",
         )
         """
-        _response = self._raw_client.unarchive_application_revision(
-            application_revision_id, request_options=request_options
-        )
+        _response = self._raw_client.unarchive_application_revision(application_revision_id, request_options=request_options)
         return _response.data
-
-    def query_application_revisions(
-        self,
-        *,
-        application_revision: typing.Optional[ApplicationRevisionQuery] = OMIT,
-        application_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        application_variant_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        application_revision_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        resolve: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationRevisionsResponse:
+    
+    def query_application_revisions(self, *, application_revision: typing.Optional[ApplicationRevisionQuery] = OMIT, application_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, application_variant_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, application_revision_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, resolve: typing.Optional[bool] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> ApplicationRevisionsResponse:
         """
         Parameters
         ----------
         application_revision : typing.Optional[ApplicationRevisionQuery]
-
+        
         application_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         application_variant_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         application_revision_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         resolve : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationRevisionsResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.applications.query_application_revisions()
         """
-        _response = self._raw_client.query_application_revisions(
-            application_revision=application_revision,
-            application_refs=application_refs,
-            application_variant_refs=application_variant_refs,
-            application_revision_refs=application_revision_refs,
-            include_archived=include_archived,
-            windowing=windowing,
-            resolve=resolve,
-            request_options=request_options,
-        )
+        _response = self._raw_client.query_application_revisions(application_revision=application_revision, application_refs=application_refs, application_variant_refs=application_variant_refs, application_revision_refs=application_revision_refs, include_archived=include_archived, windowing=windowing, resolve=resolve, request_options=request_options)
         return _response.data
-
-    def commit_application_revision(
-        self,
-        *,
-        application_revision_commit: ApplicationRevisionCommit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationRevisionResponse:
+    
+    def commit_application_revision(self, *, application_revision_commit: ApplicationRevisionCommit, request_options: typing.Optional[RequestOptions] = None) -> ApplicationRevisionResponse:
         """
         Parameters
         ----------
         application_revision_commit : ApplicationRevisionCommit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, ApplicationRevisionCommit
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1193,35 +893,27 @@ class ApplicationsClient:
             application_revision_commit=ApplicationRevisionCommit(),
         )
         """
-        _response = self._raw_client.commit_application_revision(
-            application_revision_commit=application_revision_commit,
-            request_options=request_options,
-        )
+        _response = self._raw_client.commit_application_revision(application_revision_commit=application_revision_commit, request_options=request_options)
         return _response.data
-
-    def log_application_revisions(
-        self,
-        *,
-        application: ApplicationRevisionsLog,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationRevisionsResponse:
+    
+    def log_application_revisions(self, *, application: ApplicationRevisionsLog, request_options: typing.Optional[RequestOptions] = None) -> ApplicationRevisionsResponse:
         """
         Parameters
         ----------
         application : ApplicationRevisionsLog
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationRevisionsResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, ApplicationRevisionsLog
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1229,91 +921,65 @@ class ApplicationsClient:
             application=ApplicationRevisionsLog(),
         )
         """
-        _response = self._raw_client.log_application_revisions(
-            application=application, request_options=request_options
-        )
+        _response = self._raw_client.log_application_revisions(application=application, request_options=request_options)
         return _response.data
-
-    def resolve_application_revision(
-        self,
-        *,
-        application_ref: typing.Optional[Reference] = OMIT,
-        application_variant_ref: typing.Optional[Reference] = OMIT,
-        application_revision_ref: typing.Optional[Reference] = OMIT,
-        max_depth: typing.Optional[int] = OMIT,
-        max_embeds: typing.Optional[int] = OMIT,
-        error_policy: typing.Optional[ErrorPolicy] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationRevisionResolveResponse:
+    
+    def resolve_application_revision(self, *, application_ref: typing.Optional[Reference] = OMIT, application_variant_ref: typing.Optional[Reference] = OMIT, application_revision_ref: typing.Optional[Reference] = OMIT, max_depth: typing.Optional[int] = OMIT, max_embeds: typing.Optional[int] = OMIT, error_policy: typing.Optional[ErrorPolicy] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> ApplicationRevisionResolveResponse:
         """
         Parameters
         ----------
         application_ref : typing.Optional[Reference]
-
+        
         application_variant_ref : typing.Optional[Reference]
-
+        
         application_revision_ref : typing.Optional[Reference]
-
+        
         max_depth : typing.Optional[int]
-
+        
         max_embeds : typing.Optional[int]
-
+        
         error_policy : typing.Optional[ErrorPolicy]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationRevisionResolveResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.applications.resolve_application_revision()
         """
-        _response = self._raw_client.resolve_application_revision(
-            application_ref=application_ref,
-            application_variant_ref=application_variant_ref,
-            application_revision_ref=application_revision_ref,
-            max_depth=max_depth,
-            max_embeds=max_embeds,
-            error_policy=error_policy,
-            request_options=request_options,
-        )
+        _response = self._raw_client.resolve_application_revision(application_ref=application_ref, application_variant_ref=application_variant_ref, application_revision_ref=application_revision_ref, max_depth=max_depth, max_embeds=max_embeds, error_policy=error_policy, request_options=request_options)
         return _response.data
-
-    def create_simple_application(
-        self,
-        *,
-        application: SimpleApplicationCreate,
-        application_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleApplicationResponse:
+    
+    def create_simple_application(self, *, application: SimpleApplicationCreate, application_id: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> SimpleApplicationResponse:
         """
         Parameters
         ----------
         application : SimpleApplicationCreate
-
+        
         application_id : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleApplicationResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, SimpleApplicationCreate
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1321,82 +987,59 @@ class ApplicationsClient:
             application=SimpleApplicationCreate(),
         )
         """
-        _response = self._raw_client.create_simple_application(
-            application=application,
-            application_id=application_id,
-            request_options=request_options,
-        )
+        _response = self._raw_client.create_simple_application(application=application, application_id=application_id, request_options=request_options)
         return _response.data
-
-    def query_simple_applications(
-        self,
-        *,
-        application: typing.Optional[SimpleApplicationQuery] = OMIT,
-        application_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleApplicationsResponse:
+    
+    def query_simple_applications(self, *, application: typing.Optional[SimpleApplicationQuery] = OMIT, application_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> SimpleApplicationsResponse:
         """
         Parameters
         ----------
         application : typing.Optional[SimpleApplicationQuery]
-
+        
         application_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleApplicationsResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
         client.applications.query_simple_applications()
         """
-        _response = self._raw_client.query_simple_applications(
-            application=application,
-            application_refs=application_refs,
-            include_archived=include_archived,
-            windowing=windowing,
-            request_options=request_options,
-        )
+        _response = self._raw_client.query_simple_applications(application=application, application_refs=application_refs, include_archived=include_archived, windowing=windowing, request_options=request_options)
         return _response.data
-
-    def fetch_simple_application(
-        self,
-        application_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleApplicationResponse:
+    
+    def fetch_simple_application(self, application_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleApplicationResponse:
         """
         Parameters
         ----------
         application_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleApplicationResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1404,37 +1047,29 @@ class ApplicationsClient:
             application_id="application_id",
         )
         """
-        _response = self._raw_client.fetch_simple_application(
-            application_id, request_options=request_options
-        )
+        _response = self._raw_client.fetch_simple_application(application_id, request_options=request_options)
         return _response.data
-
-    def edit_simple_application(
-        self,
-        application_id: str,
-        *,
-        application: SimpleApplicationEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleApplicationResponse:
+    
+    def edit_simple_application(self, application_id: str, *, application: SimpleApplicationEdit, request_options: typing.Optional[RequestOptions] = None) -> SimpleApplicationResponse:
         """
         Parameters
         ----------
         application_id : str
-
+        
         application : SimpleApplicationEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleApplicationResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi, SimpleApplicationEdit
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1443,34 +1078,27 @@ class ApplicationsClient:
             application=SimpleApplicationEdit(),
         )
         """
-        _response = self._raw_client.edit_simple_application(
-            application_id, application=application, request_options=request_options
-        )
+        _response = self._raw_client.edit_simple_application(application_id, application=application, request_options=request_options)
         return _response.data
-
-    def archive_simple_application(
-        self,
-        application_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleApplicationResponse:
+    
+    def archive_simple_application(self, application_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleApplicationResponse:
         """
         Parameters
         ----------
         application_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleApplicationResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1478,34 +1106,27 @@ class ApplicationsClient:
             application_id="application_id",
         )
         """
-        _response = self._raw_client.archive_simple_application(
-            application_id, request_options=request_options
-        )
+        _response = self._raw_client.archive_simple_application(application_id, request_options=request_options)
         return _response.data
-
-    def unarchive_simple_application(
-        self,
-        application_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleApplicationResponse:
+    
+    def unarchive_simple_application(self, application_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleApplicationResponse:
         """
         Parameters
         ----------
         application_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleApplicationResponse
             Successful Response
-
+        
         Examples
         --------
         from agenta import AgentaApi
-
+        
         client = AgentaApi(
             api_key="YOUR_API_KEY",
         )
@@ -1513,1753 +1134,1380 @@ class ApplicationsClient:
             application_id="application_id",
         )
         """
-        _response = self._raw_client.unarchive_simple_application(
-            application_id, request_options=request_options
-        )
+        _response = self._raw_client.unarchive_simple_application(application_id, request_options=request_options)
         return _response.data
-
-
 class AsyncApplicationsClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._raw_client = AsyncRawApplicationsClient(client_wrapper=client_wrapper)
-
+    
     @property
     def with_raw_response(self) -> AsyncRawApplicationsClient:
         """
         Retrieves a raw implementation of this client that returns raw responses.
-
+        
         Returns
         -------
         AsyncRawApplicationsClient
         """
         return self._raw_client
-
-    async def list_application_catalog_types(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> ApplicationCatalogTypesResponse:
+    
+    async def list_application_catalog_types(self, *, request_options: typing.Optional[RequestOptions] = None) -> ApplicationCatalogTypesResponse:
         """
         Parameters
         ----------
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationCatalogTypesResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.list_application_catalog_types()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.list_application_catalog_types(
-            request_options=request_options
-        )
+        _response = await self._raw_client.list_application_catalog_types(request_options=request_options)
         return _response.data
-
-    async def list_application_catalog_templates(
-        self,
-        *,
-        include_archived: typing.Optional[bool] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationCatalogTemplatesResponse:
+    
+    async def list_application_catalog_templates(self, *, include_archived: typing.Optional[bool] = None, request_options: typing.Optional[RequestOptions] = None) -> ApplicationCatalogTemplatesResponse:
         """
         Parameters
         ----------
         include_archived : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationCatalogTemplatesResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.list_application_catalog_templates()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.list_application_catalog_templates(
-            include_archived=include_archived, request_options=request_options
-        )
+        _response = await self._raw_client.list_application_catalog_templates(include_archived=include_archived, request_options=request_options)
         return _response.data
-
-    async def fetch_application_catalog_template(
-        self,
-        template_key: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationCatalogTemplateResponse:
+    
+    async def fetch_application_catalog_template(self, template_key: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApplicationCatalogTemplateResponse:
         """
         Parameters
         ----------
         template_key : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationCatalogTemplateResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.fetch_application_catalog_template(
                 template_key="template_key",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.fetch_application_catalog_template(
-            template_key, request_options=request_options
-        )
+        _response = await self._raw_client.fetch_application_catalog_template(template_key, request_options=request_options)
         return _response.data
-
-    async def list_application_catalog_presets(
-        self,
-        template_key: str,
-        *,
-        include_archived: typing.Optional[bool] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationCatalogPresetsResponse:
+    
+    async def list_application_catalog_presets(self, template_key: str, *, include_archived: typing.Optional[bool] = None, request_options: typing.Optional[RequestOptions] = None) -> ApplicationCatalogPresetsResponse:
         """
         Parameters
         ----------
         template_key : str
-
+        
         include_archived : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationCatalogPresetsResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.list_application_catalog_presets(
                 template_key="template_key",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.list_application_catalog_presets(
-            template_key,
-            include_archived=include_archived,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.list_application_catalog_presets(template_key, include_archived=include_archived, request_options=request_options)
         return _response.data
-
-    async def fetch_application_catalog_preset(
-        self,
-        template_key: str,
-        preset_key: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationCatalogPresetResponse:
+    
+    async def fetch_application_catalog_preset(self, template_key: str, preset_key: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApplicationCatalogPresetResponse:
         """
         Parameters
         ----------
         template_key : str
-
+        
         preset_key : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationCatalogPresetResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.fetch_application_catalog_preset(
                 template_key="template_key",
                 preset_key="preset_key",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.fetch_application_catalog_preset(
-            template_key, preset_key, request_options=request_options
-        )
+        _response = await self._raw_client.fetch_application_catalog_preset(template_key, preset_key, request_options=request_options)
         return _response.data
-
-    async def create_application(
-        self,
-        *,
-        application: ApplicationCreate,
-        application_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationResponse:
+    
+    async def create_application(self, *, application: ApplicationCreate, application_id: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> ApplicationResponse:
         """
         Parameters
         ----------
         application : ApplicationCreate
-
+        
         application_id : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import ApplicationCreate, AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.create_application(
                 application=ApplicationCreate(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_application(
-            application=application,
-            application_id=application_id,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.create_application(application=application, application_id=application_id, request_options=request_options)
         return _response.data
-
-    async def fetch_application(
-        self,
-        application_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationResponse:
+    
+    async def fetch_application(self, application_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApplicationResponse:
         """
         Parameters
         ----------
         application_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.fetch_application(
                 application_id="application_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.fetch_application(
-            application_id, request_options=request_options
-        )
+        _response = await self._raw_client.fetch_application(application_id, request_options=request_options)
         return _response.data
-
-    async def edit_application(
-        self,
-        application_id: str,
-        *,
-        application: ApplicationEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationResponse:
+    
+    async def edit_application(self, application_id: str, *, application: ApplicationEdit, request_options: typing.Optional[RequestOptions] = None) -> ApplicationResponse:
         """
         Parameters
         ----------
         application_id : str
-
+        
         application : ApplicationEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import ApplicationEdit, AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.edit_application(
                 application_id="application_id",
                 application=ApplicationEdit(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.edit_application(
-            application_id, application=application, request_options=request_options
-        )
+        _response = await self._raw_client.edit_application(application_id, application=application, request_options=request_options)
         return _response.data
-
-    async def archive_application(
-        self,
-        application_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationResponse:
+    
+    async def archive_application(self, application_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApplicationResponse:
         """
         Parameters
         ----------
         application_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.archive_application(
                 application_id="application_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.archive_application(
-            application_id, request_options=request_options
-        )
+        _response = await self._raw_client.archive_application(application_id, request_options=request_options)
         return _response.data
-
-    async def unarchive_application(
-        self,
-        application_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationResponse:
+    
+    async def unarchive_application(self, application_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApplicationResponse:
         """
         Parameters
         ----------
         application_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.unarchive_application(
                 application_id="application_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.unarchive_application(
-            application_id, request_options=request_options
-        )
+        _response = await self._raw_client.unarchive_application(application_id, request_options=request_options)
         return _response.data
-
-    async def query_applications(
-        self,
-        *,
-        application: typing.Optional[ApplicationQuery] = OMIT,
-        application_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationsResponse:
+    
+    async def query_applications(self, *, application: typing.Optional[ApplicationQuery] = OMIT, application_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> ApplicationsResponse:
         """
         Parameters
         ----------
         application : typing.Optional[ApplicationQuery]
-
+        
         application_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationsResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.query_applications()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.query_applications(
-            application=application,
-            application_refs=application_refs,
-            include_archived=include_archived,
-            windowing=windowing,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.query_applications(application=application, application_refs=application_refs, include_archived=include_archived, windowing=windowing, request_options=request_options)
         return _response.data
-
-    async def create_application_variant(
-        self,
-        *,
-        application_variant: ApplicationVariantCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationVariantResponse:
+    
+    async def create_application_variant(self, *, application_variant: ApplicationVariantCreate, request_options: typing.Optional[RequestOptions] = None) -> ApplicationVariantResponse:
         """
         Parameters
         ----------
         application_variant : ApplicationVariantCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationVariantResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import ApplicationVariantCreate, AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.create_application_variant(
                 application_variant=ApplicationVariantCreate(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_application_variant(
-            application_variant=application_variant, request_options=request_options
-        )
+        _response = await self._raw_client.create_application_variant(application_variant=application_variant, request_options=request_options)
         return _response.data
-
-    async def fetch_application_variant(
-        self,
-        application_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationVariantResponse:
+    
+    async def fetch_application_variant(self, application_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApplicationVariantResponse:
         """
         Parameters
         ----------
         application_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationVariantResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.fetch_application_variant(
                 application_variant_id="application_variant_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.fetch_application_variant(
-            application_variant_id, request_options=request_options
-        )
+        _response = await self._raw_client.fetch_application_variant(application_variant_id, request_options=request_options)
         return _response.data
-
-    async def edit_application_variant(
-        self,
-        application_variant_id: str,
-        *,
-        application_variant: ApplicationVariantEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationVariantResponse:
+    
+    async def edit_application_variant(self, application_variant_id: str, *, application_variant: ApplicationVariantEdit, request_options: typing.Optional[RequestOptions] = None) -> ApplicationVariantResponse:
         """
         Parameters
         ----------
         application_variant_id : str
-
+        
         application_variant : ApplicationVariantEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationVariantResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import ApplicationVariantEdit, AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.edit_application_variant(
                 application_variant_id="application_variant_id",
                 application_variant=ApplicationVariantEdit(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.edit_application_variant(
-            application_variant_id,
-            application_variant=application_variant,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.edit_application_variant(application_variant_id, application_variant=application_variant, request_options=request_options)
         return _response.data
-
-    async def archive_application_variant(
-        self,
-        application_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationVariantResponse:
+    
+    async def archive_application_variant(self, application_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApplicationVariantResponse:
         """
         Parameters
         ----------
         application_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationVariantResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.archive_application_variant(
                 application_variant_id="application_variant_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.archive_application_variant(
-            application_variant_id, request_options=request_options
-        )
+        _response = await self._raw_client.archive_application_variant(application_variant_id, request_options=request_options)
         return _response.data
-
-    async def unarchive_application_variant(
-        self,
-        application_variant_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationVariantResponse:
+    
+    async def unarchive_application_variant(self, application_variant_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApplicationVariantResponse:
         """
         Parameters
         ----------
         application_variant_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationVariantResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.unarchive_application_variant(
                 application_variant_id="application_variant_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.unarchive_application_variant(
-            application_variant_id, request_options=request_options
-        )
+        _response = await self._raw_client.unarchive_application_variant(application_variant_id, request_options=request_options)
         return _response.data
-
-    async def query_application_variants(
-        self,
-        *,
-        application_id: typing.Optional[str] = None,
-        application_ids: typing.Optional[typing.Sequence[str]] = None,
-        application_slug: typing.Optional[str] = None,
-        application_slugs: typing.Optional[typing.Sequence[str]] = None,
-        application_variant_id: typing.Optional[str] = None,
-        application_variant_ids: typing.Optional[typing.Sequence[str]] = None,
-        application_variant_slug: typing.Optional[str] = None,
-        application_variant_slugs: typing.Optional[typing.Sequence[str]] = None,
-        name: typing.Optional[str] = None,
-        description: typing.Optional[str] = None,
-        flags: typing.Optional[str] = None,
-        tags: typing.Optional[str] = None,
-        meta: typing.Optional[str] = None,
-        include_archived: typing.Optional[bool] = None,
-        next: typing.Optional[str] = None,
-        newest: typing.Optional[dt.datetime] = None,
-        oldest: typing.Optional[dt.datetime] = None,
-        limit: typing.Optional[int] = None,
-        order: typing.Optional[QueryApplicationVariantsRequestOrder] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationVariantsResponse:
+    
+    async def query_application_variants(self, *, application_id: typing.Optional[str] = None, application_ids: typing.Optional[typing.Sequence[str]] = None, application_slug: typing.Optional[str] = None, application_slugs: typing.Optional[typing.Sequence[str]] = None, application_variant_id: typing.Optional[str] = None, application_variant_ids: typing.Optional[typing.Sequence[str]] = None, application_variant_slug: typing.Optional[str] = None, application_variant_slugs: typing.Optional[typing.Sequence[str]] = None, name: typing.Optional[str] = None, description: typing.Optional[str] = None, flags: typing.Optional[str] = None, tags: typing.Optional[str] = None, meta: typing.Optional[str] = None, include_archived: typing.Optional[bool] = None, next: typing.Optional[str] = None, newest: typing.Optional[dt.datetime] = None, oldest: typing.Optional[dt.datetime] = None, limit: typing.Optional[int] = None, order: typing.Optional[QueryApplicationVariantsRequestOrder] = None, request_options: typing.Optional[RequestOptions] = None) -> ApplicationVariantsResponse:
         """
         Parameters
         ----------
         application_id : typing.Optional[str]
-
+        
         application_ids : typing.Optional[typing.Sequence[str]]
-
+        
         application_slug : typing.Optional[str]
-
+        
         application_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         application_variant_id : typing.Optional[str]
-
+        
         application_variant_ids : typing.Optional[typing.Sequence[str]]
-
+        
         application_variant_slug : typing.Optional[str]
-
+        
         application_variant_slugs : typing.Optional[typing.Sequence[str]]
-
+        
         name : typing.Optional[str]
-
+        
         description : typing.Optional[str]
-
+        
         flags : typing.Optional[str]
-
+        
         tags : typing.Optional[str]
-
+        
         meta : typing.Optional[str]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         next : typing.Optional[str]
-
+        
         newest : typing.Optional[dt.datetime]
-
+        
         oldest : typing.Optional[dt.datetime]
-
+        
         limit : typing.Optional[int]
-
+        
         order : typing.Optional[QueryApplicationVariantsRequestOrder]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationVariantsResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.query_application_variants()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.query_application_variants(
-            application_id=application_id,
-            application_ids=application_ids,
-            application_slug=application_slug,
-            application_slugs=application_slugs,
-            application_variant_id=application_variant_id,
-            application_variant_ids=application_variant_ids,
-            application_variant_slug=application_variant_slug,
-            application_variant_slugs=application_variant_slugs,
-            name=name,
-            description=description,
-            flags=flags,
-            tags=tags,
-            meta=meta,
-            include_archived=include_archived,
-            next=next,
-            newest=newest,
-            oldest=oldest,
-            limit=limit,
-            order=order,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.query_application_variants(application_id=application_id, application_ids=application_ids, application_slug=application_slug, application_slugs=application_slugs, application_variant_id=application_variant_id, application_variant_ids=application_variant_ids, application_variant_slug=application_variant_slug, application_variant_slugs=application_variant_slugs, name=name, description=description, flags=flags, tags=tags, meta=meta, include_archived=include_archived, next=next, newest=newest, oldest=oldest, limit=limit, order=order, request_options=request_options)
         return _response.data
-
-    async def fork_application_variant(
-        self,
-        *,
-        application: ApplicationFork,
-        application_variant_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationVariantResponse:
+    
+    async def fork_application_variant(self, *, application: ApplicationFork, application_variant_id: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> ApplicationVariantResponse:
         """
         Parameters
         ----------
         application : ApplicationFork
-
+        
         application_variant_id : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationVariantResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import ApplicationFork, AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.fork_application_variant(
                 application=ApplicationFork(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.fork_application_variant(
-            application=application,
-            application_variant_id=application_variant_id,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.fork_application_variant(application=application, application_variant_id=application_variant_id, request_options=request_options)
         return _response.data
-
-    async def retrieve_application_revision(
-        self,
-        *,
-        application_ref: typing.Optional[Reference] = OMIT,
-        application_variant_ref: typing.Optional[Reference] = OMIT,
-        application_revision_ref: typing.Optional[Reference] = OMIT,
-        environment_ref: typing.Optional[Reference] = OMIT,
-        environment_variant_ref: typing.Optional[Reference] = OMIT,
-        environment_revision_ref: typing.Optional[Reference] = OMIT,
-        key: typing.Optional[str] = OMIT,
-        resolve: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationRevisionResponse:
+    
+    async def retrieve_application_revision(self, *, application_ref: typing.Optional[Reference] = OMIT, application_variant_ref: typing.Optional[Reference] = OMIT, application_revision_ref: typing.Optional[Reference] = OMIT, environment_ref: typing.Optional[Reference] = OMIT, environment_variant_ref: typing.Optional[Reference] = OMIT, environment_revision_ref: typing.Optional[Reference] = OMIT, key: typing.Optional[str] = OMIT, resolve: typing.Optional[bool] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> ApplicationRevisionResponse:
         """
         Parameters
         ----------
         application_ref : typing.Optional[Reference]
-
+        
         application_variant_ref : typing.Optional[Reference]
-
+        
         application_revision_ref : typing.Optional[Reference]
-
+        
         environment_ref : typing.Optional[Reference]
-
+        
         environment_variant_ref : typing.Optional[Reference]
-
+        
         environment_revision_ref : typing.Optional[Reference]
-
+        
         key : typing.Optional[str]
-
+        
         resolve : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.retrieve_application_revision()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.retrieve_application_revision(
-            application_ref=application_ref,
-            application_variant_ref=application_variant_ref,
-            application_revision_ref=application_revision_ref,
-            environment_ref=environment_ref,
-            environment_variant_ref=environment_variant_ref,
-            environment_revision_ref=environment_revision_ref,
-            key=key,
-            resolve=resolve,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.retrieve_application_revision(application_ref=application_ref, application_variant_ref=application_variant_ref, application_revision_ref=application_revision_ref, environment_ref=environment_ref, environment_variant_ref=environment_variant_ref, environment_revision_ref=environment_revision_ref, key=key, resolve=resolve, request_options=request_options)
         return _response.data
-
-    async def deploy_application_revision(
-        self,
-        *,
-        application_ref: typing.Optional[Reference] = OMIT,
-        application_variant_ref: typing.Optional[Reference] = OMIT,
-        application_revision_ref: typing.Optional[Reference] = OMIT,
-        environment_ref: typing.Optional[Reference] = OMIT,
-        environment_variant_ref: typing.Optional[Reference] = OMIT,
-        environment_revision_ref: typing.Optional[Reference] = OMIT,
-        key: typing.Optional[str] = OMIT,
-        message: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationRevisionResponse:
+    
+    async def deploy_application_revision(self, *, application_ref: typing.Optional[Reference] = OMIT, application_variant_ref: typing.Optional[Reference] = OMIT, application_revision_ref: typing.Optional[Reference] = OMIT, environment_ref: typing.Optional[Reference] = OMIT, environment_variant_ref: typing.Optional[Reference] = OMIT, environment_revision_ref: typing.Optional[Reference] = OMIT, key: typing.Optional[str] = OMIT, message: typing.Optional[str] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> ApplicationRevisionResponse:
         """
         Parameters
         ----------
         application_ref : typing.Optional[Reference]
-
+        
         application_variant_ref : typing.Optional[Reference]
-
+        
         application_revision_ref : typing.Optional[Reference]
-
+        
         environment_ref : typing.Optional[Reference]
-
+        
         environment_variant_ref : typing.Optional[Reference]
-
+        
         environment_revision_ref : typing.Optional[Reference]
-
+        
         key : typing.Optional[str]
-
+        
         message : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.deploy_application_revision()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.deploy_application_revision(
-            application_ref=application_ref,
-            application_variant_ref=application_variant_ref,
-            application_revision_ref=application_revision_ref,
-            environment_ref=environment_ref,
-            environment_variant_ref=environment_variant_ref,
-            environment_revision_ref=environment_revision_ref,
-            key=key,
-            message=message,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.deploy_application_revision(application_ref=application_ref, application_variant_ref=application_variant_ref, application_revision_ref=application_revision_ref, environment_ref=environment_ref, environment_variant_ref=environment_variant_ref, environment_revision_ref=environment_revision_ref, key=key, message=message, request_options=request_options)
         return _response.data
-
-    async def create_application_revision(
-        self,
-        *,
-        application_revision: ApplicationRevisionCreate,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationRevisionResponse:
+    
+    async def create_application_revision(self, *, application_revision: ApplicationRevisionCreate, request_options: typing.Optional[RequestOptions] = None) -> ApplicationRevisionResponse:
         """
         Parameters
         ----------
         application_revision : ApplicationRevisionCreate
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import ApplicationRevisionCreate, AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.create_application_revision(
                 application_revision=ApplicationRevisionCreate(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_application_revision(
-            application_revision=application_revision, request_options=request_options
-        )
+        _response = await self._raw_client.create_application_revision(application_revision=application_revision, request_options=request_options)
         return _response.data
-
-    async def fetch_application_revision(
-        self,
-        application_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationRevisionResponse:
+    
+    async def fetch_application_revision(self, application_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApplicationRevisionResponse:
         """
         Parameters
         ----------
         application_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.fetch_application_revision(
                 application_revision_id="application_revision_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.fetch_application_revision(
-            application_revision_id, request_options=request_options
-        )
+        _response = await self._raw_client.fetch_application_revision(application_revision_id, request_options=request_options)
         return _response.data
-
-    async def edit_application_revision(
-        self,
-        application_revision_id: str,
-        *,
-        application_revision: ApplicationRevisionEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationRevisionResponse:
+    
+    async def edit_application_revision(self, application_revision_id: str, *, application_revision: ApplicationRevisionEdit, request_options: typing.Optional[RequestOptions] = None) -> ApplicationRevisionResponse:
         """
         Parameters
         ----------
         application_revision_id : str
-
+        
         application_revision : ApplicationRevisionEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import ApplicationRevisionEdit, AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.edit_application_revision(
                 application_revision_id="application_revision_id",
                 application_revision=ApplicationRevisionEdit(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.edit_application_revision(
-            application_revision_id,
-            application_revision=application_revision,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.edit_application_revision(application_revision_id, application_revision=application_revision, request_options=request_options)
         return _response.data
-
-    async def archive_application_revision(
-        self,
-        application_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationRevisionResponse:
+    
+    async def archive_application_revision(self, application_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApplicationRevisionResponse:
         """
         Parameters
         ----------
         application_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.archive_application_revision(
                 application_revision_id="application_revision_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.archive_application_revision(
-            application_revision_id, request_options=request_options
-        )
+        _response = await self._raw_client.archive_application_revision(application_revision_id, request_options=request_options)
         return _response.data
-
-    async def unarchive_application_revision(
-        self,
-        application_revision_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationRevisionResponse:
+    
+    async def unarchive_application_revision(self, application_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApplicationRevisionResponse:
         """
         Parameters
         ----------
         application_revision_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.unarchive_application_revision(
                 application_revision_id="application_revision_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.unarchive_application_revision(
-            application_revision_id, request_options=request_options
-        )
+        _response = await self._raw_client.unarchive_application_revision(application_revision_id, request_options=request_options)
         return _response.data
-
-    async def query_application_revisions(
-        self,
-        *,
-        application_revision: typing.Optional[ApplicationRevisionQuery] = OMIT,
-        application_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        application_variant_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        application_revision_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        resolve: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationRevisionsResponse:
+    
+    async def query_application_revisions(self, *, application_revision: typing.Optional[ApplicationRevisionQuery] = OMIT, application_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, application_variant_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, application_revision_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, resolve: typing.Optional[bool] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> ApplicationRevisionsResponse:
         """
         Parameters
         ----------
         application_revision : typing.Optional[ApplicationRevisionQuery]
-
+        
         application_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         application_variant_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         application_revision_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         resolve : typing.Optional[bool]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationRevisionsResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.query_application_revisions()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.query_application_revisions(
-            application_revision=application_revision,
-            application_refs=application_refs,
-            application_variant_refs=application_variant_refs,
-            application_revision_refs=application_revision_refs,
-            include_archived=include_archived,
-            windowing=windowing,
-            resolve=resolve,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.query_application_revisions(application_revision=application_revision, application_refs=application_refs, application_variant_refs=application_variant_refs, application_revision_refs=application_revision_refs, include_archived=include_archived, windowing=windowing, resolve=resolve, request_options=request_options)
         return _response.data
-
-    async def commit_application_revision(
-        self,
-        *,
-        application_revision_commit: ApplicationRevisionCommit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationRevisionResponse:
+    
+    async def commit_application_revision(self, *, application_revision_commit: ApplicationRevisionCommit, request_options: typing.Optional[RequestOptions] = None) -> ApplicationRevisionResponse:
         """
         Parameters
         ----------
         application_revision_commit : ApplicationRevisionCommit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationRevisionResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import ApplicationRevisionCommit, AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.commit_application_revision(
                 application_revision_commit=ApplicationRevisionCommit(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.commit_application_revision(
-            application_revision_commit=application_revision_commit,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.commit_application_revision(application_revision_commit=application_revision_commit, request_options=request_options)
         return _response.data
-
-    async def log_application_revisions(
-        self,
-        *,
-        application: ApplicationRevisionsLog,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationRevisionsResponse:
+    
+    async def log_application_revisions(self, *, application: ApplicationRevisionsLog, request_options: typing.Optional[RequestOptions] = None) -> ApplicationRevisionsResponse:
         """
         Parameters
         ----------
         application : ApplicationRevisionsLog
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationRevisionsResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import ApplicationRevisionsLog, AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.log_application_revisions(
                 application=ApplicationRevisionsLog(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.log_application_revisions(
-            application=application, request_options=request_options
-        )
+        _response = await self._raw_client.log_application_revisions(application=application, request_options=request_options)
         return _response.data
-
-    async def resolve_application_revision(
-        self,
-        *,
-        application_ref: typing.Optional[Reference] = OMIT,
-        application_variant_ref: typing.Optional[Reference] = OMIT,
-        application_revision_ref: typing.Optional[Reference] = OMIT,
-        max_depth: typing.Optional[int] = OMIT,
-        max_embeds: typing.Optional[int] = OMIT,
-        error_policy: typing.Optional[ErrorPolicy] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ApplicationRevisionResolveResponse:
+    
+    async def resolve_application_revision(self, *, application_ref: typing.Optional[Reference] = OMIT, application_variant_ref: typing.Optional[Reference] = OMIT, application_revision_ref: typing.Optional[Reference] = OMIT, max_depth: typing.Optional[int] = OMIT, max_embeds: typing.Optional[int] = OMIT, error_policy: typing.Optional[ErrorPolicy] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> ApplicationRevisionResolveResponse:
         """
         Parameters
         ----------
         application_ref : typing.Optional[Reference]
-
+        
         application_variant_ref : typing.Optional[Reference]
-
+        
         application_revision_ref : typing.Optional[Reference]
-
+        
         max_depth : typing.Optional[int]
-
+        
         max_embeds : typing.Optional[int]
-
+        
         error_policy : typing.Optional[ErrorPolicy]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         ApplicationRevisionResolveResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.resolve_application_revision()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.resolve_application_revision(
-            application_ref=application_ref,
-            application_variant_ref=application_variant_ref,
-            application_revision_ref=application_revision_ref,
-            max_depth=max_depth,
-            max_embeds=max_embeds,
-            error_policy=error_policy,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.resolve_application_revision(application_ref=application_ref, application_variant_ref=application_variant_ref, application_revision_ref=application_revision_ref, max_depth=max_depth, max_embeds=max_embeds, error_policy=error_policy, request_options=request_options)
         return _response.data
-
-    async def create_simple_application(
-        self,
-        *,
-        application: SimpleApplicationCreate,
-        application_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleApplicationResponse:
+    
+    async def create_simple_application(self, *, application: SimpleApplicationCreate, application_id: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None) -> SimpleApplicationResponse:
         """
         Parameters
         ----------
         application : SimpleApplicationCreate
-
+        
         application_id : typing.Optional[str]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleApplicationResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, SimpleApplicationCreate
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.create_simple_application(
                 application=SimpleApplicationCreate(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_simple_application(
-            application=application,
-            application_id=application_id,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.create_simple_application(application=application, application_id=application_id, request_options=request_options)
         return _response.data
-
-    async def query_simple_applications(
-        self,
-        *,
-        application: typing.Optional[SimpleApplicationQuery] = OMIT,
-        application_refs: typing.Optional[typing.Sequence[Reference]] = OMIT,
-        include_archived: typing.Optional[bool] = OMIT,
-        windowing: typing.Optional[Windowing] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleApplicationsResponse:
+    
+    async def query_simple_applications(self, *, application: typing.Optional[SimpleApplicationQuery] = OMIT, application_refs: typing.Optional[typing.Sequence[Reference]] = OMIT, include_archived: typing.Optional[bool] = OMIT, windowing: typing.Optional[Windowing] = OMIT, request_options: typing.Optional[RequestOptions] = None) -> SimpleApplicationsResponse:
         """
         Parameters
         ----------
         application : typing.Optional[SimpleApplicationQuery]
-
+        
         application_refs : typing.Optional[typing.Sequence[Reference]]
-
+        
         include_archived : typing.Optional[bool]
-
+        
         windowing : typing.Optional[Windowing]
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleApplicationsResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.query_simple_applications()
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.query_simple_applications(
-            application=application,
-            application_refs=application_refs,
-            include_archived=include_archived,
-            windowing=windowing,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.query_simple_applications(application=application, application_refs=application_refs, include_archived=include_archived, windowing=windowing, request_options=request_options)
         return _response.data
-
-    async def fetch_simple_application(
-        self,
-        application_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleApplicationResponse:
+    
+    async def fetch_simple_application(self, application_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleApplicationResponse:
         """
         Parameters
         ----------
         application_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleApplicationResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.fetch_simple_application(
                 application_id="application_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.fetch_simple_application(
-            application_id, request_options=request_options
-        )
+        _response = await self._raw_client.fetch_simple_application(application_id, request_options=request_options)
         return _response.data
-
-    async def edit_simple_application(
-        self,
-        application_id: str,
-        *,
-        application: SimpleApplicationEdit,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleApplicationResponse:
+    
+    async def edit_simple_application(self, application_id: str, *, application: SimpleApplicationEdit, request_options: typing.Optional[RequestOptions] = None) -> SimpleApplicationResponse:
         """
         Parameters
         ----------
         application_id : str
-
+        
         application : SimpleApplicationEdit
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleApplicationResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi, SimpleApplicationEdit
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.edit_simple_application(
                 application_id="application_id",
                 application=SimpleApplicationEdit(),
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.edit_simple_application(
-            application_id, application=application, request_options=request_options
-        )
+        _response = await self._raw_client.edit_simple_application(application_id, application=application, request_options=request_options)
         return _response.data
-
-    async def archive_simple_application(
-        self,
-        application_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleApplicationResponse:
+    
+    async def archive_simple_application(self, application_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleApplicationResponse:
         """
         Parameters
         ----------
         application_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleApplicationResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.archive_simple_application(
                 application_id="application_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.archive_simple_application(
-            application_id, request_options=request_options
-        )
+        _response = await self._raw_client.archive_simple_application(application_id, request_options=request_options)
         return _response.data
-
-    async def unarchive_simple_application(
-        self,
-        application_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SimpleApplicationResponse:
+    
+    async def unarchive_simple_application(self, application_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> SimpleApplicationResponse:
         """
         Parameters
         ----------
         application_id : str
-
+        
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
-
+        
         Returns
         -------
         SimpleApplicationResponse
             Successful Response
-
+        
         Examples
         --------
         import asyncio
-
+        
         from agenta import AsyncAgentaApi
-
+        
         client = AsyncAgentaApi(
             api_key="YOUR_API_KEY",
         )
-
-
+        
+        
         async def main() -> None:
             await client.applications.unarchive_simple_application(
                 application_id="application_id",
             )
-
-
+        
+        
         asyncio.run(main())
         """
-        _response = await self._raw_client.unarchive_simple_application(
-            application_id, request_options=request_options
-        )
+        _response = await self._raw_client.unarchive_simple_application(application_id, request_options=request_options)
         return _response.data

@@ -2,6 +2,4 @@
 
 import typing
 
-QueryEnvironmentsRequestOrder = typing.Union[
-    typing.Literal["ascending", "descending"], typing.Any
-]
+QueryEnvironmentsRequestOrder = typing.Union[typing.Literal["ascending", "descending"], typing.Any]

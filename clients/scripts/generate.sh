@@ -82,6 +82,23 @@ if ! command -v fern >/dev/null 2>&1; then
   exit 1
 fi
 
+cleanup_fern_workspaces() {
+  # Python's fern workspace lives under the canonical client root because
+  # clients/python is itself the package home. The TypeScript flow uses an
+  # ephemeral mktemp directory (cleaned via per-run trap in generate_typescript),
+  # so it doesn't appear in this list.
+  for dir in "${CLIENTS_ROOT}/python/fern"; do
+    if [[ -d "${dir}" ]]; then
+      log "removing fern workspace ${dir}"
+      rm -rf "${dir}"
+    fi
+  done
+}
+
+log "pre-cleaning any stale fern workspaces"
+cleanup_fern_workspaces
+trap cleanup_fern_workspaces EXIT
+
 log "language=${LANGUAGE}"
 if [[ -n "${OPENAPI_FILE}" ]]; then
   log "openapi_file=${OPENAPI_FILE}"
@@ -200,15 +217,15 @@ groups:
 
           # Serde stays OFF for now (default). Turning it on with this Fern
           # version (3.63.7) emits ~200 type errors against our spec:
-          #   - 189 × TS2322 — broken codegen for Record<string, T | null>
-          #     (e.g. `tags`, `meta` fields) where the serializer expects
+          #   - 189 x TS2322 — broken codegen for Record<string, T | null>
+          #     (e.g. tags, meta fields) where the serializer expects
           #     non-null values
-          #   - 4 × TS2456 — circular type aliases for FullJson{Input,Output}
+          #   - 4 x TS2456 — circular type aliases for FullJson{Input,Output}
           #     and LabelJson{Input,Output} (the same recursive-types issue
           #     the Python generator patches in this script via sed)
-          #   - 4 × TS2393 — duplicate function implementations in admin/client
+          #   - 4 x TS2393 — duplicate function implementations in admin/client
           # Re-evaluate when Fern ships fixes; in the meantime, the convenience
-          # layer's Zod boundary handles `extra="allow"` at the entity level.
+          # layer's Zod boundary handles extra="allow" at the entity level.
           # noSerdeLayer: false
           # allowExtraFields: true
           # skipResponseValidation: true
@@ -239,35 +256,47 @@ EOF
 
 bootstrap_python_layout() {
   local client_root="$1"
+  local client_version="0.99.3"
 
   log "bootstrapping Python client layout in ${client_root}"
   mkdir -p "${client_root}/agenta_client"
 
-  if [[ ! -f "${client_root}/pyproject.toml" ]]; then
-    log "writing pyproject.toml in ${client_root}"
-    cat > "${client_root}/pyproject.toml" <<'EOF'
-[tool.poetry]
-name = "agenta-client"
-# Pre-release version — will become a proper PyPI release once the client stabilises.
-# When published, replace the path dependency in sdks/python/pyproject.toml with:
-#   agenta-client = "^<version>"
-version = "0.0.0.dev0"
-description = "Fern-generated Python client for the Agenta API."
-authors = [
-    "Juan Vega <jp@agenta.ai>"
-]
-packages = [{ include = "agenta_client" }]
+  if [[ -f "${client_root}/pyproject.toml" ]]; then
+    client_version="$(python - "${client_root}/pyproject.toml" <<'PY'
+import pathlib
+import sys
+import tomllib
 
-[tool.poetry.dependencies]
-python = "^3.11"
-httpx = "^0.28"
-pydantic = "^2"
+data = tomllib.loads(pathlib.Path(sys.argv[1]).read_text())
+print(data.get("project", {}).get("version") or data.get("tool", {}).get("poetry", {}).get("version") or "0.99.3")
+PY
+)"
+  fi
+
+  log "writing uv pyproject.toml in ${client_root}"
+  cat > "${client_root}/pyproject.toml" <<EOF
+[project]
+name = "agenta-client"
+version = "${client_version}"
+description = "Fern-generated Python client for the Agenta API."
+requires-python = ">=3.11,<3.14"
+authors = [
+    { name = "Mahmoud Mabrouk", email = "mahmoud@agenta.ai" },
+    { name = "Juan Vega", email = "jp@agenta.ai" },
+]
+dependencies = [
+    "httpx>=0.28,<0.29",
+    "pydantic>=2,<3",
+]
+
+[tool.uv.build-backend]
+module-name = "agenta_client"
+module-root = ""
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build>=0.11.9,<0.12.0"]
+build-backend = "uv_build"
 EOF
-  fi
 
   cat > "${client_root}/README.md" <<'EOF'
 # Python Client
@@ -286,98 +315,11 @@ bash ./clients/scripts/generate.sh --language python --live
 EOF
 }
 
-bootstrap_typescript_layout() {
-  local client_root="$1"
-
-  log "bootstrapping TypeScript client layout in ${client_root}"
-  mkdir -p "${client_root}/src/generated"
-
-  cat > "${client_root}/README.md" <<'EOF'
-# TypeScript Client
-
-Generate the TypeScript Fern client from a locally running API:
-
-```bash
-bash ./clients/scripts/generate.sh --language typescript
-```
-
-Generate the TypeScript Fern client from the live cloud API:
-
-```bash
-bash ./clients/scripts/generate.sh --language typescript --live
-```
-EOF
-
-  cat > "${client_root}/package.json" <<'EOF'
-{
-  "name": "@agenta/client",
-  "version": "0.0.0-dev",
-  "private": true,
-  "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
-  },
-  "browser": {
-    "fs": false,
-    "stream": false,
-    "stream/web": false,
-    "buffer": false
-  },
-  "files": [
-    "dist",
-    "src"
-  ],
-  "scripts": {
-    "generate": "bash ../scripts/generate.sh --language typescript",
-    "build": "tsc -p tsconfig.json"
-  },
-  "devDependencies": {
-    "@types/node": "^20.19.20",
-    "typescript": "^5.9.3"
-  }
-}
-EOF
-
-  cat > "${client_root}/tsconfig.json" <<'EOF'
-{
-  "compilerOptions": {
-    "target": "ES2022",
-    "module": "ES2022",
-    "moduleResolution": "Bundler",
-    "declaration": true,
-    "outDir": "dist",
-    "rootDir": "src",
-    "strict": true,
-    "skipLibCheck": true
-  },
-  "include": [
-    "src/**/*.ts"
-  ]
-}
-EOF
-
-  cat > "${client_root}/src/index.ts" <<'EOF'
-export * from "./generated";
-EOF
-
-  cat > "${client_root}/src/generated/index.ts" <<'EOF'
-// Placeholder until the first Fern generation runs.
-export {};
-EOF
-}
-
 generate_python() {
   local client_root="${CLIENTS_ROOT}/python"
   local target_dir="${client_root}/agenta_client"
-  local sdk_mirror_dir="${CLIENTS_ROOT}/../sdks/python/agenta_client"
   local fern_dir="${client_root}/fern"
-  local fern_output_dir="${fern_dir}/src/agenta_client"
+  local fern_output_dir="${fern_dir}/agenta_client"
   local latest_version
 
   log "starting Python client generation"
@@ -388,8 +330,6 @@ generate_python() {
   fi
 
   bootstrap_python_layout "${client_root}"
-  log "clearing Fern workspace ${fern_dir}"
-  rm -rf "${fern_dir}"
 
   log "switching to ${client_root}"
   cd "${client_root}"
@@ -405,11 +345,6 @@ generate_python() {
   rm -rf "${target_dir}"
   mkdir -p "$(dirname "${target_dir}")"
   cp -R "${fern_output_dir}" "${target_dir}"
-
-  log "mirroring generated Python client into SDK package at ${sdk_mirror_dir}"
-  rm -rf "${sdk_mirror_dir}"
-  mkdir -p "$(dirname "${sdk_mirror_dir}")"
-  cp -R "${fern_output_dir}" "${sdk_mirror_dir}"
 
   fix_recursive_types_in_dir() {
     local types_dir="$1"
@@ -453,86 +388,27 @@ generate_python() {
   }
 
   fix_recursive_types_in_dir "${target_dir}"
-  fix_recursive_types_in_dir "${sdk_mirror_dir}"
 
-  log "cleaning Fern workspace ${fern_dir}"
-  rm -rf "${fern_dir}"
-  log "generated Python client in ${client_root}/src/agenta_client"
-}
-
-fix_typescript_admin_duplicates() {
-  local target_dir="$1"
-  local admin_client="${target_dir}/api/resources/admin/client/Client.ts"
-
-  if [[ ! -f "${admin_client}" ]]; then
-    return
-  fi
-
-  log "patching duplicate admin/client function names in ${admin_client}"
-
-  # Fern generates two `createAccounts` methods in admin/client because two
-  # OpenAPI operations resolve to the same TS function name. Backend should
-  # disambiguate via explicit operation_id on the routes; until then, rename
-  # the SECOND public+private pair to `createAccountsAlt` / `__createAccountsAlt`
-  # so the file compiles. Admin endpoints aren't in v0 scope.
-  python3 - "${admin_client}" <<'PY'
-import re
-import sys
-from pathlib import Path
-
-DUPLICATES = ["createAccounts"]
-
-def rename_second_pair(src: str, name: str) -> str:
-    """Rename only the SECOND `public <name>` block and the SECOND
-    `private async __<name>` block (and the call to `this.__<name>` inside
-    the second public block). Leaves the first pair alone."""
-    public_re = re.compile(rf"(\bpublic\s+){name}(\s*\()")
-    private_re = re.compile(rf"(\bprivate\s+async\s+__){name}(\s*\()")
-    call_re = re.compile(rf"(this\.__){name}(\()")
-
-    # Locate spans in order; rename only those at index >= 1.
-    def replace_nth(text: str, regex: re.Pattern, replacement: str, target_index: int) -> str:
-        out = []
-        last = 0
-        for i, m in enumerate(regex.finditer(text)):
-            if i == target_index:
-                out.append(text[last:m.start()])
-                out.append(regex.sub(replacement, m.group(0), count=1))
-                last = m.end()
-                break
-        else:
-            return text
-        out.append(text[last:])
-        return "".join(out)
-
-    src = replace_nth(src, public_re, rf"\g<1>{name}Alt\g<2>", 1)
-    # Group 1 of private_re already captures `private async __`; the replacement
-    # only appends `<name>Alt`.
-    src = replace_nth(src, private_re, rf"\g<1>{name}Alt\g<2>", 1)
-    # The renamed public block now calls `this.__<name>`; flip ONLY that one
-    # call (the second `this.__<name>(` overall) to `this.__<name>Alt(`.
-    src = replace_nth(src, call_re, rf"\g<1>{name}Alt\g<2>", 1)
-    return src
-
-p = Path(sys.argv[1])
-text = p.read_text()
-for name in DUPLICATES:
-    text = rename_second_pair(text, name)
-p.write_text(text)
-PY
+  log "generated Python client in ${target_dir}"
 }
 
 generate_typescript() {
-  local client_root="${CLIENTS_ROOT}/typescript"
-  local target_dir="${client_root}/src/generated"
+  # Fern's CLI needs a CWD containing ./fern/fern.config.json + generators.yml
+  # to operate. The actual generated client lives at
+  # web/packages/agenta-api-client/src/generated, so the workspace where Fern
+  # writes intermediate output is purely ephemeral — use a per-run mktemp dir
+  # and clean it up on exit so nothing leaks into the repo.
+  local client_root
+  client_root="$(mktemp -d -t fern-typescript-XXXXXX)"
+  trap "rm -rf '${client_root}'" RETURN
+
+  local target_dir="${REPO_ROOT}/web/packages/agenta-api-client/src/generated"
   local fern_dir="${client_root}/fern"
   local fern_output_dir="${fern_dir}/src/generated"
   local latest_version
 
   log "starting TypeScript client generation"
-  bootstrap_typescript_layout "${client_root}"
-  log "clearing Fern workspace ${fern_dir}"
-  rm -rf "${fern_dir}"
+  log "fern workspace=${client_root}"
 
   log "switching to ${client_root}"
   cd "${client_root}"
@@ -549,10 +425,6 @@ generate_typescript() {
   mkdir -p "$(dirname "${target_dir}")"
   cp -R "${fern_output_dir}" "${target_dir}"
 
-  fix_typescript_admin_duplicates "${target_dir}"
-
-  log "cleaning Fern workspace ${fern_dir}"
-  rm -rf "${fern_dir}"
   log "generated TypeScript client in ${target_dir}"
 }
 

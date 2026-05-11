@@ -16,13 +16,10 @@ class ToolCatalogIntegration(UniversalBaseModel):
     url: typing.Optional[str] = None
     actions_count: typing.Optional[int] = None
     auth_schemes: typing.Optional[typing.List[ToolAuthScheme]] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True

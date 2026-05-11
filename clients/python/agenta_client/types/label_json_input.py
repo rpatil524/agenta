@@ -4,4 +4,4 @@ from __future__ import annotations
 
 import typing
 
-LabelJsonInput = typing.Any
+LabelJsonInput = typing.Union[bool, str, typing.Dict[str, typing.Any]]

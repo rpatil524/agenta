@@ -6,11 +6,7 @@ import datetime as dt
 import typing
 
 import pydantic
-from ..core.pydantic_utilities import (
-    IS_PYDANTIC_V2,
-    UniversalBaseModel,
-    update_forward_refs,
-)
+from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel, update_forward_refs
 from .span_output import SpanOutput
 from .spans_tree_output import SpansTreeOutput
 
@@ -21,17 +17,12 @@ class OTelTracingResponse(UniversalBaseModel):
     count: typing.Optional[int] = None
     spans: typing.Optional[typing.List[SpanOutput]] = None
     traces: typing.Optional[typing.Dict[str, typing.Optional[SpansTreeOutput]]] = None
-
+    
     if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(
-            extra="allow", frozen=True
-        )  # type: ignore # Pydantic v2
+        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:
-
         class Config:
             frozen = True
             smart_union = True
             extra = pydantic.Extra.allow
-
-
 update_forward_refs(OTelTracingResponse)
