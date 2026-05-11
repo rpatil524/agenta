@@ -5,25 +5,39 @@
  * Supports version info, changes summary, and diff view via adapter.
  */
 
-import {useState, useEffect} from "react"
+import {useState, useEffect, useRef} from "react"
 
-import {formatCount} from "@agenta/shared/utils"
+import {
+    formatCount,
+    generateSlugWithExistingSuffix,
+    generateSlugWithSuffix,
+    getSlugSuffix,
+    isValidSlug,
+    regenerateSlugSuffix,
+} from "@agenta/shared/utils"
 import {CommitMessageInput} from "@agenta/ui/components/presentational"
 import {VersionBadge} from "@agenta/ui/components/presentational"
 import {DiffView} from "@agenta/ui/editor"
 import {cn, textColors} from "@agenta/ui/styles"
-import {Input, Alert, Typography, Radio} from "antd"
+import {ArrowClockwise, WarningCircle} from "@phosphor-icons/react"
+import {Input, Alert, Typography, Radio, Button, Tag} from "antd"
 import {useAtomValue, useSetAtom} from "jotai"
 
 import {
     commitModalEntityNameAtom,
+    commitModalEntitySlugAtom,
     commitModalMessageAtom,
     commitModalErrorAtom,
     commitModalCanCommitAtom,
     commitModalContextAtom,
     commitModalActionLabelAtom,
+    commitModalSlugEditingAtom,
+    commitModalSlugFieldErrorAtom,
     setCommitMessageAtom,
     setCommitEntityNameAtom,
+    setCommitEntitySlugAtom,
+    setCommitSlugEditingAtom,
+    setCommitSlugFieldErrorAtom,
 } from "../state"
 
 // Lazy load DiffView to avoid bundling Lexical editor in _app chunk
@@ -45,6 +59,8 @@ export interface EntityCommitContentProps {
     modeLabel?: string
     /** When true, shows the entity name as an editable input field (for Create flows) */
     entityNameEditable?: boolean
+    /** Label for the editable entity name field. Defaults to "Name". */
+    entityNameLabel?: string
 }
 
 /**
@@ -69,15 +85,103 @@ export function EntityCommitContent({
     extraContent,
     modeLabel,
     entityNameEditable = false,
+    entityNameLabel = "Name",
 }: EntityCommitContentProps) {
     const entityName = useAtomValue(commitModalEntityNameAtom)
+    const entitySlug = useAtomValue(commitModalEntitySlugAtom)
     const message = useAtomValue(commitModalMessageAtom)
     const error = useAtomValue(commitModalErrorAtom)
     const canCommit = useAtomValue(commitModalCanCommitAtom)
     const context = useAtomValue(commitModalContextAtom)
     const actionLabel = useAtomValue(commitModalActionLabelAtom)
+    const slugEditing = useAtomValue(commitModalSlugEditingAtom)
+    const slugFieldError = useAtomValue(commitModalSlugFieldErrorAtom)
     const setMessage = useSetAtom(setCommitMessageAtom)
     const setEntityName = useSetAtom(setCommitEntityNameAtom)
+    const setEntitySlug = useSetAtom(setCommitEntitySlugAtom)
+    const setSlugEditing = useSetAtom(setCommitSlugEditingAtom)
+    const setSlugFieldError = useSetAtom(setCommitSlugFieldErrorAtom)
+    const slugInitializedRef = useRef(false)
+    const generatedSlugSuffixRef = useRef<string | null>(null)
+    const slugManuallyEditedRef = useRef(false)
+
+    useEffect(() => {
+        if (!entityNameEditable) {
+            slugInitializedRef.current = false
+            generatedSlugSuffixRef.current = null
+            slugManuallyEditedRef.current = false
+            setSlugEditing(false)
+            return
+        }
+
+        if (!entityName.trim()) {
+            generatedSlugSuffixRef.current = null
+            slugInitializedRef.current = false
+            slugManuallyEditedRef.current = false
+            setSlugEditing(false)
+            if (entitySlug !== null) {
+                setEntitySlug(null)
+            }
+            return
+        }
+
+        if (slugManuallyEditedRef.current) {
+            generatedSlugSuffixRef.current = entitySlug ? getSlugSuffix(entitySlug) : null
+            slugInitializedRef.current = true
+            return
+        }
+
+        const generatedSlug = generateSlugWithExistingSuffix(
+            entityName,
+            generatedSlugSuffixRef.current,
+        )
+        generatedSlugSuffixRef.current = getSlugSuffix(generatedSlug)
+
+        if (entitySlug !== generatedSlug) {
+            setEntitySlug(generatedSlug)
+        }
+
+        slugInitializedRef.current = true
+    }, [entityNameEditable, entityName, entitySlug, setEntitySlug, setSlugEditing])
+
+    useEffect(() => {
+        if (!entityName && !entitySlug) {
+            slugInitializedRef.current = false
+            generatedSlugSuffixRef.current = null
+            slugManuallyEditedRef.current = false
+            setSlugEditing(false)
+        }
+    }, [entityName, entitySlug, setSlugEditing])
+
+    const handleSlugInputChange = (value: string) => {
+        slugManuallyEditedRef.current = true
+        setEntitySlug(value)
+        setSlugFieldError(null)
+    }
+
+    const handleRegenerate = () => {
+        const generatedSlug = regenerateSlugSuffix(
+            entitySlug || entityName,
+            generatedSlugSuffixRef.current,
+        )
+        generatedSlugSuffixRef.current = getSlugSuffix(generatedSlug)
+        setEntitySlug(generatedSlug)
+        setSlugFieldError(null)
+    }
+
+    const handleEditClick = () => {
+        if (!entitySlug && entityName.trim()) {
+            const generatedSlug = generateSlugWithSuffix(entityName)
+            generatedSlugSuffixRef.current = getSlugSuffix(generatedSlug)
+            setEntitySlug(generatedSlug)
+        }
+        setSlugEditing(true)
+    }
+
+    const slugValidationError =
+        entitySlug && !isValidSlug(entitySlug)
+            ? "Slug may only contain a-z, 0-9, hyphens, underscores, and periods."
+            : null
 
     // Defer DiffView mounting until after the first paint so the modal
     // shell and form appear immediately without being blocked by Lexical
@@ -134,15 +238,15 @@ export function EntityCommitContent({
     return (
         <div
             className={cn(
-                "flex gap-4 overflow-hidden h-full",
-                hasDiffData ? "flex-row" : "flex-col",
+                "flex gap-4 overflow-hidden",
+                hasDiffData ? "flex-row h-full" : "flex-col",
             )}
         >
             {/* Form section */}
             <div
                 className={cn(
-                    "flex flex-col gap-4 overflow-y-auto",
-                    hasDiffData ? "w-[320px] shrink-0" : "w-full",
+                    "flex flex-col gap-4",
+                    hasDiffData ? "w-[320px] shrink-0 overflow-y-auto" : "w-full",
                 )}
             >
                 {/* Version info panel — hidden when actionLabel is not "Commit" (e.g., "Create")
@@ -204,30 +308,6 @@ export function EntityCommitContent({
                     </div>
                 )}
 
-                {/* Entity name — editable input for Create flows */}
-                {entityNameEditable && (
-                    <div className="flex flex-col gap-2">
-                        <label htmlFor="entity-name" className="font-medium text-gray-700">
-                            Name
-                        </label>
-                        <Input
-                            id="entity-name"
-                            value={entityName}
-                            onChange={(e) => setEntityName(e.target.value)}
-                            placeholder="Enter a name..."
-                            autoFocus
-                        />
-                    </div>
-                )}
-
-                {/* Simple entity info — shown when no version info and name is not editable */}
-                {!context?.versionInfo && !entityNameEditable && (
-                    <p className="text-gray-600">
-                        {actionLabel === "Commit" ? "Committing changes to" : `${actionLabel}`}{" "}
-                        <span className="font-medium">{entityName}</span>
-                    </p>
-                )}
-
                 {/* Cannot commit warning */}
                 {!canCommit && (
                     <Alert
@@ -258,6 +338,89 @@ export function EntityCommitContent({
                     </div>
                 )}
 
+                {/* Entity name — editable input for Create flows */}
+                {entityNameEditable && (
+                    <div className="flex flex-col gap-3">
+                        <div className="flex flex-col gap-2">
+                            <label htmlFor="entity-name" className="font-medium text-gray-700">
+                                {entityNameLabel}
+                            </label>
+                            <Input
+                                id="entity-name"
+                                value={entityName}
+                                onChange={(e) => setEntityName(e.target.value)}
+                                placeholder="Enter a name..."
+                                autoFocus
+                            />
+                        </div>
+
+                        {entitySlug !== null && (
+                            <div className="flex flex-col gap-1">
+                                {slugEditing ? (
+                                    <>
+                                        <label htmlFor="entity-slug" className="font-medium mb-1">
+                                            Slug
+                                        </label>
+                                        <Input
+                                            id="entity-slug"
+                                            value={entitySlug}
+                                            onChange={(e) => handleSlugInputChange(e.target.value)}
+                                            status={
+                                                slugFieldError || slugValidationError
+                                                    ? "error"
+                                                    : undefined
+                                            }
+                                            autoFocus
+                                            suffix={
+                                                <Button
+                                                    type="text"
+                                                    size="small"
+                                                    icon={<ArrowClockwise size={14} />}
+                                                    onClick={handleRegenerate}
+                                                    title="Regenerate random suffix"
+                                                />
+                                            }
+                                        />
+                                        {(slugFieldError || slugValidationError) && (
+                                            <div className="mt-0.5 flex items-start gap-1 text-[#ff4d4f]">
+                                                <WarningCircle
+                                                    size={16}
+                                                    className="mt-0.5 shrink-0"
+                                                />
+                                                <span>{slugFieldError ?? slugValidationError}</span>
+                                            </div>
+                                        )}
+                                        {!slugFieldError && !slugValidationError && (
+                                            <Text className={cn(textColors.tertiary)}>
+                                                Edit freely - use the regenerate button to add a
+                                                random suffix back.
+                                            </Text>
+                                        )}
+                                    </>
+                                ) : (
+                                    <div className="flex min-w-0 items-center gap-2">
+                                        <Text className="shrink-0 font-medium">Slug:</Text>
+                                        <Tag
+                                            className="min-w-0 max-w-[min(220px,calc(100%-88px))] truncate bg-gray-100 font-mono text-gray-500"
+                                            title={entitySlug}
+                                        >
+                                            {entitySlug}
+                                        </Tag>
+                                        <Button
+                                            type="link"
+                                            size="small"
+                                            className="shrink-0"
+                                            onClick={handleEditClick}
+                                        >
+                                            Edit
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {/* Additional mode-specific UI injected by consumers */}
                 {extraContent}
 
@@ -279,6 +442,7 @@ export function EntityCommitContent({
                         type="error"
                         title={`${actionLabel} failed`}
                         description={error.message}
+                        className="[&_.ant-alert]:!py-5"
                         showIcon
                     />
                 )}

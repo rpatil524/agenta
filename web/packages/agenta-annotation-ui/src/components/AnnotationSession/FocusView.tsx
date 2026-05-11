@@ -12,7 +12,7 @@ import {memo, useCallback, useMemo} from "react"
 import {annotationFormController, annotationSessionController} from "@agenta/annotation"
 import type {SessionView} from "@agenta/annotation"
 import {message} from "@agenta/ui/app-message"
-import {Check} from "@phosphor-icons/react"
+import {Check, Plus} from "@phosphor-icons/react"
 import {Button, Skeleton, Typography} from "antd"
 import {useAtomValue, useSetAtom} from "jotai"
 
@@ -33,8 +33,6 @@ interface FocusViewProps {
     queueId: string
     onCompleted: (scenarioId: string) => void
     onViewChange?: (view: SessionView) => void
-    onSyncToTestset?: () => void
-    isSyncing?: boolean
 }
 
 // ============================================================================
@@ -43,65 +41,26 @@ interface FocusViewProps {
 
 const AllCaughtUp = memo(function AllCaughtUp({
     onViewChange,
-    onSyncToTestset,
-    isSyncing,
 }: {
     onViewChange?: (view: SessionView) => void
-    onSyncToTestset?: () => void
-    isSyncing?: boolean
 }) {
     const navigation = useAnnotationNavigation()
     const queueKind = useAtomValue(annotationSessionController.selectors.queueKind())
-    const setActiveView = useSetAtom(annotationSessionController.actions.setActiveView)
+    const isAddToTestsetExporting = useAtomValue(
+        annotationSessionController.selectors.isAddToTestsetExporting(),
+    )
+    const openAddToTestsetModal = useSetAtom(
+        annotationSessionController.actions.openAddToTestsetModal,
+    )
     const isTraces = queueKind === "traces"
-    const isTestcases = queueKind === "testcases"
-
-    const handleViewPrevious = useCallback(() => {
-        if (onViewChange) {
-            onViewChange("list")
-            return
-        }
-
-        setActiveView("list" as SessionView)
-    }, [onViewChange, setActiveView])
 
     const handleGoToObservability = useCallback(() => {
         navigation.navigateToObservability?.()
     }, [navigation])
 
-    // For testcase queues: show direct sync action after all scenarios are annotated
-    if (isTestcases && onSyncToTestset) {
-        return (
-            <div className="flex flex-col flex-1 items-center justify-center gap-4 min-h-0">
-                <div className="flex items-center justify-center size-20 rounded-full bg-[var(--ant-color-fill-quaternary)]">
-                    <Check size={32} className="text-[var(--ant-color-text-secondary)]" />
-                </div>
-
-                <div className="flex flex-col items-center gap-2 text-center">
-                    <Typography.Text strong className="!text-base">
-                        All scenarios annotated
-                    </Typography.Text>
-                    <Typography.Text type="secondary" className="text-sm">
-                        Save your annotations back to the testset as a new version.
-                    </Typography.Text>
-                </div>
-
-                <div className="flex items-center gap-2">
-                    <Button size="small" onClick={handleViewPrevious}>
-                        View previous annotations
-                    </Button>
-                    <Button
-                        size="small"
-                        type="primary"
-                        loading={isSyncing}
-                        onClick={onSyncToTestset}
-                    >
-                        Save to Testset
-                    </Button>
-                </div>
-            </div>
-        )
-    }
+    const handleAddToTestset = useCallback(() => {
+        openAddToTestsetModal({scope: "complete"})
+    }, [openAddToTestsetModal])
 
     return (
         <div className="flex flex-col flex-1 items-center justify-center gap-4 min-h-0">
@@ -121,14 +80,18 @@ const AllCaughtUp = memo(function AllCaughtUp({
             </div>
 
             <div className="flex items-center gap-2">
-                <Button size="small" onClick={handleViewPrevious}>
-                    View previous annotations
+                <Button
+                    size="small"
+                    icon={<Plus size={14} />}
+                    onClick={handleAddToTestset}
+                    loading={isAddToTestsetExporting}
+                >
+                    Add to Testset
                 </Button>
-                {isTraces && navigation.navigateToObservability && (
-                    <Button size="small" type="primary" onClick={handleGoToObservability}>
-                        Go to observability
-                    </Button>
-                )}
+
+                <Button size="small" onClick={handleGoToObservability}>
+                    Go to observability
+                </Button>
             </div>
         </div>
     )
@@ -138,13 +101,7 @@ const AllCaughtUp = memo(function AllCaughtUp({
 // MAIN COMPONENT
 // ============================================================================
 
-const FocusView = memo(function FocusView({
-    queueId,
-    onCompleted,
-    onViewChange,
-    onSyncToTestset,
-    isSyncing,
-}: FocusViewProps) {
+const FocusView = memo(function FocusView({queueId, onCompleted, onViewChange}: FocusViewProps) {
     const currentScenarioId = useAtomValue(
         annotationSessionController.selectors.currentScenarioId(),
     )
@@ -245,13 +202,7 @@ const FocusView = memo(function FocusView({
     }
 
     if (progress.remaining === 0) {
-        return (
-            <AllCaughtUp
-                onViewChange={onViewChange}
-                onSyncToTestset={onSyncToTestset}
-                isSyncing={isSyncing}
-            />
-        )
+        return <AllCaughtUp onViewChange={onViewChange} />
     }
 
     if (focusScenarioIds.length === 0 && !currentScenarioId) {
@@ -273,7 +224,7 @@ const FocusView = memo(function FocusView({
         <div className="flex flex-col flex-1 min-h-0">
             {/* Main content area */}
             <div className="flex-1 bg-[#f5f7fa] p-2 overflow-hidden min-h-0 flex flex-col">
-                <div className="flex h-full gap-4 overflow-hidden min-h-0">
+                <div className="flex flex-col md:flex-row h-full gap-4 overflow-hidden min-h-0">
                     {/* Scenario content */}
                     <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
                         <ScenarioContent
@@ -285,7 +236,7 @@ const FocusView = memo(function FocusView({
                     </div>
 
                     {/* Annotation panel */}
-                    <div className="w-[400px] shrink-0 border border-solid border-[rgba(5,23,41,0.06)] rounded-lg overflow-hidden bg-white flex flex-col">
+                    <div className="w-full md:w-[300px] lg:w-[400px] xl:w-[450px] shrink-0 border border-solid border-[rgba(5,23,41,0.06)] rounded-lg overflow-hidden bg-white flex flex-col">
                         <AnnotationPanel scenarioId={currentScenarioId ?? ""} />
                     </div>
                 </div>
