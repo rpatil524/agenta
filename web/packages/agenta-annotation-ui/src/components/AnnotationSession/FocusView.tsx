@@ -84,7 +84,7 @@ const AllCaughtUp = memo(function AllCaughtUp({
                     size="small"
                     icon={<Plus size={14} />}
                     onClick={handleAddToTestset}
-                    disabled={isAddToTestsetExporting}
+                    loading={isAddToTestsetExporting}
                 >
                     Add to Testset
                 </Button>

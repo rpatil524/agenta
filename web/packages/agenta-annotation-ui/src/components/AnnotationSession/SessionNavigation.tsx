@@ -156,10 +156,9 @@ const SessionNavigation = ({scenarioId, queueId, onCompleted}: SessionNavigation
                 scenarioId,
                 isCompleted,
                 isSubmitting,
-                isExporting: isAddToTestsetExporting,
                 hasPendingChanges,
             }),
-        [scenarioId, isCompleted, isSubmitting, isAddToTestsetExporting, hasPendingChanges],
+        [scenarioId, isCompleted, isSubmitting, hasPendingChanges],
     )
 
     return (
@@ -252,6 +251,7 @@ const SessionNavigation = ({scenarioId, queueId, onCompleted}: SessionNavigation
                             icon={<Plus size={13} />}
                             onClick={handleAddToTestset}
                             disabled={Boolean(addToTestsetDisabledReason)}
+                            loading={isAddToTestsetExporting}
                         >
                             Add to Testset
                         </Button>

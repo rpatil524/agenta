@@ -1536,7 +1536,8 @@ const ScenarioListView = memo(function ScenarioListView({
                 size="small"
                 icon={<Plus size={14} />}
                 onClick={handleAddToTestset}
-                disabled={!canAddToTestset || isAddToTestsetExporting}
+                disabled={!canAddToTestset}
+                loading={isAddToTestsetExporting}
                 label="Add to Testset"
             />
         ),
