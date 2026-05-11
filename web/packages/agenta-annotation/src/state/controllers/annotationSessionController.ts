@@ -2444,27 +2444,18 @@ async function waitForStoreAtomValue<T>(
 
 function resolveScenarioIdsForAddToTestset(get: Getter): string[] {
     const scope = get(addToTestsetScopeAtom)
-    const queueKind = get(queueKindAtom)
 
-    if (queueKind === "testcases" && (scope === "all" || scope === "complete")) {
+    if (scope === "all") {
+        return get(scenarioIdsAtom)
+    }
+
+    if (scope === "complete") {
         const completed = get(completedScenarioIdsAtom)
         const records = get(scenarioRecordsAtom)
         return get(scenarioIdsAtom).filter((id) => isScenarioCompleted(id, completed, records))
     }
 
-    if (scope === "all" || scope === "complete") {
-        return get(scenarioIdsAtom)
-    }
     return get(addToTestsetScenarioIdsAtom)
-}
-
-function resolveCompletedScenarioIdsForAnnotationExport(
-    get: Getter,
-    scenarioIds: string[],
-): Set<string> {
-    const completed = get(completedScenarioIdsAtom)
-    const records = get(scenarioRecordsAtom)
-    return new Set(scenarioIds.filter((id) => isScenarioCompleted(id, completed, records)))
 }
 
 function extractExistingColumns(
@@ -2997,8 +2988,7 @@ const addScenariosToTestsetAtom = atom(
                               }),
                               queueId,
                               evaluators,
-                              requireAnnotationOutputScenarioIds:
-                                  resolveCompletedScenarioIdsForAnnotationExport(get, scenarioIds),
+                              requireAnnotationOutputScenarioIds: new Set(),
                               setProcessed,
                           })
                         : await prepareTestcaseExportRows({
@@ -3106,14 +3096,8 @@ const canSyncToTestsetAtom = atom<boolean>((get) => {
 })
 
 const canAddToTestsetAtom = atom<boolean>((get) => {
-    const queueKind = get(queueKindAtom)
     const ids = get(scenarioIdsAtom)
-    if (ids.length === 0) return false
-    if (queueKind === "traces") return true
-
-    const completed = get(completedScenarioIdsAtom)
-    const records = get(scenarioRecordsAtom)
-    return ids.some((id) => isScenarioCompleted(id, completed, records))
+    return ids.length > 0
 })
 
 async function buildTestsetSyncPreviewForSession(get: Getter) {

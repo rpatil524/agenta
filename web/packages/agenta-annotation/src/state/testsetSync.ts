@@ -485,7 +485,6 @@ export function buildTestcaseExportRows(params: TestcaseExportRowBuilderParams):
             evaluators: params.evaluators,
             queueId: params.queueId,
         })
-        if (entries.length === 0) continue
 
         applyAnnotationOutputEntries(data, entries)
 
