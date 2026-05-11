@@ -80,21 +80,15 @@ class TestInstrumentDecoratorPreInitWarning:
             with warnings.catch_warnings(record=True) as caught:
                 warnings.simplefilter("always")
 
-                with patch("agenta.tracer") as mock_tracer:
-                    mock_span = MagicMock()
-                    mock_tracer.start_as_current_span.return_value.__enter__ = (
-                        lambda s, *a: mock_span
-                    )
-                    mock_tracer.start_as_current_span.return_value.__exit__ = (
-                        lambda s, *a: None
-                    )
-                    try:
-                        my_fn()
-                    except Exception:
-                        pass
+                # Warning fires first; subsequent code may raise because
+                # ag.tracing is None — that is the expected failure mode.
+                try:
+                    my_fn()
+                except Exception:
+                    pass
 
         runtime_warnings = [w for w in caught if issubclass(w.category, RuntimeWarning)]
-        assert len(runtime_warnings) >= 1
+        assert len(runtime_warnings) >= 1, "Expected RuntimeWarning but none were emitted"
         assert "ag.init()" in str(runtime_warnings[0].message)
 
     def test_instrument_no_warning_after_init(self):
@@ -120,8 +114,8 @@ class TestInstrumentDecoratorPreInitWarning:
                     )
                     try:
                         my_fn()
-                    except Exception:
-                        pass
+                    except Exception as exc:
+                        pytest.fail(f"my_fn() raised unexpectedly: {exc}")
 
         runtime_warnings = [w for w in caught if issubclass(w.category, RuntimeWarning)]
-        assert len(runtime_warnings) == 0
+        assert len(runtime_warnings) == 0, "Unexpected RuntimeWarning after ag.init()"
