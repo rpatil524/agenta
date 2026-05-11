@@ -4,7 +4,18 @@ description: "What an application is, how it's versioned, and how to invoke it."
 sidebar_position: 5
 ---
 
-An **application** is a versioned resource that serves inference. It wraps a prompt template, model parameters, and JSON schemas for its inputs, outputs, and parameters. Every deployment in Agenta — a chatbot, a classifier, a structured-extraction endpoint — is an application.
+An **application** is a chat or completion endpoint you build, version, and invoke through Agenta. It wraps a prompt template and the model parameters used to serve a request.
+
+Agenta ships two built-in application types:
+
+| Type | What it does |
+|------|--------------|
+| `completion` | Single-turn prompt completion. Takes inputs, returns a structured output. |
+| `chat` | Multi-turn chat. Takes a message history, returns the next message. |
+
+[Custom workflows](/custom-workflows/overview) are also applications. They let you point Agenta at your own HTTP handler or code, so the prompt, model parameters, and runtime behavior live in your service while versioning, deployment, and invocation stay in Agenta.
+
+Applications are versioned. You commit new revisions as the prompt or parameters change. Each revision can be used in two ways: invoked directly through Agenta's hosted runtime, or read for its configuration so your own runtime can pick up the latest prompt and parameters.
 
 ## Versioning
 
@@ -20,14 +31,19 @@ You don't edit revisions; you commit new ones. A revision's `data` is what the r
 
 ## The `data` payload
 
-A revision's `data` describes what the application is and how to run it:
+A revision's `data` describes what the application is and how it runs. Two fields drive execution:
+
+- `uri` selects the handler. Built-in URIs (`agenta:builtin:completion:v0`, `agenta:builtin:chat:v0`) point at Agenta's hosted completion or chat runtime. A custom URI (`agenta:custom:hook:v0`, `agenta:custom:code:v0`) points at a custom workflow.
+- `schemas` are the JSON Schemas the handler accepts and produces. They define the shape of `parameters` (the prompt configuration), `inputs` (the request payload), and `outputs` (the response).
+
+Together, `uri` plus `schemas` determine what the application does and what payloads it takes. Both come from a [template](#catalog) chosen at create time.
 
 | Field | Purpose |
 |-------|---------|
-| `uri` | Identifies the handler: `agenta:builtin:completion:v0`, `agenta:builtin:chat:v0`, a custom `agenta:custom:hook:v0`, etc. Choose a template at create time from the [catalog](#catalog). |
+| `uri` | Identifies the handler. Selected from the [catalog](#catalog) at create time. |
 | `url` | Populated by the server. The HTTP endpoint that serves this application. You POST request bodies to `{url}/invoke`. |
 | `schemas` | JSON Schemas for `parameters`, `inputs`, and `outputs`. Clients can use them to build typed payloads. |
-| `parameters` | The configuration — prompt messages, model, tools, response format, and so on. |
+| `parameters` | The configuration: prompt messages, model, tools, response format, and so on. |
 
 ## Invocation
 
@@ -103,7 +119,7 @@ Two sets of endpoints operate on applications:
 
 | Layer | Endpoint prefix | When to use |
 |-------|-----------------|-------------|
-| **Structured** | `/applications/` | Manage artifact, variant, and revision independently — commit new revisions, fork variants, query history. |
+| **Structured** | `/applications/` | Manage artifact, variant, and revision independently (commit new revisions, fork variants, query history). |
 | **Simple** | `/simple/applications/` | Get one row per application with the currently resolved variant, revision, and `data` merged. Creates artifact + variant + committed revision in one call. |
 
 `POST /simple/applications/query` returns one row per application with variant/revision merged; `POST /applications/query` returns artifacts only. See [Simple Endpoints](/reference/api-guide/simple-endpoints).
@@ -122,7 +138,7 @@ curl -X GET "$AGENTA_HOST/api/applications/catalog/templates/completion" \
   -H "Authorization: ApiKey $AGENTA_API_KEY"
 ```
 
-Templates may also have **presets** — named configurations that scaffold a variant's first revision. Templates and presets are global, read-only, and version with the product.
+Templates may also have **presets**: named configurations that scaffold a variant's first revision. Templates and presets are global, read-only, and version with the product.
 
 ## Lifecycle
 
