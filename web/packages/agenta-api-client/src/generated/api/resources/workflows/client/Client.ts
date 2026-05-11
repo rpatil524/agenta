@@ -1853,25 +1853,25 @@ export class WorkflowsClient {
     }
 
     /**
-     * @param {AgentaApi.ArchiveWorkflowRevisionRpcRequest} request
+     * @param {AgentaApi.ArchiveWorkflowRevisionRequest} request
      * @param {WorkflowsClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link AgentaApi.UnprocessableEntityError}
      *
      * @example
-     *     await client.workflows.archiveWorkflowRevisionRpc({
+     *     await client.workflows.archiveWorkflowRevision({
      *         workflow_revision_id: "workflow_revision_id"
      *     })
      */
-    public archiveWorkflowRevisionRpc(
-        request: AgentaApi.ArchiveWorkflowRevisionRpcRequest,
+    public archiveWorkflowRevision(
+        request: AgentaApi.ArchiveWorkflowRevisionRequest,
         requestOptions?: WorkflowsClient.RequestOptions,
     ): core.HttpResponsePromise<AgentaApi.WorkflowRevisionResponse> {
-        return core.HttpResponsePromise.fromPromise(this.__archiveWorkflowRevisionRpc(request, requestOptions));
+        return core.HttpResponsePromise.fromPromise(this.__archiveWorkflowRevision(request, requestOptions));
     }
 
-    private async __archiveWorkflowRevisionRpc(
-        request: AgentaApi.ArchiveWorkflowRevisionRpcRequest,
+    private async __archiveWorkflowRevision(
+        request: AgentaApi.ArchiveWorkflowRevisionRequest,
         requestOptions?: WorkflowsClient.RequestOptions,
     ): Promise<core.WithRawResponse<AgentaApi.WorkflowRevisionResponse>> {
         const { workflow_revision_id: workflowRevisionId } = request;
@@ -1927,25 +1927,25 @@ export class WorkflowsClient {
     }
 
     /**
-     * @param {AgentaApi.UnarchiveWorkflowRevisionRpcRequest} request
+     * @param {AgentaApi.UnarchiveWorkflowRevisionRequest} request
      * @param {WorkflowsClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link AgentaApi.UnprocessableEntityError}
      *
      * @example
-     *     await client.workflows.unarchiveWorkflowRevisionRpc({
+     *     await client.workflows.unarchiveWorkflowRevision({
      *         workflow_revision_id: "workflow_revision_id"
      *     })
      */
-    public unarchiveWorkflowRevisionRpc(
-        request: AgentaApi.UnarchiveWorkflowRevisionRpcRequest,
+    public unarchiveWorkflowRevision(
+        request: AgentaApi.UnarchiveWorkflowRevisionRequest,
         requestOptions?: WorkflowsClient.RequestOptions,
     ): core.HttpResponsePromise<AgentaApi.WorkflowRevisionResponse> {
-        return core.HttpResponsePromise.fromPromise(this.__unarchiveWorkflowRevisionRpc(request, requestOptions));
+        return core.HttpResponsePromise.fromPromise(this.__unarchiveWorkflowRevision(request, requestOptions));
     }
 
-    private async __unarchiveWorkflowRevisionRpc(
-        request: AgentaApi.UnarchiveWorkflowRevisionRpcRequest,
+    private async __unarchiveWorkflowRevision(
+        request: AgentaApi.UnarchiveWorkflowRevisionRequest,
         requestOptions?: WorkflowsClient.RequestOptions,
     ): Promise<core.WithRawResponse<AgentaApi.WorkflowRevisionResponse>> {
         const { workflow_revision_id: workflowRevisionId } = request;
