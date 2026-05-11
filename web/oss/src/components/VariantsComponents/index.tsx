@@ -318,28 +318,30 @@ const VariantsDashboard = () => {
                     Compare
                 </Button>
                 {!isCurrentWorkflowEvaluator && (
-                    <DeployVariantButton
-                        type="default"
-                        label="Deploy"
-                        disabled={!selectedRevisionId || selectedCount > 1}
-                        revisionId={selectedRevisionId}
-                    />
+                    <>
+                        <DeployVariantButton
+                            type="default"
+                            label="Deploy"
+                            disabled={!selectedRevisionId || selectedCount > 1}
+                            revisionId={selectedRevisionId}
+                        />
+                        <Button
+                            type="primary"
+                            icon={<CodeSimpleIcon size={14} />}
+                            data-tour="api-code-button"
+                            onClick={() => {
+                                openDeploymentsDrawer({
+                                    initialWidth: 1200,
+                                    revisionId: selectedRevisionId,
+                                    mode: "variant",
+                                })
+                                recordWidgetEvent("integration_snippet_viewed")
+                            }}
+                        >
+                            Use API
+                        </Button>
+                    </>
                 )}
-                <Button
-                    type="primary"
-                    icon={<CodeSimpleIcon size={14} />}
-                    data-tour="api-code-button"
-                    onClick={() => {
-                        openDeploymentsDrawer({
-                            initialWidth: 1200,
-                            revisionId: selectedRevisionId,
-                            mode: "variant",
-                        })
-                        recordWidgetEvent("integration_snippet_viewed")
-                    }}
-                >
-                    Use API
-                </Button>
             </div>
         ),
         [
@@ -349,6 +351,7 @@ const VariantsDashboard = () => {
             openComparisonModal,
             openDeploymentsDrawer,
             recordWidgetEvent,
+            isCurrentWorkflowEvaluator,
         ],
     )
 
@@ -386,7 +389,11 @@ const VariantsDashboard = () => {
     )
 
     return (
-        <PageLayout title="Registry" headerTabsProps={headerTabsProps} className="grow min-h-0">
+        <PageLayout
+            title="Registry"
+            headerTabsProps={isCurrentWorkflowEvaluator ? undefined : headerTabsProps}
+            className="grow min-h-0"
+        >
             {activeTab === "deployments" ? deploymentsContent : variantContent}
         </PageLayout>
     )

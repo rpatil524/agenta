@@ -222,10 +222,13 @@ const EvaluatorsRegistry = ({scope = "project", mode = "active"}: EvaluatorsRegi
                 // evaluator from the create-drawer, land them on the evaluator's
                 // full-page playground. Closes the loop with the "first part"
                 // workflow-creation design — drawer for create, full-page for edit.
-                onEvaluatorCreated: (configId?: string) => {
+                // Navigation uses the parent workflow id (`newAppId`), not the
+                // revision id — `/apps/[app_id]/playground` expects an app/workflow
+                // identifier.
+                onWorkflowCreated: ({newAppId}) => {
                     refetchAll()
-                    if (configId) {
-                        navigateToEvaluatorPage(configId)
+                    if (newAppId) {
+                        navigateToEvaluatorPage(newAppId)
                     }
                 },
             })

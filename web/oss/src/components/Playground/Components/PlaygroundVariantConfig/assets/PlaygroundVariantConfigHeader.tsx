@@ -248,7 +248,9 @@ const PlaygroundVariantConfigHeader = ({
                     </>
                 ) : (
                     <>
-                        {!embedded && <DeployVariantButton revisionId={variantId} />}
+                        {!embedded && !isEvaluatorEntity && (
+                            <DeployVariantButton revisionId={variantId} />
+                        )}
 
                         <CommitVariantChangesButton
                             variantId={variantId}

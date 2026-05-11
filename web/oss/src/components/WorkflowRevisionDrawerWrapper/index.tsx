@@ -450,8 +450,13 @@ const useDrawerCreateCommitCallback = () => {
                 await previousOnNewRevision?.(result, params)
 
                 if (isEvaluatorCreate) {
+                    const newWorkflow = result.workflow as
+                        | {workflow_id?: string; id?: string}
+                        | undefined
+                    const newAppId = newWorkflow?.workflow_id ?? newWorkflow?.id ?? undefined
                     drawerCallbackRef.current?.({
                         configId: result.newRevisionId,
+                        newAppId,
                         newRevisionId: result.newRevisionId,
                     })
                     closeDrawerRef.current()
