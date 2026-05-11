@@ -1,9 +1,14 @@
-import React, {useCallback, useEffect, useMemo, useRef} from "react"
+import React, {useCallback, useEffect, useMemo, useRef, useState} from "react"
 
 import {executionItemController, playgroundController} from "@agenta/playground"
 import {isJsonString} from "@agenta/shared/utils"
 import {getCollapseStyle} from "@agenta/ui/components/presentational"
-import {TOGGLE_MARKDOWN_VIEW, EditorProvider, useLexicalComposerContext} from "@agenta/ui/editor"
+import {
+    DrillInProvider,
+    TOGGLE_MARKDOWN_VIEW,
+    EditorProvider,
+    useLexicalComposerContext,
+} from "@agenta/ui/editor"
 import type {EditorProps} from "@agenta/ui/editor"
 import {SharedEditor} from "@agenta/ui/shared-editor"
 import {InputNumber, Switch, Typography} from "antd"
@@ -75,6 +80,38 @@ const FocusOnMountWhenArmed: React.FC<{
 }
 
 /**
+ * Detect whether an ambiguous port's current cell value looks like a JSON
+ * object or array, returning the matching port type for downstream routing.
+ *
+ * Mirrors the `detectDataType` idea from `@agenta/ui/drill-in` (we keep a
+ * local copy — we don't want the playground variable editor to pull in the
+ * whole drill-in surface), narrowed to the two cases where auto-routing is
+ * non-disruptive: object/array content can render in a code editor that
+ * preserves the user's caret across the swap, whereas swapping to
+ * `InputNumber` or `Switch` mid-keystroke would yank focus out of a Lexical
+ * editor and into an antd input. So we only auto-detect JSON shapes here;
+ * declared `number` / `boolean` ports still use their explicit editors, and
+ * any unrecognized string content stays in the rich-text editor.
+ *
+ * The runtime (`parseIfJsonObject` in `executionItems`) already round-trips
+ * both shapes correctly — strings pass through, JSON-shaped strings parse
+ * back to their object form — so users never need to manually escape
+ * quotes.
+ */
+const detectAmbiguousPortType = (raw: string): "object" | "array" | null => {
+    if (!raw || !raw.trim()) return null
+    try {
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed)) return "array"
+        if (parsed !== null && typeof parsed === "object") return "object"
+    } catch {
+        // Plain text, partial JSON, or malformed payload — leave the port as
+        // declared.
+    }
+    return null
+}
+
+/**
  * Shared header for all variable control types.
  * Renders the variable name label and optional header actions.
  */
@@ -93,6 +130,102 @@ const VariableHeader: React.FC<{
         ) : null}
     </div>
 )
+
+/**
+ * Inline JSON code editor used by the schema-typed branch of
+ * `VariableControlAdapter`. Mirrors `JsonEditorWithLocalState`'s composition
+ * exactly (EditorProvider with codeOnly+json wrapping SharedEditor with
+ * showLineNumbers, disableLongText, syncWithInitialValueChanges, and local
+ * state that swallows invalid JSON instead of propagating it) — but accepts
+ * a `header` slot so we can render the standard `VariableHeader` (blue mono
+ * label + action buttons) above the editor surface, and a `footer` slot for
+ * the schema shape hint.
+ */
+const JsonVariableEditor: React.FC<{
+    editorKey: string
+    initialValue: string
+    onValidChange: (value: string) => void
+    readOnly?: boolean
+    header?: React.ReactNode
+    footer?: React.ReactNode
+    containerRef?: React.RefObject<HTMLDivElement | null>
+    collapsed?: boolean
+}> = ({
+    editorKey,
+    initialValue,
+    onValidChange,
+    readOnly,
+    header,
+    footer,
+    containerRef,
+    collapsed,
+}) => {
+    // Seed empty cells with `"{}"` so the editor mounts with a real
+    // CodeBlockNode (line numbers + syntax highlighting). The CodeEditorPlugin
+    // only dispatches `INITIAL_CONTENT_COMMAND` — the trigger that creates the
+    // code block — when `safeJson5Parse(initial) !== safeJson5Parse(current)`.
+    // Both parse to `null` for `""`, so an empty initial would leave the
+    // editor in RichTextPlugin paragraph mode (no `.editor-code-line` → no
+    // gutter pseudo-element, plain proportional text). Mirrors
+    // `PlaygroundTestcaseEditor`'s `"{}"` fallback for empty testcase data.
+    // The cell value itself stays empty until the user types — `handleChange`
+    // only propagates when the JSON parses, so the visual seed never reaches
+    // the testcase store.
+    const [localValue, setLocalValue] = useState(initialValue || "{}")
+
+    useEffect(() => {
+        // Preserve the `"{}"` seed when the upstream cell value is empty —
+        // collapsing it back to `""` would collapse the CodeBlockNode back to
+        // a plain paragraph too.
+        setLocalValue(initialValue || "{}")
+    }, [initialValue])
+
+    const handleChange = useCallback(
+        (value: string) => {
+            setLocalValue(value)
+            try {
+                JSON.parse(value)
+                onValidChange(value)
+            } catch {
+                // Invalid JSON — keep local state but don't sync to parent.
+            }
+        },
+        [onValidChange],
+    )
+
+    return (
+        <div
+            ref={containerRef}
+            className="w-full flex flex-col gap-1"
+            style={collapsed ? getCollapseStyle(collapsed) : undefined}
+        >
+            {header}
+            <DrillInProvider value={{enabled: false, decodeEscapedJsonStrings: false}}>
+                <EditorProvider key={editorKey} codeOnly language="json" showToolbar={false}>
+                    <SharedEditor
+                        key={`${editorKey}-shared`}
+                        initialValue={localValue}
+                        handleChange={readOnly ? undefined : handleChange}
+                        editorType="border"
+                        className="min-h-[60px] overflow-hidden"
+                        disableDebounce
+                        noProvider
+                        syncWithInitialValueChanges
+                        disabled={readOnly}
+                        state={readOnly ? "readOnly" : undefined}
+                        editorProps={{
+                            codeOnly: true,
+                            language: "json",
+                            showLineNumbers: true,
+                            disableLongText: true,
+                        }}
+                    />
+                </EditorProvider>
+            </DrillInProvider>
+            {footer}
+        </div>
+    )
+}
 
 /**
  * VariableControlAdapter
@@ -143,8 +276,29 @@ const VariableControlAdapter: React.FC<VariableControlAdapterProps> = ({
         string,
         {type: string; name?: string; schema?: unknown}
     >
-    const portType = schemaMap[variableKey]?.type ?? "string"
+    const declaredPortType = schemaMap[variableKey]?.type ?? "string"
     const portSchema = schemaMap[variableKey]?.schema
+
+    // Content-derived type for declared-string ports whose runtime accepts any
+    // JSON value (most notably an evaluator's `outputs` envelope, where the
+    // app under test might emit a string, number, or structured payload). When
+    // the cell currently holds JSON-shaped content we route to the same
+    // JsonVariableEditor used for declared-object ports so users get line
+    // numbers + syntax highlighting + invalid-JSON tolerance — without having
+    // to manually wrap the value in quotes. Plain text stays in the rich-text
+    // editor (with the existing sticky `detectedAsJson` flip downstream).
+    // Numeric / boolean detection deliberately omitted: swapping in
+    // `InputNumber` or `Switch` mid-typing would yank focus out of Lexical
+    // and into an antd input.
+    const detectedAmbiguousType = useMemo(
+        () => detectAmbiguousPortType(typeof value === "string" ? value : ""),
+        [value],
+    )
+    const portType =
+        declaredPortType === "string" && detectedAmbiguousType
+            ? detectedAmbiguousType
+            : declaredPortType
+
     const name = useMemo(
         () =>
             variableKeys.includes(variableKey)
@@ -408,6 +562,44 @@ const VariableControlAdapter: React.FC<VariableControlAdapterProps> = ({
     // the user knows which fields the template references without us
     // pre-filling the editor with a value that wouldn't get submitted.
     const showShapeHint = isJsonType && isCellEmpty && !!shapeHint
+
+    // Schema-typed JSON (object/array): render the same editor stack the
+    // DrillIn / Testcase JSON editors use — code-only Lexical with line
+    // numbers and syntax highlighting. Inlined (not delegated to
+    // `JsonEditorWithLocalState`) so we can preserve the variable header
+    // and route the change handler through the testcase cell store directly.
+    // The string-typed branch below stays as-is for detected-JSON sticky
+    // mode flips, which only the rich-text editor surface supports.
+    //
+    // We deliberately keep the parent's `className` away from this branch —
+    // generation rows pass `*:!border-none overflow-hidden` for the rich-text
+    // cell strip, and applying it here strips the SharedEditor's own border
+    // and the line-number gutter.
+    if (isJsonType) {
+        return (
+            <JsonVariableEditor
+                editorKey={editorId}
+                initialValue={effectiveValue ?? ""}
+                onValidChange={handleChange}
+                readOnly={isEffectivelyDisabled}
+                header={
+                    !hideLabel ? <VariableHeader name={name} headerActions={headerActions} /> : null
+                }
+                footer={
+                    showShapeHint ? (
+                        <Typography.Text
+                            type="secondary"
+                            className="block mt-1 px-1 text-[11px] font-mono"
+                        >
+                            Expected shape: <code>{shapeHint}</code>
+                        </Typography.Text>
+                    ) : null
+                }
+                containerRef={containerRef}
+                collapsed={collapsed}
+            />
+        )
+    }
 
     return (
         <div

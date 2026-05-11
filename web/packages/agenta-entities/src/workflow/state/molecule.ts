@@ -698,6 +698,15 @@ function inferEnvelopeSchema(sample: unknown): Record<string, unknown> {
  *   (auto-detects JSON, falls back to plain text). Forcing `object` here
  *   would lock the editor into JSON mode even when the user wants to enter
  *   a plain-text output (e.g. for Exact Match).
+ *
+ * Why both are always returned (don't gate on prompt template references):
+ * every evaluator handler signature reads at least one of `inputs`/`outputs`,
+ * and most (json_multi_field_match, exact_match, levenshtein, json_diff, …)
+ * raise `MissingInputV0Error` if `inputs[correct_answer_key]` is absent. The
+ * envelope ports are the only way for the user to populate those keys when
+ * the evaluator isn't chained downstream of an app. Gating on template
+ * variables only works for `auto_ai_critique_v0` and silently breaks the
+ * classifier handlers; per-handler variable extraction belongs in a follow-up.
  */
 function buildEvaluatorEnvelopePorts(entity: Workflow | null | undefined): RunnablePort[] {
     const meta = entity?.meta as Record<string, unknown> | null | undefined

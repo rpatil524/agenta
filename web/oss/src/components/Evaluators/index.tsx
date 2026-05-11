@@ -3,6 +3,7 @@ import {memo, useCallback, useEffect, useMemo, useState} from "react"
 import {
     createEvaluatorFromTemplate,
     type EvaluatorCatalogTemplate,
+    hasFullPagePlaygroundUX,
     invalidateEvaluatorsListCache,
     workflowMolecule,
 } from "@agenta/entities/workflow"
@@ -215,22 +216,31 @@ const EvaluatorsRegistry = ({scope = "project", mode = "active"}: EvaluatorsRegi
                 return
             }
 
+            // Only prompt/code-authored evaluators (LLM-as-a-judge, code) get
+            // the full-page playground transition post-commit. Declarative
+            // classifiers stay in the drawer because the playground page
+            // can't offer them more than a few form fields the drawer already
+            // renders — and routing them through it surfaces misleading
+            // inputs/outputs envelope variables they can't act on.
+            const shouldNavigateToFullPage = hasFullPagePlaygroundUX({
+                flags: evaluator.flags,
+                data: evaluator.data,
+                slug: templateKey,
+            })
+
             openEvaluatorDrawer({
                 entityId: localId,
                 mode: "create",
-                // Phase 5 post-create transition: after the user commits a new
-                // evaluator from the create-drawer, land them on the evaluator's
-                // full-page playground. Closes the loop with the "first part"
-                // workflow-creation design — drawer for create, full-page for edit.
-                // Navigation uses the parent workflow id (`newAppId`), not the
-                // revision id — `/apps/[app_id]/playground` expects an app/workflow
-                // identifier.
-                onWorkflowCreated: ({newAppId}) => {
-                    refetchAll()
-                    if (newAppId) {
-                        navigateToEvaluatorPage(newAppId)
-                    }
-                },
+                onWorkflowCreated: shouldNavigateToFullPage
+                    ? ({newAppId}) => {
+                          refetchAll()
+                          if (newAppId) {
+                              navigateToEvaluatorPage(newAppId)
+                          }
+                      }
+                    : () => {
+                          refetchAll()
+                      },
             })
         },
         [openEvaluatorDrawer, refetchAll, navigateToEvaluatorPage],
@@ -251,15 +261,23 @@ const EvaluatorsRegistry = ({scope = "project", mode = "active"}: EvaluatorsRegi
                 return
             }
 
-            // Phase 5: row click navigates to the evaluator's full-page
-            // playground. The drawer-open via "Configure" menu item (handled in
-            // columnActions.handleConfigure below) stays as the secondary
-            // "Quick edit" affordance.
-            const navigated = record.workflowId ? navigateToEvaluatorPage(record.workflowId) : false
+            // Only prompt/code-authored evaluators open in the full-page
+            // playground. Declarative classifiers (match, contains, regex,
+            // json_multi_field_match, …) fall back to the drawer-edit flow —
+            // their config is a handful of form fields and the playground
+            // page would surface misleading envelope variable inputs.
+            const entity = record.revisionId ? workflowMolecule.get.data(record.revisionId) : null
+            const shouldNavigateToFullPage = Boolean(
+                record.workflowId &&
+                entity &&
+                hasFullPagePlaygroundUX(entity as Parameters<typeof hasFullPagePlaygroundUX>[0]),
+            )
+
+            const navigated =
+                shouldNavigateToFullPage && record.workflowId
+                    ? navigateToEvaluatorPage(record.workflowId)
+                    : false
             if (!navigated) {
-                // Defensive fallback: workspace/project not ready yet, or no
-                // workflow id on the record. Open the drawer so the user can
-                // still inspect.
                 openAutomaticEvaluator(record)
             }
         },
