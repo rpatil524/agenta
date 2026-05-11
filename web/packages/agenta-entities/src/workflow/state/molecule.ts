@@ -42,14 +42,17 @@ import {
 } from "../../runnable/evaluatorTransforms"
 import {
     extractInputPortsFromSchema,
+    extractLastPathSegment,
     extractOutputPortsFromSchema,
     extractSystemFieldNames,
     formatKeyAsName,
+    groupTemplateVariables,
 } from "../../runnable/portHelpers"
 import {normalizeWorkflowResponse} from "../../runnable/responseHelpers"
 import {extractVariablesFromConfig} from "../../runnable/utils"
 import type {RunnablePort, StoreOptions} from "../../shared"
 import {isLocalDraftId, isPlaceholderId} from "../../shared"
+import {archiveWorkflow, unarchiveWorkflow} from "../api"
 import type {Workflow} from "../core"
 import {
     toEvaluatorDefinitionFromWorkflow,
@@ -64,7 +67,7 @@ import {
 } from "../core/schema"
 
 import {workflowsListDataAtom, nonArchivedWorkflowsAtom} from "./allWorkflows"
-import {evaluatorTemplatesDataAtom} from "./evaluatorUtils"
+import {evaluatorTemplatesDataAtom, invalidateEvaluatorsListCache} from "./evaluatorUtils"
 import {
     executionModeAtomFamily as runnableExecutionModeAtomFamily,
     invocationUrlAtomFamily as runnableInvocationUrlAtomFamily,
@@ -90,6 +93,8 @@ import {
     discardWorkflowDraftAtom,
     invalidateWorkflowsListCache,
     invalidateWorkflowCache,
+    invalidateWorkflowVariantsCache,
+    invalidateWorkflowRevisionsByWorkflowCache,
     agTypeSchemaAtomFamily,
 } from "./store"
 
@@ -99,6 +104,22 @@ import {
 
 function getStore(options?: StoreOptions) {
     return options?.store ?? getDefaultStore()
+}
+
+type WorkflowLifecycleOptions = StoreOptions & {
+    projectId?: string | null
+}
+
+function getLifecycleProjectId(options?: WorkflowLifecycleOptions) {
+    return options?.projectId ?? getStore(options).get(workflowProjectIdAtom)
+}
+
+function invalidateWorkflowLifecycleCaches(workflowId: string, options?: StoreOptions) {
+    invalidateWorkflowsListCache(options)
+    invalidateEvaluatorsListCache()
+    invalidateWorkflowCache(workflowId, options)
+    invalidateWorkflowVariantsCache(workflowId, options)
+    invalidateWorkflowRevisionsByWorkflowCache(workflowId, options)
 }
 
 // ============================================================================
@@ -637,6 +658,71 @@ const parametersSchemaAtomFamily = atomFamily((workflowId: string) =>
 )
 
 /**
+ * Infer a lightweight JSON Schema from a sample value. Used to turn the
+ * observed envelope (e.g. `{country: "Azerbaijan", correct_answer: "..."}`)
+ * into a property list the drill-in renderer can expand. Returns an open-ended
+ * object schema when the sample is missing or not a plain object.
+ */
+function inferEnvelopeSchema(sample: unknown): Record<string, unknown> {
+    if (!sample || typeof sample !== "object" || Array.isArray(sample)) {
+        return {type: "object", additionalProperties: true}
+    }
+    const properties: Record<string, Record<string, unknown>> = {}
+    for (const [key, value] of Object.entries(sample as Record<string, unknown>)) {
+        const valueType = Array.isArray(value)
+            ? "array"
+            : value === null
+              ? "null"
+              : typeof value === "object"
+                ? "object"
+                : typeof value
+        properties[key] = {type: valueType}
+    }
+    return {
+        type: "object",
+        properties,
+        additionalProperties: true,
+    }
+}
+
+/**
+ * Build envelope ports for an evaluator workflow: `inputs` (graded testset
+ * row) and `outputs` (graded app output). When meta carries a sample envelope
+ * (e.g. span-opened ephemerals), the observed shape is surfaced as the
+ * sub-schema so drill-in shows the real fields.
+ *
+ * Port types:
+ * - `inputs` is always a structured testcase row → `object` (JSON editor).
+ * - `outputs` can be a string, number, or object depending on the upstream
+ *   app → `string` so the editor picks mode from the observed value
+ *   (auto-detects JSON, falls back to plain text). Forcing `object` here
+ *   would lock the editor into JSON mode even when the user wants to enter
+ *   a plain-text output (e.g. for Exact Match).
+ */
+function buildEvaluatorEnvelopePorts(entity: Workflow | null | undefined): RunnablePort[] {
+    const meta = entity?.meta as Record<string, unknown> | null | undefined
+    const envelope = meta?.envelope as Record<string, unknown> | undefined
+    const envelopeInputs = envelope?.inputs as Record<string, unknown> | undefined
+    const envelopeOutputs = envelope?.outputs
+    return [
+        {
+            key: "inputs",
+            name: "Inputs",
+            type: "object",
+            required: true,
+            schema: inferEnvelopeSchema(envelopeInputs),
+        },
+        {
+            key: "outputs",
+            name: "Outputs",
+            type: "string",
+            required: true,
+            schema: inferEnvelopeSchema(envelopeOutputs),
+        },
+    ]
+}
+
+/**
  * Input ports selector.
  * Derives ports from schema, prompt template variables, or ephemeral trace metadata.
  */
@@ -645,13 +731,34 @@ const inputPortsAtomFamily = atomFamily((workflowId: string) =>
         const entity = get(workflowEntityAtomFamily(workflowId))
         if (!entity) return []
 
-        // Ephemeral workflow: derive from template variables, then trace inputs
+        // Evaluators always consume the {inputs, outputs} envelope at runtime.
+        // Their `schemas.inputs` is an open-ended object (no declared properties),
+        // so generic schema-driven port extraction yields nothing useful — we
+        // must surface the envelope structure explicitly. This applies to both
+        // ephemerals (span-opened) and server-backed revisions.
+        if (entity.flags?.is_evaluator) {
+            return buildEvaluatorEnvelopePorts(entity)
+        }
+
+        // Ephemeral workflow: derive from template variables, then trace inputs.
+        // Template placeholders addressing non-`inputs` envelopes (e.g.
+        // `{{$.outputs.score}}` in evaluator prompts) resolve from runtime-
+        // populated envelope slots at invocation time — they don't need a
+        // testcase column, so we filter them out here.
         if (entity.flags?.is_base) {
             const params = resolveParameters(entity.data)
             if (params) {
                 const vars = extractVariablesFromConfig(params as Record<string, unknown>)
                 if (vars.length > 0) {
-                    return vars.map((key) => ({key, name: key, type: "string", required: true}))
+                    return groupTemplateVariables(vars)
+                        .filter((group) => group.envelope === "inputs")
+                        .map((group) => ({
+                            key: group.key,
+                            name: group.name,
+                            type: group.type,
+                            required: true,
+                            ...(group.subPaths ? {schema: buildSubPathSchema(group.subPaths)} : {}),
+                        }))
                 }
             }
             // Fallback: derive from trace inputs stored in meta
@@ -662,7 +769,12 @@ const inputPortsAtomFamily = atomFamily((workflowId: string) =>
                 const inputKeys = Object.keys(inputs).filter(
                     (key) => !(isChat && key === "messages"),
                 )
-                return inputKeys.map((key) => ({key, name: key, type: "string", required: false}))
+                return inputKeys.map((key) => ({
+                    key,
+                    name: extractLastPathSegment(key),
+                    type: "string",
+                    required: false,
+                }))
             }
             return []
         }
@@ -682,12 +794,44 @@ const inputPortsAtomFamily = atomFamily((workflowId: string) =>
                 (key) => !systemFields.has(key),
             )
             if (vars.length > 0) {
-                return vars.map((key) => ({key, name: key, type: "string", required: true}))
+                return groupTemplateVariables(vars)
+                    .filter((group) => group.envelope === "inputs")
+                    .map((group) => ({
+                        key: group.key,
+                        name: group.name,
+                        type: group.type,
+                        required: true,
+                        ...(group.subPaths ? {schema: buildSubPathSchema(group.subPaths)} : {}),
+                    }))
             }
         }
         return []
     }),
 )
+
+/**
+ * Build a synthetic JSON Schema describing the known sub-paths of a grouped
+ * object variable. Used only as a UI shape hint (seeds the JSON editor's
+ * default so users see which keys the template references).
+ *
+ * Nested paths (`a.b.c`) are flattened to their top-level segment here —
+ * deeper structure is communicated via `_pathHints` for the adapter to
+ * optionally render, without imposing nesting on the default value.
+ */
+function buildSubPathSchema(subPaths: string[]): {
+    type: "object"
+    properties: Record<string, {type: "string"}>
+    _pathHints: string[]
+} {
+    const topLevelKeys = new Set<string>()
+    for (const sp of subPaths) {
+        const first = sp.split(/[.[\]/]/).filter(Boolean)[0]
+        if (first) topLevelKeys.add(first)
+    }
+    const properties: Record<string, {type: "string"}> = {}
+    for (const k of topLevelKeys) properties[k] = {type: "string"}
+    return {type: "object", properties, _pathHints: subPaths}
+}
 
 /**
  * Output ports selector.
@@ -714,10 +858,36 @@ const outputPortsAtomFamily = atomFamily((workflowId: string) =>
 
         const schemaOutputs = extractOutputPortsFromSchema(entity?.data?.schemas?.outputs)
 
-        // For evaluators, the backend output schema may be incomplete (e.g., only "score"
-        // when the json_schema config also defines "reasoning"). Prefer the richer source.
+        // For evaluators, the backend output schema (`schemas.outputs`) only reflects
+        // the last committed revision. The draft-merged parameters are more authoritative
+        // for the current (possibly uncommitted) field configuration.
+        //
+        // Priority order:
+        // 1. `fields` array in parameters — directly reflects draft edits from
+        //    FieldsTagsEditorControl (e.g., JSON Multi-Field Match). Each field
+        //    becomes a number port, plus an "aggregate_score" port.
+        // 2. feedback_config.json_schema.schema.properties — generated by the
+        //    backend on commit, may be stale if the user hasn't committed yet.
+        // 3. schemas.outputs — committed output schema from the backend.
+        // 4. Default: single "score" port.
         if (entity?.flags?.is_evaluator) {
             const config = resolveParameters(entity.data) as Record<string, unknown> | undefined
+
+            // Check for a `fields` array (e.g., from FieldsTagsEditorControl).
+            // This is the most current source when the user adds/removes fields.
+            const fieldsArray = config?.fields as string[] | undefined
+            if (Array.isArray(fieldsArray) && fieldsArray.length > 0) {
+                const ports: RunnablePort[] = [
+                    {key: "aggregate_score", name: "Aggregate score", type: "number"},
+                    ...fieldsArray.map((field) => ({
+                        key: field,
+                        name: formatKeyAsName(field),
+                        type: "number" as const,
+                    })),
+                ]
+                return ports
+            }
+
             // Nested form: feedback_config.json_schema.schema.properties
             const feedbackConfig = config?.feedback_config as Record<string, unknown> | undefined
             const jsonSchema = feedbackConfig?.json_schema as
@@ -727,7 +897,7 @@ const outputPortsAtomFamily = atomFamily((workflowId: string) =>
             const flatJsonSchema = config?.json_schema as typeof jsonSchema | undefined
             const fbProperties =
                 jsonSchema?.schema?.properties ?? flatJsonSchema?.schema?.properties
-            if (fbProperties && Object.keys(fbProperties).length > schemaOutputs.length) {
+            if (fbProperties && Object.keys(fbProperties).length > 0) {
                 return Object.entries(fbProperties).map(([key, prop]) => ({
                     key,
                     name: formatKeyAsName(key),
@@ -1106,6 +1276,28 @@ export const workflowMolecule = {
     cache: {
         invalidateList: invalidateWorkflowsListCache,
         invalidateDetail: invalidateWorkflowCache,
+    },
+
+    // ========================================================================
+    // LIFECYCLE (thin API mutation layer)
+    // ========================================================================
+    lifecycle: {
+        archive: async (workflowId: string, options?: WorkflowLifecycleOptions) => {
+            const projectId = getLifecycleProjectId(options)
+            if (!workflowId) throw new Error("workflowId is required")
+            if (!projectId) throw new Error("projectId is required to archive workflow")
+
+            await archiveWorkflow(projectId, workflowId)
+            invalidateWorkflowLifecycleCaches(workflowId, options)
+        },
+        unarchive: async (workflowId: string, options?: WorkflowLifecycleOptions) => {
+            const projectId = getLifecycleProjectId(options)
+            if (!workflowId) throw new Error("workflowId is required")
+            if (!projectId) throw new Error("projectId is required to unarchive workflow")
+
+            await unarchiveWorkflow(projectId, workflowId)
+            invalidateWorkflowLifecycleCaches(workflowId, options)
+        },
     },
 
     // ========================================================================
