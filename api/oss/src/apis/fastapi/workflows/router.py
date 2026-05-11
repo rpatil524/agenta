@@ -11,6 +11,7 @@ from oss.src.utils.caching import invalidate_cache
 from oss.src.core.shared.dtos import (
     Reference,
 )
+from oss.src.core.git.types import VariantForkError
 from oss.src.core.workflows.service import (
     WorkflowsService,
     SimpleWorkflowsService,
@@ -363,7 +364,7 @@ class WorkflowsRouter:
             "/revisions/{workflow_revision_id}/archive",
             self.archive_workflow_revision,
             methods=["POST"],
-            operation_id="archive_workflow_revision_rpc",
+            operation_id="archive_workflow_revision",
             status_code=status.HTTP_200_OK,
             response_model=WorkflowRevisionResponse,
             response_model_exclude_none=True,
@@ -373,7 +374,7 @@ class WorkflowsRouter:
             "/revisions/{workflow_revision_id}/unarchive",
             self.unarchive_workflow_revision,
             methods=["POST"],
-            operation_id="unarchive_workflow_revision_rpc",
+            operation_id="unarchive_workflow_revision",
             status_code=status.HTTP_200_OK,
             response_model=WorkflowRevisionResponse,
             response_model_exclude_none=True,
@@ -1005,12 +1006,18 @@ class WorkflowsRouter:
             ):
                 raise FORBIDDEN_EXCEPTION  # type: ignore
 
-        workflow_variant = await self.workflows_service.fork_workflow_variant(
-            project_id=UUID(request.state.project_id),
-            user_id=UUID(request.state.user_id),
-            #
-            workflow_fork=workflow_fork_request.workflow,
-        )
+        try:
+            workflow_variant = await self.workflows_service.fork_workflow_variant(
+                project_id=UUID(request.state.project_id),
+                user_id=UUID(request.state.user_id),
+                #
+                workflow_fork=workflow_fork_request.workflow,
+            )
+        except VariantForkError as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=e.message,
+            ) from e
 
         # Invalidate legacy caches so the registry page reflects the forked variant
         await invalidate_cache(project_id=request.state.project_id)

@@ -3,10 +3,11 @@ import {useCallback, useMemo, useState} from "react"
 import {publishMutationAtom} from "@agenta/entities/runnable"
 import {workflowMolecule, createWorkflowFromEphemeralAtom} from "@agenta/entities/workflow"
 import {EntityCommitModal} from "@agenta/entity-ui"
+import type {CommitSubmitParams, CommitCreateFieldsConfig} from "@agenta/entity-ui"
 import {playgroundController} from "@agenta/playground"
 import {EnvironmentTag, environmentColors} from "@agenta/ui"
 import {message} from "@agenta/ui/app-message"
-import {Checkbox, Input, Select, Typography} from "antd"
+import {Checkbox, Select} from "antd"
 import {getDefaultStore, useAtomValue, useSetAtom} from "jotai"
 
 import {
@@ -17,12 +18,16 @@ import {
     registryPaginatedStore,
     clearRegistryVariantNameCache,
 } from "@/oss/components/VariantsComponents/store/registryStore"
-import {isVariantNameInputValid} from "@/oss/lib/helpers/utils"
 import {selectedAppIdAtom} from "@/oss/state/app"
 
 import {CommitVariantChangesModalProps} from "./assets/types"
 
-const {Text} = Typography
+const EVALUATOR_CREATE_FIELDS: CommitCreateFieldsConfig = {nameLabel: "Evaluator name"}
+const APP_CREATE_FIELDS: CommitCreateFieldsConfig = {nameLabel: "App name"}
+const VARIANT_CREATE_FIELDS: CommitCreateFieldsConfig = {
+    modes: ["variant"],
+    nameLabel: "Variant name",
+}
 
 const CommitVariantChangesModal: React.FC<CommitVariantChangesModalProps> = ({
     variantId,
@@ -34,6 +39,7 @@ const CommitVariantChangesModal: React.FC<CommitVariantChangesModalProps> = ({
     const runnableData = useAtomValue(workflowMolecule.selectors.data(variantId || ""))
     const isEphemeral = useAtomValue(workflowMolecule.selectors.isEphemeral(variantId || ""))
     const isEvaluator = useAtomValue(workflowMolecule.selectors.isEvaluator(variantId || ""))
+    const isApplication = useAtomValue(workflowMolecule.selectors.isApplication(variantId || ""))
 
     const appId = useAtomValue(selectedAppIdAtom)
     const commitRevision = useSetAtom(playgroundController.actions.commitRevision)
@@ -41,7 +47,6 @@ const CommitVariantChangesModal: React.FC<CommitVariantChangesModalProps> = ({
     const createFromEphemeral = useSetAtom(createWorkflowFromEphemeralAtom)
     const {mutateAsync: publish} = useAtomValue(publishMutationAtom)
 
-    const [newVariantName, setNewVariantName] = useState("")
     const [shouldDeploy, setShouldDeploy] = useState(false)
     const [selectedEnvironment, setSelectedEnvironment] = useState<string | null>(null)
 
@@ -59,7 +64,6 @@ const CommitVariantChangesModal: React.FC<CommitVariantChangesModalProps> = ({
 
     const handleClose = useCallback(() => {
         onCancel?.({} as never)
-        setNewVariantName("")
         setShouldDeploy(false)
         setSelectedEnvironment(null)
     }, [onCancel])
@@ -69,24 +73,25 @@ const CommitVariantChangesModal: React.FC<CommitVariantChangesModalProps> = ({
             message: commitMessage,
             mode,
             entityName: editedName,
-        }: {
-            message: string
-            mode?: string
-            entityName?: string
-        }) => {
+            entitySlug: editedSlug,
+        }: CommitSubmitParams) => {
             // Ephemeral entities: create a new workflow via the entities package reducer
             if (isEphemeral) {
                 const result = await createFromEphemeral({
                     revisionId: variantId,
-                    commitMessage,
+                    commitMessage: commitMessage ?? undefined,
                     name: editedName,
+                    slug: editedSlug,
                 })
 
                 if (!result.success) {
+                    const errorStatus = (result.error as {response?: {status?: number}}).response
+                        ?.status
                     return {
                         success: false,
                         error:
                             "error" in result ? result.error.message : "Failed to create workflow",
+                        errorStatus,
                     }
                 }
 
@@ -99,13 +104,19 @@ const CommitVariantChangesModal: React.FC<CommitVariantChangesModalProps> = ({
             }
 
             const selectedMode = mode === "variant" ? "variant" : "version"
-            const note = commitMessage
+            const note = commitMessage ?? undefined
 
             if (selectedMode === "variant") {
+                const variantNameToCreate = editedName?.trim()
+                if (!variantNameToCreate) {
+                    return {success: false, error: "Variant name is required"}
+                }
+
                 const result = await createVariant({
                     baseRevisionId: variantId,
                     baseVariantName: variantName,
-                    newVariantName: newVariantName,
+                    newVariantName: variantNameToCreate,
+                    slug: editedSlug,
                     note,
                     callback: (newRevision, state) => {
                         state.selected = state.selected.map((id) =>
@@ -118,6 +129,7 @@ const CommitVariantChangesModal: React.FC<CommitVariantChangesModalProps> = ({
                     return {
                         success: false,
                         error: result.error || "Failed to create a new variant",
+                        errorStatus: result.errorStatus,
                     }
                 }
 
@@ -140,7 +152,7 @@ const CommitVariantChangesModal: React.FC<CommitVariantChangesModalProps> = ({
                         revisionVersion: newRevisionData?.version ?? undefined,
                         note,
                     })
-                    message.success(`Published ${variantName} to ${selectedEnvironment}`)
+                    message.success(`Published ${variantNameToCreate} to ${selectedEnvironment}`)
                 }
 
                 clearRegistryVariantNameCache()
@@ -196,7 +208,6 @@ const CommitVariantChangesModal: React.FC<CommitVariantChangesModalProps> = ({
             variantId,
             variantName,
             variantSlug,
-            newVariantName,
             shouldDeploy,
             selectedEnvironment,
             publish,
@@ -217,8 +228,23 @@ const CommitVariantChangesModal: React.FC<CommitVariantChangesModalProps> = ({
         [isEvaluator],
     )
 
-    // For ephemeral entities, render a simplified "Create" modal with editable name
+    // For ephemeral entities, render a simplified "Create" modal with editable name.
+    // Branch the labels on the entity's type flag — evaluator-create flows show
+    // "Evaluator name", app-create flows show "App name", everything else
+    // (variant-from-base) keeps the evaluator default for backward compat.
     if (isEphemeral) {
+        const createFields = isEvaluator
+            ? EVALUATOR_CREATE_FIELDS
+            : isApplication
+              ? APP_CREATE_FIELDS
+              : EVALUATOR_CREATE_FIELDS
+        // The drawer wrapper (`useDrawerCreateCommitCallback`) toasts
+        // "App created successfully" / "Evaluator created successfully"
+        // on its `onNewRevision` hook. Letting the modal also toast
+        // would surface two identical notifications. For unrecognized
+        // ephemeral flows (no evaluator / no application flag) we keep
+        // the modal toast as a fallback.
+        const successMessage = isEvaluator || isApplication ? null : "Created successfully"
         return (
             <EntityCommitModal
                 open={open}
@@ -230,8 +256,8 @@ const CommitVariantChangesModal: React.FC<CommitVariantChangesModalProps> = ({
                 }}
                 onSubmit={handleSubmit}
                 actionLabel="Create"
-                entityNameEditable
-                successMessage="Evaluator created successfully"
+                createEntityFields={createFields}
+                successMessage={successMessage}
             />
         )
     }
@@ -247,54 +273,37 @@ const CommitVariantChangesModal: React.FC<CommitVariantChangesModalProps> = ({
             }}
             commitModes={commitModes}
             defaultCommitMode="version"
-            modeLabel={newVariantName || undefined}
             renderModeContent={({mode}) => (
                 <div className="flex flex-col gap-3">
-                    {mode === "variant" && (
-                        <div className="flex flex-col gap-1">
-                            <Input
-                                placeholder="A unique variant name"
-                                value={newVariantName}
-                                status={
-                                    newVariantName && !isVariantNameInputValid(newVariantName)
-                                        ? "error"
-                                        : undefined
-                                }
-                                onChange={(e) => setNewVariantName(e.target.value)}
-                            />
-                            {newVariantName && !isVariantNameInputValid(newVariantName) && (
-                                <Text className="text-xs text-[#EF4444]">
-                                    Variant name must contain only letters, numbers, underscore, or
-                                    dash
-                                </Text>
+                    {!isEvaluator && (
+                        <>
+                            <Checkbox
+                                checked={shouldDeploy}
+                                onChange={(e) => setShouldDeploy(e.target.checked)}
+                            >
+                                Deploy after commit
+                            </Checkbox>
+
+                            {shouldDeploy && (
+                                <Select
+                                    placeholder="Select environment"
+                                    value={selectedEnvironment ?? undefined}
+                                    onChange={(value) => setSelectedEnvironment(value)}
+                                    options={environmentOptions}
+                                />
                             )}
-                        </div>
-                    )}
-
-                    <Checkbox
-                        checked={shouldDeploy}
-                        onChange={(e) => setShouldDeploy(e.target.checked)}
-                    >
-                        Deploy after commit
-                    </Checkbox>
-
-                    {shouldDeploy && (
-                        <Select
-                            placeholder="Select environment"
-                            value={selectedEnvironment ?? undefined}
-                            onChange={(value) => setSelectedEnvironment(value)}
-                            options={environmentOptions}
-                        />
+                        </>
                     )}
                 </div>
             )}
-            canSubmit={({mode}) => {
+            canSubmit={({mode, entityName}) => {
                 if (mode === "variant") {
-                    if (!newVariantName || !isVariantNameInputValid(newVariantName)) return false
+                    if (!entityName?.trim()) return false
                 }
                 if (shouldDeploy && !selectedEnvironment) return false
                 return true
             }}
+            createEntityFields={VARIANT_CREATE_FIELDS}
             onSubmit={handleSubmit}
             submitLabel="Commit"
         />
