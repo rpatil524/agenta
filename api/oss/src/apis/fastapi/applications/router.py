@@ -1069,7 +1069,9 @@ class ApplicationsRouter:
         revision (or tip) into the new variant, then commits the supplied
         `revision` object on top. Both `variant` and `revision` sub-objects
         in the request must be present; the server returns `count: 0` when
-        either is missing.
+        either is missing. Returns `400 Bad Request` if the fork target is
+        invalid (for example, the source variant or revision cannot be
+        located in this application's lineage).
         """
         if is_ee():
             if not await check_action_access(  # type: ignore
