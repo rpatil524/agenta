@@ -49,6 +49,7 @@ import {
     invalidateWorkflowsListCache,
     invalidateWorkflowCache,
     invalidateWorkflowRevisionsByWorkflowCache,
+    invalidateWorkflowRevisionsByVariantCache,
     invalidateWorkflowVariantsCache,
     getFlatSourceData,
 } from "./store"
@@ -669,6 +670,13 @@ export const archiveWorkflowRevisionAtom = atom(
             invalidateWorkflowsListCache()
             invalidateEvaluatorsListCache()
             invalidateWorkflowRevisionsByWorkflowCache(workflowId)
+            // Variant-scoped revisions list backs the playground's per-variant
+            // revision selector dropdown. The workflow-scoped invalidation
+            // above doesn't reach it, so the deleted revision lingers in the
+            // dropdown until the next manual refetch.
+            if (variantId) {
+                invalidateWorkflowRevisionsByVariantCache(variantId)
+            }
             invalidateWorkflowCache(revisionId)
 
             if (_archiveCallbacks.onQueryInvalidate) {
