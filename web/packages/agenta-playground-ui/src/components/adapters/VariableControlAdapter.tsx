@@ -363,9 +363,7 @@ const VariableControlAdapter: React.FC<VariableControlAdapterProps> = ({
                 <Button
                     type="text"
                     size="small"
-                    icon={
-                        forceJsonMode ? <TextAa size={14} /> : <Code size={14} />
-                    }
+                    icon={forceJsonMode ? <TextAa size={14} /> : <Code size={14} />}
                     onClick={() => setForceJsonMode((v) => !v)}
                     aria-label={
                         forceJsonMode
@@ -403,7 +401,9 @@ const VariableControlAdapter: React.FC<VariableControlAdapterProps> = ({
                         className,
                     )}
                 >
-                    {!hideLabel && <VariableHeader name={name} headerActions={composedHeaderActions} />}
+                    {!hideLabel && (
+                        <VariableHeader name={name} headerActions={composedHeaderActions} />
+                    )}
                     <InputNumber
                         value={numValue != null && !isNaN(numValue) ? numValue : undefined}
                         onChange={(v) => handleChange(v != null ? String(v) : "")}
@@ -435,7 +435,9 @@ const VariableControlAdapter: React.FC<VariableControlAdapterProps> = ({
                         className,
                     )}
                 >
-                    {!hideLabel && <VariableHeader name={name} headerActions={composedHeaderActions} />}
+                    {!hideLabel && (
+                        <VariableHeader name={name} headerActions={composedHeaderActions} />
+                    )}
                     <Switch
                         checked={value === "true"}
                         onChange={(checked) => handleChange(String(checked))}
@@ -478,7 +480,9 @@ const VariableControlAdapter: React.FC<VariableControlAdapterProps> = ({
                 onValidChange={handleChange}
                 readOnly={isEffectivelyDisabled}
                 header={
-                    !hideLabel ? <VariableHeader name={name} headerActions={composedHeaderActions} /> : null
+                    !hideLabel ? (
+                        <VariableHeader name={name} headerActions={composedHeaderActions} />
+                    ) : null
                 }
                 footer={
                     showShapeHint ? (
