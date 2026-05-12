@@ -31,7 +31,7 @@ const lightFastTags = buildAcceptanceTags({
 })
 
 const createInviteEmail = (scope: string) =>
-    `${scope}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@agenta.ai`
+    `${scope}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@agenta.test`
 
 const waitForInviteResponse = async (page: any) => {
     const response = await page.waitForResponse(
