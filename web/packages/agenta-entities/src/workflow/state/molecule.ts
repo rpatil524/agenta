@@ -716,14 +716,17 @@ function buildEvaluatorEnvelopePorts(entity: Workflow | null | undefined): Runna
     return [
         {
             key: "inputs",
-            name: "Inputs",
+            // Match the runtime envelope key casing exactly — the variable
+            // header is the user's reference to the same identifier they
+            // address via `$.inputs.*` in their prompt template.
+            name: "inputs",
             type: "object",
             required: true,
             schema: inferEnvelopeSchema(envelopeInputs),
         },
         {
             key: "outputs",
-            name: "Outputs",
+            name: "outputs",
             type: "string",
             required: true,
             schema: inferEnvelopeSchema(envelopeOutputs),
@@ -862,7 +865,7 @@ const outputPortsAtomFamily = atomFamily((workflowId: string) =>
                     type: "string",
                 }))
             }
-            return [{key: "output", name: "Output", type: "string"}]
+            return [{key: "output", name: "output", type: "string"}]
         }
 
         const schemaOutputs = extractOutputPortsFromSchema(entity?.data?.schemas?.outputs)
@@ -919,7 +922,7 @@ const outputPortsAtomFamily = atomFamily((workflowId: string) =>
         }
 
         if (schemaOutputs.length > 0) return schemaOutputs
-        return [{key: "output", name: "Output", type: "string"}]
+        return [{key: "output", name: "output", type: "string"}]
     }),
 )
 
