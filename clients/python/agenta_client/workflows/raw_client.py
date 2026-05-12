@@ -1198,7 +1198,7 @@ class RawWorkflowsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
     
-    def archive_workflow_revision_rpc(self, workflow_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[WorkflowRevisionResponse]:
+    def archive_workflow_revision(self, workflow_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[WorkflowRevisionResponse]:
         """
         Parameters
         ----------
@@ -1238,7 +1238,7 @@ class RawWorkflowsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
     
-    def unarchive_workflow_revision_rpc(self, workflow_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[WorkflowRevisionResponse]:
+    def unarchive_workflow_revision(self, workflow_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[WorkflowRevisionResponse]:
         """
         Parameters
         ----------
@@ -2960,7 +2960,7 @@ class AsyncRawWorkflowsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
     
-    async def archive_workflow_revision_rpc(self, workflow_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[WorkflowRevisionResponse]:
+    async def archive_workflow_revision(self, workflow_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[WorkflowRevisionResponse]:
         """
         Parameters
         ----------
@@ -3000,7 +3000,7 @@ class AsyncRawWorkflowsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
     
-    async def unarchive_workflow_revision_rpc(self, workflow_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[WorkflowRevisionResponse]:
+    async def unarchive_workflow_revision(self, workflow_revision_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[WorkflowRevisionResponse]:
         """
         Parameters
         ----------

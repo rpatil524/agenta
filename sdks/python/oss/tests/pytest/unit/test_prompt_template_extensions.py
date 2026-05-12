@@ -401,9 +401,7 @@ def test_retry_before_fallback_same_model_retried_first(monkeypatch):
     # one call per model — verifying that primary is tried before secondary.
     import asyncio
 
-    result = asyncio.get_event_loop().run_until_complete(
-        _run_prompt_with_fallback(prompt)
-    )
+    result = asyncio.run(_run_prompt_with_fallback(prompt))
     assert result == "fallback ok"
     assert calls == ["primary", "secondary"]
 

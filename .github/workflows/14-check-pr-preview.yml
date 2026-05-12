@@ -67,7 +67,7 @@ jobs:
     with:
       agenta_web_url: ${{ needs.deploy.outputs.preview_url }}
       layers: acceptance,integration
-      packages: web-only
+      packages: all
     secrets: inherit
 
 
