@@ -76,14 +76,22 @@ const EvaluatorsRegistry = ({scope = "project", mode = "active"}: EvaluatorsRegi
     const {workspaceId, projectId} = useAtomValue(appIdentifiersAtom)
     const setRecentEvaluatorId = useSetAtom(recentEvaluatorIdAtom)
     const navigateToEvaluatorPage = useCallback(
-        (evaluatorId: string) => {
+        (evaluatorId: string, options?: {revisionId?: string}) => {
             if (!workspaceId || !projectId || !evaluatorId) return false
             setRecentEvaluatorId(evaluatorId)
-            void router.push(
-                `/w/${encodeURIComponent(workspaceId)}/p/${encodeURIComponent(
-                    projectId,
-                )}/apps/${encodeURIComponent(evaluatorId)}/playground`,
-            )
+            // Pin the destination to a specific revision when provided.
+            // Required for post-create navigation: without `?revisions=`, the
+            // playground page defaults to the v0 (empty initial) revision
+            // and the user's just-committed v1 — which holds the prompt /
+            // schema — never gets selected. Row-click navigation can omit
+            // this and let the playground fall back to "latest" naturally.
+            const base = `/w/${encodeURIComponent(workspaceId)}/p/${encodeURIComponent(
+                projectId,
+            )}/apps/${encodeURIComponent(evaluatorId)}/playground`
+            const href = options?.revisionId
+                ? `${base}?revisions=${encodeURIComponent(options.revisionId)}`
+                : base
+            void router.push(href)
             return true
         },
         [router, workspaceId, projectId, setRecentEvaluatorId],
@@ -216,34 +224,25 @@ const EvaluatorsRegistry = ({scope = "project", mode = "active"}: EvaluatorsRegi
                 return
             }
 
-            // Only prompt/code-authored evaluators (LLM-as-a-judge, code) get
-            // the full-page playground transition post-commit. Declarative
-            // classifiers stay in the drawer because the playground page
-            // can't offer them more than a few form fields the drawer already
-            // renders — and routing them through it surfaces misleading
-            // inputs/outputs envelope variables they can't act on.
-            const shouldNavigateToFullPage = hasFullPagePlaygroundUX({
-                flags: evaluator.flags,
-                data: evaluator.data,
-                slug: templateKey,
-            })
-
             openEvaluatorDrawer({
                 entityId: localId,
                 mode: "create",
-                onWorkflowCreated: shouldNavigateToFullPage
-                    ? ({newAppId}) => {
-                          refetchAll()
-                          if (newAppId) {
-                              navigateToEvaluatorPage(newAppId)
-                          }
-                      }
-                    : () => {
-                          refetchAll()
-                      },
+                // The post-create routing (playground vs stay on /evaluators)
+                // is owned by `useDrawerCreateCommitCallback` in the drawer
+                // wrapper now — it reads the just-committed revision's URI /
+                // flags from the API response and pushes the playground URL
+                // *inside the wrapper effect*, matching what the app-create
+                // path already does. Keeping the navigation closure here as
+                // well would re-introduce the stale-closure / Fast-Refresh
+                // race that produced "first attempt didn't redirect" reports.
+                // We only refresh the list cache so the new evaluator appears
+                // in the registry on the user's next visit.
+                onWorkflowCreated: () => {
+                    refetchAll()
+                },
             })
         },
-        [openEvaluatorDrawer, refetchAll, navigateToEvaluatorPage],
+        [openEvaluatorDrawer, refetchAll],
     )
 
     const handleRowClick = useCallback(

@@ -15,6 +15,7 @@ import {testcaseMolecule} from "@agenta/entities/testcase"
 import {
     registerWorkflowCommitCallbacks,
     getWorkflowCommitCallbacks,
+    hasFullPagePlaygroundUX,
     parseEvaluatorKeyFromUri,
     evaluatorTemplatesMapAtom,
     workflowMolecule,
@@ -451,14 +452,58 @@ const useDrawerCreateCommitCallback = () => {
 
                 if (isEvaluatorCreate) {
                     const newWorkflow = result.workflow as
-                        | {workflow_id?: string; id?: string}
+                        | {
+                              workflow_id?: string
+                              id?: string
+                              slug?: string
+                              flags?: Record<string, unknown> | null
+                              data?: {uri?: string | null} | null
+                              meta?: Record<string, unknown> | null
+                          }
                         | undefined
                     const newAppId = newWorkflow?.workflow_id ?? newWorkflow?.id ?? undefined
+                    const newRevisionId = result.newRevisionId
+
                     drawerCallbackRef.current?.({
-                        configId: result.newRevisionId,
+                        configId: newRevisionId,
                         newAppId,
-                        newRevisionId: result.newRevisionId,
+                        newRevisionId,
                     })
+
+                    // Navigate BEFORE closing the drawer. The drawer-close
+                    // effect (`useEffect` on `isOpen`) calls
+                    // `setQueryRevision(null, {shallow: true})`, which routes
+                    // through `NavigationCommandListener`. The listener reads
+                    // `Router.pathname` at execute time — and pathname only
+                    // updates on `routeChangeComplete`, NOT on `routeChangeStart`.
+                    // So if we call `closeDrawer` synchronously after a fresh
+                    // `router.push`, the patch-query rebuilds the URL against
+                    // the OLD pathname (/evaluators) and pushes there, which
+                    // cancels our in-flight push to /apps/{id}/playground.
+                    //
+                    // Awaiting `router.push` first lets pathname settle, so the
+                    // close-time URL cleanup runs on the destination page where
+                    // it's a no-op.
+                    let eligibleForPlayground = false
+                    if (newAppId && newRevisionId && newWorkflow) {
+                        eligibleForPlayground = hasFullPagePlaygroundUX({
+                            flags: newWorkflow.flags ?? null,
+                            data: newWorkflow.data ?? null,
+                            meta: newWorkflow.meta ?? null,
+                            slug: newWorkflow.slug ?? null,
+                        })
+                    }
+
+                    if (eligibleForPlayground && newAppId && newRevisionId) {
+                        const url = `${baseAppURLRef.current}/${encodeURIComponent(
+                            newAppId,
+                        )}/playground?revisions=${encodeURIComponent(newRevisionId)}`
+                        try {
+                            await routerRef.current.push(url)
+                        } catch (err) {
+                            console.error("[evaluator-create] router.push failed", err)
+                        }
+                    }
                     closeDrawerRef.current()
                 } else if (isAppCreate) {
                     const newWorkflow = result.workflow as
@@ -474,20 +519,21 @@ const useDrawerCreateCommitCallback = () => {
                     // paginated store.
                     void invalidateAppManagementWorkflowQueries()
 
-                    // Fire the user callback first so any analytics/hooks
-                    // see the result. Then handle navigation + close inside
-                    // the wrapper itself — owning the routing here keeps the
-                    // contract simple for callers and avoids brittleness from
-                    // a callback closure capturing stale router references.
                     drawerCallbackRef.current?.({
                         newAppId,
                         newRevisionId,
                     })
 
+                    // Same ordering rule as the evaluator-create branch:
+                    // navigate first, then close. See comment above for why.
                     if (newAppId && newRevisionId) {
-                        routerRef.current.push(
-                            `${baseAppURLRef.current}/${newAppId}/playground?revisions=${newRevisionId}`,
-                        )
+                        try {
+                            await routerRef.current.push(
+                                `${baseAppURLRef.current}/${newAppId}/playground?revisions=${newRevisionId}`,
+                            )
+                        } catch (err) {
+                            console.error("[app-create] router.push failed", err)
+                        }
                     }
                     closeDrawerRef.current()
                 } else {

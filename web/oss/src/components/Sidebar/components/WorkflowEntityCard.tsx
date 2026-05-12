@@ -1,6 +1,7 @@
 import {memo, useCallback, useMemo, useState} from "react"
 
 import {
+    fullPagePlaygroundEvaluatorsAtom,
     nonArchivedAppWorkflowsAtom,
     nonArchivedEvaluatorsAtom,
     parseWorkflowKeyFromUri,
@@ -106,7 +107,17 @@ const SWITCHER_MENU_CLASS = clsx(
 const WorkflowEntityCard = memo(({collapsed}: WorkflowEntityCardProps) => {
     const ctx = useAtomValue(currentWorkflowContextAtom)
     const apps = useAtomValue(nonArchivedAppWorkflowsAtom) as readonly Workflow[]
+    // Full set of evaluators — used for resolving the *active* workflow (the
+    // user may be inside a drawer-only evaluator currently). The switcher
+    // dropdown below uses `fullPagePlaygroundEvaluators` instead so it only
+    // lists evaluators whose destination is /apps/[id]/playground — clicking
+    // a declarative classifier or human evaluator from the sidebar would
+    // route through the route guard and bounce back to /evaluators, which is
+    // confusing.
     const evaluators = useAtomValue(nonArchivedEvaluatorsAtom) as readonly Workflow[]
+    const fullPagePlaygroundEvaluators = useAtomValue(
+        fullPagePlaygroundEvaluatorsAtom,
+    ) as readonly Workflow[]
     const recentAppId = useAtomValue(recentAppIdAtom)
     const recentEvaluatorId = useAtomValue(recentEvaluatorIdAtom)
     const navigateToWorkflow = useSetAtom(routerAppNavigationAtom)
@@ -164,16 +175,16 @@ const WorkflowEntityCard = memo(({collapsed}: WorkflowEntityCardProps) => {
                 children: apps.map((w) => toMenuItem(w, false)),
             })
         }
-        if (evaluators.length) {
+        if (fullPagePlaygroundEvaluators.length) {
             items.push({
                 key: "evaluators-header",
                 type: "group",
                 label: "Evaluators",
-                children: evaluators.map((w) => toMenuItem(w, true)),
+                children: fullPagePlaygroundEvaluators.map((w) => toMenuItem(w, true)),
             })
         }
         return items
-    }, [apps, evaluators])
+    }, [apps, fullPagePlaygroundEvaluators])
 
     const handleSwitcherClick = useCallback<NonNullable<MenuProps["onClick"]>>(
         ({key}) => {
