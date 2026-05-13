@@ -28,24 +28,19 @@ A testcase payload:
 
 The schema of a testcase is implicit in the keys of `data`. There is no separate column list. Adding a column means committing rows that have the new key.
 
+:::info Dedup IDs
+
+A testcase can carry a caller-supplied `testcase_dedup_id` (inside `data`) that the server uses to identify the same row across re-imports and edits. If you don't provide one, the server generates one from the content hash.
+
+CSV and older JSON uploads also accept a top-level `__dedup_id__` field (deprecated). The server normalises it into `data.testcase_dedup_id` on its way in.
+
+:::
+
 ## Testcase immutability
 
 A testcase is content-addressed. Its `id` is a hash of `data` plus the `testset_id` (plus an optional salt), so two testcases with the same content in the same testset collapse to the same row.
 
 Because a testcase is a blob, editing a row does not mutate the existing testcase. The commit writes a **new** blob with a new ID, then creates a **new** revision whose testcase list points at the new ID. The old blob is still reachable by its original ID. That is why revision history is reproducible: a revision is just a list of pointers to blobs that never change.
-
-## Dedup IDs
-
-A testcase can carry a caller-supplied dedup ID. The server uses it to identify the same row across re-imports and edits.
-
-| Path | Where it lives | Used by |
-|------|----------------|---------|
-| `testcase_dedup_id` | Inside `data` | Canonical; JSON API. |
-| `__dedup_id__` | Top-level of the row object | Legacy; CSV and older JSON uploads. |
-
-Both are accepted on write. The server normalises `__dedup_id__` into `data.testcase_dedup_id` on its way in. On export (CSV or JSON via `/download`), the server emits the legacy `__dedup_id__` form for round-trip compatibility with tools that expect it.
-
-If a row has no dedup ID on write, the server generates one from the content hash.
 
 ## Import and export
 
@@ -58,7 +53,7 @@ Testcases move in and out of a testset as CSV or JSON arrays.
 | `POST /simple/testsets/upload` | Create a new testset and seed its first revision in one call. |
 | `POST /simple/testsets/{id}/upload` | Commit a new revision on an existing simple testset. |
 
-Each row may include `__id__` (preserve an existing testcase ID), `__dedup_id__` (legacy dedup), `__flags__`, `__tags__`, and `__meta__`. Empty metadata columns are dropped from exports.
+Each row may include `__id__` (preserve an existing testcase ID), `__flags__`, `__tags__`, and `__meta__`. Empty metadata columns are dropped from exports.
 
 ## Retrieve semantics
 
@@ -67,7 +62,23 @@ Each row may include `__id__` (preserve an existing testcase ID), `__dedup_id__`
 - `include_testcases` defaults to `true`. Full testcase objects are returned unless you opt out.
 - `include_testcase_ids` defaults to `true`. The ordered ID list is returned unless you opt out.
 
+For instance, to retrieve a revision with only the ordered ID list and no testcase bodies:
+
+```bash
+curl -X POST "$AGENTA_HOST/api/testsets/revisions/retrieve" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: ApiKey $AGENTA_API_KEY" \
+  -d '{
+    "testset_ref": {"id": "019d9ca1-0000-0000-0000-000000000000"},
+    "include_testcases": false
+  }'
+```
+
+:::info
+
 This is the opposite default of `POST /queries/revisions/retrieve` (see [Query Pattern](/reference/api-guide/query-pattern)), where `include_traces` defaults to `false` because trace materialisation is expensive. Keep the asymmetry in mind when you build clients that consume both.
+
+:::
 
 ## Simple endpoints
 
@@ -82,7 +93,7 @@ Use it when you want the "current testset" without tracking lineage. For commits
 
 ## Relationship to evaluations
 
-An evaluation pins a specific **testset revision ID** when the run is configured. Committing a new revision on the testset does not retroactively change a pinned run. See [Evaluations](/reference/api-guide/evaluations).
+[Evaluations](/reference/api-guide/evaluations) are run against a testset. Each evaluation pins a specific `testset_revision_id` when the run is configured. Committing a new revision on the testset does not retroactively change a pinned run.
 
 ## Example
 
@@ -136,7 +147,11 @@ curl -X POST "$AGENTA_HOST/api/testsets/revisions/retrieve" \
   -d '{"testset_ref": {"id": "019d9ca1-0000-0000-0000-000000000000"}}'
 ```
 
+:::info
+
 An evaluation that pinned revision `019d9ca1-0000-0000-0000-000000000001` keeps replaying the original two rows even though the testset now has three.
+
+:::
 
 ## Lifecycle
 
