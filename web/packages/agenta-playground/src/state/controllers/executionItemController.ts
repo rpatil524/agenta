@@ -54,6 +54,7 @@ import {
     rowVariableKeysWithContextAtom,
     schemaInputKeysAtom,
     inputPortSchemaMapAtom,
+    outputPortSchemaMapAtom,
     repetitionCountAtom,
     repetitionIndexAtomFamily,
     allRowsCollapsedAtom,
@@ -61,6 +62,7 @@ import {
     triggerExecutionsAtom,
     cancelTestsMutationAtom,
     clearAllRunsMutationAtom,
+    clearAllExecutionItemsMutationAtom,
     clearResponseByRowEntityWithContextAtom,
     setRepetitionCountAtom,
     setRepetitionIndexAtom,
@@ -186,6 +188,14 @@ export const executionItemController = {
         /** Input port schema map — variable key → { type, schema } for schema-aware rendering */
         inputPortSchemaMap: inputPortSchemaMapAtom,
 
+        /**
+         * Output port schema map — mirrors `inputPortSchemaMap` but for
+         * output fields. Feeds the prompt editor's typeahead so evaluator
+         * prompts can suggest `$.outputs.<field>` based on declared /
+         * inferred output schemas.
+         */
+        outputPortSchemaMap: outputPortSchemaMapAtom,
+
         // ----------------------------------------------------------------
         // Direct testcase entity access (bypasses loadable indirection)
         // ----------------------------------------------------------------
@@ -274,6 +284,9 @@ export const executionItemController = {
 
         /** Clear all run results */
         clearAllRuns: clearAllRunsMutationAtom,
+
+        /** Clear run results and completion-mode testcase inputs */
+        clearAll: clearAllExecutionItemsMutationAtom,
 
         /** Run all tests (handles chat/completion × single/comparison) */
         runAll: runAllWithContextAtom,
