@@ -3,6 +3,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from oss.src.utils.exceptions import Support
+
 from oss.src.core.shared.dtos import (
     Windowing,
     Reference,
@@ -45,7 +47,7 @@ class TestcasesQueryRequest(BaseModel):
     )
 
 
-class TestcaseResponse(BaseModel):
+class TestcaseResponse(Support):
     count: int = Field(
         default=0,
         description="1 if a testcase was returned, 0 otherwise.",
@@ -56,7 +58,7 @@ class TestcaseResponse(BaseModel):
     )
 
 
-class TestcasesResponse(BaseModel):
+class TestcasesResponse(Support):
     count: int = Field(
         default=0,
         description="Number of testcases returned on this page.",

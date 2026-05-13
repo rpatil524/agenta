@@ -255,6 +255,7 @@ export {
     inputVariableNamesAtom,
     // Variable schema map (type + schema per key)
     inputPortSchemaMapAtom,
+    outputPortSchemaMapAtom,
     // App-level mode selectors
     isChatModeAtom,
     appTypeAtom,
@@ -287,6 +288,7 @@ export {
     triggerExecutionsAtom,
     // Mutations
     cancelTestsMutationAtom,
+    clearAllExecutionItemsMutationAtom,
     clearAllRunsMutationAtom,
     // Chat comparison
     canRunAllChatComparisonAtom,
