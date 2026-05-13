@@ -130,24 +130,17 @@ const JsonVariableEditor: React.FC<{
     containerRef,
     collapsed,
 }) => {
-    // Seed empty cells with `"{}"` so the editor mounts with a real
-    // CodeBlockNode (line numbers + syntax highlighting). The CodeEditorPlugin
-    // only dispatches `INITIAL_CONTENT_COMMAND` — the trigger that creates the
-    // code block — when `safeJson5Parse(initial) !== safeJson5Parse(current)`.
-    // Both parse to `null` for `""`, so an empty initial would leave the
-    // editor in RichTextPlugin paragraph mode (no `.editor-code-line` → no
-    // gutter pseudo-element, plain proportional text). Mirrors
-    // `PlaygroundTestcaseEditor`'s `"{}"` fallback for empty testcase data.
-    // The cell value itself stays empty until the user types — `handleChange`
-    // only propagates when the JSON parses, so the visual seed never reaches
-    // the testcase store.
-    const [localValue, setLocalValue] = useState(initialValue || "{}")
+    // Empty cells render with the editor's placeholder text ("Enter a value")
+    // until the user starts typing. We previously seeded empty cells with
+    // `"{}"` to force the editor into CodeBlockNode (line numbers + syntax
+    // highlighting) immediately, but that surfaced as a visible default in
+    // the cell — QA reported "Inputs always start with `{}`, why??". Users
+    // have the explicit JSON/text toggle in the variable header if they
+    // want to switch surfaces; we let the empty state stay empty.
+    const [localValue, setLocalValue] = useState(initialValue)
 
     useEffect(() => {
-        // Preserve the `"{}"` seed when the upstream cell value is empty —
-        // collapsing it back to `""` would collapse the CodeBlockNode back to
-        // a plain paragraph too.
-        setLocalValue(initialValue || "{}")
+        setLocalValue(initialValue)
     }, [initialValue])
 
     const handleChange = useCallback(
