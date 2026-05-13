@@ -6,7 +6,7 @@
  */
 
 import {axios, getAgentaApiUrl} from "@agenta/shared/api"
-import {validateUUID} from "@agenta/shared/utils"
+import {slugifyName, validateUUID} from "@agenta/shared/utils"
 
 import type {TestsetRevisionDelta} from "../core"
 
@@ -21,19 +21,16 @@ import type {TestsetRevisionDelta} from "../core"
 export async function createTestset(params: {
     projectId: string
     name: string
+    slug?: string
     testcases?: Record<string, unknown>[]
     commitMessage?: string
 }) {
-    const {projectId, name, testcases = [], commitMessage} = params
+    const {projectId, name, slug: explicitSlug, testcases = [], commitMessage} = params
 
     // Transform testcases to the format expected by the API
     const formattedTestcases = testcases.map((row) => ({data: row}))
 
-    // Create URL-safe slug
-    const slug = name
-        .toLowerCase()
-        .replace(/\s+/g, "_")
-        .replace(/[^a-z0-9_-]/g, "")
+    const slug = explicitSlug || slugifyName(name) || "testset"
 
     const response = await axios.post(
         `${getAgentaApiUrl()}/simple/testsets/`,
@@ -164,6 +161,21 @@ export async function archiveTestsets(params: {projectId: string; testsetIds: st
     return results.map((r) => r.data)
 }
 
+/**
+ * Unarchive (restore) a testset.
+ */
+export async function unarchiveTestset(params: {projectId: string; testsetId: string}) {
+    const {projectId, testsetId} = params
+
+    const response = await axios.post(
+        `${getAgentaApiUrl()}/simple/testsets/${testsetId}/unarchive`,
+        {},
+        {params: {project_id: projectId}},
+    )
+
+    return response.data
+}
+
 // ============================================================================
 // REVISION MUTATIONS
 // ============================================================================
@@ -228,16 +240,18 @@ export async function patchRevision(params: {
 export async function commitRevision(params: {
     projectId: string
     testsetId: string
+    testsetVariantId?: string
     testcases: {id?: string; data: Record<string, unknown>}[]
     message?: string
 }) {
-    const {projectId, testsetId, testcases, message} = params
+    const {projectId, testsetId, testsetVariantId, testcases, message} = params
 
     const response = await axios.post(
         `${getAgentaApiUrl()}/testsets/revisions/commit`,
         {
             testset_revision_commit: {
                 testset_id: testsetId,
+                testset_variant_id: testsetVariantId,
                 message: message || "Updated testcases",
                 data: {
                     testcases: testcases.map((tc) => ({
