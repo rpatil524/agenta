@@ -93,7 +93,7 @@ Evaluations tie traces and the rest of the API together:
 3. Every evaluator execution produces another `invocation` trace.
 4. Evaluation **scenarios** reference those trace IDs via their links.
 
-So a single evaluation run leaves behind one invocation trace per (testcase × subject) plus one invocation trace per (testcase × evaluator). See [Evaluations](/reference/api-guide/evaluations) for how scenarios join them back together.
+So a single evaluation run leaves behind one invocation trace per (testcase × subject) plus one invocation trace per (testcase × evaluator). Evaluation scenarios join them back together at query time.
 
 ## Ingestion
 
