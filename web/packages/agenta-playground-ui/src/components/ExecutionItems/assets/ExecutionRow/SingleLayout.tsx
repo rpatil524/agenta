@@ -14,18 +14,18 @@ import {
     CopySimpleIcon,
     DatabaseIcon,
     ExamIcon,
+    Info,
     LightningIcon,
     MarkdownLogoIcon,
     MinusCircleIcon,
     PlayIcon,
     RowsIcon,
+    X,
 } from "@phosphor-icons/react"
 import {Tag} from "antd"
 import clsx from "clsx"
-import {useAtomValue, useSetAtom} from "jotai"
-
-import {VariableControlAdapter} from "@agenta/playground-ui/adapters"
-import {openPlaygroundFocusDrawerAtom} from "@agenta/playground-ui/state"
+import {useAtom, useAtomValue, useSetAtom} from "jotai"
+import {atomWithStorage} from "jotai/utils"
 
 import {usePlaygroundUIOptional} from "../../../../context/PlaygroundUIContext"
 import {useRepetitionResult} from "../../../../hooks/useRepetitionResult"
@@ -47,6 +47,18 @@ import {
 } from "../../../shared/NodeResultCard"
 
 import {ExecutionRowRunControl, usePlaygroundNodeLabels} from "./shared"
+
+import {VariableControlAdapter} from "@agenta/playground-ui/adapters"
+import {openPlaygroundFocusDrawerAtom} from "@agenta/playground-ui/state"
+
+// Dismissable callout that explains what the two evaluator playground
+// variables represent (the application being evaluated's inputs and output).
+// Persisted per-user via localStorage so it doesn't reappear after the user
+// acknowledges it once.
+const evaluatorCalloutDismissedAtom = atomWithStorage<boolean>(
+    "agenta:playground:evaluator-callout-dismissed",
+    false,
+)
 
 interface Props {
     rowId: string
@@ -423,6 +435,17 @@ const SingleView = ({
         useMemo(() => workflowMolecule.selectors.query(entityId), [entityId]),
     )
 
+    // Whether this is an evaluator workflow — used to gate the one-time
+    // callout that explains the meaning of the two envelope variables
+    // (Application inputs / Application output) since they don't map 1:1
+    // to testcase columns the way an app's input fields do.
+    const isEvaluator = useAtomValue(
+        useMemo(() => workflowMolecule.selectors.isEvaluator(entityId), [entityId]),
+    )
+    const [evaluatorCalloutDismissed, setEvaluatorCalloutDismissed] = useAtom(
+        evaluatorCalloutDismissedAtom,
+    )
+
     const {getNodeLabel} = usePlaygroundNodeLabels(nodes)
 
     // Per-step execution action
@@ -718,6 +741,32 @@ const SingleView = ({
                 >
                     {variableIds.length > 0 && (
                         <div className="flex flex-col gap-2 w-full">
+                            {isEvaluator && !evaluatorCalloutDismissed && (
+                                <div
+                                    className={clsx(
+                                        "flex items-start gap-2 px-3 py-2 rounded-md",
+                                        "bg-blue-50 border border-solid border-blue-100",
+                                    )}
+                                >
+                                    <Info size={14} className="text-blue-500 mt-0.5 shrink-0" />
+                                    <div className="flex-1 text-xs text-gray-700 leading-relaxed">
+                                        Fill these with the data the application being evaluated
+                                        received and produced. The evaluator will judge this pair —
+                                        not your own typed values.
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setEvaluatorCalloutDismissed(true)}
+                                        className={clsx(
+                                            "shrink-0 p-0.5 rounded text-gray-400 hover:text-gray-700 hover:bg-blue-100",
+                                            "border-0 bg-transparent cursor-pointer",
+                                        )}
+                                        aria-label="Dismiss"
+                                    >
+                                        <X size={12} />
+                                    </button>
+                                </div>
+                            )}
                             {variableIds.map((id) => {
                                 const isVariableInputCollapsed =
                                     collapsedVariableInputs[id] || false

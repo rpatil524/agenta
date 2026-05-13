@@ -713,13 +713,17 @@ function buildEvaluatorEnvelopePorts(entity: Workflow | null | undefined): Runna
     const envelope = meta?.envelope as Record<string, unknown> | undefined
     const envelopeInputs = envelope?.inputs as Record<string, unknown> | undefined
     const envelopeOutputs = envelope?.outputs
+    // Keep the variable header label as the runtime key (`inputs`/`outputs`)
+    // so it matches the config the user authors against. The distinction
+    // between an evaluator's envelope variables and an app's field
+    // variables is surfaced via the `helpText` tooltip and the one-time
+    // callout above the variables list — not by renaming.
     return [
         {
             key: "inputs",
-            // Match the runtime envelope key casing exactly — the variable
-            // header is the user's reference to the same identifier they
-            // address via `$.inputs.*` in their prompt template.
             name: "inputs",
+            helpText:
+                "What the application being evaluated received. Reference in your prompt as `{{inputs}}` for the full JSON, or `{{$.inputs.<field>}}` to read a specific field (e.g. `{{$.inputs.country}}`).",
             type: "object",
             required: true,
             schema: inferEnvelopeSchema(envelopeInputs),
@@ -727,6 +731,8 @@ function buildEvaluatorEnvelopePorts(entity: Workflow | null | undefined): Runna
         {
             key: "outputs",
             name: "outputs",
+            helpText:
+                "What the application being evaluated returned. Reference in your prompt as `{{outputs}}` or `{{$.outputs}}`. This is the data being judged — not the evaluator's own output.",
             type: "string",
             required: true,
             schema: inferEnvelopeSchema(envelopeOutputs),

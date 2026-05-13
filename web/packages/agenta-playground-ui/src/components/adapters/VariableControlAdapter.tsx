@@ -10,7 +10,7 @@ import {
 } from "@agenta/ui/editor"
 import type {EditorProps} from "@agenta/ui/editor"
 import {SharedEditor} from "@agenta/ui/shared-editor"
-import {Code, TextAa} from "@phosphor-icons/react"
+import {Code, Info, TextAa} from "@phosphor-icons/react"
 import {Button, InputNumber, Switch, Tooltip, Typography} from "antd"
 import clsx from "clsx"
 import {useAtomValue, useSetAtom} from "jotai"
@@ -63,16 +63,36 @@ const MarkdownToggleRegistrar: React.FC<{
 
 /**
  * Shared header for all variable control types.
- * Renders the variable name label and optional header actions.
+ * Renders the variable name label, an optional info-tooltip explaining what
+ * the variable represents, and any header actions (JSON/text toggle, copy,
+ * markdown toggle, collapse) on the right.
+ *
+ * The info icon lives on the left next to the name — not in the right-hand
+ * action cluster — so it stays visible (no hover-gate) without conflicting
+ * with the hover-revealed action buttons. It's only rendered when the port
+ * carries a `helpText` (currently set by `buildEvaluatorEnvelopePorts` to
+ * distinguish evaluator envelope variables from app field variables).
  */
 const VariableHeader: React.FC<{
     name: string | undefined
     headerActions?: React.ReactNode
-}> = ({name, headerActions}) => (
+    helpText?: string
+}> = ({name, headerActions, helpText}) => (
     <div className="w-full flex items-start justify-between gap-2">
-        <Typography className="playground-property-control-label font-[500] text-[12px] leading-[20px] text-[#1677FF] font-mono">
-            {name}
-        </Typography>
+        <div className="flex items-center gap-1 min-w-0">
+            <Typography className="playground-property-control-label font-[500] text-[12px] leading-[20px] text-[#1677FF] font-mono truncate">
+                {name}
+            </Typography>
+            {helpText ? (
+                <Tooltip title={helpText} placement="topLeft" overlayStyle={{maxWidth: 360}}>
+                    <Info
+                        size={12}
+                        className="text-gray-400 hover:text-gray-600 shrink-0 cursor-help"
+                        aria-label={`About ${name ?? "this variable"}`}
+                    />
+                </Tooltip>
+            ) : null}
+        </div>
         {headerActions ? (
             <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover/item:opacity-100 focus-within:opacity-100">
                 {headerActions}
@@ -224,10 +244,11 @@ const VariableControlAdapter: React.FC<VariableControlAdapterProps> = ({
     // of the raw path. The key stays unchanged for request-payload identity.
     const schemaMap = useAtomValue(executionItemController.selectors.inputPortSchemaMap) as Record<
         string,
-        {type: string; name?: string; schema?: unknown}
+        {type: string; name?: string; schema?: unknown; helpText?: string}
     >
     const declaredPortType = schemaMap[variableKey]?.type ?? "string"
     const portSchema = schemaMap[variableKey]?.schema
+    const helpText = schemaMap[variableKey]?.helpText
 
     // Explicit text/JSON toggle for declared-string ports whose runtime
     // accepts any JSON value (most notably an evaluator's `outputs` envelope).
@@ -402,7 +423,11 @@ const VariableControlAdapter: React.FC<VariableControlAdapterProps> = ({
                     )}
                 >
                     {!hideLabel && (
-                        <VariableHeader name={name} headerActions={composedHeaderActions} />
+                        <VariableHeader
+                            name={name}
+                            headerActions={composedHeaderActions}
+                            helpText={helpText}
+                        />
                     )}
                     <InputNumber
                         value={numValue != null && !isNaN(numValue) ? numValue : undefined}
@@ -436,7 +461,11 @@ const VariableControlAdapter: React.FC<VariableControlAdapterProps> = ({
                     )}
                 >
                     {!hideLabel && (
-                        <VariableHeader name={name} headerActions={composedHeaderActions} />
+                        <VariableHeader
+                            name={name}
+                            headerActions={composedHeaderActions}
+                            helpText={helpText}
+                        />
                     )}
                     <Switch
                         checked={value === "true"}
@@ -481,7 +510,11 @@ const VariableControlAdapter: React.FC<VariableControlAdapterProps> = ({
                 readOnly={isEffectivelyDisabled}
                 header={
                     !hideLabel ? (
-                        <VariableHeader name={name} headerActions={composedHeaderActions} />
+                        <VariableHeader
+                            name={name}
+                            headerActions={composedHeaderActions}
+                            helpText={helpText}
+                        />
                     ) : null
                 }
                 footer={
@@ -523,7 +556,11 @@ const VariableControlAdapter: React.FC<VariableControlAdapterProps> = ({
                     noProvider
                     header={
                         !hideLabel ? (
-                            <VariableHeader name={name} headerActions={composedHeaderActions} />
+                            <VariableHeader
+                                name={name}
+                                headerActions={composedHeaderActions}
+                                helpText={helpText}
+                            />
                         ) : undefined
                     }
                     key={variableKey}
