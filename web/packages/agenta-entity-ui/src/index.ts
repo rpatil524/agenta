@@ -289,6 +289,7 @@ export {
     type CommitSubmitParams,
     type CommitSubmitResult,
     type CommitModeOption,
+    type CommitCreateFieldsConfig,
     // Commit modal state atoms
     commitModalOpenAtom,
     commitModalEntityAtom,
@@ -518,3 +519,14 @@ export {
     type VariantNameCellProps,
     type VariantStatusInfo,
 } from "./variant"
+
+// ============================================================================
+// WORKFLOW DISPLAY COMPONENTS
+// ============================================================================
+
+export {
+    WorkflowTypeTag,
+    type WorkflowTypeTagProps,
+    WorkflowKindTag,
+    type WorkflowKindTagProps,
+} from "./workflow"

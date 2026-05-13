@@ -1,5 +1,6 @@
-import {expect, Locator, Page} from "@playwright/test"
 import {existsSync, readFileSync} from "fs"
+
+import {expect, Locator, Page} from "@playwright/test"
 
 import {getProjectMetadataPath} from "../../../../playwright/config/runtime.ts"
 import {UseFn} from "../../types"
@@ -33,9 +34,9 @@ interface VaultSecretRecord {
                 api_key?: string
             }
         }
-        models?: Array<{
+        models?: {
             slug?: string
-        }>
+        }[]
     }
 }
 
@@ -292,15 +293,10 @@ async function chooseCustomProvider(drawer: Locator, page: Page): Promise<void> 
         )
     }
 
-    const providerInput = providerSelect.locator("input.ant-select-input").first()
-    await expect(providerInput).toBeVisible({timeout: 15000})
-    await providerInput.focus()
-
-    for (let index = 0; index < customProviderIndex; index += 1) {
-        await providerInput.press("ArrowDown")
-    }
-
-    await providerInput.press("Enter")
+    // Click the target option directly — keyboard ArrowDown navigation is unreliable with AntD v5 selects
+    const targetOption = options.nth(customProviderIndex)
+    await expect(targetOption).toBeVisible({timeout: 15000})
+    await targetOption.click()
 
     await expect(drawer.getByPlaceholder("Enter unique name")).toBeVisible({timeout: 15000})
 }
@@ -442,12 +438,12 @@ async function selectMockModel(page: Page): Promise<void> {
 
     await modelButton.click()
 
-    const modelParametersPopover = page.locator(".ant-popover").filter({
-        has: page.getByText("Model Parameters", {exact: true}),
+    const configurePopover = page.locator(".ant-popover").filter({
+        has: page.getByText("Configure", {exact: true}),
     })
-    await expect(modelParametersPopover).toBeVisible({timeout: 15000})
+    await expect(configurePopover).toBeVisible({timeout: 15000})
 
-    const modelSelect = modelParametersPopover
+    const modelSelect = configurePopover
         .locator(".ant-select")
         .filter({hasText: currentModel || ""})
         .first()
