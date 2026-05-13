@@ -791,7 +791,7 @@ function buildEvaluatorFieldPortsFromTemplate(entity: Workflow | null | undefine
             type: group.type,
             helpText: `Field referenced in your prompt as \`{{$.inputs.${group.key}}}\`${
                 group.type === "string" ? ` or \`{{${group.key}}}\`` : ""
-            }.`,
+            }. Note: this value is merged into the \`inputs\` envelope at runtime, so it also appears inside \`{{inputs}}\` if your prompt renders the whole envelope.`,
             ...(group.subPaths && group.subPaths.length > 0
                 ? {
                       schema: {
@@ -831,7 +831,7 @@ function buildEvaluatorEnvelopePorts(entity: Workflow | null | undefined): Runna
             key: "inputs",
             name: "inputs",
             helpText:
-                "The full inputs the application being evaluated received. Reference in your prompt as `{{inputs}}` for the whole JSON. Specific fields can also be filled individually above.",
+                "The full inputs received by the application being evaluated. Reference in your prompt as `{{inputs}}` to render the whole JSON — this includes any fields you filled individually above. Use `{{$.inputs.<field>}}` (e.g. `{{$.inputs.country}}`) to reference a single field without the rest of the bag.",
             type: "object",
             required: true,
             schema: inferEnvelopeSchema(envelopeInputs),

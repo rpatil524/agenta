@@ -22,7 +22,7 @@ import {
     RowsIcon,
     X,
 } from "@phosphor-icons/react"
-import {Tag} from "antd"
+import {Tag, Tooltip} from "antd"
 import clsx from "clsx"
 import {useAtom, useAtomValue, useSetAtom} from "jotai"
 import {atomWithStorage} from "jotai/utils"
@@ -58,6 +58,41 @@ import {openPlaygroundFocusDrawerAtom} from "@agenta/playground-ui/state"
 const evaluatorCalloutDismissedAtom = atomWithStorage<boolean>(
     "agenta:playground:evaluator-callout-dismissed",
     false,
+)
+
+/**
+ * Section header + container used by the evaluator-with-fields grouped
+ * layout. Visually unites an envelope port and its extracted field ports
+ * under one labeled block so the parent/child relationship is explicit:
+ * fields are children of the envelope they merge into at runtime.
+ *
+ * Styling intentionally subtle — a left-border accent + indentation —
+ * because the section is a *grouping cue*, not a heavyweight container.
+ * The mono blue label + ⓘ icon mirror the variable header style so it
+ * reads as the same affordance one level up.
+ */
+const SectionBlock: React.FC<{
+    label: string
+    helpText?: string
+    children: React.ReactNode
+}> = ({label, helpText, children}) => (
+    <div className="flex flex-col gap-2 pl-3 border-0 border-l-2 border-solid border-[#1677FF22]">
+        <div className="flex items-center gap-1 -ml-3 pl-3 -mb-1">
+            <span className="playground-property-control-label font-[600] text-[12px] leading-[20px] text-[#1677FF] font-mono">
+                {label}
+            </span>
+            {helpText ? (
+                <Tooltip title={helpText} placement="topLeft" overlayStyle={{maxWidth: 360}}>
+                    <Info
+                        size={12}
+                        className="text-gray-400 hover:text-gray-600 shrink-0 cursor-help"
+                        aria-label={`About ${label}`}
+                    />
+                </Tooltip>
+            ) : null}
+        </div>
+        <div className="flex flex-col gap-2">{children}</div>
+    </div>
 )
 
 interface Props {
@@ -437,14 +472,53 @@ const SingleView = ({
 
     // Whether this is an evaluator workflow — used to gate the one-time
     // callout that explains the meaning of the two envelope variables
-    // (Application inputs / Application output) since they don't map 1:1
-    // to testcase columns the way an app's input fields do.
+    // and to switch the variables list into a grouped layout (field ports
+    // nested under their parent envelope section) for evaluator playgrounds.
     const isEvaluator = useAtomValue(
         useMemo(() => workflowMolecule.selectors.isEvaluator(entityId), [entityId]),
     )
     const [evaluatorCalloutDismissed, setEvaluatorCalloutDismissed] = useAtom(
         evaluatorCalloutDismissedAtom,
     )
+
+    // Per-port schema info — used to read each port's `helpText` for the
+    // grouped-layout section headers, and to detect which variables are
+    // envelope ports (`inputs`, `outputs`) vs. extracted field ports.
+    const inputPortSchemaMap = useAtomValue(
+        executionItemController.selectors.inputPortSchemaMap,
+    ) as Record<string, {type: string; name?: string; schema?: unknown; helpText?: string}>
+
+    // Partition variables into the grouped layout for evaluators. Field
+    // ports (everything except `inputs`/`outputs`) belong inside the
+    // `inputs` envelope at runtime, so visually nest them under the
+    // `inputs` section. The catch-all envelope JSON editor renders at
+    // the end of the inputs group (rendered with `hideLabel` since the
+    // section header already labels it).
+    const {fieldPortIds, hasInputsEnvelope, hasOutputsEnvelope} = useMemo(() => {
+        const fields: string[] = []
+        let inputsEnv = false
+        let outputsEnv = false
+        for (const id of variableIds) {
+            if (id === "inputs") {
+                inputsEnv = true
+            } else if (id === "outputs") {
+                outputsEnv = true
+            } else {
+                fields.push(id)
+            }
+        }
+        return {
+            fieldPortIds: fields,
+            hasInputsEnvelope: inputsEnv,
+            hasOutputsEnvelope: outputsEnv,
+        }
+    }, [variableIds])
+
+    // Only use the grouped layout when there's actual grouping to do —
+    // an evaluator with no extracted field ports renders flat (just the
+    // two envelopes) since there's nothing to nest. Apps always render
+    // flat regardless.
+    const useGroupedLayout = isEvaluator && fieldPortIds.length > 0
 
     const {getNodeLabel} = usePlaygroundNodeLabels(nodes)
 
@@ -767,66 +841,107 @@ const SingleView = ({
                                     </button>
                                 </div>
                             )}
-                            {variableIds.map((id) => {
-                                const isVariableInputCollapsed =
-                                    collapsedVariableInputs[id] || false
+                            {(() => {
+                                // Inline renderer for a single variable row —
+                                // shared between the flat layout (apps + the
+                                // no-fields evaluator case) and the grouped
+                                // layout (evaluator with extracted field
+                                // ports nested under their envelope section).
+                                const renderVariable = (id: string, hideLabel = false) => {
+                                    const isVariableInputCollapsed =
+                                        collapsedVariableInputs[id] || false
+                                    return (
+                                        <div
+                                            key={id}
+                                            className={clsx([
+                                                "relative group/item px-0 w-full",
+                                                "hover:[&_.collapse-icon]:opacity-100",
+                                            ])}
+                                        >
+                                            <VariableControlAdapter
+                                                entityId={entityId}
+                                                variableKey={id}
+                                                rowId={rowId}
+                                                appType={appType}
+                                                collapsed={isVariableInputCollapsed}
+                                                containerRef={getVariableRef(id)}
+                                                className="*:!border-none overflow-hidden"
+                                                hideLabel={hideLabel}
+                                                onMarkdownToggleReady={(toggle) => {
+                                                    setMarkdownToggles((prev) => ({
+                                                        ...(prev[id] === (toggle ?? undefined)
+                                                            ? prev
+                                                            : {
+                                                                  ...prev,
+                                                                  [id]: toggle ?? undefined,
+                                                              }),
+                                                    }))
+                                                }}
+                                                headerActions={
+                                                    <>
+                                                        <EnhancedButton
+                                                            size="small"
+                                                            type="text"
+                                                            icon={<MarkdownLogoIcon size={14} />}
+                                                            onClick={() => markdownToggles[id]?.()}
+                                                            disabled={!markdownToggles[id]}
+                                                            tooltipProps={{
+                                                                title: "Preview markdown",
+                                                            }}
+                                                        />
+                                                        <CopyVariableButton
+                                                            rowId={rowId}
+                                                            variableKey={id}
+                                                        />
+                                                        <CollapseToggleButton
+                                                            className="collapse-icon"
+                                                            collapsed={isVariableInputCollapsed}
+                                                            onToggle={() =>
+                                                                toggleVariableInputCollapse(id)
+                                                            }
+                                                            contentRef={getVariableRef(id)}
+                                                        />
+                                                    </>
+                                                }
+                                                editorProps={{enableTokens: false}}
+                                            />
+                                        </div>
+                                    )
+                                }
+
+                                // Flat layout — apps, and evaluators with no
+                                // extracted field ports (default template).
+                                if (!useGroupedLayout) {
+                                    return variableIds.map((id) => renderVariable(id))
+                                }
+
+                                // Grouped layout — evaluators with field
+                                // ports. Each section block visually unites
+                                // the envelope and its extracted fields so
+                                // the relationship "language is part of
+                                // inputs" is impossible to miss. Sections
+                                // use a left-border accent + indented
+                                // children. The section header carries the
+                                // envelope port's name + tooltip; the
+                                // envelope's own JSON/text editor renders
+                                // as the last child with `hideLabel=true`
+                                // since the section header already labels it.
+                                const inputsHelp = inputPortSchemaMap.inputs?.helpText
+                                const outputsHelp = inputPortSchemaMap.outputs?.helpText
                                 return (
-                                    <div
-                                        key={id}
-                                        className={clsx([
-                                            "relative group/item px-0 w-full",
-                                            "hover:[&_.collapse-icon]:opacity-100",
-                                        ])}
-                                    >
-                                        <VariableControlAdapter
-                                            entityId={entityId}
-                                            variableKey={id}
-                                            rowId={rowId}
-                                            appType={appType}
-                                            collapsed={isVariableInputCollapsed}
-                                            containerRef={getVariableRef(id)}
-                                            className="*:!border-none overflow-hidden"
-                                            onMarkdownToggleReady={(toggle) => {
-                                                setMarkdownToggles((prev) => ({
-                                                    ...(prev[id] === (toggle ?? undefined)
-                                                        ? prev
-                                                        : {
-                                                              ...prev,
-                                                              [id]: toggle ?? undefined,
-                                                          }),
-                                                }))
-                                            }}
-                                            headerActions={
-                                                <>
-                                                    <EnhancedButton
-                                                        size="small"
-                                                        type="text"
-                                                        icon={<MarkdownLogoIcon size={14} />}
-                                                        onClick={() => markdownToggles[id]?.()}
-                                                        disabled={!markdownToggles[id]}
-                                                        tooltipProps={{
-                                                            title: "Preview markdown",
-                                                        }}
-                                                    />
-                                                    <CopyVariableButton
-                                                        rowId={rowId}
-                                                        variableKey={id}
-                                                    />
-                                                    <CollapseToggleButton
-                                                        className="collapse-icon"
-                                                        collapsed={isVariableInputCollapsed}
-                                                        onToggle={() =>
-                                                            toggleVariableInputCollapse(id)
-                                                        }
-                                                        contentRef={getVariableRef(id)}
-                                                    />
-                                                </>
-                                            }
-                                            editorProps={{enableTokens: false}}
-                                        />
-                                    </div>
+                                    <>
+                                        <SectionBlock label="inputs" helpText={inputsHelp}>
+                                            {fieldPortIds.map((id) => renderVariable(id))}
+                                            {hasInputsEnvelope && renderVariable("inputs", true)}
+                                        </SectionBlock>
+                                        {hasOutputsEnvelope && (
+                                            <SectionBlock label="outputs" helpText={outputsHelp}>
+                                                {renderVariable("outputs", true)}
+                                            </SectionBlock>
+                                        )}
+                                    </>
                                 )
-                            })}
+                            })()}
                         </div>
                     )}
                 </div>
