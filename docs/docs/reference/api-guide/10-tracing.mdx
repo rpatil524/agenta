@@ -1,12 +1,12 @@
 ---
 title: "Tracing"
-description: "Spans, traces, the ag namespace, references, and the four ingestion paths."
+description: "Spans, traces, the ag namespace, references, ingestion, and querying."
 sidebar_position: 10
 ---
 
-Agenta's observability layer sits on top of OpenTelemetry. A **span** is a unit of work; a **trace** is a set of spans grouped by the same `trace_id`. Spans carry standard OTel fields plus an `ag.*` attribute subtree that Agenta owns. The `ag.*` subtree is what links traces back to applications, evaluators, testsets, and the other Agenta entities.
+Agenta's observability sits on top of OpenTelemetry. This page covers the span and trace model, the `ag.*` attribute namespace Agenta adds on top, references that link spans to Agenta entities, the four ingestion endpoints, and querying.
 
-This page covers the span and trace model, the two trace types, how references work, the four ingestion paths, the async write contract, the `ag.*` namespace, and querying.
+In OTel, a **span** is a unit of work and a **trace** is the set of spans sharing one `trace_id`. In Agenta, spans also carry an `ag.*` attribute subtree. Agenta uses `ag.*` to tag every trace with a type (`annotation` or `invocation`), to link the trace back to the entity that produced it through `ag.references`, and to surface server-computed metrics under `ag.metrics`.
 
 ## Spans and traces
 
@@ -97,27 +97,46 @@ So a single evaluation run leaves behind one invocation trace per (testcase × s
 
 ## Ingestion
 
+:::info Most callers don't need this directly
+
+The Agenta SDK and OTel auto-instrumentation handle ingestion for you in the common cases. See [Observability](/observability/overview) for the SDK setup. Use the endpoints below only when you have a custom integration that bypasses the SDK.
+
+:::
+
 Tracing has four write endpoints. Pick the one that matches your payload shape.
 
 | Endpoint | When to use |
 |----------|-------------|
-| `POST /otlp/v1/traces` | Raw OTLP protobuf from an OTel SDK or collector. Use this when your existing OTel instrumentation can just point its exporter at Agenta. |
-| `POST /tracing/spans/ingest` | Agenta-native structured ingest. Accepts either a flat `spans` list (with `parent_id` linking) or a nested `traces` tree. Use this when you're writing spans yourself with full control over IDs and hierarchy. |
-| `POST /simple/traces/` | Single-trace helper for feedback or annotations. The endpoint generates the IDs and wraps the payload. Use this for one standalone trace. |
-| `POST /traces/ingest`, `POST /traces/`, `PUT /traces/{trace_id}` | List-shaped trace CRUD. Accepts the canonical `Trace` and `Traces` shape. Use this when operating on whole traces as records. |
+| [`POST /otlp/v1/traces`](/reference/api/otlp-ingest) | Raw OTLP protobuf from an OTel SDK or collector. Use this when your existing OTel instrumentation can just point its exporter at Agenta. |
+| [`POST /tracing/spans/ingest`](/reference/api/ingest-spans) | Agenta-native structured ingest. Accepts either a flat `spans` list (with `parent_id` linking) or a nested `traces` tree. Use this when you're writing spans yourself with full control over IDs and hierarchy. |
+| [`POST /simple/traces/`](/reference/api/create-simple-trace) | Single-trace helper for feedback or annotations. The endpoint generates the IDs and wraps the payload. Use this for one standalone trace. |
+| [`POST /traces/ingest`](/reference/api/ingest-traces), [`POST /traces/`](/reference/api/create-trace), [`PUT /traces/{trace_id}`](/reference/api/edit-trace) | List-shaped trace CRUD. Accepts the canonical `Trace` and `Traces` shape. Use this when operating on whole traces as records. |
 
-All four paths converge on the same ingest pipeline.
+### How ingest works
 
-### Async write contract
+Every ingest endpoint returns `202 Accepted` *before* the spans are persisted. The router parses the payload, hands the spans off to an async worker, and responds immediately. OTel semantics require the ingest buffer to return fast, so instrumented apps do not block on telemetry.
 
-Every ingest endpoint returns `202 Accepted`, never `200 OK`. The contract:
+The response shape:
 
-- The router parses the payload, emits stream messages, and returns. Persistence and full validation run asynchronously in a worker.
-- OTel semantics require the ingest buffer to return fast so instrumented apps do not block on telemetry.
-- The `count` on the response is the number of spans **parsed into the stream**, not the number the worker persisted.
-- If you submit `N` spans and see `count < N`, some spans failed at parse time (malformed JSON, invalid IDs). Worker failures are not visible on the response.
+```json
+{
+  "count": 2,
+  "links": [
+    {"trace_id": "f5a2efb40895881e938e2ebc070beca8", "span_id": "15f3df0731995245"},
+    {"trace_id": "f5a2efb40895881e938e2ebc070beca8", "span_id": "c8ae7f12d1b3e9a4"}
+  ]
+}
+```
 
-An earlier edge case where validation failures surfaced as `count: 0` was tracked under AGE-3735 and resolved. The ingest path stays stream-accept by design.
+`count` is the number of spans the router parsed and accepted into the stream. `links` lists the IDs that made it through.
+
+:::warning
+
+`count` reflects parse-time acceptance, not persistence. If the worker rejects spans later (for example, because a field doesn't match the canonical schema), those failures are not visible in the response. Use the query endpoints to confirm what landed.
+
+:::
+
+The adapter that parses incoming spans into Agenta's attribute schema is lenient. When a field doesn't fit, the adapter moves it under `ag.unsupported.*` on the span rather than reject the span outright. See [`ag.unsupported`](#agunsupported) for what lands there.
 
 ## The `ag.*` attribute namespace
 
@@ -133,22 +152,7 @@ Spans carry an OTel `attributes` dict. Agenta owns the `ag` subtree.
 | `ag.exception` | Structured exception payload. |
 | `ag.session.id`, `ag.user.id` | Optional session and user identifiers. |
 
-Two wire formats are accepted on ingest. Query responses always return the nested form.
-
-**Flat (dot-notation):**
-
-```json
-{
-  "attributes": {
-    "ag.type.trace": "invocation",
-    "ag.type.span": "workflow",
-    "ag.data.inputs.country": "France",
-    "ag.data.outputs": "Paris"
-  }
-}
-```
-
-**Nested:**
+Query responses return the namespace as a nested object:
 
 ```json
 {
@@ -161,24 +165,24 @@ Two wire formats are accepted on ingest. Query responses always return the neste
 }
 ```
 
-### `ag.unsupported` fallback
+### `ag.unsupported`
 
-Agenta does not reject unknown or malformed `ag.*` fields. The ingest pipeline:
+When the ingest adapter can't fit a field into the canonical `ag.*` schema, the field lands under `ag.unsupported.*` on the resulting span. Look in query responses to find anything that came in but didn't match.
 
-1. Moves unknown keys, wrong-typed values, and unparseable JSON strings under `ag.data.{inputs, parameters, internals}` into `ag.unsupported.*`.
-2. On a Pydantic validation error, relocates the offending top-level key into `ag.unsupported` and retries.
-3. On a second failure, falls back to a minimal valid attribute object with everything in `unsupported`.
+Common cases:
 
-This is a product commitment: keep customer telemetry, even when fields don't validate. If you see fields under `ag.unsupported.*` after ingest, the worker accepted the trace and parked those fields for you to inspect.
+- Unknown top-level keys under `ag.*`.
+- Values whose type doesn't match the expected schema.
+- JSON strings under `ag.data.{inputs, parameters, internals}` that fail to parse.
 
 ## Querying
 
-`POST /tracing/spans/query` takes filtering, windowing, and a `focus`:
+Two endpoints return spans, with different shapes:
 
-- `focus = "trace"` (default). Response is a nested `traces` tree keyed by `trace_id` → span name. The same shape that `spans/ingest` accepts under `traces`.
-- `focus = "span"`. Response is a flat `spans` list. Paginates without rebuilding hierarchies.
+- [`POST /tracing/traces/query`](/reference/api/query-traces) returns spans grouped into a nested tree by `trace_id`. This is the same shape that `tracing/spans/ingest` accepts under `traces`.
+- [`POST /tracing/spans/query`](/reference/api/query-spans) returns a flat list of spans with cursor pagination.
 
-Exactly one of `traces` or `spans` is populated. `POST /spans/query` and `POST /traces/query` wrap the same backend, forcing `focus=SPAN` and `focus=TRACE` respectively. Use [Windowing](/reference/api-guide/query-pattern#windowing) for cursor pagination.
+Both accept the same filter and windowing parameters. See [Windowing](/reference/api-guide/query-pattern#windowing) for cursor details.
 
 ## Examples
 
