@@ -22,7 +22,7 @@ import {
     RowsIcon,
     X,
 } from "@phosphor-icons/react"
-import {Tag, Tooltip} from "antd"
+import {Tag} from "antd"
 import clsx from "clsx"
 import {useAtom, useAtomValue, useSetAtom} from "jotai"
 import {atomWithStorage} from "jotai/utils"
@@ -61,37 +61,25 @@ const evaluatorCalloutDismissedAtom = atomWithStorage<boolean>(
 )
 
 /**
- * Section header + container used by the evaluator-with-fields grouped
- * layout. Visually unites an envelope port and its extracted field ports
- * under one labeled block so the parent/child relationship is explicit:
- * fields are children of the envelope they merge into at runtime.
+ * Visual grouping container for the evaluator-with-fields layout. Wraps a
+ * set of related variable rows with a subtle left-border accent so they
+ * read as one group (field ports + the envelope catch-all share the
+ * runtime `data.inputs` envelope and we want users to *see* that).
  *
- * Styling intentionally subtle — a left-border accent + indentation —
- * because the section is a *grouping cue*, not a heavyweight container.
- * The mono blue label + ⓘ icon mirror the variable header style so it
- * reads as the same affordance one level up.
+ * Children render with their full headers + hover actions intact — this
+ * container is pure styling, no header label of its own, so it never
+ * collides with the per-port label or hides the action cluster.
  */
 const SectionBlock: React.FC<{
-    label: string
-    helpText?: string
     children: React.ReactNode
-}> = ({label, helpText, children}) => (
-    <div className="flex flex-col gap-2 pl-3 border-0 border-l-2 border-solid border-[#1677FF22]">
-        <div className="flex items-center gap-1 -ml-3 pl-3 -mb-1">
-            <span className="playground-property-control-label font-[600] text-[12px] leading-[20px] text-[#1677FF] font-mono">
-                {label}
-            </span>
-            {helpText ? (
-                <Tooltip title={helpText} placement="topLeft" overlayStyle={{maxWidth: 360}}>
-                    <Info
-                        size={12}
-                        className="text-gray-400 hover:text-gray-600 shrink-0 cursor-help"
-                        aria-label={`About ${label}`}
-                    />
-                </Tooltip>
-            ) : null}
-        </div>
-        <div className="flex flex-col gap-2">{children}</div>
+    ariaLabel?: string
+}> = ({children, ariaLabel}) => (
+    <div
+        role="group"
+        aria-label={ariaLabel}
+        className="flex flex-col gap-2 pl-3 border-0 border-l-2 border-solid border-[#1677FF22]"
+    >
+        {children}
     </div>
 )
 
@@ -481,19 +469,13 @@ const SingleView = ({
         evaluatorCalloutDismissedAtom,
     )
 
-    // Per-port schema info — used to read each port's `helpText` for the
-    // grouped-layout section headers, and to detect which variables are
-    // envelope ports (`inputs`, `outputs`) vs. extracted field ports.
-    const inputPortSchemaMap = useAtomValue(
-        executionItemController.selectors.inputPortSchemaMap,
-    ) as Record<string, {type: string; name?: string; schema?: unknown; helpText?: string}>
-
     // Partition variables into the grouped layout for evaluators. Field
     // ports (everything except `inputs`/`outputs`) belong inside the
-    // `inputs` envelope at runtime, so visually nest them under the
-    // `inputs` section. The catch-all envelope JSON editor renders at
-    // the end of the inputs group (rendered with `hideLabel` since the
-    // section header already labels it).
+    // `inputs` envelope at runtime, so visually group them together with
+    // the envelope catch-all under one left-border block. All ports —
+    // field and envelope — render with their full headers + hover
+    // actions; the container itself carries no separate label so the
+    // existing per-port labels and affordances stay intact.
     const {fieldPortIds, hasInputsEnvelope, hasOutputsEnvelope} = useMemo(() => {
         const fields: string[] = []
         let inputsEnv = false
@@ -847,7 +829,7 @@ const SingleView = ({
                                 // no-fields evaluator case) and the grouped
                                 // layout (evaluator with extracted field
                                 // ports nested under their envelope section).
-                                const renderVariable = (id: string, hideLabel = false) => {
+                                const renderVariable = (id: string) => {
                                     const isVariableInputCollapsed =
                                         collapsedVariableInputs[id] || false
                                     return (
@@ -866,7 +848,6 @@ const SingleView = ({
                                                 collapsed={isVariableInputCollapsed}
                                                 containerRef={getVariableRef(id)}
                                                 className="*:!border-none overflow-hidden"
-                                                hideLabel={hideLabel}
                                                 onMarkdownToggleReady={(toggle) => {
                                                     setMarkdownToggles((prev) => ({
                                                         ...(prev[id] === (toggle ?? undefined)
@@ -916,27 +897,29 @@ const SingleView = ({
                                 }
 
                                 // Grouped layout — evaluators with field
-                                // ports. Each section block visually unites
-                                // the envelope and its extracted fields so
-                                // the relationship "language is part of
-                                // inputs" is impossible to miss. Sections
-                                // use a left-border accent + indented
-                                // children. The section header carries the
-                                // envelope port's name + tooltip; the
-                                // envelope's own JSON/text editor renders
-                                // as the last child with `hideLabel=true`
-                                // since the section header already labels it.
-                                const inputsHelp = inputPortSchemaMap.inputs?.helpText
-                                const outputsHelp = inputPortSchemaMap.outputs?.helpText
+                                // ports. Field ports + the envelope catch-all
+                                // share `data.inputs` at runtime, so we wrap
+                                // them in one left-border block to surface
+                                // that relationship visually. Each port
+                                // renders with its full header (label + ⓘ
+                                // tooltip + hover-revealed action cluster:
+                                // JSON/text toggle, markdown, copy, collapse)
+                                // and the editor's own border, so envelope
+                                // and field rows look identical and the
+                                // hover affordances stay intact. The group
+                                // identity comes from the container; we
+                                // intentionally don't add a separate header
+                                // label to avoid colliding with the envelope
+                                // port's own header.
                                 return (
                                     <>
-                                        <SectionBlock label="inputs" helpText={inputsHelp}>
+                                        <SectionBlock ariaLabel="inputs">
                                             {fieldPortIds.map((id) => renderVariable(id))}
-                                            {hasInputsEnvelope && renderVariable("inputs", true)}
+                                            {hasInputsEnvelope && renderVariable("inputs")}
                                         </SectionBlock>
                                         {hasOutputsEnvelope && (
-                                            <SectionBlock label="outputs" helpText={outputsHelp}>
-                                                {renderVariable("outputs", true)}
+                                            <SectionBlock ariaLabel="outputs">
+                                                {renderVariable("outputs")}
                                             </SectionBlock>
                                         )}
                                     </>

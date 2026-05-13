@@ -9,7 +9,6 @@ import type {SortResult} from "@/oss/components/Filters/Sort"
 import type {TestsetTraceData} from "@/oss/components/SharedDrawers/AddToTestsetDrawer/assets/types"
 import {onboardingStorageUserIdAtom} from "@/oss/lib/onboarding/atoms"
 import type {Filter} from "@/oss/lib/Types"
-import {currentWorkflowContextAtom} from "@/oss/state/workflow"
 
 import {routerAppIdAtom} from "../../app"
 import {SESSIONS_PAGE_SIZE, TRACES_PAGE_SIZE} from "../constants"
@@ -122,20 +121,23 @@ export const filtersAtomFamily = atomFamily((tab: ObservabilityTabInfo) =>
 
             const hasUserTraceType = userFilters.some(isTraceType)
 
-            // Phase 6.3.2: when current workflow is an evaluator, default the
-            // soft trace_type filter to "annotation" instead of "invocation".
-            // Evaluator runs emit annotation-type traces; without this flip
-            // the page would render empty by default for evaluator users.
-            const workflowCtx = get(currentWorkflowContextAtom)
-            const defaultTraceType =
-                workflowCtx.workflowKind === "evaluator" ? "annotation" : "invocation"
-
+            // The soft default for the trace_type filter is always
+            // `"invocation"`. Earlier we flipped to `"annotation"` when the
+            // current workflow context was an evaluator, because standalone
+            // evaluator runs at the time only emitted annotation traces.
+            // That's no longer true — standalone evaluator runs in the
+            // playground now emit invocation traces with `references.
+            // application` set (see `runnableSetup.ts`, evaluator branch),
+            // so the app-scoped `/apps/{evaluatorId}/observability` page
+            // should show those by default rather than the more rare
+            // annotation flow. Users who want annotations can still pick
+            // the filter manually.
             const softDefaults: Filter[] = []
             if (defaultEnabled && !hasUserTraceType && tab === "traces") {
                 softDefaults.push({
                     field: "trace_type",
                     operator: "is",
-                    value: defaultTraceType,
+                    value: "invocation",
                 })
             }
 
