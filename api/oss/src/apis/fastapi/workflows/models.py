@@ -76,7 +76,7 @@ class WorkflowQueryRequest(BaseModel):
     #
     include_archived: Optional[bool] = Field(
         default=None,
-        description="When true, include archived workflows. Defaults to false.",
+        description="When true, include archived workflows.",
     )
     #
     windowing: Optional[Windowing] = Field(
@@ -157,7 +157,7 @@ class WorkflowVariantQueryRequest(BaseModel):
     #
     include_archived: Optional[bool] = Field(
         default=None,
-        description="When true, include archived variants. Defaults to false.",
+        description="When true, include archived variants.",
     )
     #
     windowing: Optional[Windowing] = Field(
@@ -234,7 +234,7 @@ class WorkflowRevisionQueryRequest(BaseModel):
     #
     include_archived: Optional[bool] = Field(
         default=None,
-        description="When true, include archived revisions. Defaults to false.",
+        description="When true, include archived revisions.",
     )
     #
     windowing: Optional[Windowing] = Field(
@@ -531,7 +531,7 @@ class SimpleWorkflowQueryRequest(BaseModel):
     #
     include_archived: Optional[bool] = Field(
         default=None,
-        description="When true, include archived workflows. Defaults to false.",
+        description="When true, include archived workflows.",
     )
     #
     windowing: Optional[Windowing] = Field(

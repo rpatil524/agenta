@@ -81,7 +81,7 @@ class EvaluatorQueryRequest(BaseModel):
     #
     include_archived: Optional[bool] = Field(
         default=None,
-        description="When true, include soft-deleted evaluators in the response. Defaults to false.",
+        description="When true, include soft-deleted evaluators in the response.",
     )
     #
     windowing: Optional[Windowing] = Field(
@@ -162,7 +162,7 @@ class EvaluatorVariantQueryRequest(BaseModel):
     #
     include_archived: Optional[bool] = Field(
         default=None,
-        description="When true, include soft-deleted variants. Defaults to false.",
+        description="When true, include soft-deleted variants.",
     )
     #
     windowing: Optional[Windowing] = Field(
@@ -263,7 +263,7 @@ class EvaluatorRevisionQueryRequest(BaseModel):
     #
     include_archived: Optional[bool] = Field(
         default=None,
-        description="When true, include soft-deleted revisions. Defaults to false.",
+        description="When true, include soft-deleted revisions.",
     )
     #
     windowing: Optional[Windowing] = Field(

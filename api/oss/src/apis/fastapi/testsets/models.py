@@ -61,7 +61,7 @@ class TestsetQueryRequest(BaseModel):
     #
     include_archived: Optional[bool] = Field(
         default=None,
-        description="Include soft-deleted testsets. Defaults to false.",
+        description="Include soft-deleted testsets.",
     )
     #
     windowing: Optional[Windowing] = Field(
@@ -128,7 +128,7 @@ class TestsetVariantQueryRequest(BaseModel):
     #
     include_archived: Optional[bool] = Field(
         default=None,
-        description="Include soft-deleted variants. Defaults to false.",
+        description="Include soft-deleted variants.",
     )
     #
     windowing: Optional[Windowing] = Field(
@@ -203,7 +203,7 @@ class TestsetRevisionQueryRequest(BaseModel):
     #
     include_archived: Optional[bool] = Field(
         default=None,
-        description="Include soft-deleted revisions. Defaults to false.",
+        description="Include soft-deleted revisions.",
     )
     include_testcases: Optional[bool] = Field(
         default=None,
@@ -315,7 +315,7 @@ class SimpleTestsetQueryRequest(BaseModel):
     #
     include_archived: Optional[bool] = Field(
         default=None,
-        description="Include soft-deleted testsets. Defaults to false.",
+        description="Include soft-deleted testsets.",
     )
     #
     windowing: Optional[Windowing] = Field(

@@ -30,11 +30,18 @@ Every trace declares a type through `ag.type.trace`:
 
 | Value | Meaning |
 |-------|---------|
-| `invocation` | The trace records a product event: an app run, an evaluator execution, an LLM call. Most traces produced by instrumented code are invocations. |
-| `annotation` | The trace records a human-authored or evaluator-produced judgment on another trace. Annotations carry a `link` back to the invocation they describe. |
+| `invocation` | The trace records a product event: an application run, a workflow step, an LLM call. Most traces produced by instrumented code are invocations. |
+| `annotation` | The trace records a judgment on another trace. Evaluator runs and human feedback both produce annotations. Annotations carry a `link` back to the invocation they describe and a `reference` to the entity that produced them. |
 | `unknown` | The type was not declared or could not be inferred. |
 
 The distinction matters at query time. Annotation UIs filter for `ag.type.trace = annotation`; evaluation views walk invocations.
+
+:::info How to identify each type
+
+- An **invocation** has `ag.type.trace = invocation`. It is the original product event.
+- An **annotation** has `ag.type.trace = annotation` and at least one entry under `links` pointing at the invocation it describes. The entity that produced it (an evaluator revision, a user, an external system) sits under `ag.references`.
+
+:::
 
 Each span also declares its role through `ag.type.span`:
 
@@ -90,10 +97,10 @@ Evaluations tie traces and the rest of the API together:
 
 1. Each evaluation run invokes its subject (an application revision) over a testset.
 2. Every invocation produces an `invocation` trace.
-3. Every evaluator execution produces another `invocation` trace.
-4. Evaluation **scenarios** reference those trace IDs via their links.
+3. Every evaluator execution produces an `annotation` trace that links back to the invocation it scored.
+4. Evaluation **scenarios** reference both trace IDs via their links.
 
-So a single evaluation run leaves behind one invocation trace per (testcase × subject) plus one invocation trace per (testcase × evaluator). Evaluation scenarios join them back together at query time.
+So a single evaluation run leaves behind one invocation trace per (testcase × subject) plus one annotation trace per (testcase × evaluator). Evaluation scenarios join them back together at query time.
 
 ## Ingestion
 
@@ -103,14 +110,20 @@ The Agenta SDK and OTel auto-instrumentation handle ingestion for you in the com
 
 :::
 
-Tracing has four write endpoints. Pick the one that matches your payload shape.
+There are two supported write endpoints. Pick the one that matches your payload shape.
 
 | Endpoint | When to use |
 |----------|-------------|
-| [`POST /otlp/v1/traces`](/reference/api/otlp-ingest) | Raw OTLP protobuf from an OTel SDK or collector. Use this when your existing OTel instrumentation can just point its exporter at Agenta. |
-| [`POST /tracing/spans/ingest`](/reference/api/ingest-spans) | Agenta-native structured ingest. Accepts either a flat `spans` list (with `parent_id` linking) or a nested `traces` tree. Use this when you're writing spans yourself with full control over IDs and hierarchy. |
+| [`POST /otlp/v1/traces`](/reference/api/otlp-ingest) | Raw OTLP protobuf from an OTel SDK or collector. Point any OTel exporter here. |
 | [`POST /simple/traces/`](/reference/api/create-simple-trace) | Single-trace helper for feedback or annotations. The endpoint generates the IDs and wraps the payload. Use this for one standalone trace. |
-| [`POST /traces/ingest`](/reference/api/ingest-traces), [`POST /traces/`](/reference/api/create-trace), [`PUT /traces/{trace_id}`](/reference/api/edit-trace) | List-shaped trace CRUD. Accepts the canonical `Trace` and `Traces` shape. Use this when operating on whole traces as records. |
+
+Traces created through `POST /traces/` and updated through `PUT /traces/{trace_id}` round-trip the canonical `Trace` shape if you need whole-trace CRUD against records you already have.
+
+:::warning Deprecated ingest paths
+
+The Agenta-native ingest endpoints `POST /tracing/spans/ingest` and `POST /traces/ingest` are deprecated. Point any OTel-style ingest at `POST /otlp/v1/traces` instead. For one-off feedback or annotation traces, use `POST /simple/traces/`. The Agenta SDK already targets the supported endpoints.
+
+:::
 
 ### How ingest works
 
@@ -179,63 +192,18 @@ Common cases:
 
 Two endpoints query spans, each returning a different shape:
 
-- [`POST /tracing/traces/query`](/reference/api/query-traces) returns spans grouped into a nested tree by `trace_id`. This is the same shape that `tracing/spans/ingest` accepts under `traces`.
-- [`POST /tracing/spans/query`](/reference/api/query-spans) returns a flat list of spans with cursor pagination.
+- [`POST /traces/query`](/reference/api/query-traces) returns spans grouped into a nested tree by `trace_id`.
+- [`POST /spans/query`](/reference/api/query-spans) returns a flat list of spans with cursor pagination.
 
 Both accept the same filter and windowing parameters. See [Windowing](/reference/api-guide/query-pattern#windowing) for cursor details.
 
+The legacy `/tracing/traces/query` and `/tracing/spans/query` paths are deprecated; use the paths above.
+
 ## Examples
 
-### Ingest a nested trace
+### Ingest spans from your runtime
 
-```bash
-curl -X POST "$AGENTA_HOST/api/tracing/spans/ingest" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: ApiKey $AGENTA_API_KEY" \
-  -d '{
-    "traces": {
-      "f5a2efb40895881e938e2ebc070beca8": {
-        "spans": {
-          "workflow_v0": {
-            "trace_id": "f5a2efb40895881e938e2ebc070beca8",
-            "span_id": "15f3df0731995245",
-            "span_kind": "SPAN_KIND_SERVER",
-            "start_time": "2026-04-16T18:18:18.491929Z",
-            "end_time": "2026-04-16T18:18:20.415372Z",
-            "attributes": {
-              "ag": {
-                "type": {"trace": "invocation", "span": "workflow"},
-                "data": {"inputs": {"country": "France"}, "outputs": "Paris"}
-              }
-            },
-            "spans": {
-              "llm_call": {
-                "trace_id": "f5a2efb40895881e938e2ebc070beca8",
-                "span_id": "c8ae7f12d1b3e9a4",
-                "parent_id": "15f3df0731995245",
-                "start_time": "2026-04-16T18:18:18.800000Z",
-                "end_time": "2026-04-16T18:18:20.400000Z",
-                "attributes": {"ag.type.span": "llm"}
-              }
-            }
-          }
-        }
-      }
-    }
-  }'
-```
-
-Response (`202 Accepted`):
-
-```json
-{
-  "count": 2,
-  "links": [
-    {"trace_id": "f5a2efb40895881e938e2ebc070beca8", "span_id": "15f3df0731995245"},
-    {"trace_id": "f5a2efb40895881e938e2ebc070beca8", "span_id": "c8ae7f12d1b3e9a4"}
-  ]
-}
-```
+For programmatic ingestion of nested traces, point any OTel exporter at `POST /otlp/v1/traces`. The Agenta SDK and the OTel auto-instrumentation set this up for you; see [Observability](/observability/overview) for SDK setup, or the [OpenTelemetry exporter documentation](https://opentelemetry.io/docs/specs/otlp/#otlphttp) if you're configuring a raw OTel collector.
 
 ### Record a single annotation
 

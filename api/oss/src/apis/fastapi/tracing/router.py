@@ -96,6 +96,7 @@ class TracingRouter:
             status_code=status.HTTP_200_OK,
             response_model=OTelTracingResponse,
             response_model_exclude_none=True,
+            deprecated=True,
         )
 
         self.legacy_router.add_api_route(
@@ -116,6 +117,7 @@ class TracingRouter:
             status_code=status.HTTP_200_OK,
             response_model=AnalyticsResponse,
             response_model_exclude_none=True,
+            deprecated=True,
         )
 
         ### TRACES
@@ -128,6 +130,7 @@ class TracingRouter:
             status_code=status.HTTP_202_ACCEPTED,
             response_model=OTelLinksResponse,
             response_model_exclude_none=True,
+            deprecated=True,
         )
 
         self.router.add_api_route(
@@ -138,6 +141,7 @@ class TracingRouter:
             status_code=status.HTTP_200_OK,
             response_model=OTelTracingResponse,
             response_model_exclude_none=True,
+            deprecated=True,
         )
 
         self.router.add_api_route(
@@ -148,6 +152,7 @@ class TracingRouter:
             status_code=status.HTTP_202_ACCEPTED,
             response_model=OTelLinksResponse,
             response_model_exclude_none=True,
+            deprecated=True,
         )
 
         self.router.add_api_route(
@@ -158,6 +163,7 @@ class TracingRouter:
             status_code=status.HTTP_202_ACCEPTED,
             response_model=OTelLinksResponse,
             response_model_exclude_none=True,
+            deprecated=True,
         )
 
         ## SESSIONS & USERS
@@ -170,6 +176,7 @@ class TracingRouter:
             status_code=status.HTTP_200_OK,
             response_model=SessionIdsResponse,
             response_model_exclude_none=True,
+            deprecated=True,
         )
 
         self.router.add_api_route(
@@ -180,6 +187,7 @@ class TracingRouter:
             status_code=status.HTTP_200_OK,
             response_model=UserIdsResponse,
             response_model_exclude_none=True,
+            deprecated=True,
         )
 
     ## SPANS

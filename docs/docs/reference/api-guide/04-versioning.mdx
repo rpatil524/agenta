@@ -4,7 +4,7 @@ description: "How applications, workflows, evaluators, and testsets are versione
 sidebar_position: 4
 ---
 
-Applications, workflows, evaluators, and testsets share a single versioning model. Each resource is stored as an **artifact** with one or more **variants**, and each variant accumulates **revisions**. The model is modelled on git: an artifact is a repository, a variant is a branch, a revision is a commit. The payload you care about (the prompt, the workflow configuration, the testset rows, the evaluator settings) lives on the revision.
+Applications, workflows, evaluators, testsets, and environments share a single versioning model. Each resource is stored as an **artifact** with one or more **variants**, and each variant accumulates **revisions**. The model is modelled on git: an artifact is a repository, a variant is a branch, a revision is a commit. The payload you care about (the prompt, the workflow configuration, the testset rows, the evaluator settings, the environment pointer) lives on the revision.
 
 This page documents the pattern. The per-resource pages ([applications](/reference/api-guide/applications), [workflows](/reference/api-guide/workflows), [evaluators](/reference/api-guide/evaluators), [testsets](/reference/api-guide/testsets)) describe the payloads that differ per domain. For a higher-level overview that ties versioning to environments and deployment, see [Core Concepts](/concepts/concepts).
 

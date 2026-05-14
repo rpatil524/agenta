@@ -194,9 +194,12 @@ class ApplicationVariantEditRequest(BaseModel):
 
     application_variant: ApplicationVariantEdit = Field(
         description=(
-            "Fields to update. The `id` must match the `application_variant_id` "
-            "in the URL path. Configuration changes (prompt, model parameters) "
-            "go through `/applications/revisions/commit`, not this endpoint."
+            "Full variant body. Edit replaces the artifact-level fields in a "
+            "single PUT, so include every editable field even if its value is "
+            "unchanged. `id` must match the `application_variant_id` in the URL "
+            "path; `slug` is immutable. Configuration changes (prompt, model "
+            "parameters) go through `/applications/revisions/commit`, not this "
+            "endpoint."
         ),
     )
 
@@ -284,8 +287,10 @@ class ApplicationRevisionEditRequest(BaseModel):
 
     application_revision: ApplicationRevisionEdit = Field(
         description=(
-            "Fields to update. The `id` must match the `application_revision_id` "
-            "in the URL path."
+            "Full revision body. Edit replaces the editable fields in a single "
+            "PUT, so include every editable field even if its value is "
+            "unchanged. `id` must match the `application_revision_id` in the "
+            "URL path. `data`, `author`, `date`, and `message` are immutable."
         ),
     )
 

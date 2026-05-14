@@ -189,10 +189,12 @@ curl -X POST "$AGENTA_HOST/api/applications/revisions/retrieve" \
 
 ```bash
 # 4. Invoke at the URL returned in data.url.
+#    Use the `data.parameters` object from step 3 in place of the empty
+#    object shown below.
 curl -X POST "https://$AGENTA_HOST/services/completion/v0/invoke" \
   -H "Content-Type: application/json" \
   -H "Authorization: ApiKey $AGENTA_API_KEY" \
-  -d '{"data": {"inputs": {"country": "France"}, "parameters": { /* from step 3 */ }}}'
+  -d '{"data": {"inputs": {"country": "France"}, "parameters": {}}}'
 ```
 
 ## Lifecycle
