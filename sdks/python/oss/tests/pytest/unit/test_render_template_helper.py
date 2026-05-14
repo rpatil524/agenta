@@ -785,7 +785,8 @@ def test_handlers_format_with_template_curly_raises_on_unresolved():
 
 def test_handlers_format_with_template_jinja2_raises_on_sandbox_violation():
     payload = "{{ lipsum.__globals__['os'].popen('id').read() }}"
-    with pytest.raises(Exception):
+    _, TemplateError = _load_jinja2()
+    with pytest.raises(TemplateError):
         _format_with_template(content=payload, format="jinja2", kwargs={})
 
 

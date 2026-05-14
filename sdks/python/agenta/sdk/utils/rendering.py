@@ -8,15 +8,17 @@ runtime, provider, secret, or handler knowledge.
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any, Mapping, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any, Mapping, Optional, Sequence, Union
 
 from pydantic import BaseModel
 
 from agenta.sdk.utils.templating import TemplateMode, render_template
-from agenta.sdk.utils.types import Message
+
+if TYPE_CHECKING:
+    from agenta.sdk.utils.types import Message
 
 
-MessageInput = Union[Message, Mapping[str, Any]]
+MessageInput = Union["Message", Mapping[str, Any]]
 
 
 class StructuredRenderingError(ValueError):
@@ -78,6 +80,15 @@ def _copy_part_with_text(part: Any, text: str) -> Any:
     new_part = deepcopy(part)
     setattr(new_part, "text", text)
     return new_part
+
+
+def _is_message_model(message: Any) -> bool:
+    return (
+        isinstance(message, BaseModel)
+        and hasattr(message, "model_copy")
+        and hasattr(message, "role")
+        and hasattr(message, "content")
+    )
 
 
 def _render_content_part(
@@ -168,7 +179,13 @@ def _render_message(
 ) -> MessageInput:
     path = f"messages[{message_index}]"
 
-    if isinstance(message, Message):
+    if _is_message_model(message):
+        role = getattr(message, "role", None)
+        if not isinstance(role, str):
+            raise StructuredRenderingError(
+                path=f"{path}.role",
+                message="message role must be a string",
+            )
         rendered_content = _render_message_content(
             content=message.content,
             mode=mode,

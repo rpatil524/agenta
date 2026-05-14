@@ -1,6 +1,7 @@
 import pytest
 
 from agenta.sdk.types import PromptTemplate, TemplateFormatError
+from agenta.sdk.utils.lazy import _load_jinja2
 from agenta.sdk.workflows.handlers import _format_with_template
 
 
@@ -18,7 +19,8 @@ def test_handlers_jinja2_renders_safe_template() -> None:
 
 
 def test_handlers_jinja2_blocks_ssti_payload() -> None:
-    with pytest.raises(Exception):
+    _, TemplateError = _load_jinja2()
+    with pytest.raises(TemplateError):
         _format_with_template(
             content=SSTI_PAYLOAD,
             format="jinja2",

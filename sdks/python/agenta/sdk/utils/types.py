@@ -10,6 +10,12 @@ from pydantic import Field, model_validator, AliasChoices
 
 from agenta.sdk.utils.assets import supported_llm_models, model_metadata
 from agenta.sdk.utils.helpers import _PLACEHOLDER_RE
+from agenta.sdk.utils.rendering import (
+    StructuredRenderingError,
+    render_json_like,
+    render_messages,
+)
+from agenta.sdk.utils.templating import UnresolvedVariablesError, render_template
 
 
 class AgSchemaMixin(BaseModel):
@@ -793,11 +799,6 @@ class PromptTemplate(AgSchemaMixin):
         with the same message text the legacy implementation produced.
         """
 
-        from agenta.sdk.utils.templating import (
-            UnresolvedVariablesError,
-            render_template,
-        )
-
         if self.template_format not in ("curly", "fstring", "jinja2"):
             raise TemplateFormatError(
                 f"Unknown template format: {self.template_format}"
@@ -839,9 +840,6 @@ class PromptTemplate(AgSchemaMixin):
         self,
         error: Exception,
     ) -> TemplateFormatError:
-        from agenta.sdk.utils.rendering import StructuredRenderingError
-        from agenta.sdk.utils.templating import UnresolvedVariablesError
-
         if not isinstance(error, StructuredRenderingError):
             return TemplateFormatError(str(error), original_error=error)
 
@@ -885,8 +883,6 @@ class PromptTemplate(AgSchemaMixin):
         This now processes placeholders in both keys and values so that
         structures like ``{"my_{{var}}": "{{val}}"}`` are fully substituted.
         """
-        from agenta.sdk.utils.rendering import render_json_like
-
         try:
             return render_json_like(
                 value=obj,
@@ -925,8 +921,6 @@ class PromptTemplate(AgSchemaMixin):
                     missing=missing if missing else None,
                     extra=extra if extra else None,
                 )
-
-        from agenta.sdk.utils.rendering import render_messages
 
         try:
             new_messages = render_messages(
