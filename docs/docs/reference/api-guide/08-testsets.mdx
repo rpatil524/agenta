@@ -30,9 +30,14 @@ The schema of a testcase is implicit in the keys of `data`. There is no separate
 
 :::info Dedup IDs
 
-A testcase can carry a caller-supplied `testcase_dedup_id` (inside `data`) that the server uses to identify the same row across re-imports and edits. If you don't provide one, the server generates one from the content hash.
+A testcase can carry a caller-supplied dedup ID that the server uses to identify the same row across re-imports and edits. If you don't provide one, the server generates one from the content hash.
 
-CSV and older JSON uploads also accept a top-level `__dedup_id__` field (deprecated). The server normalises it into `data.testcase_dedup_id` on its way in.
+Two equivalent forms are accepted:
+
+- `data.testcase_dedup_id`: the canonical JSON-payload key, inside `data`. Used by JSON commits and the SDK.
+- `__dedup_id__`: the metadata-column form, alongside the other `__X__` import/export columns (`__id__`, `__flags__`, `__tags__`, `__meta__`). Used by CSV uploads and downloads.
+
+The server normalises one form to the other in both directions, so you can commit through one path and download through the other and the dedup ID round-trips.
 
 :::
 
@@ -53,7 +58,7 @@ Testcases move in and out of a testset as CSV or JSON arrays.
 | `POST /simple/testsets/upload` | Create a new testset and seed its first revision in one call. |
 | `POST /simple/testsets/{id}/upload` | Commit a new revision on an existing simple testset. |
 
-Each row may include `__id__` (preserve an existing testcase ID), `__flags__`, `__tags__`, and `__meta__`. Empty metadata columns are dropped from exports.
+Each row may include the metadata columns `__id__` (preserve an existing testcase ID), `__dedup_id__` (caller-supplied dedup ID, see [Dedup IDs](#body) above), `__flags__`, `__tags__`, and `__meta__`. Empty metadata columns are dropped from exports.
 
 ## Retrieve semantics
 
