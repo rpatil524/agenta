@@ -835,25 +835,67 @@ class PromptTemplate(AgSchemaMixin):
                 original_error=e,
             )
 
+    def _template_error_from_structured_error(
+        self,
+        error: Exception,
+    ) -> TemplateFormatError:
+        from agenta.sdk.utils.rendering import StructuredRenderingError
+        from agenta.sdk.utils.templating import UnresolvedVariablesError
+
+        if not isinstance(error, StructuredRenderingError):
+            return TemplateFormatError(str(error), original_error=error)
+
+        original_error = error.original_error
+        template = error.template or ""
+
+        if isinstance(original_error, UnresolvedVariablesError):
+            suffix = f" Hint: {original_error.hint}" if original_error.hint else ""
+            return TemplateFormatError(
+                f"Unreplaced variables in curly template: "
+                f"{sorted(original_error.unresolved)}.{suffix}",
+                original_error=original_error,
+            )
+
+        if isinstance(original_error, KeyError):
+            key = str(original_error).strip("'")
+            return TemplateFormatError(
+                f"Missing required variable '{key}' in template: '{template}'",
+                original_error=original_error,
+            )
+
+        try:
+            _, TemplateError = _load_jinja2()
+        except ImportError:
+            TemplateError = None
+        if TemplateError is not None and isinstance(original_error, TemplateError):
+            return TemplateFormatError(
+                f"Jinja2 template error in content: '{template}'. "
+                f"Error: {str(original_error)}",
+                original_error=original_error,
+            )
+
+        return TemplateFormatError(
+            f"Error formatting template '{template}': {str(error)}",
+            original_error=original_error or error,
+        )
+
     def _substitute_variables(self, obj: Any, kwargs: Dict[str, Any]) -> Any:
         """Recursively substitute variables within strings of a JSON-like object.
 
         This now processes placeholders in both keys and values so that
         structures like ``{"my_{{var}}": "{{val}}"}`` are fully substituted.
         """
-        if isinstance(obj, str):
-            return self._format_with_template(obj, kwargs)
-        if isinstance(obj, list):
-            return [self._substitute_variables(item, kwargs) for item in obj]
-        if isinstance(obj, dict):
-            new_dict = {}
-            for k, v in obj.items():
-                new_key = (
-                    self._format_with_template(k, kwargs) if isinstance(k, str) else k
-                )
-                new_dict[new_key] = self._substitute_variables(v, kwargs)
-            return new_dict
-        return obj
+        from agenta.sdk.utils.rendering import render_json_like
+
+        try:
+            return render_json_like(
+                value=obj,
+                mode=self.template_format,
+                context=kwargs,
+                path="llm_config.response_format",
+            )
+        except Exception as e:
+            raise self._template_error_from_structured_error(e) from e
 
     def format(self, **kwargs) -> "PromptTemplate":
         """
@@ -884,28 +926,20 @@ class PromptTemplate(AgSchemaMixin):
                     extra=extra if extra else None,
                 )
 
-        new_messages = []
-        for i, msg in enumerate(self.messages):
-            if msg.content:
-                try:
-                    new_content = self._format_with_template(msg.content, kwargs)
-                except TemplateFormatError as e:
-                    raise TemplateFormatError(
-                        f"Error in message {i} ({msg.role}): {str(e)}",
-                        original_error=e.original_error,
-                    )
-            else:
-                new_content = None
+        from agenta.sdk.utils.rendering import render_messages
 
-            new_messages.append(
-                Message(
-                    role=msg.role,
-                    content=new_content,
-                    name=msg.name,
-                    tool_calls=msg.tool_calls,
-                    tool_call_id=msg.tool_call_id,
-                )
+        try:
+            new_messages = render_messages(
+                messages=list(self.messages),
+                mode=self.template_format,
+                context=kwargs,
             )
+        except Exception as e:
+            template_error = self._template_error_from_structured_error(e)
+            raise TemplateFormatError(
+                f"Error in {getattr(e, 'path', 'messages')}: {str(template_error)}",
+                original_error=template_error.original_error,
+            ) from e
 
         new_llm_config = self._format_llm_config(self.llm_config, kwargs)
         new_fallback_configs = None
