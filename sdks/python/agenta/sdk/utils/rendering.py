@@ -22,7 +22,14 @@ MessageInput = Union["Message", Mapping[str, Any]]
 
 
 class StructuredRenderingError(ValueError):
-    """Raised when structured message or JSON-like rendering fails."""
+    """Raised when structured message or JSON-like rendering fails.
+
+    ``path`` is a logical data location, not a filesystem path. It points to the
+    field that failed to render, such as ``messages[0].content`` or
+    ``json_schema.schema.properties.score.description``. Callers use this to
+    wrap errors with service-specific exception types while keeping failures
+    easy to debug and assert in tests.
+    """
 
     def __init__(
         self,
@@ -46,6 +53,8 @@ def _render_string(
     context: Mapping[str, Any],
     path: str,
 ) -> str:
+    """Render one string and attach its logical location to any failure."""
+
     try:
         return render_template(template=value, mode=mode, context=context)
     except Exception as exc:
@@ -71,6 +80,13 @@ def _part_text(part: Any) -> Any:
 
 
 def _copy_part_with_text(part: Any, text: str) -> Any:
+    """Return a copy of a text content part with rendered text.
+
+    Content parts may arrive as plain dicts or Pydantic models. Preserve the
+    original shape so callers do not need to normalize messages before passing
+    them to the provider.
+    """
+
     if isinstance(part, Mapping):
         new_part = deepcopy(dict(part))
         new_part["text"] = text
@@ -83,6 +99,13 @@ def _copy_part_with_text(part: Any, text: str) -> Any:
 
 
 def _is_message_model(message: Any) -> bool:
+    """Detect Agenta-style message models without importing ``Message``.
+
+    ``types.py`` imports this module at runtime. Importing ``Message`` here would
+    create a circular import, so we validate the small structural contract this
+    renderer needs instead.
+    """
+
     return (
         isinstance(message, BaseModel)
         and hasattr(message, "model_copy")
@@ -124,6 +147,8 @@ def _render_content_part(
         return _copy_part_with_text(part, rendered_text)
 
     if part_type in {"image_url", "file"}:
+        # Non-text parts are provider payloads, not templates. Rendering nested
+        # strings inside them could corrupt image URLs, file IDs, or base64 data.
         return deepcopy(part)
 
     raise StructuredRenderingError(
@@ -261,7 +286,12 @@ def render_json_like(
     render_keys: bool = True,
     path: str = "value",
 ) -> Any:
-    """Recursively render strings in a JSON-like structure."""
+    """Recursively render strings in a JSON-like structure.
+
+    This is used for response-format objects such as chat/completion
+    ``response_format`` and judge ``json_schema``. It renders string values and,
+    by default, string keys. It does not validate JSON Schema correctness.
+    """
 
     if isinstance(value, str):
         return _render_string(value=value, mode=mode, context=context, path=path)
