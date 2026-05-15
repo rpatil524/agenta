@@ -796,7 +796,7 @@ class PromptTemplate(AgSchemaMixin):
 
         Preserves the chat/completion contract: rendering failures (missing
         variables, Jinja errors, unsupported formats) raise ``TemplateFormatError``
-        with the same message text the legacy implementation produced.
+        with stable, caller-facing messages.
         """
 
         if self.template_format not in ("curly", "fstring", "jinja2"):
@@ -840,6 +840,14 @@ class PromptTemplate(AgSchemaMixin):
         self,
         error: Exception,
     ) -> TemplateFormatError:
+        """Convert structured renderer failures to the public prompt error type.
+
+        ``PromptTemplate`` has long exposed ``TemplateFormatError`` with specific
+        messages for missing variables and Jinja failures. The structured
+        renderer reports better paths, but this class still owns the legacy
+        error contract.
+        """
+
         if not isinstance(error, StructuredRenderingError):
             return TemplateFormatError(str(error), original_error=error)
 
@@ -878,10 +886,10 @@ class PromptTemplate(AgSchemaMixin):
         )
 
     def _substitute_variables(self, obj: Any, kwargs: Dict[str, Any]) -> Any:
-        """Recursively substitute variables within strings of a JSON-like object.
+        """Render template strings inside response-format configuration.
 
-        This now processes placeholders in both keys and values so that
-        structures like ``{"my_{{var}}": "{{val}}"}`` are fully substituted.
+        Response-format schemas may contain placeholders in keys and values.
+        This helper renders both while preserving non-string leaves.
         """
         try:
             return render_json_like(

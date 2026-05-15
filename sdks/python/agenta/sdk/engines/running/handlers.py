@@ -183,7 +183,7 @@ def _format_with_template(
     """Format content via the shared rendering helper.
 
     Kept for compatibility with direct callers. Runtime handlers use the
-    structured renderers so Jinja failures now raise consistently.
+    structured renderers, which raise on Jinja failures.
     """
 
     if format not in ("curly", "fstring", "jinja2"):

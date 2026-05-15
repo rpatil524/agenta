@@ -1,8 +1,8 @@
 """Structured rendering helpers for prompt messages and JSON-like objects.
 
-This module sits one layer above ``render_template``. It knows where strings
-can appear inside prompt messages and response-format structures, but it has no
-runtime, provider, secret, or handler knowledge.
+This module sits one layer above ``render_template``. It knows which fields in
+prompt messages and response-format structures may contain templates. It does
+not know how handlers call providers or parse model responses.
 """
 
 from __future__ import annotations
@@ -252,7 +252,8 @@ def render_messages(
     """Render text-bearing fields inside prompt messages.
 
     Supports Agenta ``Message`` objects and dict-like messages. String content
-    and text content parts are rendered. Known non-text parts are preserved.
+    and text content parts are rendered. Known non-text parts are preserved so
+    provider payloads such as images, audio, files, and refusals are not mutated.
     """
 
     if isinstance(messages, (str, bytes, Mapping)):
