@@ -52,15 +52,22 @@ def test_render_messages_renders_text_parts_and_preserves_non_text_parts():
         "type": "image_url",
         "image_url": {"url": "https://example.com/image.png"},
     }
+    audio_part = {
+        "type": "input_audio",
+        "input_audio": {"data": "base64", "format": "wav"},
+    }
     file_part = {"type": "file", "file": {"file_id": "file-1"}}
+    refusal_part = {"type": "refusal", "refusal": "I cannot help with that."}
     messages = [
         {
             "role": "user",
             "content": [
                 {"type": "text", "text": "Hello {{name}}"},
                 image_part,
+                audio_part,
                 {"type": "text", "text": "Bye {{name}}"},
                 file_part,
+                refusal_part,
             ],
         }
     ]
@@ -74,8 +81,10 @@ def test_render_messages_renders_text_parts_and_preserves_non_text_parts():
     assert rendered[0]["content"] == [
         {"type": "text", "text": "Hello Ada"},
         image_part,
+        audio_part,
         {"type": "text", "text": "Bye Ada"},
         file_part,
+        refusal_part,
     ]
     assert messages[0]["content"][0]["text"] == "Hello {{name}}"
 

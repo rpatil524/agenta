@@ -146,9 +146,10 @@ def _render_content_part(
         )
         return _copy_part_with_text(part, rendered_text)
 
-    if part_type in {"image_url", "file"}:
+    if part_type in {"image_url", "input_audio", "file", "refusal"}:
         # Non-text parts are provider payloads, not templates. Rendering nested
-        # strings inside them could corrupt image URLs, file IDs, or base64 data.
+        # strings inside them could corrupt image URLs, audio, file IDs, base64
+        # data, or provider-authored refusal payloads.
         return deepcopy(part)
 
     raise StructuredRenderingError(
