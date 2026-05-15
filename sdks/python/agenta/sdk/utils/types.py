@@ -493,8 +493,8 @@ class InputValidationError(PromptTemplateError):
 class TemplateFormatError(PromptTemplateError):
     """Raised when template formatting fails"""
 
-    def __init__(self, message: str, original_error: Optional[Exception] = None):
-        self.original_error = original_error
+    def __init__(self, message: str, error: Optional[Exception] = None):
+        self.error = error
         super().__init__(message)
 
 
@@ -829,11 +829,11 @@ class PromptTemplate(AgSchemaMixin):
             if TemplateError is not None and isinstance(e, TemplateError):
                 raise TemplateFormatError(
                     f"Jinja2 template error in content: '{content}'. Error: {str(e)}",
-                    original_error=e,
+                    error=e,
                 )
             raise TemplateFormatError(
                 f"Error formatting template '{content}': {str(e)}",
-                original_error=e,
+                error=e,
             )
 
     def _template_error_from_structured_error(
@@ -844,45 +844,45 @@ class PromptTemplate(AgSchemaMixin):
 
         ``PromptTemplate`` has long exposed ``TemplateFormatError`` with specific
         messages for missing variables and Jinja failures. The structured
-        renderer reports better paths, but this class still owns the legacy
+        renderer reports better locations, but this class still owns the legacy
         error contract.
         """
 
         if not isinstance(error, StructuredRenderingError):
-            return TemplateFormatError(str(error), original_error=error)
+            return TemplateFormatError(str(error), error=error)
 
-        original_error = error.original_error
+        renderer_error = error.error
         template = error.template or ""
 
-        if isinstance(original_error, UnresolvedVariablesError):
-            suffix = f" Hint: {original_error.hint}" if original_error.hint else ""
+        if isinstance(renderer_error, UnresolvedVariablesError):
+            suffix = f" Hint: {renderer_error.hint}" if renderer_error.hint else ""
             return TemplateFormatError(
                 f"Unreplaced variables in curly template: "
-                f"{sorted(original_error.unresolved)}.{suffix}",
-                original_error=original_error,
+                f"{sorted(renderer_error.unresolved)}.{suffix}",
+                error=renderer_error,
             )
 
-        if isinstance(original_error, KeyError):
-            key = str(original_error).strip("'")
+        if isinstance(renderer_error, KeyError):
+            key = str(renderer_error).strip("'")
             return TemplateFormatError(
                 f"Missing required variable '{key}' in template: '{template}'",
-                original_error=original_error,
+                error=renderer_error,
             )
 
         try:
             _, TemplateError = _load_jinja2()
         except ImportError:
             TemplateError = None
-        if TemplateError is not None and isinstance(original_error, TemplateError):
+        if TemplateError is not None and isinstance(renderer_error, TemplateError):
             return TemplateFormatError(
                 f"Jinja2 template error in content: '{template}'. "
-                f"Error: {str(original_error)}",
-                original_error=original_error,
+                f"Error: {str(renderer_error)}",
+                error=renderer_error,
             )
 
         return TemplateFormatError(
             f"Error formatting template '{template}': {str(error)}",
-            original_error=original_error or error,
+            error=renderer_error or error,
         )
 
     def _substitute_variables(self, obj: Any, kwargs: Dict[str, Any]) -> Any:
@@ -893,10 +893,10 @@ class PromptTemplate(AgSchemaMixin):
         """
         try:
             return render_json_like(
-                value=obj,
+                json_like=obj,
                 mode=self.template_format,
                 context=kwargs,
-                path="llm_config.response_format",
+                location="llm_config.response_format",
             )
         except Exception as e:
             raise self._template_error_from_structured_error(e) from e
@@ -939,8 +939,8 @@ class PromptTemplate(AgSchemaMixin):
         except Exception as e:
             template_error = self._template_error_from_structured_error(e)
             raise TemplateFormatError(
-                f"Error in {getattr(e, 'path', 'messages')}: {str(template_error)}",
-                original_error=template_error.original_error,
+                f"Error in {getattr(e, 'location', 'messages')}: {str(template_error)}",
+                error=template_error.error,
             ) from e
 
         new_llm_config = self._format_llm_config(self.llm_config, kwargs)

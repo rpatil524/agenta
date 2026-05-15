@@ -24,8 +24,8 @@ MessageInput = Union["Message", Mapping[str, Any]]
 class StructuredRenderingError(ValueError):
     """Raised when structured message or JSON-like rendering fails.
 
-    ``path`` is a logical data location, not a filesystem path. It points to the
-    field that failed to render, such as ``messages[0].content`` or
+    ``location`` is a logical data location, not a filesystem path. It points to
+    the field that failed to render, such as ``messages[0].content`` or
     ``json_schema.schema.properties.score.description``. Callers use this to
     wrap errors with service-specific exception types while keeping failures
     easy to debug and assert in tests.
@@ -34,35 +34,35 @@ class StructuredRenderingError(ValueError):
     def __init__(
         self,
         *,
-        path: str,
+        location: str,
         message: str,
-        original_error: Optional[BaseException] = None,
+        error: Optional[BaseException] = None,
         template: Optional[str] = None,
     ) -> None:
-        self.path = path
+        self.location = location
         self.message = message
-        self.original_error = original_error
+        self.error = error
         self.template = template
-        super().__init__(f"{path}: {message}")
+        super().__init__(f"{location}: {message}")
 
 
 def _render_string(
     *,
-    value: str,
+    template: str,
     mode: TemplateMode,
     context: Mapping[str, Any],
-    path: str,
+    location: str,
 ) -> str:
     """Render one string and attach its logical location to any failure."""
 
     try:
-        return render_template(template=value, mode=mode, context=context)
+        return render_template(template=template, mode=mode, context=context)
     except Exception as exc:
         raise StructuredRenderingError(
-            path=path,
+            location=location,
             message=str(exc),
-            original_error=exc,
-            template=value,
+            error=exc,
+            template=template,
         ) from exc
 
 
@@ -116,129 +116,122 @@ def _is_message_model(message: Any) -> bool:
 
 def _render_content_part(
     *,
-    part: Any,
+    template: Any,
     mode: TemplateMode,
     context: Mapping[str, Any],
-    message_index: int,
-    part_index: int,
+    location: str,
 ) -> Any:
-    path = f"messages[{message_index}].content[{part_index}]"
-    part_type = _part_type(part)
+    part_type = _part_type(template)
 
     if part_type is None:
         raise StructuredRenderingError(
-            path=path,
+            location=location,
             message="content part must include a string 'type' field",
         )
 
     if part_type == "text":
-        text = _part_text(part)
+        text = _part_text(template)
         if not isinstance(text, str):
             raise StructuredRenderingError(
-                path=path,
+                location=location,
                 message="text content part must include a string 'text' field",
             )
         rendered_text = _render_string(
-            value=text,
+            template=text,
             mode=mode,
             context=context,
-            path=f"{path}.text",
+            location=f"{location}.text",
         )
-        return _copy_part_with_text(part, rendered_text)
+        return _copy_part_with_text(template, rendered_text)
 
     if part_type in {"image_url", "input_audio", "file", "refusal"}:
         # Non-text parts are provider payloads, not templates. Rendering nested
         # strings inside them could corrupt image URLs, audio, file IDs, base64
         # data, or provider-authored refusal payloads.
-        return deepcopy(part)
+        return deepcopy(template)
 
     raise StructuredRenderingError(
-        path=path,
+        location=location,
         message=f"unsupported content part type: {part_type}",
     )
 
 
 def _render_message_content(
     *,
-    content: Any,
+    template: Any,
     mode: TemplateMode,
     context: Mapping[str, Any],
-    message_index: int,
+    location: str,
 ) -> Any:
-    path = f"messages[{message_index}].content"
-
-    if content is None:
+    if template is None:
         return None
 
-    if isinstance(content, str):
+    if isinstance(template, str):
         return _render_string(
-            value=content,
+            template=template,
             mode=mode,
             context=context,
-            path=path,
+            location=location,
         )
 
-    if isinstance(content, list):
+    if isinstance(template, list):
         return [
             _render_content_part(
-                part=part,
+                template=part,
                 mode=mode,
                 context=context,
-                message_index=message_index,
-                part_index=part_index,
+                location=f"{location}[{part_index}]",
             )
-            for part_index, part in enumerate(content)
+            for part_index, part in enumerate(template)
         ]
 
     raise StructuredRenderingError(
-        path=path,
+        location=location,
         message="content must be None, a string, or a list of known content parts",
     )
 
 
 def _render_message(
     *,
-    message: MessageInput,
+    template: MessageInput,
     mode: TemplateMode,
     context: Mapping[str, Any],
-    message_index: int,
+    location: str,
 ) -> MessageInput:
-    path = f"messages[{message_index}]"
-
-    if _is_message_model(message):
-        role = getattr(message, "role", None)
+    if _is_message_model(template):
+        role = getattr(template, "role", None)
         if not isinstance(role, str):
             raise StructuredRenderingError(
-                path=f"{path}.role",
+                location=f"{location}.role",
                 message="message role must be a string",
             )
         rendered_content = _render_message_content(
-            content=message.content,
+            template=template.content,
             mode=mode,
             context=context,
-            message_index=message_index,
+            location=f"{location}.content",
         )
-        return message.model_copy(update={"content": rendered_content}, deep=True)
+        return template.model_copy(update={"content": rendered_content}, deep=True)
 
-    if not isinstance(message, Mapping):
+    if not isinstance(template, Mapping):
         raise StructuredRenderingError(
-            path=path,
+            location=location,
             message="message must be an Agenta Message object or mapping",
         )
 
-    role = message.get("role")
+    role = template.get("role")
     if not isinstance(role, str):
         raise StructuredRenderingError(
-            path=f"{path}.role",
+            location=f"{location}.role",
             message="message role must be a string",
         )
 
-    rendered = deepcopy(dict(message))
+    rendered = deepcopy(dict(template))
     rendered["content"] = _render_message_content(
-        content=message.get("content"),
+        template=template.get("content"),
         mode=mode,
         context=context,
-        message_index=message_index,
+        location=f"{location}.content",
     )
     return rendered
 
@@ -258,23 +251,23 @@ def render_messages(
 
     if isinstance(messages, (str, bytes, Mapping)):
         raise StructuredRenderingError(
-            path="messages",
+            location="messages",
             message="messages must be a sequence of Message objects or mappings",
         )
     try:
         message_list = list(messages)
     except TypeError as exc:
         raise StructuredRenderingError(
-            path="messages",
+            location="messages",
             message="messages must be a sequence of Message objects or mappings",
         ) from exc
 
     return [
         _render_message(
-            message=message,
+            template=message,
             mode=mode,
             context=context,
-            message_index=message_index,
+            location=f"messages[{message_index}]",
         )
         for message_index, message in enumerate(message_list)
     ]
@@ -282,57 +275,63 @@ def render_messages(
 
 def render_json_like(
     *,
-    value: Any,
+    json_like: Any,
     mode: TemplateMode,
     context: Mapping[str, Any],
+    location: str = "value",
     render_keys: bool = True,
-    path: str = "value",
 ) -> Any:
     """Recursively render strings in a JSON-like structure.
 
     This is used for response-format objects such as chat/completion
-    ``response_format`` and judge ``json_schema``. It renders string values and,
-    by default, string keys. It does not validate JSON Schema correctness.
+    ``response_format`` and judge ``json_schema``. It renders string values.
+    When ``render_keys`` is true, it also renders string keys in mappings. It
+    does not validate JSON Schema correctness.
     """
 
-    if isinstance(value, str):
-        return _render_string(value=value, mode=mode, context=context, path=path)
+    if isinstance(json_like, str):
+        return _render_string(
+            template=json_like,
+            mode=mode,
+            context=context,
+            location=location,
+        )
 
-    if isinstance(value, list):
+    if isinstance(json_like, list):
         return [
             render_json_like(
-                value=item,
+                json_like=item,
                 mode=mode,
                 context=context,
+                location=f"{location}[{index}]",
                 render_keys=render_keys,
-                path=f"{path}[{index}]",
             )
-            for index, item in enumerate(value)
+            for index, item in enumerate(json_like)
         ]
 
-    if isinstance(value, Mapping):
+    if isinstance(json_like, Mapping):
         rendered: dict[Any, Any] = {}
-        for key, item in value.items():
+        for key, item in json_like.items():
             rendered_key = key
             if render_keys and isinstance(key, str):
                 rendered_key = _render_string(
-                    value=key,
+                    template=key,
                     mode=mode,
                     context=context,
-                    path=f"{path}.<key:{key}>",
+                    location=f"{location}.<key:{key}>",
                 )
             if rendered_key in rendered:
                 raise StructuredRenderingError(
-                    path=f"{path}.<key:{key}>",
+                    location=f"{location}.<key:{key}>",
                     message=f"rendered key collision for {rendered_key!r}",
                 )
             rendered[rendered_key] = render_json_like(
-                value=item,
+                json_like=item,
                 mode=mode,
                 context=context,
+                location=f"{location}.{rendered_key}",
                 render_keys=render_keys,
-                path=f"{path}.{rendered_key}",
             )
         return rendered
 
-    return deepcopy(value)
+    return deepcopy(json_like)

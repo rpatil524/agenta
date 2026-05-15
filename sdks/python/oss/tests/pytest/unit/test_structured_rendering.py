@@ -142,7 +142,7 @@ def test_render_messages_jinja_errors_are_inspectable():
         )
 
     assert "messages[0].content" in str(exc_info.value)
-    assert exc_info.value.original_error is not None
+    assert exc_info.value.error is not None
 
 
 def test_render_json_like_renders_nested_values_and_keys_without_mutation():
@@ -155,10 +155,10 @@ def test_render_json_like_renders_nested_values_and_keys_without_mutation():
     original = deepcopy(value)
 
     rendered = render_json_like(
-        value=value,
+        json_like=value,
         mode="curly",
         context={"field": "verdict", "question": "2+2?", "answer": "4"},
-        path="json_schema",
+        location="json_schema",
     )
 
     assert rendered == {
@@ -172,7 +172,7 @@ def test_render_json_like_renders_nested_values_and_keys_without_mutation():
 
 def test_render_json_like_can_preserve_keys():
     rendered = render_json_like(
-        value={"{{field}}": "{{value}}"},
+        json_like={"{{field}}": "{{value}}"},
         mode="curly",
         context={"field": "name", "value": "Ada"},
         render_keys=False,
@@ -184,7 +184,7 @@ def test_render_json_like_can_preserve_keys():
 def test_render_json_like_raises_on_key_collision():
     with pytest.raises(StructuredRenderingError) as exc_info:
         render_json_like(
-            value={"{{field}}": 1, "name": 2},
+            json_like={"{{field}}": 1, "name": 2},
             mode="curly",
             context={"field": "name"},
         )
@@ -195,10 +195,10 @@ def test_render_json_like_raises_on_key_collision():
 def test_render_json_like_error_path_identifies_nested_value():
     with pytest.raises(StructuredRenderingError) as exc_info:
         render_json_like(
-            value={"schema": {"properties": {"score": "{{missing}}"}}},
+            json_like={"schema": {"properties": {"score": "{{missing}}"}}},
             mode="curly",
             context={},
-            path="json_schema",
+            location="json_schema",
         )
 
     assert "json_schema.schema.properties.score" in str(exc_info.value)

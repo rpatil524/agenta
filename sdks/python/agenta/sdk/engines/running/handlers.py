@@ -1015,10 +1015,10 @@ async def auto_ai_critique_v0(
         response_format: dict = dict(type=response_type)
         if response_type == "json_schema":
             response_format["json_schema"] = render_json_like(
-                value=json_schema,
+                json_like=json_schema,
                 mode=template_format,
                 context=context,
-                path="json_schema",
+                location="json_schema",
             )
     except Exception as e:
         raise PromptFormattingV0Error(

@@ -118,9 +118,10 @@ def render_messages(
 
 def render_json_like(
     *,
-    value: Any,
+    json_like: Any,
     mode: TemplateMode,
     context: Mapping[str, Any],
+    location: str = "value",
     render_keys: bool = True,
 ) -> Any:
     ...
@@ -149,7 +150,7 @@ This contract matches the current local `Message` model. It also keeps us aligne
 
 `render_messages(...)` renders message text only. It preserves all other message fields.
 
-`render_json_like(...)` recursively walks dicts and lists. It renders string values. It renders string keys when `render_keys` is true. It leaves numbers, booleans, null, dicts, and lists as their original types except for strings that contain templates.
+`render_json_like(...)` recursively walks dicts and lists. It renders string values. It renders string keys when `render_keys` is true. Use `render_keys=False` when caller data may contain literal keys that must not be treated as templates. It leaves numbers, booleans, null, dicts, and lists as their original types except for strings that contain templates.
 
 The low-level helper stays responsible for mode rules. The structured renderer only decides where templates can appear inside a message or JSON-like object.
 

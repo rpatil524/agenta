@@ -132,7 +132,7 @@ Test malformed or unsupported JSON-like input.
 
 - Raise on unresolved variables inside nested values.
 - Raise on unresolved variables inside rendered keys.
-- Include a path such as `json_schema.schema.properties.label.description` in JSON-renderer errors when possible.
+- Include a location such as `json_schema.schema.properties.label.description` in JSON-renderer errors when possible.
 - Do not partially mutate the input object when rendering fails.
 - Handle rendered key collisions deliberately. The preferred behavior is to raise.
 
