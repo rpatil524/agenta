@@ -526,9 +526,33 @@ const sidebar: SidebarsConfig = {
         },
         {
           type: "doc",
+          id: "reference/api/validate-agent-template",
+          label: "Validate Template",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/query-agent-templates",
+          label: "Query Templates",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/scan-agent-template-source",
+          label: "Scan Template Source",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
           id: "reference/api/load-agent-template",
           label: "Load Template",
           className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/fetch-agent-template",
+          label: "Fetch Template",
+          className: "api-method get",
         },
         {
           type: "doc",
@@ -3118,6 +3142,12 @@ const sidebar: SidebarsConfig = {
         },
         {
           type: "doc",
+          id: "reference/api/upload-session-cwd-file",
+          label: "Upload Session Cwd File",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
           id: "reference/api/upload-session-mount-file",
           label: "Upload Session Mount File",
           className: "api-method post",
@@ -3144,6 +3174,12 @@ const sidebar: SidebarsConfig = {
           type: "doc",
           id: "reference/api/ingest-record",
           label: "Ingest Record Event",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/mark-records-incomplete",
+          label: "Mark Records Incomplete",
           className: "api-method post",
         },
         {
@@ -3562,6 +3598,24 @@ const sidebar: SidebarsConfig = {
         },
         {
           type: "doc",
+          id: "reference/api/create-top-up-checkout",
+          label: "Create Top Up Checkout User Route",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/fetch-top-up-packs",
+          label: "Fetch Top Up Packs User Route",
+          className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "reference/api/fetch-top-up-purchase",
+          label: "Fetch Top Up Purchase User Route",
+          className: "api-method get",
+        },
+        {
+          type: "doc",
           id: "reference/api/fetch-plans",
           label: "Fetch Plan User Route",
           className: "api-method get",
@@ -3852,6 +3906,24 @@ const sidebar: SidebarsConfig = {
     },
     {
       type: "category",
+      label: "Wallets",
+      items: [
+        {
+          type: "doc",
+          id: "reference/api/fetch-wallet-summary",
+          label: "Fetch Summary",
+          className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "reference/api/query-wallet-usage",
+          label: "Query Usage",
+          className: "api-method post",
+        },
+      ],
+    },
+    {
+      type: "category",
       label: "Events",
       items: [
         {
@@ -4048,6 +4120,12 @@ const sidebar: SidebarsConfig = {
         },
         {
           type: "doc",
+          id: "reference/api/record-mcp-endpoint-check",
+          label: "Record Endpoint Check",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
           id: "reference/api/connect-mcp-endpoint",
           label: "Connect Endpoint",
           className: "api-method post",
@@ -4056,6 +4134,18 @@ const sidebar: SidebarsConfig = {
           type: "doc",
           id: "reference/api/disconnect-mcp-endpoint",
           label: "Disconnect Endpoint",
+          className: "api-method delete",
+        },
+        {
+          type: "doc",
+          id: "reference/api/fetch-mcp-connect-attempt",
+          label: "Fetch Connect Attempt",
+          className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "reference/api/cancel-mcp-connect-attempt",
+          label: "Cancel Connect Attempt",
           className: "api-method delete",
         },
       ],
