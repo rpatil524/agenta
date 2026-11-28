@@ -502,6 +502,12 @@ const sidebar: SidebarsConfig = {
         },
         {
           type: "doc",
+          id: "reference/api/query-workflow-revision-requirements",
+          label: "Query Workflow Revision Requirements",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
           id: "reference/api/query-workflow-revisions",
           label: "Query Workflow Revisions",
           className: "api-method post",
@@ -526,9 +532,33 @@ const sidebar: SidebarsConfig = {
         },
         {
           type: "doc",
+          id: "reference/api/validate-agent-template",
+          label: "Validate Template",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/query-agent-templates",
+          label: "Query Templates",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/scan-agent-template-source",
+          label: "Scan Template Source",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
           id: "reference/api/load-agent-template",
           label: "Load Template",
           className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/fetch-agent-template",
+          label: "Fetch Template",
+          className: "api-method get",
         },
         {
           type: "doc",
@@ -2250,14 +2280,20 @@ const sidebar: SidebarsConfig = {
       items: [
         {
           type: "doc",
+          id: "reference/api/create-secret",
+          label: "Create Secret",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
           id: "reference/api/list-secrets",
           label: "List Secrets",
           className: "api-method get",
         },
         {
           type: "doc",
-          id: "reference/api/create-secret",
-          label: "Create Secret",
+          id: "reference/api/resolve-secrets",
+          label: "Resolve Secrets",
           className: "api-method post",
         },
         {
@@ -2277,6 +2313,18 @@ const sidebar: SidebarsConfig = {
           id: "reference/api/delete-secret",
           label: "Delete Secret",
           className: "api-method delete",
+        },
+        {
+          type: "doc",
+          id: "reference/api/set-secret-projects",
+          label: "Set Secret Projects",
+          className: "api-method put",
+        },
+        {
+          type: "doc",
+          id: "reference/api/set-subscription-token",
+          label: "Set Subscription Token",
+          className: "api-method put",
         },
         {
           type: "doc",
@@ -2406,6 +2454,12 @@ const sidebar: SidebarsConfig = {
           type: "doc",
           id: "reference/api/revoke-tool-connection",
           label: "Revoke Connection",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/make-default-tool-connection",
+          label: "Make Default Connection",
           className: "api-method post",
         },
         {
@@ -2688,6 +2742,12 @@ const sidebar: SidebarsConfig = {
         },
         {
           type: "doc",
+          id: "reference/api/ingest-teams-event",
+          label: "Ingest Teams Event",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
           id: "reference/api/ingest-bridge-event",
           label: "Ingest Bridge Event",
           className: "api-method post",
@@ -2697,6 +2757,42 @@ const sidebar: SidebarsConfig = {
           id: "reference/api/ingest-agenta-event",
           label: "Ingest Agenta Event",
           className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/ingest-embed-event",
+          label: "Ingest Embed Event",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/fetch-embed-config",
+          label: "Fetch Embed Config",
+          className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "reference/api/list-embed-conversations",
+          label: "List Embed Conversations",
+          className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "reference/api/read-embed-conversation",
+          label: "Read Embed Conversation",
+          className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "reference/api/stream-embed-conversation",
+          label: "Stream Embed Conversation",
+          className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "reference/api/download-embed-file",
+          label: "Download Embed File",
+          className: "api-method get",
         },
         {
           type: "doc",
@@ -2775,6 +2871,18 @@ const sidebar: SidebarsConfig = {
           id: "reference/api/fetch-channel-connection-setup",
           label: "Fetch Channel Connection Setup",
           className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "reference/api/query-channel-people",
+          label: "Query Channel People",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/refresh-channel-people",
+          label: "Refresh Channel People",
+          className: "api-method post",
         },
         {
           type: "doc",
@@ -3118,6 +3226,12 @@ const sidebar: SidebarsConfig = {
         },
         {
           type: "doc",
+          id: "reference/api/upload-session-cwd-file",
+          label: "Upload Session Cwd File",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
           id: "reference/api/upload-session-mount-file",
           label: "Upload Session Mount File",
           className: "api-method post",
@@ -3144,6 +3258,12 @@ const sidebar: SidebarsConfig = {
           type: "doc",
           id: "reference/api/ingest-record",
           label: "Ingest Record Event",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/mark-records-incomplete",
+          label: "Mark Records Incomplete",
           className: "api-method post",
         },
         {
@@ -3290,6 +3410,12 @@ const sidebar: SidebarsConfig = {
           type: "doc",
           id: "reference/api/query-mounts",
           label: "Query Mounts",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/sign-mount-credentials-by-slug",
+          label: "Sign Mount Credentials By Slug",
           className: "api-method post",
         },
         {
@@ -3559,6 +3685,24 @@ const sidebar: SidebarsConfig = {
           id: "reference/api/create-checkout",
           label: "Create Checkout User Route",
           className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/create-top-up-checkout",
+          label: "Create Top Up Checkout User Route",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/fetch-top-up-packs",
+          label: "Fetch Top Up Packs User Route",
+          className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "reference/api/fetch-top-up-purchase",
+          label: "Fetch Top Up Purchase User Route",
+          className: "api-method get",
         },
         {
           type: "doc",
@@ -3852,6 +3996,24 @@ const sidebar: SidebarsConfig = {
     },
     {
       type: "category",
+      label: "Wallets",
+      items: [
+        {
+          type: "doc",
+          id: "reference/api/fetch-wallet-summary",
+          label: "Fetch Summary",
+          className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "reference/api/query-wallet-usage",
+          label: "Query Usage",
+          className: "api-method post",
+        },
+      ],
+    },
+    {
+      type: "category",
       label: "Events",
       items: [
         {
@@ -3931,6 +4093,66 @@ const sidebar: SidebarsConfig = {
           id: "reference/api/query-registry-skills",
           label: "Query Registry Skills",
           className: "api-method post",
+        },
+      ],
+    },
+    {
+      type: "category",
+      label: "Account Choices",
+      items: [
+        {
+          type: "doc",
+          id: "reference/api/upsert-account-choice",
+          label: "Upsert Account Choice",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/query-account-choices",
+          label: "Query Account Choices",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/resolve-account-choices",
+          label: "Resolve Account Choices",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/fetch-account-choice",
+          label: "Fetch Account Choice",
+          className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "reference/api/delete-account-choice",
+          label: "Delete Account Choice",
+          className: "api-method delete",
+        },
+      ],
+    },
+    {
+      type: "category",
+      label: "Approval Choices",
+      items: [
+        {
+          type: "doc",
+          id: "reference/api/create-approval-choice",
+          label: "Create Approval Choice",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/query-approval-choices",
+          label: "Query Approval Choices",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/delete-approval-choice",
+          label: "Delete Approval Choice",
+          className: "api-method delete",
         },
       ],
     },
@@ -4048,6 +4270,12 @@ const sidebar: SidebarsConfig = {
         },
         {
           type: "doc",
+          id: "reference/api/record-mcp-endpoint-check",
+          label: "Record Endpoint Check",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
           id: "reference/api/connect-mcp-endpoint",
           label: "Connect Endpoint",
           className: "api-method post",
@@ -4057,6 +4285,138 @@ const sidebar: SidebarsConfig = {
           id: "reference/api/disconnect-mcp-endpoint",
           label: "Disconnect Endpoint",
           className: "api-method delete",
+        },
+        {
+          type: "doc",
+          id: "reference/api/fetch-mcp-connect-attempt",
+          label: "Fetch Connect Attempt",
+          className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "reference/api/cancel-mcp-connect-attempt",
+          label: "Cancel Connect Attempt",
+          className: "api-method delete",
+        },
+      ],
+    },
+    {
+      type: "category",
+      label: "Instance",
+      items: [
+        {
+          type: "doc",
+          id: "reference/api/fetch-instance-telemetry",
+          label: "Fetch Instance Telemetry",
+          className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "reference/api/fetch-instance-license",
+          label: "Fetch Instance License",
+          className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "reference/api/activate-instance-license",
+          label: "Activate Instance License",
+          className: "api-method put",
+        },
+        {
+          type: "doc",
+          id: "reference/api/fetch-license-usage",
+          label: "Fetch License Usage",
+          className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "reference/api/create-instance-registration",
+          label: "Create Instance Registration",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/dismiss-instance-registration-offer",
+          label: "Dismiss Instance Registration Offer",
+          className: "api-method post",
+        },
+      ],
+    },
+    {
+      type: "category",
+      label: "Sharing",
+      items: [
+        {
+          type: "doc",
+          id: "reference/api/fetch-agent-sharing",
+          label: "Fetch Agent Sharing",
+          className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "reference/api/set-agent-visibility",
+          label: "Set Agent Visibility",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/transfer-agent",
+          label: "Transfer Agent",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/take-agent-ownership",
+          label: "Take Agent Ownership",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/fetch-session-sharing",
+          label: "Fetch Session Sharing",
+          className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "reference/api/upsert-session-grant",
+          label: "Upsert Session Grant",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/revoke-session-grant",
+          label: "Revoke Session Grant",
+          className: "api-method delete",
+        },
+        {
+          type: "doc",
+          id: "reference/api/set-session-visibility",
+          label: "Set Session Visibility",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/restrict-session-to-owner",
+          label: "Restrict Session To Owner",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "reference/api/query-sharing-members",
+          label: "Query Sharing Members",
+          className: "api-method post",
+        },
+      ],
+    },
+    {
+      type: "category",
+      label: "Releases",
+      items: [
+        {
+          type: "doc",
+          id: "reference/api/fetch-instance-releases",
+          label: "Fetch Instance Releases",
+          className: "api-method get",
         },
       ],
     },
